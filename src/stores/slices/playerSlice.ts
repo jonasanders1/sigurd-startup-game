@@ -12,8 +12,8 @@ export interface PlayerSlice {
 const createInitialPlayer = (): Player => ({
   x: GAME_CONFIG.CANVAS_WIDTH / 2,
   y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-  width: GAME_CONFIG.PLAYER_SIZE,
-  height: GAME_CONFIG.PLAYER_SIZE,
+  width: GAME_CONFIG.PLAYER_WIDTH,
+  height: GAME_CONFIG.PLAYER_HEIGHT,
   color: COLORS.PLAYER,
   velocityX: 0,
   velocityY: 0,

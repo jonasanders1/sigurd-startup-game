@@ -1,8 +1,8 @@
-
 export const GAME_CONFIG = {
     CANVAS_WIDTH: 800,
     CANVAS_HEIGHT: 600,
-    PLAYER_SIZE: 20,
+    PLAYER_HEIGHT: 32,
+    PLAYER_WIDTH: 22,
     BOMB_SIZE: 16,
     MONSTER_SIZE: 18,
     PLATFORM_HEIGHT: 20,
@@ -33,7 +33,7 @@ export const GAME_CONFIG = {
   
   // Development Mode Configuration
   export const DEV_CONFIG = {
-    ENABLED: true, // Set to false to disable dev mode
+    ENABLED: false, // Set to false to disable dev mode
     TARGET_STATE: 'GAME_OVER', // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'BONUS', 'VICTORY', 'GAME_OVER'
     MOCK_DATA: {
       score: 15000,

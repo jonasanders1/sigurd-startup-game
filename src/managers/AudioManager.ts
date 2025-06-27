@@ -4,11 +4,12 @@ export class AudioManager {
   private audioContext: AudioContext | null = null;
   private backgroundMusicGain: GainNode | null = null;
   private isBackgroundMusicPlaying = false;
-  private backgroundMusicTimeout: number | null = null;
-  private activeOscillators: OscillatorNode[] = [];
+  private backgroundMusicBuffer: AudioBuffer | null = null;
+  private backgroundMusicSource: AudioBufferSourceNode | null = null;
 
   constructor() {
     this.initializeAudioContext();
+    this.loadBackgroundMusic();
   }
 
   private initializeAudioContext(): void {
@@ -16,9 +17,22 @@ export class AudioManager {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       this.backgroundMusicGain = this.audioContext.createGain();
       this.backgroundMusicGain.connect(this.audioContext.destination);
-      this.backgroundMusicGain.gain.value = 0.1; // Low volume for background music
+      this.backgroundMusicGain.gain.value = 1; // Low volume for background music
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
+    }
+  }
+
+  private async loadBackgroundMusic(): Promise<void> {
+    if (!this.audioContext) return;
+
+    try {
+      const response = await fetch('/audio/background-music.wav');
+      const arrayBuffer = await response.arrayBuffer();
+      this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      console.log('🎵 Background music loaded successfully');
+    } catch (error) {
+      console.warn('Failed to load background music:', error);
     }
   }
 
@@ -59,21 +73,15 @@ export class AudioManager {
     console.log('🛑 AudioManager: Stopping background music');
     this.isBackgroundMusicPlaying = false;
     
-    // Clear any pending timeout for the next melody loop
-    if (this.backgroundMusicTimeout !== null) {
-      clearTimeout(this.backgroundMusicTimeout);
-      this.backgroundMusicTimeout = null;
-    }
-
-    // Stop all active oscillators immediately
-    this.activeOscillators.forEach(oscillator => {
+    // Stop the current audio source if playing
+    if (this.backgroundMusicSource) {
       try {
-        oscillator.stop();
+        this.backgroundMusicSource.stop();
       } catch (error) {
-        // Oscillator might already be stopped, ignore error
+        // Source might already be stopped, ignore error
       }
-    });
-    this.activeOscillators = [];
+      this.backgroundMusicSource = null;
+    }
   }
 
   private playBombCollectSound(): void {
@@ -171,62 +179,41 @@ export class AudioManager {
   }
 
   private startBackgroundMusic(): void {
-    if (!this.audioContext || this.isBackgroundMusicPlaying) return;
+    if (!this.audioContext || this.isBackgroundMusicPlaying || !this.backgroundMusicBuffer) return;
 
     console.log('🎵 AudioManager: Starting background music');
     this.isBackgroundMusicPlaying = true;
-    this.playBackgroundMelody();
+    this.playBackgroundMusicFile();
   }
 
-  private playBackgroundMelody(): void {
-    if (!this.audioContext || !this.backgroundMusicGain || !this.isBackgroundMusicPlaying) return;
+  private playBackgroundMusicFile(): void {
+    if (!this.audioContext || !this.backgroundMusicGain || !this.backgroundMusicBuffer || !this.isBackgroundMusicPlaying) return;
 
-    // Simple repeating melody
-    const melody = [
-      { freq: 440, duration: 0.5 }, // A4
-      { freq: 493.88, duration: 0.5 }, // B4
-      { freq: 523.25, duration: 0.5 }, // C5
-      { freq: 587.33, duration: 0.5 }, // D5
-      { freq: 523.25, duration: 0.5 }, // C5
-      { freq: 493.88, duration: 0.5 }, // B4
-      { freq: 440, duration: 1.0 }, // A4
-    ];
-
-    let time = this.audioContext.currentTime;
-
-    melody.forEach(note => {
-      if (!this.audioContext || !this.backgroundMusicGain || !this.isBackgroundMusicPlaying) return;
-
-      const oscillator = this.audioContext.createOscillator();
-      oscillator.connect(this.backgroundMusicGain);
-
-      oscillator.type = 'triangle';
-      oscillator.frequency.setValueAtTime(note.freq, time);
-
-      oscillator.start(time);
-      oscillator.stop(time + note.duration);
-
-      // Track active oscillators so we can stop them immediately if needed
-      this.activeOscillators.push(oscillator);
+    try {
+      this.backgroundMusicSource = this.audioContext.createBufferSource();
+      this.backgroundMusicSource.buffer = this.backgroundMusicBuffer;
+      this.backgroundMusicSource.connect(this.backgroundMusicGain);
       
-      // Remove from tracking when it naturally ends
-      oscillator.onended = () => {
-        const index = this.activeOscillators.indexOf(oscillator);
-        if (index > -1) {
-          this.activeOscillators.splice(index, 1);
+      // Set up looping
+      this.backgroundMusicSource.loop = true;
+      
+      // Handle when the audio ends (for non-looping or if loop is disabled)
+      this.backgroundMusicSource.onended = () => {
+        if (this.isBackgroundMusicPlaying) {
+          // Restart the music if it should still be playing
+          setTimeout(() => {
+            if (this.isBackgroundMusicPlaying) {
+              this.playBackgroundMusicFile();
+            }
+          }, 100);
         }
       };
 
-      time += note.duration;
-    });
-
-    // Schedule next loop only if music should still be playing
-    const totalDuration = melody.reduce((sum, note) => sum + note.duration, 0);
-    this.backgroundMusicTimeout = setTimeout(() => {
-      if (this.isBackgroundMusicPlaying) {
-        this.playBackgroundMelody();
-      }
-    }, totalDuration * 1000) as unknown as number;
+      this.backgroundMusicSource.start();
+      console.log('🎵 Playing background music file');
+    } catch (error) {
+      console.warn('Failed to play background music file:', error);
+    }
   }
 
   cleanup(): void {

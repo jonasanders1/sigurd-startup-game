@@ -4,7 +4,7 @@ import { MonsterType } from '../types/enums';
 
 export const level1Map: MapDefinition = {
   id: 'level1',
-  name: 'Training Ground',
+  name: 'Startup Norge – Hjemmebanen',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 100,
@@ -102,7 +102,7 @@ export const level1Map: MapDefinition = {
 
 export const level2Map: MapDefinition = {
   id: 'level2',
-  name: 'Skatteetaten',
+  name: 'Innovasjon Norge – Støttelabyrinten',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -221,7 +221,7 @@ export const level2Map: MapDefinition = {
 
 export const level3Map: MapDefinition = {
   id: 'level3',
-  name: 'Innovasjon Norge',
+  name: 'Kommunehuset',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -344,7 +344,7 @@ export const level3Map: MapDefinition = {
 
 export const level4Map: MapDefinition = {
   id: 'level4',
-  name: 'Havbruksfondet',
+  name: 'Altinn',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -487,7 +487,7 @@ export const level4Map: MapDefinition = {
 
 export const level5Map: MapDefinition = {
   id: 'level5',
-  name: 'Forskningsrådet',
+  name: 'NAV',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -641,7 +641,7 @@ export const level5Map: MapDefinition = {
 
 export const level6Map: MapDefinition = {
   id: 'level6',
-  name: 'Klima- og miljødepartementet',
+  name: 'Skatteetaten',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -810,7 +810,7 @@ export const level6Map: MapDefinition = {
 
 export const level7Map: MapDefinition = {
   id: 'level7',
-  name: 'Finansdepartementet',
+  name: 'Silicon Valley – Drømmeverden',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,

@@ -1,5 +1,7 @@
 import { Player, Monster, Bomb, Platform, Ground } from "../types/interfaces";
 import { COLORS } from "../types/constants";
+import { playerSprite } from "@/entities/Player";
+import { GAME_CONFIG } from "../types/constants";
 
 export class RenderManager {
   private canvas: HTMLCanvasElement;
@@ -38,15 +40,21 @@ export class RenderManager {
   }
 
   private renderPlayer(player: Player): void {
-    this.ctx.fillStyle = player.color;
-    this.ctx.fillRect(player.x, player.y, player.width, player.height);
+    if (playerSprite) {
+      // Calculate scale to match player's collision dimensions
+      const scale = player.height / GAME_CONFIG.PLAYER_HEIGHT;
+      playerSprite.draw(this.ctx, player.x, player.y, scale);
+    } else {
+      this.ctx.fillStyle = player.color;
+      this.ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
 
     // Add a simple glow effect when floating
     if (player.isFloating) {
-      this.ctx.shadowColor = player.color;
-      this.ctx.shadowBlur = 10;
-      this.ctx.fillRect(player.x, player.y, player.width, player.height);
-      this.ctx.shadowBlur = 0;
+      // this.ctx.shadowColor = player.color;
+      // this.ctx.shadowBlur = 10;
+      // this.ctx.fillRect(player.x, player.y, 10, 10);
+      // this.ctx.shadowBlur = 0;
     }
   }
 

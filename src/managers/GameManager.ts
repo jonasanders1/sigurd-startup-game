@@ -7,12 +7,15 @@ import { GAME_CONFIG, DEV_CONFIG } from '../types/constants';
 import { mapDefinitions } from '../maps/mapDefinitions';
 import { AudioManager } from './AudioManager';
 import { AudioEvent } from '../types/enums';
+import { playerSprite } from '@/entities/Player';
+import { AnimationController } from '../lib/AnimationController';
 
 export class GameManager {
   private inputManager: InputManager;
   private collisionManager: CollisionManager;
   private renderManager: RenderManager;
   private audioManager: AudioManager;
+  private animationController: AnimationController;
   private animationFrameId: number | null = null;
   private lastTime = 0;
   private isBackgroundMusicPlaying = false;
@@ -24,6 +27,7 @@ export class GameManager {
     this.collisionManager = new CollisionManager();
     this.renderManager = new RenderManager(canvas);
     this.audioManager = new AudioManager();
+    this.animationController = new AnimationController(playerSprite);
   }
 
   start(): void {
@@ -171,6 +175,7 @@ export class GameManager {
     
     if (gameState.currentState === GameState.PLAYING) {
       this.update(deltaTime);
+      playerSprite.update(deltaTime);
       this.handleCollisions();
       this.checkWinCondition();
     }
@@ -225,6 +230,9 @@ export class GameManager {
       moveX = player.moveSpeed;
     }
 
+    // Update animation state
+    this.animationController.update(player.isGrounded, moveX);
+
     // Variable height jumping mechanics
     const isUpPressed = this.inputManager.isKeyPressed('ArrowUp');
     const isShiftPressed = this.inputManager.isShiftPressed();
@@ -235,6 +243,7 @@ export class GameManager {
       player.isJumping = true;
       player.jumpStartTime = Date.now();
       player.isGrounded = false;
+      
       
       // Initial jump velocity (minimum jump)
       const baseJumpPower = isShiftPressed ? GAME_CONFIG.SUPER_JUMP_POWER : GAME_CONFIG.JUMP_POWER;
