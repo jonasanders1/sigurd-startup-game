@@ -1,14 +1,14 @@
-import { InputManager } from './InputManager';
-import { CollisionManager } from './CollisionManager';
-import { RenderManager } from './RenderManager';
-import { useGameStore } from '../stores/gameStore';
-import { GameState, MenuType } from '../types/enums';
-import { GAME_CONFIG, DEV_CONFIG } from '../types/constants';
-import { mapDefinitions } from '../maps/mapDefinitions';
-import { AudioManager } from './AudioManager';
-import { AudioEvent } from '../types/enums';
-import { playerSprite } from '@/entities/Player';
-import { AnimationController } from '../lib/AnimationController';
+import { InputManager } from "./InputManager";
+import { CollisionManager } from "./CollisionManager";
+import { RenderManager } from "./RenderManager";
+import { useGameStore } from "../stores/gameStore";
+import { GameState, MenuType } from "../types/enums";
+import { GAME_CONFIG, DEV_CONFIG } from "../types/constants";
+import { mapDefinitions } from "../maps/mapDefinitions";
+import { AudioManager } from "./AudioManager";
+import { AudioEvent } from "../types/enums";
+import { playerSprite } from "@/entities/Player";
+import { AnimationController } from "../lib/AnimationController";
 
 export class GameManager {
   private inputManager: InputManager;
@@ -33,7 +33,7 @@ export class GameManager {
   start(): void {
     // Check if DEV_MODE is enabled
     if (DEV_CONFIG.ENABLED) {
-      console.log('🚀 DEV_MODE is ENABLED');
+      console.log("🚀 DEV_MODE is ENABLED");
       console.log(`🎯 Target state: ${DEV_CONFIG.TARGET_STATE}`);
       this.initializeDevMode();
     } else {
@@ -45,15 +45,15 @@ export class GameManager {
 
   private initializeDevMode(): void {
     const gameState = useGameStore.getState();
-    
+
     // ALWAYS initialize level data first - this is crucial for proper rendering
     this.loadCurrentLevel();
-    
+
     // Apply mock data
     gameState.addScore(DEV_CONFIG.MOCK_DATA.score - gameState.score);
     gameState.resetGameState();
     gameState.addScore(DEV_CONFIG.MOCK_DATA.score);
-    
+
     // Set lives (need to calculate difference)
     const currentLives = gameState.lives;
     const targetLives = DEV_CONFIG.MOCK_DATA.lives;
@@ -66,29 +66,29 @@ export class GameManager {
         gameState.setState(GameState.MENU);
       }
     }
-    
+
     // Set level
     for (let i = 1; i < DEV_CONFIG.MOCK_DATA.currentLevel; i++) {
       gameState.nextLevel();
       // Re-initialize level data after each level change
       this.loadCurrentLevel();
     }
-    
+
     // Set the target state
     switch (DEV_CONFIG.TARGET_STATE) {
-      case 'START_MENU':
+      case "START_MENU":
         gameState.setState(GameState.MENU);
         gameState.setMenuType(MenuType.START);
         break;
-      case 'COUNTDOWN':
+      case "COUNTDOWN":
         gameState.setState(GameState.COUNTDOWN);
         gameState.setMenuType(MenuType.COUNTDOWN);
         break;
-      case 'PLAYING':
+      case "PLAYING":
         gameState.setState(GameState.PLAYING);
         gameState.setMenuType(MenuType.IN_GAME);
         break;
-      case 'BONUS':
+      case "BONUS":
         // Set collected bombs count for bonus screen
         gameState.setState(GameState.BONUS);
         gameState.setMenuType(MenuType.BONUS);
@@ -98,21 +98,25 @@ export class GameManager {
           gameState.collectBomb(i + 1);
         }
         break;
-      case 'VICTORY':
+      case "VICTORY":
         gameState.setState(GameState.VICTORY);
         gameState.setMenuType(MenuType.VICTORY);
         break;
-      case 'GAME_OVER':
+      case "GAME_OVER":
         gameState.setState(GameState.GAME_OVER);
         gameState.setMenuType(MenuType.GAME_OVER);
         break;
       default:
-        console.warn(`Unknown DEV_MODE target state: ${DEV_CONFIG.TARGET_STATE}`);
+        console.warn(
+          `Unknown DEV_MODE target state: ${DEV_CONFIG.TARGET_STATE}`
+        );
         gameState.setState(GameState.MENU);
         gameState.setMenuType(MenuType.START);
     }
-    
-    console.log(`🎮 DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}`);
+
+    console.log(
+      `🎮 DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}`
+    );
     this.devModeInitialized = true;
   }
 
@@ -127,15 +131,14 @@ export class GameManager {
 
   private loadCurrentLevel(): void {
     const gameState = useGameStore.getState();
-    const currentMapIndex = gameState.currentLevel - 1;
-    
-    if (currentMapIndex < mapDefinitions.length) {
-      const currentMap = mapDefinitions[currentMapIndex];
-      gameState.initializeLevel(currentMap);
-    } else {
-      // No more levels - could show game complete screen
-      console.log('All levels completed!');
-      gameState.setState(GameState.GAME_OVER);
+    const currentLevel = gameState.currentLevel;
+
+    if (currentLevel <= mapDefinitions.length) {
+      const mapDefinition = mapDefinitions[currentLevel - 1];
+      gameState.initializeLevel(mapDefinition);
+
+      // Reset animation controller state when loading new level
+      this.animationController.reset();
     }
   }
 
@@ -144,7 +147,7 @@ export class GameManager {
     this.lastTime = currentTime;
 
     const gameState = useGameStore.getState();
-    
+
     // DEV_MODE: Skip normal game logic if we're in dev mode and not in PLAYING state
     if (DEV_CONFIG.ENABLED && this.devModeInitialized) {
       // Only run normal game logic if we're in PLAYING state in dev mode
@@ -154,17 +157,21 @@ export class GameManager {
         return;
       }
     }
-    
+
     // Check if we need to reload the level after a reset
     if (gameState.currentState === GameState.MENU && !gameState.currentMap) {
       this.loadCurrentLevel();
     }
-    
+
     // Handle background music - only play during PLAYING state
     this.handleBackgroundMusic(gameState.currentState);
-    
+
     // Check for bonus animation completion and auto-continue
-    if (gameState.currentState === GameState.BONUS && gameState.bonusAnimationComplete && !DEV_CONFIG.ENABLED) {
+    if (
+      gameState.currentState === GameState.BONUS &&
+      gameState.bonusAnimationComplete &&
+      !DEV_CONFIG.ENABLED
+    ) {
       // Animation is complete, proceed to next level after a brief delay
       setTimeout(() => {
         this.proceedToNextLevel();
@@ -172,12 +179,56 @@ export class GameManager {
       // Reset the flag to prevent multiple calls
       gameState.setBonusAnimationComplete(false);
     }
-    
+
     if (gameState.currentState === GameState.PLAYING) {
       this.update(deltaTime);
       playerSprite.update(deltaTime);
       this.handleCollisions();
       this.checkWinCondition();
+    } else if (gameState.currentState === GameState.MAP_CLEARED) {
+      // Update sprite animation for map cleared state
+      playerSprite.update(deltaTime);
+
+      // Get current player state for falling
+      const player = gameState.player;
+
+      // Apply gravity to make player fall
+      const updatedPlayer = { ...player };
+      updatedPlayer.velocityY += player.gravity;
+      updatedPlayer.y += updatedPlayer.velocityY;
+
+      // Check for ground collision during fall
+      const ground = gameState.ground;
+      if (ground) {
+        const groundCollision =
+          this.collisionManager.checkPlayerGroundCollision(
+            updatedPlayer,
+            ground
+          );
+        if (
+          groundCollision.hasCollision &&
+          groundCollision.normal &&
+          groundCollision.penetration
+        ) {
+          if (groundCollision.normal.y === -1) {
+            // Landing on ground
+            updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
+            updatedPlayer.velocityY = 0;
+            updatedPlayer.isGrounded = true;
+          }
+        }
+      }
+
+      // Update player state
+      gameState.updatePlayer(updatedPlayer);
+
+      // Update animation controller with actual player state
+      this.animationController.update(
+        updatedPlayer.isGrounded,
+        0,
+        false,
+        gameState.currentState
+      );
     }
 
     this.render();
@@ -187,28 +238,30 @@ export class GameManager {
   private handleBackgroundMusic(currentState: GameState): void {
     // Only play music during PLAYING state - stop in all other states
     const shouldPlayMusic = currentState === GameState.PLAYING;
-    
+
     // Detect state changes
     const stateChanged = this.previousGameState !== currentState;
-    
+
     if (stateChanged) {
-      console.log(`🎵 Game state changed: ${this.previousGameState} -> ${currentState}`);
+      console.log(
+        `🎵 Game state changed: ${this.previousGameState} -> ${currentState}`
+      );
     }
-    
+
     // Start music if we should be playing and aren't already
     if (shouldPlayMusic && !this.isBackgroundMusicPlaying) {
-      console.log('🎵 Starting background music');
+      console.log("🎵 Starting background music");
       this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
       this.isBackgroundMusicPlaying = true;
     }
-    
+
     // Stop music if we shouldn't be playing but are
     if (!shouldPlayMusic && this.isBackgroundMusicPlaying) {
-      console.log('🛑 Stopping background music');
+      console.log("🛑 Stopping background music");
       this.audioManager.stopBackgroundMusic();
       this.isBackgroundMusicPlaying = false;
     }
-    
+
     this.previousGameState = currentState;
   }
 
@@ -223,52 +276,69 @@ export class GameManager {
 
     // Handle input
     let moveX = 0;
-    if (this.inputManager.isKeyPressed('ArrowLeft')) {
+    if (this.inputManager.isKeyPressed("ArrowLeft")) {
       moveX = -player.moveSpeed;
     }
-    if (this.inputManager.isKeyPressed('ArrowRight')) {
+    if (this.inputManager.isKeyPressed("ArrowRight")) {
       moveX = player.moveSpeed;
     }
 
     // Update animation state
-    this.animationController.update(player.isGrounded, moveX);
+    this.animationController.update(
+      player.isGrounded,
+      moveX,
+      player.isFloating,
+      gameState.currentState
+    );
 
     // Variable height jumping mechanics
-    const isUpPressed = this.inputManager.isKeyPressed('ArrowUp');
+    const isUpPressed = this.inputManager.isKeyPressed("ArrowUp");
     const isShiftPressed = this.inputManager.isShiftPressed();
-    const isSpacePressed = this.inputManager.isKeyPressed(' ') || this.inputManager.isKeyPressed('Space');
-    
+    const isSpacePressed =
+      this.inputManager.isKeyPressed(" ") ||
+      this.inputManager.isKeyPressed("Space");
+
     if (isUpPressed && player.isGrounded && !player.isJumping) {
       // Start jump
       player.isJumping = true;
       player.jumpStartTime = Date.now();
       player.isGrounded = false;
-      
-      
+
       // Initial jump velocity (minimum jump)
-      const baseJumpPower = isShiftPressed ? GAME_CONFIG.SUPER_JUMP_POWER : GAME_CONFIG.JUMP_POWER;
+      const baseJumpPower = isShiftPressed
+        ? GAME_CONFIG.SUPER_JUMP_POWER
+        : GAME_CONFIG.JUMP_POWER;
       player.velocityY = -baseJumpPower * 0.6; // Start with 60% of jump power
     }
-    
+
     // Continue jump if key is held and we're still in jump phase
     if (isUpPressed && player.isJumping && player.velocityY < 0) {
       const jumpDuration = Date.now() - player.jumpStartTime;
-      
+
       if (jumpDuration <= GAME_CONFIG.MAX_JUMP_DURATION) {
         // Calculate additional jump power based on hold duration
-        const holdRatio = Math.min(jumpDuration / GAME_CONFIG.MAX_JUMP_DURATION, 1);
-        const baseJumpPower = isShiftPressed ? GAME_CONFIG.SUPER_JUMP_POWER : GAME_CONFIG.JUMP_POWER;
+        const holdRatio = Math.min(
+          jumpDuration / GAME_CONFIG.MAX_JUMP_DURATION,
+          1
+        );
+        const baseJumpPower = isShiftPressed
+          ? GAME_CONFIG.SUPER_JUMP_POWER
+          : GAME_CONFIG.JUMP_POWER;
         const targetVelocity = -baseJumpPower * (0.6 + 0.4 * holdRatio); // Scale from 60% to 100%
-        
+
         // Gradually increase jump power
         if (player.velocityY > targetVelocity) {
           player.velocityY = targetVelocity;
         }
       }
     }
-    
+
     // End jump when key is released or max duration reached
-    if ((!isUpPressed || Date.now() - player.jumpStartTime > GAME_CONFIG.MAX_JUMP_DURATION) && player.isJumping) {
+    if (
+      (!isUpPressed ||
+        Date.now() - player.jumpStartTime > GAME_CONFIG.MAX_JUMP_DURATION) &&
+      player.isJumping
+    ) {
       player.isJumping = false;
     }
 
@@ -289,7 +359,10 @@ export class GameManager {
     player.x += player.velocityX;
 
     // Apply gravity - only use float gravity when floating and falling (velocityY >= 0)
-    const gravity = (player.isFloating && player.velocityY >= 0) ? player.floatGravity : player.gravity;
+    const gravity =
+      player.isFloating && player.velocityY >= 0
+        ? player.floatGravity
+        : player.gravity;
     player.velocityY += gravity;
     player.y += player.velocityY;
 
@@ -312,14 +385,17 @@ export class GameManager {
 
   private updateMonsters(deltaTime: number): void {
     const gameState = useGameStore.getState();
-    const monsters = gameState.monsters.map(monster => {
+    const monsters = gameState.monsters.map((monster) => {
       if (!monster.isActive) return monster;
 
       // Simple patrol AI
       monster.x += monster.speed * monster.direction;
 
       // Check patrol bounds
-      if (monster.x <= monster.patrolStartX || monster.x >= monster.patrolEndX) {
+      if (
+        monster.x <= monster.patrolStartX ||
+        monster.x >= monster.patrolEndX
+      ) {
         monster.direction *= -1;
       }
 
@@ -334,10 +410,15 @@ export class GameManager {
     const { player, platforms, bombs, monsters, ground } = gameState;
 
     // Platform collisions - handle all directions
-    const platformCollision = this.collisionManager.checkPlayerPlatformCollision(player, platforms);
-    if (platformCollision.hasCollision && platformCollision.normal && platformCollision.penetration) {
+    const platformCollision =
+      this.collisionManager.checkPlayerPlatformCollision(player, platforms);
+    if (
+      platformCollision.hasCollision &&
+      platformCollision.normal &&
+      platformCollision.penetration
+    ) {
       const updatedPlayer = { ...player };
-      
+
       if (platformCollision.normal.y === -1) {
         // Landing on top of platform
         updatedPlayer.y = updatedPlayer.y - platformCollision.penetration;
@@ -356,16 +437,23 @@ export class GameManager {
         updatedPlayer.x = updatedPlayer.x - platformCollision.penetration;
         updatedPlayer.velocityX = 0;
       }
-      
+
       gameState.updatePlayer(updatedPlayer);
     }
 
     // Ground collision - handle all directions
     if (ground) {
-      const groundCollision = this.collisionManager.checkPlayerGroundCollision(player, ground);
-      if (groundCollision.hasCollision && groundCollision.normal && groundCollision.penetration) {
+      const groundCollision = this.collisionManager.checkPlayerGroundCollision(
+        player,
+        ground
+      );
+      if (
+        groundCollision.hasCollision &&
+        groundCollision.normal &&
+        groundCollision.penetration
+      ) {
         const updatedPlayer = { ...player };
-        
+
         if (groundCollision.normal.y === -1) {
           // Landing on top of ground
           updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
@@ -384,13 +472,16 @@ export class GameManager {
           updatedPlayer.x = updatedPlayer.x - groundCollision.penetration;
           updatedPlayer.velocityX = 0;
         }
-        
+
         gameState.updatePlayer(updatedPlayer);
       }
     }
 
     // Bomb collisions
-    const collectedBomb = this.collisionManager.checkPlayerBombCollision(player, bombs);
+    const collectedBomb = this.collisionManager.checkPlayerBombCollision(
+      player,
+      bombs
+    );
     if (collectedBomb) {
       this.audioManager.playSound(AudioEvent.BOMB_COLLECT);
       gameState.collectBomb(collectedBomb.order);
@@ -400,7 +491,10 @@ export class GameManager {
     }
 
     // Monster collisions
-    const hitMonster = this.collisionManager.checkPlayerMonsterCollision(player, monsters);
+    const hitMonster = this.collisionManager.checkPlayerMonsterCollision(
+      player,
+      monsters
+    );
     if (hitMonster) {
       this.audioManager.playSound(AudioEvent.MONSTER_HIT);
       this.handlePlayerDeath();
@@ -410,7 +504,7 @@ export class GameManager {
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
     gameState.loseLife();
-    
+
     if (gameState.lives > 0) {
       // Player still has lives - respawn with countdown
       this.respawnPlayer();
@@ -421,23 +515,29 @@ export class GameManager {
   private respawnPlayer(): void {
     const gameState = useGameStore.getState();
     const currentMap = gameState.currentMap;
-    
+
     if (currentMap) {
       // Reset player position
-      gameState.setPlayerPosition(currentMap.playerStartX, currentMap.playerStartY);
-      
+      gameState.setPlayerPosition(
+        currentMap.playerStartX,
+        currentMap.playerStartY
+      );
+
       // Reset monsters to starting positions
-      const resetMonsters = currentMap.monsters.map(monster => ({
+      const resetMonsters = currentMap.monsters.map((monster) => ({
         ...monster,
         x: monster.patrolStartX,
-        direction: 1 // Reset to initial direction
+        direction: 1, // Reset to initial direction
       }));
       gameState.updateMonsters(resetMonsters);
-      
+
+      // Reset animation controller state
+      this.animationController.reset();
+
       // Show countdown before resuming
       gameState.setMenuType(MenuType.COUNTDOWN);
       gameState.setState(GameState.COUNTDOWN);
-      
+
       setTimeout(() => {
         gameState.setState(GameState.PLAYING);
       }, 3000);
@@ -448,24 +548,28 @@ export class GameManager {
     const gameState = useGameStore.getState();
     if (gameState.collectedBombs.length === GAME_CONFIG.TOTAL_BOMBS) {
       // Level completed - this will trigger a state change which will stop the music
-      console.log('🎉 Level completed - proceeding to next phase');
-      
+      console.log("🎉 Level completed - proceeding to next phase");
+
       // Play map cleared sound
       this.audioManager.playSound(AudioEvent.MAP_CLEARED);
-      
+
+      // Set game state to MAP_CLEARED to trigger the animation
+      gameState.setState(GameState.MAP_CLEARED);
+
       // Pause the game briefly, then proceed
-      gameState.setState(GameState.PAUSED);
-      
       setTimeout(() => {
         this.proceedAfterMapCleared();
-      }, 1500); // Brief pause to hear the sound
+      }, 3000); // Brief pause to hear the sound and see the animation
     }
   }
 
   private proceedAfterMapCleared(): void {
     const gameState = useGameStore.getState();
-    const bonusPoints = GAME_CONFIG.BONUS_POINTS[gameState.correctOrderCount as keyof typeof GAME_CONFIG.BONUS_POINTS] || 0;
-    
+    const bonusPoints =
+      GAME_CONFIG.BONUS_POINTS[
+        gameState.correctOrderCount as keyof typeof GAME_CONFIG.BONUS_POINTS
+      ] || 0;
+
     // Record the level result when level is completed
     if (gameState.currentMap) {
       const levelResult = {
@@ -475,11 +579,11 @@ export class GameManager {
         totalBombs: GAME_CONFIG.TOTAL_BOMBS,
         score: gameState.score,
         bonus: bonusPoints,
-        hasBonus: bonusPoints > 0
+        hasBonus: bonusPoints > 0,
       };
       gameState.addLevelResult(levelResult);
     }
-    
+
     if (bonusPoints > 0) {
       // Show bonus screen
       gameState.setMenuType(MenuType.BONUS);
@@ -494,14 +598,14 @@ export class GameManager {
   private proceedToNextLevel(): void {
     const gameState = useGameStore.getState();
     const nextLevel = gameState.currentLevel + 1;
-    
+
     if (nextLevel <= mapDefinitions.length) {
       gameState.nextLevel();
       this.loadCurrentLevel();
       // Always show countdown when transitioning to next level
       gameState.setMenuType(MenuType.COUNTDOWN);
       gameState.setState(GameState.COUNTDOWN);
-      
+
       setTimeout(() => {
         gameState.setState(GameState.PLAYING);
       }, 3000);
@@ -518,7 +622,11 @@ export class GameManager {
   }
 
   private calculateBonus(correctCount: number): number {
-    return GAME_CONFIG.BONUS_POINTS[correctCount as keyof typeof GAME_CONFIG.BONUS_POINTS] || 0;
+    return (
+      GAME_CONFIG.BONUS_POINTS[
+        correctCount as keyof typeof GAME_CONFIG.BONUS_POINTS
+      ] || 0
+    );
   }
 
   private render(): void {

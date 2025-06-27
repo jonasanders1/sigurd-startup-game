@@ -5,7 +5,8 @@ export enum GameState {
     PAUSED = 'PAUSED',
     BONUS = 'BONUS',
     VICTORY = 'VICTORY',
-    GAME_OVER = 'GAME_OVER'
+    GAME_OVER = 'GAME_OVER',
+    MAP_CLEARED = 'MAP_CLEARED'
   }
   
   export enum MenuType {

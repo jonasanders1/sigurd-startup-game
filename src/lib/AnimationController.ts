@@ -3,6 +3,8 @@ import { SpriteInstance } from "./SpriteInstance";
 export type AnimationState = {
   isGrounded: boolean;
   isMoving: boolean;
+  isFloating: boolean;
+  gameState: string;
   moveDirection: 'left' | 'right' | 'none';
   lastDirection: 'left' | 'right';
 };
@@ -12,24 +14,37 @@ export class AnimationController {
   private currentState: AnimationState;
   private wasInAir: boolean = false; // Track previous air state for landing detection
   private isLanding: boolean = false; // Track if currently playing landing animation
+  private isMapCleared: boolean = false; // Track if map is cleared and player should fall
+  private mapClearedFallComplete: boolean = false; // Track if falling is complete
 
   constructor(sprite: SpriteInstance) {
     this.sprite = sprite;
     this.currentState = {
       isGrounded: true,
       isMoving: false,
+      isFloating: false,
+      gameState: '',
       moveDirection: 'none',
       lastDirection: 'right'
     };
   }
 
-  update(isGrounded: boolean, moveX: number): void {
+  update(isGrounded: boolean, moveX: number, isFloating: boolean = false, gameState: string = ''): void {
     const newState: AnimationState = {
       isGrounded,
       isMoving: moveX !== 0,
+      isFloating,
+      gameState,
       moveDirection: moveX > 0 ? 'right' : moveX < 0 ? 'left' : 'none',
       lastDirection: this.getLastDirection()
     };
+
+    // Check for MAP_CLEARED state transition
+    if (gameState === 'MAP_CLEARED' && !this.isMapCleared) {
+      console.log('🎉 Map cleared - starting fall sequence');
+      this.isMapCleared = true;
+      this.mapClearedFallComplete = false;
+    }
 
     // Check if landing animation finished
     if (this.isLanding) {
@@ -37,6 +52,12 @@ export class AnimationController {
       if (currentAnim.includes('land') && this.sprite.currentFrameIndex >= this.sprite.currentAnimation.frames.length - 1) {
         console.log('🎯 Landing animation finished');
         this.isLanding = false;
+        
+        // If this was the map cleared landing, mark fall as complete
+        if (this.isMapCleared) {
+          this.mapClearedFallComplete = true;
+          console.log('🎉 Map cleared fall complete - playing completion animation');
+        }
       }
     }
 
@@ -46,8 +67,12 @@ export class AnimationController {
     this.currentState = newState;
     this.wasInAir = !isGrounded;
 
-    if (justLanded && !this.isLanding) {
-      // Player just landed - play landing animation
+    if (justLanded && !this.isLanding && this.isMapCleared) {
+      // Map cleared landing - play landing animation
+      console.log('🎯 Map cleared landing detected! Playing landing animation');
+      this.setLandingAnimation();
+    } else if (justLanded && !this.isLanding) {
+      // Normal landing - play landing animation
       console.log('🎯 Landing detected! Playing landing animation');
       this.setLandingAnimation();
     } else if (!this.isLanding) {
@@ -62,9 +87,33 @@ export class AnimationController {
   }
 
   private updateAnimation(): void {
-    const { isGrounded, isMoving, moveDirection, lastDirection } = this.currentState;
-
-    if (!isGrounded) {
+    const { isGrounded, isMoving, isFloating, gameState, moveDirection, lastDirection } = this.currentState;
+    console.log('🎉 Game state:', gameState);
+    
+    if (this.isMapCleared) {
+      if (this.mapClearedFallComplete) {
+        // Fall complete - play completion animation
+        console.log('🎉 Playing completion animation');
+        this.sprite.setAnimation('ghost-complete');
+      } else if (!isGrounded) {
+        // Still falling - use jump animation
+        console.log('🎉 Map cleared - falling to ground');
+        this.handleAirAnimations(moveDirection, lastDirection);
+      } else {
+        // On ground but fall not complete - wait for landing animation
+        console.log('🎉 Map cleared - on ground, waiting for landing animation');
+        this.handleIdleAnimations(lastDirection);
+      }
+    } else if (gameState === 'MAP_CLEARED') {
+      console.log('🎉 Map cleared - starting fall sequence');
+      this.isMapCleared = true;
+      this.mapClearedFallComplete = false;
+      // Start falling immediately
+      this.handleAirAnimations(moveDirection, lastDirection);
+    } else if (isFloating) {
+      // Floating - check direction for float animation
+      this.handleFloatAnimations(moveDirection, lastDirection);
+    } else if (!isGrounded) {
       // In air - jump animations
       this.handleAirAnimations(moveDirection, lastDirection);
     } else if (isMoving) {
@@ -85,6 +134,17 @@ export class AnimationController {
       // No movement in air - maintain last direction
       const animation = lastDirection === 'right' ? 'jump-right' : 'jump-left';
       this.sprite.setAnimationPreserveFrame(animation);
+    }
+  }
+
+  private handleFloatAnimations(moveDirection: 'left' | 'right' | 'none', lastDirection: 'left' | 'right'): void {
+    if (moveDirection === 'right') {
+      this.sprite.setAnimation('float-right');
+    } else if (moveDirection === 'left') {
+      this.sprite.setAnimation('float-left');
+    } else {
+      // No movement while floating - use stationary float animation
+      this.sprite.setAnimation('float-stationary');
     }
   }
 
@@ -113,5 +173,13 @@ export class AnimationController {
   // Debug method
   getCurrentState(): AnimationState {
     return { ...this.currentState };
+  }
+
+  // Reset method for game state changes
+  reset(): void {
+    this.isMapCleared = false;
+    this.mapClearedFallComplete = false;
+    this.isLanding = false;
+    this.wasInAir = false;
   }
 } 

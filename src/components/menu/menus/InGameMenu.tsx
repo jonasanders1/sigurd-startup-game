@@ -65,12 +65,13 @@ const InGameMenu: React.FC = () => {
       {/* Lives */}
       <div className="absolute left-3 bottom-2">
         <div className="text-xl font-bold text-red-400 flex items-center gap-2">
-          {Array.from({ length: lives }).map((_, index) => (
+          {Array.from({ length: 3 }).map((_, index) => (
             <Heart
               className="text-red-400"
-              color="#81b64c"
+              color="#ff0000"
               size={24}
               key={index}
+              fill={index < lives ? "red" : "none"}
             />
           ))}
         </div>
