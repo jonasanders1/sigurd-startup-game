@@ -25,15 +25,16 @@ const StartMenu: React.FC = () => {
       </h1>
 
       <div className="text-white mb-6 space-y-2">
-        <p className="text-lg">Sample finansiering og unngå byrokratier</p>
-        <p className="text-sm">Follow the order for bonus points</p>
+        <p className="text-lg">
+          Sample så mye finansiering som mulig og unngå byrokrati
+        </p>
       </div>
 
       <Button
         onClick={startGame}
-        className="bg-primary hover:bg-primary/80 text-white font-bold py-3 px-8 text-lg transition-all duration-200 transform hover:scale-105"
+        className="bg-primary hover:bg-primary/80 text-white font-bold py-3 px-8 text-lg transition-all duration-200 transform hover:scale-105 uppercase"
       >
-        START GAME
+        start forretningsidé
       </Button>
     </div>
   );

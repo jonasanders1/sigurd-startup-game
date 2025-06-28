@@ -12,7 +12,7 @@ import Menu from "./menu/Menu";
 import { DEV_CONFIG } from "@/types/constants";
 import { Circle } from "lucide-react";
 
-const BombJackGame: React.FC = () => {
+const MainGame: React.FC = () => {
   const { currentState, showMenu } = useGameStore();
 
   return (
@@ -65,4 +65,4 @@ const BombJackGame: React.FC = () => {
   );
 };
 
-export default BombJackGame;
+export default MainGame;

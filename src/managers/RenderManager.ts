@@ -89,14 +89,15 @@ export class RenderManager {
       }
 
       // Draw bomb as circle
-      this.ctx.beginPath();
-      this.ctx.arc(
-        bomb.x + bomb.width / 2,
-        bomb.y + bomb.height / 2,
-        bomb.width / 2,
-        0,
-        2 * Math.PI
+      this.ctx.fillRect(
+        bomb.x,
+        bomb.y,
+        bomb.width,
+        bomb.height
       );
+
+      
+
       this.ctx.fill();
 
       // Draw order number

@@ -588,6 +588,7 @@ export class GameManager {
       // Show bonus screen
       gameState.setMenuType(MenuType.BONUS);
       gameState.setState(GameState.BONUS);
+      this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
       gameState.addScore(bonusPoints);
     } else {
       // No bonus, go directly to next level
