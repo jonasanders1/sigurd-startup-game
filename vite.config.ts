@@ -8,12 +8,28 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
-    react(),
-  ].filter(Boolean),
+  plugins: [react()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    lib: {
+      entry: "src/game-wrapper.tsx",
+      name: "SigurdStartup",
+      fileName: "sigurd-startup",
+      formats: ["iife"], // needed for use in browser as <script>
+    },
+    rollupOptions: {
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+        },
+      },
+    },
+  },
+  // Ensure assets are available during development
+  publicDir: 'public',
 }));

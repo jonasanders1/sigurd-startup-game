@@ -1,9 +1,9 @@
-import BombJackGame from "../components/BombJackGame";
+import MainGame from "../components/MainGame";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-black">
-      <BombJackGame />
+      <MainGame />
     </div>
   );
 };
