@@ -22,6 +22,22 @@ export const GAME_CONFIG = {
     TOTAL_BOMBS: 23,
     STARTING_LIVES: 3,
     
+    // Multiplier system - incremental thresholds
+    MULTIPLIER_THRESHOLDS: {
+      1: 0,      // 1x multiplier (default)
+      2: 1800,   // 2x multiplier (1800 points needed)
+      3: 3600,   // 3x multiplier (1800 more points needed = 3600 total)
+      4: 5400,   // 4x multiplier (1800 more points needed = 5400 total)
+      5: 7200    // 5x multiplier (1800 more points needed = 7200 total)
+    },
+    MAX_MULTIPLIER: 5,
+    
+    // Scoring
+    BOMB_POINTS: {
+      NORMAL: 100,   // Normal bomb base points
+      FIREBOMB: 200  // Firebomb (next correct bomb) base points
+    },
+    
     // Bonus points
     BONUS_POINTS: {
       23: 50000,
@@ -34,12 +50,14 @@ export const GAME_CONFIG = {
   // Development Mode Configuration
   export const DEV_CONFIG = {
     ENABLED: false, // Set to false to disable dev mode
-    TARGET_STATE: 'GAME_OVER', // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'BONUS', 'VICTORY', 'GAME_OVER'
+    TARGET_STATE: 'PLAYING', // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'BONUS', 'VICTORY', 'GAME_OVER'
     MOCK_DATA: {
       score: 15000,
       lives: 2,
-      currentLevel: 3,
-      correctOrderCount: 18
+      currentLevel: 2,
+      correctOrderCount: 18,
+      multiplier: 2, // Mock multiplier level (1-5)
+      multiplierScore: 2600 // Mock points toward next multiplier (0-1800)
     }
   };
   

@@ -4,9 +4,10 @@ import { GameStateSlice, createGameStateSlice } from './slices/gameStateSlice';
 import { BombSlice, createBombSlice } from './slices/bombSlice';
 import { LevelSlice, createLevelSlice } from './slices/levelSlice';
 import { LevelHistorySlice, createLevelHistorySlice } from './slices/levelHistorySlice';
+import { MultiplierSlice, createMultiplierSlice } from './slices/multiplierSlice';
 import { MapDefinition } from '../types/interfaces';
 
-interface GameStore extends PlayerSlice, GameStateSlice, BombSlice, LevelSlice, LevelHistorySlice {
+interface GameStore extends PlayerSlice, GameStateSlice, BombSlice, LevelSlice, LevelHistorySlice, MultiplierSlice {
   resetGame: () => void;
 }
 
@@ -16,6 +17,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
   ...createBombSlice(set, get, api),
   ...createLevelSlice(set, get, api),
   ...createLevelHistorySlice(set, get, api),
+  ...createMultiplierSlice(set, get, api),
   
   resetGame: () => {
     get().resetGameState();
@@ -23,6 +25,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     get().resetBombState();
     get().resetLevelState();
     get().resetLevelHistory();
+    get().resetMultiplier();
   },
   
   // Override initializeLevel to handle the full game initialization

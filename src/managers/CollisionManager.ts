@@ -104,13 +104,79 @@ export class CollisionManager {
     return null;
   }
 
-  checkBoundaryCollision(entity: { x: number; y: number; width: number; height: number }, bounds: { width: number; height: number }): boolean {
-    return (
-      entity.x < 0 ||
-      entity.x + entity.width > bounds.width ||
-      entity.y < 0 ||
-      entity.y + entity.height > bounds.height
-    );
+  checkBoundaryCollision(entity: { x: number; y: number; width: number; height: number }, bounds: { width: number; height: number }): CollisionResult {
+    const nextX = entity.x;
+    const nextY = entity.y;
+    
+    // Check each boundary
+    if (nextX < 0) {
+      // Left boundary collision
+      return {
+        hasCollision: true,
+        normal: { x: 1, y: 0 },
+        penetration: Math.abs(nextX)
+      };
+    }
+    
+    if (nextX + entity.width > bounds.width) {
+      // Right boundary collision
+      return {
+        hasCollision: true,
+        normal: { x: -1, y: 0 },
+        penetration: nextX + entity.width - bounds.width
+      };
+    }
+    
+    if (nextY < 0) {
+      // Top boundary collision
+      return {
+        hasCollision: true,
+        normal: { x: 0, y: 1 },
+        penetration: Math.abs(nextY)
+      };
+    }
+    
+    if (nextY + entity.height > bounds.height) {
+      // Bottom boundary collision
+      return {
+        hasCollision: true,
+        normal: { x: 0, y: -1 },
+        penetration: nextY + entity.height - bounds.height
+      };
+    }
+    
+    return { hasCollision: false };
+  }
+
+  resolveBoundaryCollision(player: Player, bounds: { width: number; height: number }): { player: Player; fellOffScreen: boolean } {
+    const boundaryCollision = this.checkBoundaryCollision(player, bounds);
+    
+    if (!boundaryCollision.hasCollision || !boundaryCollision.normal || !boundaryCollision.penetration) {
+      return { player, fellOffScreen: false };
+    }
+    
+    const updatedPlayer = { ...player };
+    const { normal, penetration } = boundaryCollision;
+    
+    // Resolve collision based on normal direction
+    if (normal.x === 1) {
+      // Left boundary - move player to x = 0
+      updatedPlayer.x = 0;
+      updatedPlayer.velocityX = 0;
+    } else if (normal.x === -1) {
+      // Right boundary - move player to right edge
+      updatedPlayer.x = bounds.width - player.width;
+      updatedPlayer.velocityX = 0;
+    } else if (normal.y === 1) {
+      // Top boundary - move player to y = 0 and stop upward velocity
+      updatedPlayer.y = 0;
+      updatedPlayer.velocityY = 0;
+    } else if (normal.y === -1) {
+      // Bottom boundary - player fell off screen
+      return { player: updatedPlayer, fellOffScreen: true };
+    }
+    
+    return { player: updatedPlayer, fellOffScreen: false };
   }
 
   private isColliding(rect1: { x: number; y: number; width: number; height: number }, rect2: { x: number; y: number; width: number; height: number }): boolean {
