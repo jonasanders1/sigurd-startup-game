@@ -49,9 +49,10 @@ export class GameManager {
     // ALWAYS initialize level data first - this is crucial for proper rendering
     this.loadCurrentLevel();
 
-    // Apply mock data
-    gameState.addScore(DEV_CONFIG.MOCK_DATA.score - gameState.score);
+    // Reset game state first
     gameState.resetGameState();
+    
+    // Apply mock data AFTER reset
     gameState.addScore(DEV_CONFIG.MOCK_DATA.score);
 
     // Set lives (need to calculate difference)
@@ -113,6 +114,10 @@ export class GameManager {
         gameState.setState(GameState.MENU);
         gameState.setMenuType(MenuType.START);
     }
+
+    // Set multiplier LAST to override any automatic calculations
+    console.log(`🎮 DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x with ${DEV_CONFIG.MOCK_DATA.multiplierScore} progress`);
+    gameState.setMultiplier(DEV_CONFIG.MOCK_DATA.multiplier, DEV_CONFIG.MOCK_DATA.multiplierScore);
 
     console.log(
       `🎮 DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}`
@@ -272,7 +277,7 @@ export class GameManager {
 
   private updatePlayer(deltaTime: number): void {
     const gameState = useGameStore.getState();
-    const player = { ...gameState.player };
+    let player = { ...gameState.player };
 
     // Handle input
     let moveX = 0;
@@ -366,16 +371,18 @@ export class GameManager {
     player.velocityY += gravity;
     player.y += player.velocityY;
 
-    // Boundary checking
-    if (player.x < 0) player.x = 0;
-    if (player.x + player.width > GAME_CONFIG.CANVAS_WIDTH) {
-      player.x = GAME_CONFIG.CANVAS_WIDTH - player.width;
-    }
-    if (player.y > GAME_CONFIG.CANVAS_HEIGHT) {
+    // Handle boundary collisions
+    const bounds = { width: GAME_CONFIG.CANVAS_WIDTH, height: GAME_CONFIG.CANVAS_HEIGHT };
+    const boundaryResult = this.collisionManager.resolveBoundaryCollision(player, bounds);
+    
+    if (boundaryResult.fellOffScreen) {
       // Player fell off screen
       gameState.loseLife();
       return;
     }
+    
+    // Update player with boundary-resolved position
+    player = boundaryResult.player;
 
     // Reset grounded state
     player.isGrounded = false;
@@ -485,9 +492,6 @@ export class GameManager {
     if (collectedBomb) {
       this.audioManager.playSound(AudioEvent.BOMB_COLLECT);
       gameState.collectBomb(collectedBomb.order);
-      // Add score for bomb collection
-      const bonusPoints = 100; // This will be handled in collectBomb method
-      gameState.addScore(bonusPoints);
     }
 
     // Monster collisions

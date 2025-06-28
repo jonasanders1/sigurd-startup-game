@@ -1,7 +1,7 @@
-
 import { StateCreator } from 'zustand';
 import { Bomb } from '../../types/interfaces';
 import { BombManager } from '../../managers/bombManager';
+import { calculateBombScore, formatScoreLog } from '../../lib/scoringUtils';
 
 export interface BombSlice {
   bombs: Bomb[];
@@ -37,6 +37,29 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
     if (!result.isValid) {
       return;
     }
+
+    // Determine if this is a firebomb (next correct bomb in sequence)
+    const isFirebomb = result.isCorrect;
+    
+    // Get current multiplier from the store
+    const api = get();
+    const currentMultiplier = 'multiplier' in api ? (api as any).multiplier : 1;
+    
+    // Calculate score using utility function
+    const scoreCalculation = calculateBombScore(isFirebomb, currentMultiplier);
+    
+    // Add score to game state
+    if ('addScore' in api) {
+      (api as any).addScore(scoreCalculation.actualPoints);
+    }
+    
+    // Add points to multiplier system
+    if ('addMultiplierScore' in api) {
+      (api as any).addMultiplierScore(scoreCalculation.actualPoints);
+    }
+    
+    // Log the score
+    console.log(formatScoreLog(scoreCalculation));
 
     const updatedBombs = bombs.map(b => {
       if (b.order === bombOrder) {
