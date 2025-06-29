@@ -25,6 +25,12 @@ export enum GameState {
     HORIZONTAL_PATROL = 'HORIZONTAL_PATROL'
   }
   
+  export enum CoinType {
+    POWER = 'POWER',
+    BONUS_MULTIPLIER = 'BONUS_MULTIPLIER',
+    EXTRA_LIFE = 'EXTRA_LIFE'
+  }
+  
   export enum AudioEvent {
     GAME_START = 'GAME_START',
     LEVEL_COMPLETE = 'LEVEL_COMPLETE',
@@ -34,13 +40,16 @@ export enum GameState {
     BOMB_COLLECT = 'BOMB_COLLECT',
     MAP_CLEARED = 'MAP_CLEARED',
     BACKGROUND_MUSIC = 'BACKGROUND_MUSIC',
-    MONSTER_HIT = 'MONSTER_HIT'
+    MONSTER_HIT = 'MONSTER_HIT',
+    COIN_COLLECT = 'COIN_COLLECT',
+    POWER_COIN_ACTIVATE = 'POWER_COIN_ACTIVATE'
   }
   
   export enum CollisionType {
     PLATFORM = 'PLATFORM',
     BOMB = 'BOMB',
     MONSTER = 'MONSTER',
-    BOUNDARY = 'BOUNDARY'
+    BOUNDARY = 'BOUNDARY',
+    COIN = 'COIN'
   }
   

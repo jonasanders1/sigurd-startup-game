@@ -10,7 +10,7 @@ export interface BombSlice {
   nextBombOrder: number;
   bombManager: BombManager | null;
   
-  collectBomb: (bombOrder: number) => void;
+  collectBomb: (bombOrder: number) => { isValid: boolean; isCorrect: boolean };
   setBombs: (bombs: Bomb[]) => void;
   setBombManager: (bombManager: BombManager) => void;
   resetBombState: () => void;
@@ -29,13 +29,13 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
     const bomb = bombs.find(b => b.order === bombOrder);
     if (!bomb || !bombManager) {
       console.warn('Bomb or bomb manager not found');
-      return;
+      return { isValid: false, isCorrect: false };
     }
 
     const result = bombManager.handleBombClick(bomb.group, bomb.order);
     
     if (!result.isValid) {
-      return;
+      return { isValid: false, isCorrect: false };
     }
 
     // Determine if this is a firebomb (next correct bomb in sequence)
@@ -82,6 +82,8 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
         return order;
       })
     });
+
+    return { isValid: true, isCorrect: result.isCorrect };
   },
   
   setBombs: (bombs: Bomb[]) => {

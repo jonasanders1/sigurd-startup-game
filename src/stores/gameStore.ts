@@ -6,9 +6,11 @@ import { LevelSlice, createLevelSlice } from './slices/levelSlice';
 import { LevelHistorySlice, createLevelHistorySlice } from './slices/levelHistorySlice';
 import { MultiplierSlice, createMultiplierSlice } from './slices/multiplierSlice';
 import { AudioSettingsSlice, createAudioSettingsSlice } from './slices/audioSettingsSlice';
+import { CoinSlice, createCoinSlice } from './slices/coinSlice';
 import { MapDefinition } from '../types/interfaces';
+import { CoinManager } from '../managers/coinManager';
 
-interface GameStore extends PlayerSlice, GameStateSlice, BombSlice, LevelSlice, LevelHistorySlice, MultiplierSlice, AudioSettingsSlice {
+interface GameStore extends PlayerSlice, GameStateSlice, BombSlice, LevelSlice, LevelHistorySlice, MultiplierSlice, AudioSettingsSlice, CoinSlice {
   resetGame: () => void;
 }
 
@@ -20,6 +22,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
   ...createLevelHistorySlice(set, get, api),
   ...createMultiplierSlice(set, get, api),
   ...createAudioSettingsSlice(set, get, api),
+  ...createCoinSlice(set, get, api),
   
   resetGame: () => {
     get().resetGameState();
@@ -29,6 +32,8 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     get().resetLevelHistory();
     get().resetMultiplier();
     get().resetAudioSettings();
+    get().resetCoinState();
+    get().resetEffects();
   },
   
   // Override initializeLevel to handle the full game initialization
@@ -48,6 +53,10 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     // Update bomb state
     get().setBombs(bombsWithState);
     get().setBombManager(bombManager);
+    
+    // Initialize coin manager
+    const coinManager = new CoinManager(mapData.coinSpawnPoints || []);
+    get().setCoinManager(coinManager);
     
     // Reset bomb collection state
     set({
