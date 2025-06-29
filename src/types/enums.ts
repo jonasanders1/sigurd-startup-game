@@ -15,7 +15,6 @@ export enum GameState {
     IN_GAME = 'IN_GAME',
     PAUSE = 'PAUSE',
     SETTINGS = 'SETTINGS',
-    HOW_TO_PLAY = 'HOW_TO_PLAY',
     BONUS = 'BONUS',
     VICTORY = 'VICTORY',
     GAME_OVER = 'GAME_OVER',
