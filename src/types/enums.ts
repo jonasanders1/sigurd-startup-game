@@ -13,9 +13,12 @@ export enum GameState {
     START = 'START',
     COUNTDOWN = 'COUNTDOWN',
     IN_GAME = 'IN_GAME',
+    PAUSE = 'PAUSE',
+    SETTINGS = 'SETTINGS',
     BONUS = 'BONUS',
     VICTORY = 'VICTORY',
-    GAME_OVER = 'GAME_OVER'
+    GAME_OVER = 'GAME_OVER',
+    AUDIO_SETTINGS = 'AUDIO_SETTINGS'
   }
   
   export enum MonsterType {

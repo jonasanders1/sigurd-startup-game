@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand';
 import { GameState, MenuType } from '../../types/enums';
 import { GAME_CONFIG } from '../../types/constants';
 import { calculateBombScore, formatScoreLog } from '../../lib/scoringUtils';
+import { sendScoreToHost, sendGameStateUpdate } from '@/lib/communicationUtils';
 
 export interface GameStateSlice {
   currentState: GameState;
@@ -10,6 +11,7 @@ export interface GameStateSlice {
   lives: number;
   currentLevel: number;
   showMenu: MenuType;
+  previousMenu: MenuType | null;
   isPaused: boolean;
   bonusAnimationComplete: boolean;
   
@@ -30,6 +32,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
   lives: GAME_CONFIG.STARTING_LIVES,
   currentLevel: 1,
   showMenu: MenuType.START,
+  previousMenu: null,
   isPaused: false,
   bonusAnimationComplete: false,
   
@@ -43,9 +46,21 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
     } else if (state === GameState.PLAYING) {
       set({ showMenu: MenuType.IN_GAME });
     }
+    
+    // Get current map for state update
+    const currentMap = 'currentMap' in get() ? (get() as any).currentMap : null;
+    sendGameStateUpdate(state, currentMap?.name);
   },
   
-  setMenuType: (menuType: MenuType) => set({ showMenu: menuType }),
+  setMenuType: (menuType: MenuType) => {
+    const currentState = get();
+    if (menuType === MenuType.SETTINGS) {
+      // Store the current menu as previous when opening settings
+      set({ showMenu: menuType, previousMenu: currentState.showMenu });
+    } else {
+      set({ showMenu: menuType });
+    }
+  },
   
   loseLife: () => {
     const { lives } = get();
@@ -66,6 +81,8 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
     // Check if game over after setting new lives
     if (newLives <= 0) {
       set({ currentState: GameState.GAME_OVER, showMenu: MenuType.GAME_OVER });
+      const currentMap = 'currentMap' in get() ? (get() as any).currentMap : null;
+      sendGameStateUpdate(GameState.GAME_OVER, currentMap?.name);
     }
   },
   
@@ -81,14 +98,34 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
       console.log('🔄 Resetting multiplier on level change...');
       (get() as any).resetMultiplier();
     }
+    
+    // Send state update with new level info
+    const currentMap = 'currentMap' in get() ? (get() as any).currentMap : null;
+    sendGameStateUpdate(GameState.PLAYING, currentMap?.name);
   },
   
   addScore: (points: number) => {
-    const { score, levelScore } = get();
+    const { score, levelScore, currentLevel, lives } = get();
+    const newScore = score + points;
+    
     set({ 
-      score: score + points,
+      score: newScore,
       levelScore: levelScore + points
     });
+    
+    // Get multiplier and currentMap from the store if available
+    const multiplier = 'multiplier' in get() ? (get() as any).multiplier : 1;
+    const currentMap = 'currentMap' in get() ? (get() as any).currentMap : null;
+    
+    // Send comprehensive score data to host
+    sendScoreToHost(
+      newScore, 
+      currentMap?.name || `Level ${currentLevel}`,
+      undefined, // playerName - could be configurable
+      currentLevel,
+      lives,
+      multiplier
+    );
   },
   
   resetLevelScores: () => {
@@ -99,6 +136,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
     set({
       currentState: GameState.MENU,
       showMenu: MenuType.START,
+      previousMenu: null,
       score: 0,
       levelScore: 0,
       lives: GAME_CONFIG.STARTING_LIVES,
@@ -106,6 +144,10 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
       isPaused: false,
       bonusAnimationComplete: false
     });
+    
+    // Send state update
+    const currentMap = 'currentMap' in get() ? (get() as any).currentMap : null;
+    sendGameStateUpdate(GameState.MENU, currentMap?.name);
   },
   
   setBonusAnimationComplete: (complete: boolean) => {

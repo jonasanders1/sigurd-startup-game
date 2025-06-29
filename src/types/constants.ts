@@ -50,7 +50,7 @@ export const GAME_CONFIG = {
   // Development Mode Configuration
   export const DEV_CONFIG = {
     ENABLED: false, // Set to false to disable dev mode
-    TARGET_STATE: 'PLAYING', // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'BONUS', 'VICTORY', 'GAME_OVER'
+    TARGET_STATE: 'SETTINGS', // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
     MOCK_DATA: {
       score: 15000,
       lives: 2,

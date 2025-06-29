@@ -1,5 +1,6 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { ASSET_PATHS } from "../config/assets";
+import { useGameStore } from "../stores/gameStore";
 
 export class AudioManager {
   private audioContext: AudioContext | null = null;
@@ -19,7 +20,7 @@ export class AudioManager {
         (window as any).webkitAudioContext)();
       this.backgroundMusicGain = this.audioContext.createGain();
       this.backgroundMusicGain.connect(this.audioContext.destination);
-      this.backgroundMusicGain.gain.value = 1; // Low volume for background music
+      this.updateAudioVolumes(); // Set initial volume based on settings
     } catch (error) {
       console.warn("Web Audio API not supported:", error);
     }
@@ -105,7 +106,8 @@ export class AudioManager {
       this.audioContext.currentTime + 0.1
     );
 
-    gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+    const sfxVolume = this.getSFXVolume();
+    gainNode.gain.setValueAtTime(0.3 * sfxVolume, this.audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       this.audioContext.currentTime + 0.2
@@ -131,7 +133,8 @@ export class AudioManager {
       this.audioContext.currentTime + 0.3
     );
 
-    gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+    const sfxVolume = this.getSFXVolume();
+    gainNode.gain.setValueAtTime(0.4 * sfxVolume, this.audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       this.audioContext.currentTime + 0.3
@@ -147,6 +150,7 @@ export class AudioManager {
     // Play a ascending melody
     const notes = [523.25, 587.33, 659.25, 698.46, 783.99]; // C5, D5, E5, F5, G5
     let time = this.audioContext.currentTime;
+    const sfxVolume = this.getSFXVolume();
 
     notes.forEach((frequency, index) => {
       const oscillator = this.audioContext!.createOscillator();
@@ -158,7 +162,7 @@ export class AudioManager {
       oscillator.type = "triangle";
       oscillator.frequency.setValueAtTime(frequency, time);
 
-      gainNode.gain.setValueAtTime(0.3, time);
+      gainNode.gain.setValueAtTime(0.3 * sfxVolume, time);
       gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
 
       oscillator.start(time);
@@ -174,6 +178,7 @@ export class AudioManager {
     // Play a short celebratory melody
     const melody = [659.25, 783.99, 1046.5, 783.99, 1046.5]; // E5, G5, C6, G5, C6
     let time = this.audioContext.currentTime;
+    const sfxVolume = this.getSFXVolume();
 
     melody.forEach((frequency, index) => {
       const oscillator = this.audioContext!.createOscillator();
@@ -185,7 +190,7 @@ export class AudioManager {
       oscillator.type = "sine";
       oscillator.frequency.setValueAtTime(frequency, time);
 
-      gainNode.gain.setValueAtTime(0.2, time);
+      gainNode.gain.setValueAtTime(0.2 * sfxVolume, time);
       gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
 
       oscillator.start(time);
@@ -249,5 +254,27 @@ export class AudioManager {
     if (this.audioContext) {
       this.audioContext.close();
     }
+  }
+  
+  private updateAudioVolumes(): void {
+    const audioSettings = useGameStore.getState().audioSettings;
+    if (this.backgroundMusicGain) {
+      const musicVolume = audioSettings.masterMuted || audioSettings.musicMuted 
+        ? 0 
+        : (audioSettings.masterVolume / 100) * (audioSettings.musicVolume / 100);
+      this.backgroundMusicGain.gain.value = musicVolume;
+    }
+  }
+  
+  private getSFXVolume(): number {
+    const audioSettings = useGameStore.getState().audioSettings;
+    return audioSettings.masterMuted || audioSettings.sfxMuted 
+      ? 0 
+      : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);
+  }
+
+  // Public method to update audio volumes when settings change
+  public updateVolumes(): void {
+    this.updateAudioVolumes();
   }
 }

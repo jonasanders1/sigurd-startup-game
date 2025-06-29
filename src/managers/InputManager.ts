@@ -7,21 +7,29 @@ export class InputManager {
       up: false,
       float: false
     };
+    
+    // Store bound event handlers for proper cleanup
+    private boundKeyDownHandler: (event: KeyboardEvent) => void;
+    private boundKeyUpHandler: (event: KeyboardEvent) => void;
+    private boundPreventDefaultHandler: (event: KeyboardEvent) => void;
   
     constructor() {
+      // Bind event handlers once and store them
+      this.boundKeyDownHandler = this.handleKeyDown.bind(this);
+      this.boundKeyUpHandler = this.handleKeyUp.bind(this);
+      this.boundPreventDefaultHandler = (e: KeyboardEvent) => {
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', ' ', 'p', 'P'].includes(e.key)) {
+          e.preventDefault();
+        }
+      };
+      
       this.bindEvents();
     }
   
     private bindEvents() {
-      document.addEventListener('keydown', this.handleKeyDown.bind(this));
-      document.addEventListener('keyup', this.handleKeyUp.bind(this));
-      
-      // Prevent default behavior for game keys
-      document.addEventListener('keydown', (e) => {
-        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space', ' '].includes(e.key)) {
-          e.preventDefault();
-        }
-      });
+      document.addEventListener('keydown', this.boundKeyDownHandler);
+      document.addEventListener('keyup', this.boundKeyUpHandler);
+      document.addEventListener('keydown', this.boundPreventDefaultHandler);
     }
   
     isKeyPressed(key: string): boolean {
@@ -74,7 +82,8 @@ export class InputManager {
     }
   
     cleanup(): void {
-      document.removeEventListener('keydown', this.handleKeyDown.bind(this));
-      document.removeEventListener('keyup', this.handleKeyUp.bind(this));
+      document.removeEventListener('keydown', this.boundKeyDownHandler);
+      document.removeEventListener('keyup', this.boundKeyUpHandler);
+      document.removeEventListener('keydown', this.boundPreventDefaultHandler);
     }
   }
