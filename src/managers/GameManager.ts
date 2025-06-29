@@ -9,6 +9,7 @@ import { AudioManager } from "./AudioManager";
 import { AudioEvent } from "../types/enums";
 import { playerSprite } from "@/entities/Player";
 import { AnimationController } from "../lib/AnimationController";
+import { sendGameReady, sendGameStateUpdate } from "../lib/communicationUtils";
 
 export class GameManager {
   private inputManager: InputManager;
@@ -40,6 +41,10 @@ export class GameManager {
       // Initialize first level normally
       this.loadCurrentLevel();
     }
+    
+    // Send game ready signal to host
+    sendGameReady();
+    
     this.gameLoop(0);
   }
 

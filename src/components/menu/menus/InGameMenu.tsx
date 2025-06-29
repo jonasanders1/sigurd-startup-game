@@ -10,8 +10,6 @@ const InGameMenu: React.FC = () => {
 
   const [isFullscreen, setIsFullscreen] = useState(false); // TODO: Implement fullscreen toggle
 
-  // Debug logging
-  console.log(`🎮 InGameMenu: multiplier=${multiplier}, multiplierScore=${multiplierScore}`);
 
   const togglePause = () => {
     setState(isPaused ? GameState.PLAYING : GameState.PAUSED);
