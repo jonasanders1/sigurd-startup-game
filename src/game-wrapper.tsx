@@ -4,16 +4,26 @@ import "./index.css";
 import css from './index.css?inline';
 
 class GameElement extends HTMLElement {
+  private root: ReactDOM.Root | null = null;
+
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "open" });
-    const root = document.createElement("div");
-    shadow.appendChild(root);
+    const rootElement = document.createElement("div");
+    shadow.appendChild(rootElement);
     
     const style = document.createElement('style');
     style.textContent = css;
     shadow.appendChild(style);
 
-    ReactDOM.createRoot(root).render(<MainGame />);
+    this.root = ReactDOM.createRoot(rootElement);
+    this.root.render(<MainGame />);
+  }
+
+  disconnectedCallback() {
+    if (this.root) {
+      this.root.unmount();
+      this.root = null;
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { ASSET_PATHS } from "../config/assets";
-import { AudioSettings, getAudioSettings, initializeAudioSettingsListener } from "../lib/communicationUtils";
+import { useGameStore } from "../stores/gameStore";
 
 export class AudioManager {
   private audioContext: AudioContext | null = null;
@@ -8,19 +8,10 @@ export class AudioManager {
   private isBackgroundMusicPlaying = false;
   private backgroundMusicBuffer: AudioBuffer | null = null;
   private backgroundMusicSource: AudioBufferSourceNode | null = null;
-  private audioSettings: AudioSettings = {
-    masterVolume: 70,
-    musicVolume: 70,
-    sfxVolume: 70,
-    masterMuted: false,
-    musicMuted: false,
-    sfxMuted: false,
-  };
 
   constructor() {
     this.initializeAudioContext();
     this.loadBackgroundMusic();
-    this.initializeAudioSettings();
   }
 
   private initializeAudioContext(): void {
@@ -264,35 +255,26 @@ export class AudioManager {
       this.audioContext.close();
     }
   }
-
-  private initializeAudioSettings(): void {
-    // Get initial audio settings from host
-    const hostSettings = getAudioSettings();
-    if (hostSettings) {
-      this.audioSettings = { ...hostSettings };
-      console.log('🎵 Audio settings loaded from host:', this.audioSettings);
-    }
-    
-    // Listen for audio settings changes from host
-    initializeAudioSettingsListener((settings) => {
-      this.audioSettings = { ...settings };
-      console.log('🎵 Audio settings updated:', this.audioSettings);
-      this.updateAudioVolumes();
-    });
-  }
   
   private updateAudioVolumes(): void {
+    const audioSettings = useGameStore.getState().audioSettings;
     if (this.backgroundMusicGain) {
-      const musicVolume = this.audioSettings.masterMuted || this.audioSettings.musicMuted 
+      const musicVolume = audioSettings.masterMuted || audioSettings.musicMuted 
         ? 0 
-        : (this.audioSettings.masterVolume / 100) * (this.audioSettings.musicVolume / 100);
+        : (audioSettings.masterVolume / 100) * (audioSettings.musicVolume / 100);
       this.backgroundMusicGain.gain.value = musicVolume;
     }
   }
   
   private getSFXVolume(): number {
-    return this.audioSettings.masterMuted || this.audioSettings.sfxMuted 
+    const audioSettings = useGameStore.getState().audioSettings;
+    return audioSettings.masterMuted || audioSettings.sfxMuted 
       ? 0 
-      : (this.audioSettings.masterVolume / 100) * (this.audioSettings.sfxVolume / 100);
+      : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);
+  }
+
+  // Public method to update audio volumes when settings change
+  public updateVolumes(): void {
+    this.updateAudioVolumes();
   }
 }

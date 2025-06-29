@@ -22,6 +22,7 @@ export class GameManager {
   private isBackgroundMusicPlaying = false;
   private previousGameState: GameState | null = null;
   private devModeInitialized = false;
+  private boundGameLoop: (currentTime: number) => void;
 
   constructor(canvas: HTMLCanvasElement) {
     this.inputManager = new InputManager();
@@ -29,6 +30,15 @@ export class GameManager {
     this.renderManager = new RenderManager(canvas);
     this.audioManager = new AudioManager();
     this.animationController = new AnimationController(playerSprite);
+    
+    // Bind the game loop once to prevent multiple instances
+    this.boundGameLoop = this.gameLoop.bind(this);
+    
+    // Set AudioManager reference in store for settings updates
+    const gameState = useGameStore.getState();
+    if ('setAudioManager' in gameState) {
+      gameState.setAudioManager(this.audioManager);
+    }
   }
 
   start(): void {
@@ -38,6 +48,10 @@ export class GameManager {
       console.log(`🎯 Target state: ${DEV_CONFIG.TARGET_STATE}`);
       this.initializeDevMode();
     } else {
+      // Reset game state to ensure fresh start
+      const gameState = useGameStore.getState();
+      gameState.resetGame();
+      
       // Initialize first level normally
       this.loadCurrentLevel();
     }
@@ -163,7 +177,7 @@ export class GameManager {
       // Only run normal game logic if we're in PLAYING state in dev mode
       if (gameState.currentState !== GameState.PLAYING) {
         this.render();
-        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+        this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
         return;
       }
     }
@@ -242,7 +256,7 @@ export class GameManager {
     }
 
     this.render();
-    this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+    this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
   }
 
   private handleBackgroundMusic(currentState: GameState): void {
@@ -283,6 +297,15 @@ export class GameManager {
   private updatePlayer(deltaTime: number): void {
     const gameState = useGameStore.getState();
     let player = { ...gameState.player };
+
+    // Handle pause key
+    if (this.inputManager.isKeyPressed("p") || this.inputManager.isKeyPressed("P")) {
+      if (gameState.currentState === GameState.PLAYING) {
+        gameState.setState(GameState.PAUSED);
+        gameState.setMenuType(MenuType.PAUSE);
+      }
+      return; // Don't process other input while paused
+    }
 
     // Handle input
     let moveX = 0;

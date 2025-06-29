@@ -5,9 +5,12 @@ import GameCanvas from "./GameCanvas";
 import StartMenu from "./menu/menus/StartMenu";
 import CountdownOverlay from "./menu/menus/CountdownOverlay";
 import InGameMenu from "./menu/menus/InGameMenu";
+import PauseMenu from "./menu/menus/PauseMenu";
+import SettingsMenu from "./menu/menus/SettingsMenu";
 import BonusScreen from "./menu/menus/BonusScreen";
 import VictoryMenu from "./menu/menus/VictoryMenu";
 import GameOverScreen from "./menu/menus/GameOverScreen";
+import AudioSettingsMenu from "./menu/menus/AudioSettingsMenu";
 import Menu from "./menu/Menu";
 import { DEV_CONFIG } from "@/types/constants";
 import { Circle } from "lucide-react";
@@ -39,8 +42,17 @@ const MainGame: React.FC = () => {
             <CountdownOverlay />
           </Menu>
         )}
-        {(currentState === GameState.PLAYING ||
-          currentState === GameState.PAUSED) && (
+        {showMenu === MenuType.PAUSE && (
+          <Menu>
+            <PauseMenu />
+          </Menu>
+        )}
+        {showMenu === MenuType.SETTINGS && (
+          <Menu>
+            <SettingsMenu />
+          </Menu>
+        )}
+        {currentState === GameState.PLAYING && (
           <Menu transparent={true}>
             <InGameMenu />
           </Menu>
@@ -58,6 +70,11 @@ const MainGame: React.FC = () => {
         {showMenu === MenuType.GAME_OVER && (
           <Menu>
             <GameOverScreen />
+          </Menu>
+        )}
+        {showMenu === MenuType.AUDIO_SETTINGS && (
+          <Menu>
+            <AudioSettingsMenu />
           </Menu>
         )}
       </div>

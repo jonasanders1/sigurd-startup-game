@@ -11,6 +11,7 @@ export interface GameStateSlice {
   lives: number;
   currentLevel: number;
   showMenu: MenuType;
+  previousMenu: MenuType | null;
   isPaused: boolean;
   bonusAnimationComplete: boolean;
   
@@ -31,6 +32,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
   lives: GAME_CONFIG.STARTING_LIVES,
   currentLevel: 1,
   showMenu: MenuType.START,
+  previousMenu: null,
   isPaused: false,
   bonusAnimationComplete: false,
   
@@ -50,7 +52,15 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
     sendGameStateUpdate(state, currentMap?.name);
   },
   
-  setMenuType: (menuType: MenuType) => set({ showMenu: menuType }),
+  setMenuType: (menuType: MenuType) => {
+    const currentState = get();
+    if (menuType === MenuType.SETTINGS) {
+      // Store the current menu as previous when opening settings
+      set({ showMenu: menuType, previousMenu: currentState.showMenu });
+    } else {
+      set({ showMenu: menuType });
+    }
+  },
   
   loseLife: () => {
     const { lives } = get();
@@ -126,6 +136,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (set, get) => 
     set({
       currentState: GameState.MENU,
       showMenu: MenuType.START,
+      previousMenu: null,
       score: 0,
       levelScore: 0,
       lives: GAME_CONFIG.STARTING_LIVES,

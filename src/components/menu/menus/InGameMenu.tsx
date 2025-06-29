@@ -1,18 +1,22 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
-import { GameState } from "../../../types/enums";
+import { GameState, MenuType } from "../../../types/enums";
 import { Play, Pause, Maximize, Minimize, Zap, CircleDollarSign, Map, Coffee } from "lucide-react";
 import { calculateMultiplierProgress } from "../../../lib/scoringUtils";
 
 const InGameMenu: React.FC = () => {
-  const { score, lives, currentLevel, setState, isPaused, multiplier, multiplierScore } = useGameStore();
+  const { score, lives, currentLevel, setState, setMenuType, isPaused, multiplier, multiplierScore } = useGameStore();
 
   const [isFullscreen, setIsFullscreen] = useState(false); // TODO: Implement fullscreen toggle
 
-
   const togglePause = () => {
-    setState(isPaused ? GameState.PLAYING : GameState.PAUSED);
+    if (isPaused) {
+      setState(GameState.PLAYING);
+    } else {
+      setState(GameState.PAUSED);
+      setMenuType(MenuType.PAUSE);
+    }
   };
 
   const toggleFullscreen = () => {

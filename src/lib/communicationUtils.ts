@@ -81,12 +81,30 @@ export const setAudioSettings = (settings: AudioSettings) => {
 };
 
 // Listen for audio settings changes from the host
+let audioSettingsListener: ((event: Event) => void) | null = null;
+
 export const initializeAudioSettingsListener = (callback: (settings: AudioSettings) => void) => {
   if (typeof window !== 'undefined') {
-    window.addEventListener('game:audio-settings-changed', (event: any) => {
-      console.log('🎮 Audio settings received from host:', event.detail);
-      callback(event.detail);
-    });
+    // Remove existing listener if any
+    if (audioSettingsListener) {
+      window.removeEventListener('game:audio-settings-changed', audioSettingsListener);
+    }
+    
+    // Store the callback and add the listener
+    audioSettingsListener = (event: Event) => {
+      const customEvent = event as CustomEvent<AudioSettings>;
+      console.log('🎮 Audio settings received from host:', customEvent.detail);
+      callback(customEvent.detail);
+    };
+    
+    window.addEventListener('game:audio-settings-changed', audioSettingsListener);
+  }
+};
+
+export const cleanupAudioSettingsListener = () => {
+  if (typeof window !== 'undefined' && audioSettingsListener) {
+    window.removeEventListener('game:audio-settings-changed', audioSettingsListener);
+    audioSettingsListener = null;
   }
 };
 
