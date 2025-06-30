@@ -64,6 +64,12 @@ export class AudioManager {
         console.log("🔥 Bonus sound");
         this.playBonusSound();
         break;
+      case AudioEvent.COIN_COLLECT:
+        this.playCoinCollectSound();
+        break;
+      case AudioEvent.POWER_COIN_ACTIVATE:
+        this.playPowerCoinActivateSound();
+        break;
       case AudioEvent.BACKGROUND_MUSIC:
         // Only start background music if game state is PLAYING
         if (gameState === GameState.PLAYING) {
@@ -198,6 +204,73 @@ export class AudioManager {
 
       time += 0.2;
     });
+  }
+
+  private playCoinCollectSound(): void {
+    if (!this.audioContext) return;
+
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(
+      1500,
+      this.audioContext.currentTime + 0.1
+    );
+
+    const sfxVolume = this.getSFXVolume();
+    gainNode.gain.setValueAtTime(0.3 * sfxVolume, this.audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      this.audioContext.currentTime + 0.15
+    );
+
+    oscillator.start();
+    oscillator.stop(this.audioContext.currentTime + 0.15);
+  }
+
+  private playPowerCoinActivateSound(): void {
+    if (!this.audioContext) return;
+
+    // Play a power-up sound with multiple oscillators
+    const time = this.audioContext.currentTime;
+    const sfxVolume = this.getSFXVolume();
+
+    // Main power sound
+    const mainOsc = this.audioContext.createOscillator();
+    const mainGain = this.audioContext.createGain();
+    mainOsc.connect(mainGain);
+    mainGain.connect(this.audioContext.destination);
+
+    mainOsc.type = "square";
+    mainOsc.frequency.setValueAtTime(200, time);
+    mainOsc.frequency.exponentialRampToValueAtTime(400, time + 0.3);
+
+    mainGain.gain.setValueAtTime(0.2 * sfxVolume, time);
+    mainGain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+
+    mainOsc.start(time);
+    mainOsc.stop(time + 0.5);
+
+    // High frequency overlay
+    const highOsc = this.audioContext.createOscillator();
+    const highGain = this.audioContext.createGain();
+    highOsc.connect(highGain);
+    highGain.connect(this.audioContext.destination);
+
+    highOsc.type = "sine";
+    highOsc.frequency.setValueAtTime(800, time);
+    highOsc.frequency.exponentialRampToValueAtTime(1200, time + 0.2);
+
+    highGain.gain.setValueAtTime(0.15 * sfxVolume, time);
+    highGain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
+
+    highOsc.start(time);
+    highOsc.stop(time + 0.3);
   }
 
   private startBackgroundMusic(): void {

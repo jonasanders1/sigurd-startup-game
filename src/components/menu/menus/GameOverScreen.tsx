@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
 
 const GameOverScreen: React.FC = () => {
-  const { score, currentLevel, correctOrderCount, resetGame, levelHistory } =
-    useGameStore();
+  const { score, resetGame, levelHistory } = useGameStore();
 
   const handleRestart = () => {
     resetGame();
@@ -12,18 +11,21 @@ const GameOverScreen: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-b rounded-lg text-center max-w-md">
-      <h1 className="text-4xl font-bold text-red-400 mb-4 uppercase">konkurs</h1>
+      <h1 className="text-4xl font-bold text-red-400 mb-4 uppercase">
+        konkurs
+      </h1>
 
       <div className="text-white mb-6 space-y-3">
         <div className="text-2xl">
-          <span className="text-yellow-400">Total finansiering:</span>
-          <div className="font-bold">{score.toLocaleString()}</div>
+          <span className="text-yellow-400">
+            Total finansiering:{" "}
+            <span className="font-bold text-white">{score.toLocaleString()} kr</span>
+          </span>
         </div>
 
         {/* Level History */}
         {levelHistory.length > 0 && (
           <div className="mt-6 border-t border-gray-600 pt-4">
-            <h3 className="text-lg font-bold text-primary mb-3">Din reise</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>

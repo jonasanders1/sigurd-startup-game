@@ -1,4 +1,4 @@
-import { Player, Monster, Bomb, Platform, Ground } from "../types/interfaces";
+import { Player, Monster, Bomb, Platform, Ground, Coin } from "../types/interfaces";
 import { COLORS } from "../types/constants";
 import { playerSprite } from "@/entities/Player";
 import { GAME_CONFIG } from "../types/constants";
@@ -17,7 +17,8 @@ export class RenderManager {
     platforms: Platform[],
     bombs: Bomb[],
     monsters: Monster[],
-    ground: Ground | null
+    ground: Ground | null,
+    coins: Coin[] = []
   ): void {
     this.clearCanvas();
     if (ground) {
@@ -25,6 +26,7 @@ export class RenderManager {
     }
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
+    this.renderCoins(coins);
     this.renderMonsters(monsters);
     this.renderPlayer(player);
   }
@@ -89,15 +91,14 @@ export class RenderManager {
       }
 
       // Draw bomb as circle
-      this.ctx.fillRect(
-        bomb.x,
-        bomb.y,
-        bomb.width,
-        bomb.height
+      this.ctx.beginPath();
+      this.ctx.arc(
+        bomb.x + bomb.width / 2,
+        bomb.y + bomb.height / 2,
+        bomb.width / 2,
+        0,
+        2 * Math.PI
       );
-
-      
-
       this.ctx.fill();
 
       // Draw order number
@@ -112,17 +113,83 @@ export class RenderManager {
     });
   }
 
+  private renderCoins(coins: Coin[]): void {
+    coins.forEach((coin) => {
+      if (coin.isCollected) {
+        return; // Don't render collected coins
+      }
+
+      // Set coin color based on type
+      switch (coin.type) {
+        case 'POWER':
+          this.ctx.fillStyle = COLORS.COIN_POWER;
+          break;
+        case 'BONUS_MULTIPLIER':
+          this.ctx.fillStyle = COLORS.COIN_BONUS;
+          break;
+        case 'EXTRA_LIFE':
+          this.ctx.fillStyle = COLORS.COIN_LIFE;
+          break;
+        default:
+          this.ctx.fillStyle = COLORS.COIN_POWER;
+      }
+
+      // Draw coin as a circle
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2,
+        coin.width / 2,
+        0,
+        2 * Math.PI
+      );
+      this.ctx.fill();
+
+      // Add a shimmer effect
+      this.ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2 - 2,
+        coin.y + coin.height / 2 - 2,
+        coin.width / 4,
+        0,
+        2 * Math.PI
+      );
+      this.ctx.fill();
+
+      // Draw coin type letter
+      this.ctx.fillStyle = "#FFFFFF";
+      this.ctx.font = "bold 12px Arial";
+      this.ctx.textAlign = "center";
+      this.ctx.fillText(
+        coin.type.charAt(0),
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2 + 4
+      );
+    });
+  }
+
   private renderMonsters(monsters: Monster[]): void {
     monsters.forEach((monster) => {
       if (!monster.isActive) return;
 
-      this.ctx.fillStyle = monster.color;
+      // Use different color for frozen monsters
+      this.ctx.fillStyle = monster.isFrozen ? COLORS.MONSTER_FROZEN : monster.color;
       this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
 
       // Add simple eyes
       this.ctx.fillStyle = "#FFFFFF";
       this.ctx.fillRect(monster.x + 3, monster.y + 3, 3, 3);
       this.ctx.fillRect(monster.x + monster.width - 6, monster.y + 3, 3, 3);
+
+      // Add frozen effect (ice crystals) for frozen monsters
+      if (monster.isFrozen) {
+        this.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        this.ctx.fillRect(monster.x + 1, monster.y + 1, 2, 2);
+        this.ctx.fillRect(monster.x + monster.width - 3, monster.y + 1, 2, 2);
+        this.ctx.fillRect(monster.x + 1, monster.y + monster.height - 3, 2, 2);
+        this.ctx.fillRect(monster.x + monster.width - 3, monster.y + monster.height - 3, 2, 2);
+      }
     });
   }
 }

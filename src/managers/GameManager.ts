@@ -305,6 +305,7 @@ export class GameManager {
   private update(deltaTime: number): void {
     this.updatePlayer(deltaTime);
     this.updateMonsters(deltaTime);
+    this.updateCoins(deltaTime);
   }
 
   private updatePlayer(deltaTime: number): void {
@@ -453,9 +454,27 @@ export class GameManager {
     gameState.updateMonsters(monsters);
   }
 
+  private updateCoins(deltaTime: number): void {
+    const gameState = useGameStore.getState();
+    const platforms = gameState.currentMap?.platforms || [];
+    const ground = gameState.currentMap?.ground;
+    const coinManager = gameState.coinManager;
+
+    if (ground && coinManager) {
+      // Let CoinManager handle all coin physics updates
+      coinManager.update(platforms, ground);
+      
+      // Update the store with the latest coin state
+      gameState.setCoins(coinManager.getCoins());
+      
+      // Update monster states based on power mode
+      gameState.updateMonsterStates(gameState.monsters);
+    }
+  }
+
   private handleCollisions(): void {
     const gameState = useGameStore.getState();
-    const { player, platforms, bombs, monsters, ground } = gameState;
+    const { player, platforms, bombs, monsters, ground, coins } = gameState;
 
     // Platform collisions - handle all directions
     const platformCollision =
@@ -532,7 +551,27 @@ export class GameManager {
     );
     if (collectedBomb) {
       this.audioManager.playSound(AudioEvent.BOMB_COLLECT);
-      gameState.collectBomb(collectedBomb.order);
+      const result = gameState.collectBomb(collectedBomb.order);
+      
+      // Check if this was a firebomb (correct order) to trigger coin spawning
+      if (result && result.isCorrect) {
+        gameState.onFirebombCollected();
+      }
+    }
+
+    // Coin collisions
+    const collectedCoin = this.collisionManager.checkPlayerCoinCollision(
+      player,
+      coins
+    );
+    if (collectedCoin) {
+      this.audioManager.playSound(AudioEvent.COIN_COLLECT);
+      gameState.collectCoin(collectedCoin);
+      
+      // If it's a power coin, play special sound
+      if (collectedCoin.type === 'POWER') {
+        this.audioManager.playSound(AudioEvent.POWER_COIN_ACTIVATE);
+      }
     }
 
     // Monster collisions
@@ -541,8 +580,24 @@ export class GameManager {
       monsters
     );
     if (hitMonster) {
-      this.audioManager.playSound(AudioEvent.MONSTER_HIT);
-      this.handlePlayerDeath();
+      // Check if power mode is active - if so, kill the monster instead
+      if (gameState.activeEffects.powerMode) {
+        // Monster is killed during power mode
+        const points = GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier;
+        gameState.addScore(points);
+        console.log(`💀 Monster killed during power mode: ${points} points`);
+        
+        // Play monster kill sound (same as coin collect sound)
+        this.audioManager.playSound(AudioEvent.COIN_COLLECT);
+        
+        // Remove the monster from the game
+        const updatedMonsters = monsters.filter(m => m !== hitMonster);
+        gameState.updateMonsters(updatedMonsters);
+      } else {
+        // Normal monster collision - player dies
+        this.audioManager.playSound(AudioEvent.MONSTER_HIT);
+        this.handlePlayerDeath();
+      }
     }
   }
 
@@ -618,6 +673,9 @@ export class GameManager {
         gameState.correctOrderCount as keyof typeof GAME_CONFIG.BONUS_POINTS
       ] || 0;
 
+    // Reset coin effects when map is completed
+    gameState.resetEffects();
+
     // Record the level result when level is completed
     if (gameState.currentMap) {
       const levelResult = {
@@ -649,6 +707,9 @@ export class GameManager {
     const nextLevel = gameState.currentLevel + 1;
 
     if (nextLevel <= mapDefinitions.length) {
+      // Reset coin effects before loading new level
+      gameState.resetEffects();
+      
       gameState.nextLevel();
       this.loadCurrentLevel();
       // Always show countdown when transitioning to next level
@@ -685,7 +746,8 @@ export class GameManager {
       gameState.platforms,
       gameState.bombs,
       gameState.monsters,
-      gameState.ground
+      gameState.ground,
+      gameState.coins
     );
   }
 

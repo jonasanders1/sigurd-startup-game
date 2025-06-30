@@ -1,4 +1,4 @@
-import { Player, Monster, Bomb, Platform, Ground, CollisionResult } from '../types/interfaces';
+import { Player, Monster, Bomb, Platform, Ground, CollisionResult, Coin } from '../types/interfaces';
 
 export class CollisionManager {
   checkPlayerPlatformCollision(player: Player, platforms: Platform[]): CollisionResult {
@@ -14,6 +14,15 @@ export class CollisionManager {
   checkPlayerGroundCollision(player: Player, ground: Ground): CollisionResult {
     const collision = this.checkFullCollision(player, ground);
     return collision;
+  }
+
+  checkPlayerCoinCollision(player: Player, coins: Coin[]): Coin | null {
+    for (const coin of coins) {
+      if (!coin.isCollected && this.isColliding(player, coin)) {
+        return coin;
+      }
+    }
+    return null;
   }
 
   private checkFullCollision(player: Player, surface: { x: number; y: number; width: number; height: number }): CollisionResult {

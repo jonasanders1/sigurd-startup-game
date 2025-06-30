@@ -1,10 +1,10 @@
 import { MapDefinition } from '../types/interfaces';
 import { GAME_CONFIG, COLORS } from '../types/constants';
-import { MonsterType } from '../types/enums';
+import { MonsterType, CoinType } from '../types/enums';
 
 export const level1Map: MapDefinition = {
   id: 'level1',
-  name: 'Startup Norge – Hjemmebanen',
+  name: 'Startup Norge',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 100,
@@ -70,6 +70,12 @@ export const level1Map: MapDefinition = {
     { x: 770, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
   ],
   
+  coinSpawnPoints: [
+    // Power coin spawn points - only 2 per map with non-cardinal angles
+    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 45 },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 200, type: CoinType.POWER, spawnAngle: 135 }
+  ],
+  
   monsters: [
     {
       x: 350,
@@ -102,7 +108,7 @@ export const level1Map: MapDefinition = {
 
 export const level2Map: MapDefinition = {
   id: 'level2',
-  name: 'Innovasjon Norge – Støttelabyrinten',
+  name: 'Innovasjon Norge',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -174,6 +180,12 @@ export const level2Map: MapDefinition = {
     { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 400, width: 16, height: 16, order: 21, group: 6, isCollected: false, isBlinking: false },
     { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 22, group: 6, isCollected: false, isBlinking: false },
     { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 400, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
+  ],
+  
+  coinSpawnPoints: [
+    // Power coin spawn points for level 2 - only 2 per map with non-cardinal angles
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 60 },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 180, type: CoinType.POWER, spawnAngle: 120 }
   ],
   
   monsters: [
@@ -297,6 +309,12 @@ export const level3Map: MapDefinition = {
     { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 21, group: 6, isCollected: false, isBlinking: false },
     { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 22, group: 6, isCollected: false, isBlinking: false },
     { x: 430, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
+  ],
+  
+  coinSpawnPoints: [
+    // Power coin spawn points for level 3 - only 2 per map with non-cardinal angles
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 75 },
+    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 200, type: CoinType.POWER, spawnAngle: 105 }
   ],
   
   monsters: [
@@ -482,6 +500,12 @@ export const level4Map: MapDefinition = {
       direction: -1,
       isActive: true
     }
+  ],
+  
+  coinSpawnPoints: [
+    // Power coin spawn points for level 4 - only 2 per map with non-cardinal angles
+    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 30 },
+    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 160, type: CoinType.POWER, spawnAngle: 150 }
   ]
 };
 
@@ -636,6 +660,12 @@ export const level5Map: MapDefinition = {
       direction: 1,
       isActive: true
     }
+  ],
+  
+  coinSpawnPoints: [
+    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
+    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 100, type: CoinType.POWER, spawnAngle: 165 },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 140, type: CoinType.POWER, spawnAngle: 15 }
   ]
 };
 
@@ -805,12 +835,18 @@ export const level6Map: MapDefinition = {
       direction: -1,
       isActive: true
     }
+  ],
+  
+  coinSpawnPoints: [
+    // Power coin spawn points for level 6 - only 2 per map with non-cardinal angles
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 195 },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 180, type: CoinType.POWER, spawnAngle: 345 }
   ]
 };
 
 export const level7Map: MapDefinition = {
   id: 'level7',
-  name: 'Silicon Valley – Drømmeverden',
+  name: 'Silicon Valley',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
@@ -991,6 +1027,12 @@ export const level7Map: MapDefinition = {
       direction: -1,
       isActive: true
     }
+  ],
+  
+  coinSpawnPoints: [
+    // Power coin spawn points for level 7 - only 2 per map with non-cardinal angles
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 100, type: CoinType.POWER, spawnAngle: 225 },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 160, type: CoinType.POWER, spawnAngle: 315 }
   ]
 };
 

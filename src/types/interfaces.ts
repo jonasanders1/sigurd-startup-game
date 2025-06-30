@@ -28,6 +28,7 @@ export interface Player {
     speed: number;
     direction: number;
     isActive: boolean;
+    isFrozen?: boolean;
   }
   
   export interface Bomb {
@@ -40,6 +41,27 @@ export interface Player {
     isCollected: boolean;
     isBlinking: boolean;
     isCorrect?: boolean;
+  }
+  
+  export interface Coin {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    type: string;
+    isCollected: boolean;
+    velocityX: number;
+    velocityY: number;
+    spawnX: number;
+    spawnY: number;
+    effectDuration?: number;
+  }
+  
+  export interface CoinSpawnPoint {
+    x: number;
+    y: number;
+    type: string;
+    spawnAngle?: number;
   }
   
   export interface Platform {
@@ -69,6 +91,7 @@ export interface Player {
     ground: Ground;
     bombs: Bomb[];
     monsters: Monster[];
+    coinSpawnPoints?: CoinSpawnPoint[];
     backgroundColor: string;
     theme: string;
     groupSequence: number[];
@@ -83,9 +106,18 @@ export interface Player {
   }
   
   export interface BombCollectionState {
-    collectedBombs: Set<string>; // Track collected bombs by "group-order" string
-    correctBombs: Set<string>; // Track correctly collected bombs by "group-order" string
+    collectedBombs: Set<string>;
+    correctBombs: Set<string>;
     activeGroup: number | null;
     nextBombOrder: number | null;
     gameStarted: boolean;
+  }
+  
+  export interface CoinState {
+    coins: Coin[];
+    activeEffects: {
+      powerMode: boolean;
+      powerModeEndTime: number;
+    };
+    firebombCount: number;
   }
