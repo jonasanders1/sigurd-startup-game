@@ -90,7 +90,7 @@ export const useFullscreen = () => {
   }, []);
 
   // Toggle fullscreen
-  const toggleFullscreen = useCallback(async (element?: HTMLElement) => {
+   const toggleFullscreen = useCallback(async (element?: HTMLElement) => {
     if (isFullscreen) {
       const success = await exitFullscreen();
       if (success) {

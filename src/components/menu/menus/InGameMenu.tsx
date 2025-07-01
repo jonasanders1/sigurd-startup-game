@@ -165,7 +165,7 @@ const InGameMenu: React.FC = () => {
           {Array.from({ length: 3 }).map((_, index) => (
             <Coffee
               color="#81B64C"
-              size={24}
+              size={20}
               key={index}
               fill={index < lives ? "#81B64C" : "none"}
             />

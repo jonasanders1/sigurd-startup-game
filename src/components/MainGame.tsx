@@ -16,6 +16,7 @@ import { DEV_CONFIG } from "@/types/constants";
 import { Circle } from "lucide-react";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
+import { VERSION_STRING, getVersion } from "../version";
 
 const MainGame: React.FC = () => {
   const { currentState, showMenu } = useGameStore();
@@ -39,7 +40,7 @@ const MainGame: React.FC = () => {
   return (
     <div
       ref={gameContainerRef}
-      className="relative"
+      className="relative rounded-lg"
     >
       <GameCanvas />
 
@@ -49,6 +50,11 @@ const MainGame: React.FC = () => {
           <Circle className="w-4 h-4" fill="white" />
         </div>
       )}
+
+      {/* Version display */}
+      <div className="absolute bottom-3 right-3 text-xs text-muted-foreground z-40">
+        v{VERSION_STRING} (Build {getVersion().build})
+      </div>
 
       {/* Menu overlays positioned relative to the canvas */}
       {showMenu === MenuType.START && (
