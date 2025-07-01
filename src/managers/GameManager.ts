@@ -9,7 +9,7 @@ import { AudioManager } from "./AudioManager";
 import { AudioEvent } from "../types/enums";
 import { playerSprite } from "@/entities/Player";
 import { AnimationController } from "../lib/AnimationController";
-import { sendGameReady, sendGameStateUpdate } from "../lib/communicationUtils";
+import { sendGameReady, sendGameStateUpdate, sendMapCompletionData } from "../lib/communicationUtils";
 
 export class GameManager {
   private inputManager: InputManager;
@@ -24,6 +24,7 @@ export class GameManager {
   private devModeInitialized = false;
   private boundGameLoop: (currentTime: number) => void;
   private wasGroundedWhenMapCleared: boolean = false;
+  private mapStartTime: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.inputManager = new InputManager();
@@ -172,6 +173,9 @@ export class GameManager {
 
       // Reset animation controller state when loading new level
       this.animationController.reset();
+      
+      // Record map start time for completion tracking
+      this.mapStartTime = Date.now();
     }
   }
 
@@ -603,13 +607,16 @@ export class GameManager {
 
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
-    gameState.loseLife();
-
-    if (gameState.lives > 0) {
-      // Player still has lives - respawn with countdown
+    
+    // Check if this will be the last life before calling loseLife
+    if (gameState.lives <= 1) {
+      // This will be the last life - just call loseLife and let it handle game over
+      gameState.loseLife();
+    } else {
+      // Player will still have lives after losing one
+      gameState.loseLife();
       this.respawnPlayer();
     }
-    // If no lives left, game over is handled in loseLife()
   }
 
   private respawnPlayer(): void {
@@ -676,6 +683,9 @@ export class GameManager {
     // Reset coin effects when map is completed
     gameState.resetEffects();
 
+    // Calculate completion time
+    const completionTime = Date.now() - this.mapStartTime;
+
     // Record the level result when level is completed
     if (gameState.currentMap) {
       const levelResult = {
@@ -688,6 +698,25 @@ export class GameManager {
         hasBonus: bonusPoints > 0,
       };
       gameState.addLevelResult(levelResult);
+
+      // Send comprehensive map completion data to external site
+      const mapCompletionData = {
+        mapName: gameState.currentMap.name,
+        level: gameState.currentLevel,
+        correctOrderCount: gameState.correctOrderCount,
+        totalBombs: GAME_CONFIG.TOTAL_BOMBS,
+        score: gameState.score,
+        bonus: bonusPoints,
+        hasBonus: bonusPoints > 0,
+        timestamp: Date.now(),
+        lives: gameState.lives,
+        multiplier: gameState.multiplier,
+        completionTime: completionTime,
+        coinsCollected: gameState.coins.filter(coin => coin.isCollected).length,
+        powerModeActivations: gameState.coins.filter(coin => coin.isCollected && coin.type === 'POWER').length,
+      };
+      
+      sendMapCompletionData(mapCompletionData);
     }
 
     if (bonusPoints > 0) {
