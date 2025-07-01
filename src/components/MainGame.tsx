@@ -14,70 +14,88 @@ import AudioSettingsMenu from "./menu/menus/AudioSettingsMenu";
 import Menu from "./menu/Menu";
 import { DEV_CONFIG } from "@/types/constants";
 import { Circle } from "lucide-react";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useFullscreen } from "../hooks/useFullscreen";
 
 const MainGame: React.FC = () => {
   const { currentState, showMenu } = useGameStore();
+  const gameContainerRef = React.useRef<HTMLDivElement>(null);
+  const { toggleFullscreen } = useFullscreen();
+
+  const handleFullscreenToggle = () => {
+    const gameElement = gameContainerRef.current?.closest(
+      "sigurd-startup"
+    ) as HTMLElement;
+    if (gameElement) {
+      toggleFullscreen(gameElement);
+    } else {
+      toggleFullscreen();
+    }
+  };
+
+  // Set up keyboard shortcuts
+  useKeyboardShortcuts(handleFullscreenToggle);
 
   return (
-    <div className="relative w-full h-screen bg-background flex items-center justify-center">
-      {/* Game Canvas Container */}
-      <div className="relative">
-        <GameCanvas />
+    <div
+      ref={gameContainerRef}
+      className="relative"
+    >
+      <GameCanvas />
 
-        {DEV_CONFIG.ENABLED && (
-          <div className="text-white text-2xl absolute top-1 left-1 bg-red-500 rounded-full p-1 flex items-center justify-center gap-1">
-            <span className="text-xs font-bold uppercase">Dev</span>
-            <Circle className="w-4 h-4" fill="white" />
-          </div>
-        )}
+      {DEV_CONFIG.ENABLED && (
+        <div className="text-white text-2xl absolute top-1 left-1 bg-red-500 rounded-full p-1 flex items-center justify-center gap-1 z-50">
+          <span className="text-xs font-bold uppercase">Dev</span>
+          <Circle className="w-4 h-4" fill="white" />
+        </div>
+      )}
 
-        {/* Menu overlays positioned relative to the canvas */}
-        {showMenu === MenuType.START && (
-          <Menu>
-            <StartMenu />
-          </Menu>
-        )}
-        {showMenu === MenuType.COUNTDOWN && (
-          <Menu>
-            <CountdownOverlay />
-          </Menu>
-        )}
-        {showMenu === MenuType.PAUSE && (
-          <Menu>
-            <PauseMenu />
-          </Menu>
-        )}
-        {showMenu === MenuType.SETTINGS && (
-          <Menu>
-            <SettingsMenu />
-          </Menu>
-        )}
-        {currentState === GameState.PLAYING && (
-          <Menu transparent={true}>
-            <InGameMenu />
-          </Menu>
-        )}
-        {showMenu === MenuType.BONUS && (
-          <Menu>
-            <BonusScreen />
-          </Menu>
-        )}
-        {showMenu === MenuType.VICTORY && (
-          <Menu>
-            <VictoryMenu />
-          </Menu>
-        )}
-        {showMenu === MenuType.GAME_OVER && (
-          <Menu>
-            <GameOverScreen />
-          </Menu>
-        )}
-        {showMenu === MenuType.AUDIO_SETTINGS && (
-          <Menu>
-            <AudioSettingsMenu />
-          </Menu>
-        )}
-      </div>
+      {/* Menu overlays positioned relative to the canvas */}
+      {showMenu === MenuType.START && (
+        <Menu>
+          <StartMenu />
+        </Menu>
+      )}
+      {showMenu === MenuType.COUNTDOWN && (
+        <Menu>
+          <CountdownOverlay />
+        </Menu>
+      )}
+      {showMenu === MenuType.PAUSE && (
+        <Menu>
+          <PauseMenu />
+        </Menu>
+      )}
+      {showMenu === MenuType.SETTINGS && (
+        <Menu>
+          <SettingsMenu />
+        </Menu>
+      )}
+      {currentState === GameState.PLAYING && (
+        <Menu transparent={true}>
+          <InGameMenu />
+        </Menu>
+      )}
+      {showMenu === MenuType.BONUS && (
+        <Menu>
+          <BonusScreen />
+        </Menu>
+      )}
+      {showMenu === MenuType.VICTORY && (
+        <Menu>
+          <VictoryMenu />
+        </Menu>
+      )}
+      {showMenu === MenuType.GAME_OVER && (
+        <Menu>
+          <GameOverScreen />
+        </Menu>
+      )}
+      {showMenu === MenuType.AUDIO_SETTINGS && (
+        <Menu>
+          <AudioSettingsMenu />
+        </Menu>
+      )}
     </div>
   );
 };
