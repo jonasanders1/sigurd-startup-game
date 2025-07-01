@@ -5,6 +5,7 @@ import { GameState, MenuType } from "../../../types/enums";
 import { GAME_CONFIG, DEV_CONFIG } from "../../../types/constants";
 import { mapDefinitions } from "../../../maps/mapDefinitions";
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
+import { sendGameCompletionData } from "../../../lib/communicationUtils";
 
 const BonusScreen: React.FC = () => {
   const {
@@ -53,7 +54,21 @@ const BonusScreen: React.FC = () => {
         setState(GameState.PLAYING);
       }, 3000);
     } else {
-      // All levels completed
+      // All levels completed - send victory completion data
+      const gameStore = useGameStore.getState();
+      const levelHistory = gameStore.getLevelHistory();
+      const multiplier = gameStore.multiplier;
+      
+      sendGameCompletionData({
+        finalScore: gameStore.score,
+        totalLevels: mapDefinitions.length,
+        completedLevels: levelHistory.length,
+        timestamp: Date.now(),
+        lives: gameStore.lives,
+        multiplier,
+        levelHistory
+      });
+      
       setState(GameState.VICTORY);
       setMenuType(MenuType.VICTORY);
     }

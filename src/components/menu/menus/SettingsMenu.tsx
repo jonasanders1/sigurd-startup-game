@@ -56,15 +56,15 @@ const SettingsMenu: React.FC = () => {
 
       <div className="space-y-2 w-[70%]">
         {/* Master Volume */}
-        <div className="p-3 bg-[#262521] rounded-md">
+        <div className="p-3 bg-card rounded-md">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-[#cbcbca]">Master volum</span>
+            <span className="text-muted-foreground">Master volum</span>
             <button
               onClick={() => updateAudioSettings({ masterMuted: !masterMuted })}
               className={`px-3 py-1 rounded text-sm font-mono ${
                 masterMuted
                   ? "bg-red-600 text-white"
-                  : "bg-[#484744] text-white"
+                  : "bg-secondary text-white"
               }`}
             >
               {masterMuted ? "Muted" : `${masterVolume}%`}
@@ -78,19 +78,19 @@ const SettingsMenu: React.FC = () => {
             onChange={(e) =>
               updateAudioSettings({ masterVolume: Number(e.target.value) })
             }
-            className="w-full accent-[#81b64c]"
+            className="w-full accent-primary"
             disabled={masterMuted}
           />
         </div>
 
         {/* Music Volume */}
-        <div className="p-3 bg-[#262521] rounded-md">
+        <div className="p-3 bg-card rounded-md">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-[#cbcbca]">Musikk volum</span>
+            <span className="text-muted-foreground">Musikk volum</span>
             <button
               onClick={() => updateAudioSettings({ musicMuted: !musicMuted })}
               className={`px-3 py-1 rounded text-sm font-mono ${
-                musicMuted ? "bg-red-600 text-white" : "bg-[#484744] text-white"
+                musicMuted ? "bg-red-600 text-white" : "bg-secondary text-white"
               }`}
             >
               {musicMuted ? "Muted" : `${musicVolume}%`}
@@ -104,19 +104,19 @@ const SettingsMenu: React.FC = () => {
             onChange={(e) =>
               updateAudioSettings({ musicVolume: Number(e.target.value) })
             }
-            className="w-full accent-[#81b64c]"
+            className="w-full accent-primary"
             disabled={musicMuted}
           />
         </div>
 
         {/* SFX Volume */}
-        <div className="p-3 bg-[#262521] rounded-md">
+        <div className="p-3 bg-card rounded-md">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-[#cbcbca]">Lyd effekter</span>
+            <span className="text-muted-foreground">Lyd effekter</span>
             <button
               onClick={() => updateAudioSettings({ sfxMuted: !sfxMuted })}
               className={`px-3 py-1 rounded text-sm font-mono ${
-                sfxMuted ? "bg-red-600 text-white" : "bg-[#484744] text-white"
+                sfxMuted ? "bg-red-600 text-white" : "bg-secondary text-white"
               }`}
             >
               {sfxMuted ? "Muted" : `${sfxVolume}%`}
@@ -130,7 +130,7 @@ const SettingsMenu: React.FC = () => {
             onChange={(e) =>
               updateAudioSettings({ sfxVolume: Number(e.target.value) })
             }
-            className="w-full accent-[#81b64c]"
+            className="w-full accent-primary"
             disabled={sfxMuted}
           />
         </div>

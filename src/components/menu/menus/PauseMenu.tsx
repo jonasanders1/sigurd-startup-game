@@ -49,7 +49,7 @@ const PauseMenu: React.FC = () => {
       <div className="space-y-4">
         <Button
           onClick={resumeGame}
-          className="w-full bg-[#81b64c] hover:bg-[#81b64c]/80 text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full bg-primary hover:bg-primary-80 text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <Play size={20} />
           Fortsett
@@ -58,7 +58,7 @@ const PauseMenu: React.FC = () => {
         <Button
           onClick={openSettings}
           variant="outline"
-          className="w-full border-[#484744] text-[#cbcbca] bg-[#484744] hover:text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full border-secondary text-muted-foreground bg-secondary hover:text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <Settings size={20} />
           Innstillinger
@@ -67,7 +67,7 @@ const PauseMenu: React.FC = () => {
         <Button
           onClick={restartGame}
           variant="outline"
-          className="w-full border-[#484744] text-[#cbcbca] bg-[#484744] hover:text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full border-secondary text-muted-foreground bg-secondary hover:text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <RotateCcw size={20} />
           Start på nytt

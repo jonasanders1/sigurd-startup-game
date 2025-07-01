@@ -1,4 +1,5 @@
-import { Bomb } from '../types/interfaces';
+import { Bomb } from "../types/interfaces";
+import { DEV_CONFIG } from "@/types/constants";
 
 export class BombManager {
   private bombs: Bomb[] = [];
@@ -26,49 +27,64 @@ export class BombManager {
     this.reset();
   }
 
-  handleBombClick(group: number, order: number): { isValid: boolean; isCorrect: boolean; gameCompleted: boolean } {
+  handleBombClick(
+    group: number,
+    order: number
+  ): { isValid: boolean; isCorrect: boolean; gameCompleted: boolean } {
     const bombId = `${group}-${order}`;
-    
-    console.log(`🎯 USER CLICK: Group ${group}, Order ${order}`);
-    
+
+    if (DEV_CONFIG.ENABLED) {
+      console.log(`🎯 USER CLICK: Group ${group}, Order ${order}`);
+    }
+
     // Check if bomb is already collected
     if (this.collectedBombs.has(bombId)) {
-      console.log("❌ Bomb already collected!");
+      if (DEV_CONFIG.ENABLED) {
+        console.log("❌ Bomb already collected!");
+      }
       return { isValid: false, isCorrect: false, gameCompleted: false };
     }
 
     // If game hasn't started, start with this bomb
     if (!this.gameStarted) {
-      console.log("🎮 Starting new game...");
+      if (DEV_CONFIG.ENABLED) {
+        console.log("🎮 Starting new game...");
+      }
       this.startGame(group, order);
       this.collectBomb(bombId, true);
       this.updateNextBomb();
-      return { 
-        isValid: true, 
-        isCorrect: true, 
-        gameCompleted: this.isGameCompleted() 
+      return {
+        isValid: true,
+        isCorrect: true,
+        gameCompleted: this.isGameCompleted(),
       };
     }
 
     // Check if this is a valid bomb to click (correct order)
     const isCorrectOrder = this.isValidBomb(group, order);
-    
+
     if (isCorrectOrder) {
-      console.log("✅ Correct order - collecting bomb");
+      if (DEV_CONFIG.ENABLED) {
+        console.log("✅ Correct order - collecting bomb");
+      }
       this.collectBomb(bombId, true);
       this.updateNextBomb();
     } else {
-      console.log("⚠️  Wrong order - but collecting anyway");
-      console.log(`   Expected: Group ${this.activeGroup}, Order ${this.nextBombOrder}`);
-      console.log(`   Clicked: Group ${group}, Order ${order}`);
+      if (DEV_CONFIG.ENABLED) {
+        console.log("⚠️  Wrong order - but collecting anyway");
+        console.log(
+          `   Expected: Group ${this.activeGroup}, Order ${this.nextBombOrder}`
+        );
+        console.log(`   Clicked: Group ${group}, Order ${order}`);
+      }
       this.collectBomb(bombId, false);
       // Don't update next bomb - keep the same target
     }
 
-    return { 
-      isValid: true, 
-      isCorrect: isCorrectOrder, 
-      gameCompleted: this.isGameCompleted() 
+    return {
+      isValid: true,
+      isCorrect: isCorrectOrder,
+      gameCompleted: this.isGameCompleted(),
     };
   }
 
@@ -76,11 +92,13 @@ export class BombManager {
     this.gameStarted = true;
     this.activeGroup = group;
     this.nextBombOrder = this.findLowestOrderInGroup(group);
-    
-    console.log(`🎮 GAME STARTED:`);
-    console.log(`   Started with: Group ${group}, Order ${order}`);
-    console.log(`   Active group: ${this.activeGroup}`);
-    console.log(`   Next target: Order ${this.nextBombOrder}`);
+
+    if (DEV_CONFIG.ENABLED) {
+      console.log(`🎮 GAME STARTED:`);
+      console.log(`   Started with: Group ${group}, Order ${order}`);
+      console.log(`   Active group: ${this.activeGroup}`);
+      console.log(`   Next target: Order ${this.nextBombOrder}`);
+    }
   }
 
   private isValidBomb(group: number, order: number): boolean {
@@ -88,41 +106,63 @@ export class BombManager {
       return false;
     }
 
-    return group === this.activeGroup && 
-           order === this.nextBombOrder && 
-           !this.collectedBombs.has(`${group}-${order}`);
+    return (
+      group === this.activeGroup &&
+      order === this.nextBombOrder &&
+      !this.collectedBombs.has(`${group}-${order}`)
+    );
   }
 
   private collectBomb(bombId: string, isCorrect: boolean): void {
     this.collectedBombs.add(bombId);
-    
+
     if (isCorrect) {
       this.correctBombs.add(bombId);
-      console.log(`✅ Correct bomb collected (${this.correctBombs.size} correct so far)`);
+      if (DEV_CONFIG.ENABLED) {
+        console.log(
+          `✅ Correct bomb collected (${this.correctBombs.size} correct so far)`
+        );
+      }
     } else {
-      console.log(`⚠️  Wrong bomb collected (${this.correctBombs.size} correct so far)`);
+      if (DEV_CONFIG.ENABLED) {
+        console.log(
+          `⚠️  Wrong bomb collected (${this.correctBombs.size} correct so far)`
+        );
+      }
     }
-    
-    console.log(`💣 BOMB COLLECTED: ${bombId}`);
-    console.log(`📈 Progress: ${this.collectedBombs.size}/${this.bombs.length} bombs collected`);
+
+    if (DEV_CONFIG.ENABLED) {
+      console.log(`💣 BOMB COLLECTED: ${bombId}`);
+      console.log(
+        `📈 Progress: ${this.collectedBombs.size}/${this.bombs.length} bombs collected`
+      );
+    }
   }
 
   private updateNextBomb(): void {
     if (this.activeGroup === null) return;
 
-    console.log(`🔄 UPDATING NEXT BOMB:`);
-    
+    if (DEV_CONFIG.ENABLED) {
+      console.log(`🔄 UPDATING NEXT BOMB:`);
+    }
+
     // Check if current group is completed
     if (this.isGroupCompleted(this.activeGroup)) {
       console.log(`🏆 GROUP ${this.activeGroup} COMPLETED!`);
       const nextGroup = this.findNextAvailableGroup();
-      
+
       if (nextGroup !== null) {
         this.activeGroup = nextGroup;
         this.nextBombOrder = this.findLowestOrderInGroup(nextGroup);
-        console.log(`➡️  Moving to next group: Group ${this.activeGroup}, Order ${this.nextBombOrder}`);
+        if (DEV_CONFIG.ENABLED) {
+          console.log(
+            `➡️  Moving to next group: Group ${this.activeGroup}, Order ${this.nextBombOrder}`
+          );
+        }
       } else {
-        console.log("🎉 ALL GROUPS COMPLETED!");
+        if (DEV_CONFIG.ENABLED) {
+          console.log("🎉 ALL GROUPS COMPLETED!");
+        }
         this.activeGroup = null;
         this.nextBombOrder = null;
         return;
@@ -132,22 +172,26 @@ export class BombManager {
       const nextOrder = this.findNextAvailableOrderInGroup(this.activeGroup);
       if (nextOrder !== null) {
         this.nextBombOrder = nextOrder;
-        console.log(`➡️  Next in current group: Order ${this.nextBombOrder}`);
+        if (DEV_CONFIG.ENABLED) {
+          console.log(`➡️  Next in current group: Order ${this.nextBombOrder}`);
+        }
       }
     }
   }
 
   private isGroupCompleted(group: number): boolean {
-    const groupBombs = this.bombs.filter(bomb => bomb.group === group);
-    return groupBombs.every(bomb => {
+    const groupBombs = this.bombs.filter((bomb) => bomb.group === group);
+    return groupBombs.every((bomb) => {
       const bombId = `${bomb.group}-${bomb.order}`;
       return this.collectedBombs.has(bombId);
     });
   }
 
   private findNextAvailableGroup(): number | null {
-    const allGroups = [...new Set(this.bombs.map(bomb => bomb.group))].sort((a, b) => a - b);
-    
+    const allGroups = [...new Set(this.bombs.map((bomb) => bomb.group))].sort(
+      (a, b) => a - b
+    );
+
     for (let group of allGroups) {
       if (!this.isGroupCompleted(group)) {
         return group;
@@ -157,14 +201,14 @@ export class BombManager {
   }
 
   private findLowestOrderInGroup(group: number): number | null {
-    const groupBombs = this.bombs.filter(bomb => bomb.group === group);
-    const uncollectedBombs = groupBombs.filter(bomb => {
+    const groupBombs = this.bombs.filter((bomb) => bomb.group === group);
+    const uncollectedBombs = groupBombs.filter((bomb) => {
       const bombId = `${bomb.group}-${bomb.order}`;
       return !this.collectedBombs.has(bombId);
     });
 
     if (uncollectedBombs.length > 0) {
-      return Math.min(...uncollectedBombs.map(bomb => bomb.order));
+      return Math.min(...uncollectedBombs.map((bomb) => bomb.order));
     }
     return null;
   }

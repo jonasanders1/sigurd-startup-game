@@ -1,5 +1,13 @@
 import { StateCreator } from 'zustand';
-import { AudioSettings } from '../../lib/communicationUtils';
+
+export interface AudioSettings {
+  masterVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  masterMuted: boolean;
+  musicMuted: boolean;
+  sfxMuted: boolean;
+}
 
 export interface AudioSettingsSlice {
   audioSettings: AudioSettings;
