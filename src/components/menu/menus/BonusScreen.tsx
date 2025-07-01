@@ -59,6 +59,10 @@ const BonusScreen: React.FC = () => {
       const levelHistory = gameStore.getLevelHistory();
       const multiplier = gameStore.multiplier;
       
+      // Calculate total coin stats from level history
+      const totalCoinsCollected = levelHistory.reduce((total, level) => total + level.coinsCollected, 0);
+      const totalPowerModeActivations = levelHistory.reduce((total, level) => total + level.powerModeActivations, 0);
+      
       sendGameCompletionData({
         finalScore: gameStore.score,
         totalLevels: mapDefinitions.length,
@@ -66,7 +70,9 @@ const BonusScreen: React.FC = () => {
         timestamp: Date.now(),
         lives: gameStore.lives,
         multiplier,
-        levelHistory
+        levelHistory,
+        totalCoinsCollected,
+        totalPowerModeActivations
       });
       
       setState(GameState.VICTORY);

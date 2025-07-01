@@ -184,7 +184,7 @@ export const level2Map: MapDefinition = {
   
   coinSpawnPoints: [
     // Power coin spawn points for level 2 - only 2 per map with non-cardinal angles
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 60 },
+    // { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 60 },
     { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 180, type: CoinType.POWER, spawnAngle: 120 }
   ],
   

@@ -31,12 +31,6 @@ export class CoinPhysics {
   static updatePowerCoin(coin: Coin, platforms: Platform[], ground: Ground): void {
     if (coin.isCollected) return;
 
-    // Debug: Log initial state
-    const initialVX = coin.velocityX;
-    const initialVY = coin.velocityY;
-    const initialX = coin.x;
-    const initialY = coin.y;
-
     // Power coins move linearly - NO GRAVITY APPLIED
     // The initial velocity is set correctly and should be maintained
 
@@ -52,11 +46,6 @@ export class CoinPhysics {
 
     // Check collisions with ground and reflect
     this.handlePowerCoinGroundCollisions(coin, ground);
-
-    // Debug: Verify velocity hasn't changed (no gravity applied)
-    if (Math.abs(coin.velocityX - initialVX) > 0.001 || Math.abs(coin.velocityY - initialVY) > 0.001) {
-      console.warn(`⚠️ Power coin velocity changed unexpectedly: (${initialVX.toFixed(3)},${initialVY.toFixed(3)}) → (${coin.velocityX.toFixed(3)},${coin.velocityY.toFixed(3)})`);
-    }
   }
 
   /**
@@ -87,22 +76,26 @@ export class CoinPhysics {
     if (coin.x <= 0) {
       coin.x = 0;
       coin.velocityX = Math.abs(coin.velocityX); // Reflect horizontally
+      console.log(`🪙 Power coin hit left boundary, reflected X velocity`);
     }
     // Right boundary
     else if (coin.x + coin.width >= GAME_CONFIG.CANVAS_WIDTH) {
       coin.x = GAME_CONFIG.CANVAS_WIDTH - coin.width;
       coin.velocityX = -Math.abs(coin.velocityX); // Reflect horizontally
+      console.log(`🪙 Power coin hit right boundary, reflected X velocity`);
     }
 
     // Top boundary
     if (coin.y <= 0) {
       coin.y = 0;
       coin.velocityY = Math.abs(coin.velocityY); // Reflect vertically
+      console.log(`🪙 Power coin hit top boundary, reflected Y velocity`);
     }
-    // Bottom boundary
+    // Bottom boundary - this should rarely happen since we have ground collision
     else if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
       coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
       coin.velocityY = -Math.abs(coin.velocityY); // Reflect vertically
+      console.log(`🪙 Power coin hit bottom boundary, reflected Y velocity`);
     }
   }
 
@@ -148,7 +141,8 @@ export class CoinPhysics {
    * Handles collisions with platforms for power coins (perfect reflection)
    */
   private static handlePowerCoinPlatformCollisions(coin: Coin, platforms: Platform[]): void {
-    platforms.forEach(platform => {
+    // Check collisions with platforms in order, but only handle the first collision
+    for (const platform of platforms) {
       if (this.isColliding(coin, platform)) {
         // Calculate the surface normal at the collision point
         const normal = this.calculateSurfaceNormal(coin, platform);
@@ -158,8 +152,13 @@ export class CoinPhysics {
         
         // Move coin out of collision
         this.moveCoinOutOfCollision(coin, platform);
+        
+        console.log(`🪙 Power coin hit platform, reflected with normal (${normal.x.toFixed(2)}, ${normal.y.toFixed(2)})`);
+        
+        // Only handle one collision per frame to avoid multiple reflections
+        break;
       }
-    });
+    }
   }
 
   /**
@@ -182,14 +181,11 @@ export class CoinPhysics {
    */
   private static handlePowerCoinGroundCollisions(coin: Coin, ground: Ground): void {
     if (this.isColliding(coin, ground)) {
-      // Calculate the surface normal at the collision point
-      const normal = this.calculateSurfaceNormal(coin, ground);
-      
-      // Reflect the velocity vector using the normal
-      this.reflectVelocity(coin, normal);
-      
-      // Move coin out of collision
-      this.moveCoinOutOfCollision(coin, ground);
+      // For ground collisions, we can use a simpler approach since ground is always horizontal
+      // Reflect the Y velocity and move the coin above the ground
+      coin.velocityY = -Math.abs(coin.velocityY); // Reflect upward
+      coin.y = ground.y - coin.height; // Move above ground
+      console.log(`🪙 Power coin hit ground, reflected Y velocity upward`);
     }
   }
 
@@ -261,11 +257,38 @@ export class CoinPhysics {
     // Normalize the normal vector
     const length = Math.sqrt(normalX * normalX + normalY * normalY);
     
-    if (length > 0) {
+    if (length > 0.1) {
+      // Normal case: normalize the vector
       return { x: normalX / length, y: normalY / length };
     } else {
-      // If coin is exactly at the center, use a default normal
-      return { x: 0, y: 1 };
+      // Coin is very close to or on the surface - determine which side it's on
+      const coinLeft = coin.x;
+      const coinRight = coin.x + coin.width;
+      const coinTop = coin.y;
+      const coinBottom = coin.y + coin.height;
+      
+      const objectLeft = object.x;
+      const objectRight = object.x + object.width;
+      const objectTop = object.y;
+      const objectBottom = object.y + object.height;
+      
+      // Determine which side the collision is on by checking distances
+      const distToLeft = Math.abs(coinRight - objectLeft);
+      const distToRight = Math.abs(coinLeft - objectRight);
+      const distToTop = Math.abs(coinBottom - objectTop);
+      const distToBottom = Math.abs(coinTop - objectBottom);
+      
+      const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+      
+      if (minDist === distToLeft) {
+        return { x: -1, y: 0 }; // Left side
+      } else if (minDist === distToRight) {
+        return { x: 1, y: 0 };  // Right side
+      } else if (minDist === distToTop) {
+        return { x: 0, y: -1 }; // Top side
+      } else {
+        return { x: 0, y: 1 };  // Bottom side
+      }
     }
   }
 
@@ -276,8 +299,21 @@ export class CoinPhysics {
     // Vector reflection formula: v' = v - 2(v · n)n
     const dotProduct = coin.velocityX * normal.x + coin.velocityY * normal.y;
     
+    const oldVX = coin.velocityX;
+    const oldVY = coin.velocityY;
+    
     coin.velocityX = coin.velocityX - 2 * dotProduct * normal.x;
     coin.velocityY = coin.velocityY - 2 * dotProduct * normal.y;
+    
+    // Ensure the speed remains constant (power coins should maintain their speed)
+    const oldSpeed = Math.sqrt(oldVX * oldVX + oldVY * oldVY);
+    const newSpeed = Math.sqrt(coin.velocityX * coin.velocityX + coin.velocityY * coin.velocityY);
+    
+    if (newSpeed > 0.001) {
+      const speedRatio = oldSpeed / newSpeed;
+      coin.velocityX *= speedRatio;
+      coin.velocityY *= speedRatio;
+    }
   }
 
   /**

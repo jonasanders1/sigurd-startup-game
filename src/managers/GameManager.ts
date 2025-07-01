@@ -441,6 +441,9 @@ export class GameManager {
     const monsters = gameState.monsters.map((monster) => {
       if (!monster.isActive) return monster;
 
+      // Don't move monsters if they are frozen
+      if (monster.isFrozen) return monster;
+
       // Simple patrol AI
       monster.x += monster.speed * monster.direction;
 
@@ -680,11 +683,16 @@ export class GameManager {
         gameState.correctOrderCount as keyof typeof GAME_CONFIG.BONUS_POINTS
       ] || 0;
 
-    // Reset coin effects when map is completed
-    gameState.resetEffects();
-
     // Calculate completion time
     const completionTime = Date.now() - this.mapStartTime;
+
+    // Capture coin collection data BEFORE resetting effects
+    const coinStats = gameState.getCoinStats();
+    const coinsCollected = coinStats.totalCoinsCollected;
+    const powerModeActivations = coinStats.totalPowerCoinsCollected;
+
+    // Reset coin effects when map is completed
+    gameState.resetEffects();
 
     // Record the level result when level is completed
     if (gameState.currentMap) {
@@ -696,6 +704,8 @@ export class GameManager {
         score: gameState.score,
         bonus: bonusPoints,
         hasBonus: bonusPoints > 0,
+        coinsCollected: coinsCollected,
+        powerModeActivations: powerModeActivations,
       };
       gameState.addLevelResult(levelResult);
 
@@ -712,8 +722,8 @@ export class GameManager {
         lives: gameState.lives,
         multiplier: gameState.multiplier,
         completionTime: completionTime,
-        coinsCollected: gameState.coins.filter(coin => coin.isCollected).length,
-        powerModeActivations: gameState.coins.filter(coin => coin.isCollected && coin.type === 'POWER').length,
+        coinsCollected: coinsCollected,
+        powerModeActivations: powerModeActivations,
       };
       
       sendMapCompletionData(mapCompletionData);

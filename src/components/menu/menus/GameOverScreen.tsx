@@ -19,7 +19,9 @@ const GameOverScreen: React.FC = () => {
         <div className="text-2xl">
           <span className="text-yellow-400">
             Total finansiering:{" "}
-            <span className="font-bold text-white">{score.toLocaleString()} kr</span>
+            <span className="font-bold text-white">
+              {score.toLocaleString()} kr
+            </span>
           </span>
         </div>
 

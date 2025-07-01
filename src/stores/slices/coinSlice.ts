@@ -11,6 +11,8 @@ export interface CoinSlice {
     powerModeEndTime: number;
   };
   firebombCount: number;
+  totalCoinsCollected: number;
+  totalPowerCoinsCollected: number;
   
   // Actions
   setCoins: (coins: Coin[]) => void;
@@ -20,6 +22,7 @@ export interface CoinSlice {
   resetCoinState: () => void;
   updateMonsterStates: (monsters: any[]) => void;
   resetEffects: () => void;
+  getCoinStats: () => { totalCoinsCollected: number; totalPowerCoinsCollected: number };
 }
 
 export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
@@ -30,6 +33,8 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     powerModeEndTime: 0
   },
   firebombCount: 0,
+  totalCoinsCollected: 0,
+  totalPowerCoinsCollected: 0,
   
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -56,9 +61,16 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       powerModeEndTime: coinManager.isPowerModeActive() ? Date.now() + GAME_CONFIG.POWER_COIN_DURATION : 0
     };
     
+    // Update total collection counters
+    const currentState = get();
+    const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
+    const newTotalPowerCoinsCollected = currentState.totalPowerCoinsCollected + (coin.type === 'POWER' ? 1 : 0);
+    
     set({ 
       coins: updatedCoins,
-      activeEffects
+      activeEffects,
+      totalCoinsCollected: newTotalCoinsCollected,
+      totalPowerCoinsCollected: newTotalPowerCoinsCollected
     });
     
     // Add points to score if we have access to the score system
@@ -75,7 +87,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       }
     }
     
-    console.log(`💰 Coin collected: ${coin.type}`);
+    console.log(`💰 Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected})`);
   },
   
   onFirebombCollected: () => {
@@ -101,8 +113,18 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
         powerMode: false,
         powerModeEndTime: 0
       },
-      firebombCount: 0
+      firebombCount: 0,
+      totalCoinsCollected: 0,
+      totalPowerCoinsCollected: 0
     });
+  },
+  
+  getCoinStats: () => {
+    const state = get();
+    return {
+      totalCoinsCollected: state.totalCoinsCollected,
+      totalPowerCoinsCollected: state.totalPowerCoinsCollected
+    };
   },
   
   updateMonsterStates: (monsters: any[]) => {

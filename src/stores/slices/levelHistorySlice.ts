@@ -8,6 +8,8 @@ export interface LevelResult {
   score: number;
   bonus: number;
   hasBonus: boolean;
+  coinsCollected: number;
+  powerModeActivations: number;
 }
 
 export interface LevelHistorySlice {
