@@ -35,7 +35,7 @@ export class AudioManager {
       this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(
         arrayBuffer
       );
-      console.log("🎵 Background music loaded successfully");
+      
     } catch (error) {
       console.warn("Failed to load background music:", error);
     }
@@ -82,7 +82,7 @@ export class AudioManager {
   }
 
   stopBackgroundMusic(): void {
-    console.log("🛑 AudioManager: Stopping background music");
+    
     this.isBackgroundMusicPlaying = false;
 
     // Stop the current audio source if playing
@@ -281,7 +281,7 @@ export class AudioManager {
     )
       return;
 
-    console.log("🎵 AudioManager: Starting background music");
+    
     this.isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
   }
@@ -316,7 +316,7 @@ export class AudioManager {
       };
 
       this.backgroundMusicSource.start();
-      console.log("🎵 Playing background music file");
+      
     } catch (error) {
       console.warn("Failed to play background music file:", error);
     }

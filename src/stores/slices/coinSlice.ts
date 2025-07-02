@@ -13,6 +13,7 @@ export interface CoinSlice {
   firebombCount: number;
   totalCoinsCollected: number;
   totalPowerCoinsCollected: number;
+  totalBonusMultiplierCoinsCollected: number;
   
   // Actions
   setCoins: (coins: Coin[]) => void;
@@ -22,7 +23,7 @@ export interface CoinSlice {
   resetCoinState: () => void;
   updateMonsterStates: (monsters: any[]) => void;
   resetEffects: () => void;
-  getCoinStats: () => { totalCoinsCollected: number; totalPowerCoinsCollected: number };
+  getCoinStats: () => { totalCoinsCollected: number; totalPowerCoinsCollected: number; totalBonusMultiplierCoinsCollected: number };
 }
 
 export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
@@ -35,6 +36,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
   firebombCount: 0,
   totalCoinsCollected: 0,
   totalPowerCoinsCollected: 0,
+  totalBonusMultiplierCoinsCollected: 0,
   
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -65,12 +67,14 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     const currentState = get();
     const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
     const newTotalPowerCoinsCollected = currentState.totalPowerCoinsCollected + (coin.type === 'POWER' ? 1 : 0);
+    const newTotalBonusMultiplierCoinsCollected = currentState.totalBonusMultiplierCoinsCollected + (coin.type === 'BONUS_MULTIPLIER' ? 1 : 0);
     
     set({ 
       coins: updatedCoins,
       activeEffects,
       totalCoinsCollected: newTotalCoinsCollected,
-      totalPowerCoinsCollected: newTotalPowerCoinsCollected
+      totalPowerCoinsCollected: newTotalPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected
     });
     
     // Add points to score if we have access to the score system
@@ -87,7 +91,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       }
     }
     
-    console.log(`💰 Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected})`);
+    console.log(`💰 Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`);
   },
   
   onFirebombCollected: () => {
@@ -115,7 +119,8 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       },
       firebombCount: 0,
       totalCoinsCollected: 0,
-      totalPowerCoinsCollected: 0
+      totalPowerCoinsCollected: 0,
+      totalBonusMultiplierCoinsCollected: 0
     });
   },
   
@@ -123,7 +128,8 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     const state = get();
     return {
       totalCoinsCollected: state.totalCoinsCollected,
-      totalPowerCoinsCollected: state.totalPowerCoinsCollected
+      totalPowerCoinsCollected: state.totalPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected: state.totalBonusMultiplierCoinsCollected
     };
   },
   

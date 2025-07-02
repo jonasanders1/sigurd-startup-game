@@ -171,6 +171,9 @@ export class GameManager {
       const mapDefinition = mapDefinitions[currentLevel - 1];
       gameState.initializeLevel(mapDefinition);
 
+      // Clear floating texts when loading new level
+      gameState.clearAllFloatingTexts();
+
       // Reset animation controller state when loading new level
       this.animationController.reset();
       
@@ -468,8 +471,11 @@ export class GameManager {
     const coinManager = gameState.coinManager;
 
     if (ground && coinManager) {
+      // Check spawn conditions for all coin types
+      coinManager.checkSpawnConditions(gameState);
+      
       // Let CoinManager handle all coin physics updates
-      coinManager.update(platforms, ground);
+      coinManager.update(platforms, ground, gameState);
       
       // Update the store with the latest coin state
       gameState.setCoins(coinManager.getCoins());
@@ -477,6 +483,9 @@ export class GameManager {
       // Update monster states based on power mode
       gameState.updateMonsterStates(gameState.monsters);
     }
+    
+    // Update floating texts (remove expired ones)
+    gameState.updateFloatingTexts();
   }
 
   private handleCollisions(): void {
@@ -573,6 +582,13 @@ export class GameManager {
     );
     if (collectedCoin) {
       this.audioManager.playSound(AudioEvent.COIN_COLLECT);
+      
+      // Pass gameState to the coin manager for the new effect system
+      const coinManager = gameState.coinManager;
+      if (coinManager) {
+        coinManager.collectCoin(collectedCoin, gameState);
+      }
+      
       gameState.collectCoin(collectedCoin);
       
       // If it's a power coin, play special sound
@@ -589,9 +605,29 @@ export class GameManager {
     if (hitMonster) {
       // Check if power mode is active - if so, kill the monster instead
       if (gameState.activeEffects.powerMode) {
-        // Monster is killed during power mode
-        const points = GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier;
+        // Monster is killed during power mode - use progressive bonus system
+        const points = gameState.coinManager?.calculateMonsterKillPoints(gameState.multiplier) || 
+                      (GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier); // Fallback
         gameState.addScore(points);
+        
+        // Show floating text for monster kill points
+        if (gameState.addFloatingText) {
+          const text = points.toString();
+          gameState.addFloatingText(
+            text,
+            hitMonster.x + hitMonster.width / 2,
+            hitMonster.y + hitMonster.height / 2,
+            1000, // duration
+            "#fff", // White color
+            15 // fontSize
+          );
+        }
+        
+        // Notify coin manager about points earned (not bonus)
+        if (gameState.coinManager) {
+          gameState.coinManager.onPointsEarned(points, false);
+        }
+        
         console.log(`💀 Monster killed during power mode: ${points} points`);
         
         // Play monster kill sound (same as coin collect sound)
@@ -627,6 +663,9 @@ export class GameManager {
     const currentMap = gameState.currentMap;
 
     if (currentMap) {
+      // Clear floating texts when respawning
+      gameState.clearAllFloatingTexts();
+
       // Reset player position
       gameState.setPlayerPosition(
         currentMap.playerStartX,
@@ -691,6 +730,9 @@ export class GameManager {
     const coinsCollected = coinStats.totalCoinsCollected;
     const powerModeActivations = coinStats.totalPowerCoinsCollected;
 
+    // Clear floating texts when map is completed
+    gameState.clearAllFloatingTexts();
+
     // Reset coin effects when map is completed
     gameState.resetEffects();
 
@@ -735,6 +777,11 @@ export class GameManager {
       gameState.setState(GameState.BONUS);
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
       gameState.addScore(bonusPoints);
+      
+      // Notify coin manager about bonus points (these should not trigger B-coin spawning)
+      if (gameState.coinManager) {
+        gameState.coinManager.onPointsEarned(bonusPoints, true);
+      }
     } else {
       // No bonus, go directly to next level
       this.proceedToNextLevel();
@@ -786,7 +833,9 @@ export class GameManager {
       gameState.bombs,
       gameState.monsters,
       gameState.ground,
-      gameState.coins
+      gameState.coins,
+      gameState.floatingTexts,
+      gameState.coinManager
     );
   }
 

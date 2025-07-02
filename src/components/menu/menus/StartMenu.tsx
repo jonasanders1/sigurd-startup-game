@@ -49,7 +49,7 @@ const StartMenu: React.FC = () => {
     <div className="flex flex-col items-center justify-center h-full">
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button
               onClick={handleFullscreenToggle}
               variant="outline"

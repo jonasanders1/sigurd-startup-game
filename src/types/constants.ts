@@ -34,9 +34,13 @@ export const GAME_CONFIG = {
   EXTRA_LIFE_COIN_RATIO: 10, // Extra life coin appears for every 10 bonus multiplier coins
 
   // Coin effects
-  POWER_COIN_DURATION: 5000, // Power coin effect duration in milliseconds (10 seconds)
+  POWER_COIN_DURATION: 7000, // Power coin effect duration in milliseconds (7 seconds)
   POWER_COIN_POINTS: 2000, // Points awarded for collecting power coin
   MONSTER_KILL_POINTS: 100, // Points for killing monsters during power mode
+
+  // Coin base points
+  BONUS_MULTIPLIER_COIN_POINTS: 1000, // Base points for bonus multiplier coin
+  EXTRA_LIFE_COIN_POINTS: 1000, // Base points for extra life coin
 
   // Multiplier system - incremental thresholds
   MULTIPLIER_THRESHOLDS: {

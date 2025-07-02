@@ -1,4 +1,4 @@
-import { StateCreator } from 'zustand';
+import { StateCreator } from "zustand";
 
 export interface AudioSettings {
   masterVolume: number;
@@ -21,38 +21,41 @@ const defaultAudioSettings: AudioSettings = {
   masterVolume: 80,
   musicVolume: 70,
   sfxVolume: 90,
-  masterMuted: false,
-  musicMuted: false,
-  sfxMuted: false
+  masterMuted: true,
+  musicMuted: true,
+  sfxMuted: true,
 };
 
-export const createAudioSettingsSlice: StateCreator<AudioSettingsSlice> = (set, get) => ({
+export const createAudioSettingsSlice: StateCreator<AudioSettingsSlice> = (
+  set,
+  get
+) => ({
   audioSettings: defaultAudioSettings,
   audioManager: null,
-  
+
   updateAudioSettings: (newSettings: Partial<AudioSettings>) => {
     set({
-      audioSettings: { ...get().audioSettings, ...newSettings }
+      audioSettings: { ...get().audioSettings, ...newSettings },
     });
-    
+
     // Update AudioManager if available
     const audioManager = get().audioManager;
     if (audioManager && audioManager.updateVolumes) {
       audioManager.updateVolumes();
     }
   },
-  
+
   resetAudioSettings: () => {
     set({ audioSettings: defaultAudioSettings });
-    
+
     // Update AudioManager if available
     const audioManager = get().audioManager;
     if (audioManager && audioManager.updateVolumes) {
       audioManager.updateVolumes();
     }
   },
-  
+
   setAudioManager: (audioManager: any) => {
     set({ audioManager });
-  }
-}); 
+  },
+});

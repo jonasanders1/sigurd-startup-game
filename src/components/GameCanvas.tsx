@@ -37,7 +37,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
     const updateCanvasSize = () => {
       if (!isFullscreen) {
         setCanvasStyle({
-          imageRendering: "pixelated",
+          imageRendering: "crisp-edges",
         });
         return;
       }
@@ -62,15 +62,15 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
       setCanvasStyle({
         width: `${width}px`,
         height: `${height}px`,
-        imageRendering: "pixelated",
+        imageRendering: "crisp-edges",
       });
     };
 
     updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
+    window.addEventListener("resize", updateCanvasSize);
 
     return () => {
-      window.removeEventListener('resize', updateCanvasSize);
+      window.removeEventListener("resize", updateCanvasSize);
     };
   }, [isFullscreen]);
 

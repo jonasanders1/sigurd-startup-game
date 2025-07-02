@@ -102,7 +102,7 @@ const InGameMenu: React.FC = () => {
       <div className="flex items-center space-x-4 absolute right-4 top-4">
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <Button
                 onClick={togglePause}
                 variant="outline"
@@ -124,7 +124,7 @@ const InGameMenu: React.FC = () => {
 
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <Button
                 onClick={handleFullscreenToggle}
                 variant="outline"
@@ -151,13 +151,6 @@ const InGameMenu: React.FC = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      {/* Fullscreen indicator */}
-      {isFullscreen && (
-        <div className="absolute top-4 left-4 bg-background-50 text-foreground px-2 py-1 rounded text-xs backdrop-blur-sm">
-          Fullscreen
-        </div>
-      )}
 
       {/* Lives */}
       <div className="absolute left-3 bottom-2">

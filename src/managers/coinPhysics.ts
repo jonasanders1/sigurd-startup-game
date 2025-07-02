@@ -1,20 +1,55 @@
-import { Coin, Platform, Ground } from '../types/interfaces';
+import { Coin, Platform, Ground, CoinPhysicsConfig } from '../types/interfaces';
 import { GAME_CONFIG } from '../types/constants';
+import { COIN_PHYSICS } from '../config/coinTypes';
 
 export class CoinPhysics {
   /**
-   * Updates the physics and movement of a coin
+   * Updates the physics and movement of a coin based on its physics configuration
    */
-  static updateCoin(coin: Coin, platforms: Platform[], ground: Ground): void {
+  static updateCoin(coin: Coin, platforms: Platform[], ground: Ground, physicsConfig?: CoinPhysicsConfig): void {
     if (coin.isCollected) return;
 
-    // Apply gravity
-    coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
+    // Use custom update function if provided
+    if (physicsConfig?.customUpdate) {
+      physicsConfig.customUpdate(coin, platforms, ground);
+      return;
+    }
+
+    // Apply gravity if configured
+    if (physicsConfig?.hasGravity !== false) {
+      coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
+    }
 
     // Update position
     coin.x += coin.velocityX;
     coin.y += coin.velocityY;
 
+    // Handle collisions based on physics configuration
+    if (physicsConfig?.reflects) {
+      this.handleReflectiveCollisions(coin, platforms, ground);
+    } else if (physicsConfig?.bounces !== false) {
+      this.handleBouncingCollisions(coin, platforms, ground);
+    }
+  }
+
+  /**
+   * Legacy method for backward compatibility - uses standard physics
+   */
+  static updateStandardCoin(coin: Coin, platforms: Platform[], ground: Ground): void {
+    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.STANDARD);
+  }
+
+  /**
+   * Legacy method for backward compatibility - uses power coin physics
+   */
+  static updatePowerCoin(coin: Coin, platforms: Platform[], ground: Ground): void {
+    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.POWER);
+  }
+
+  /**
+   * Handles collisions with bouncing behavior (damped bounces)
+   */
+  private static handleBouncingCollisions(coin: Coin, platforms: Platform[], ground: Ground): void {
     // Check collisions with boundaries
     this.handleBoundaryCollisions(coin);
 
@@ -26,18 +61,9 @@ export class CoinPhysics {
   }
 
   /**
-   * Updates the physics and movement of a power coin (linear movement with fixed speed)
+   * Handles collisions with reflective behavior (perfect reflection)
    */
-  static updatePowerCoin(coin: Coin, platforms: Platform[], ground: Ground): void {
-    if (coin.isCollected) return;
-
-    // Power coins move linearly - NO GRAVITY APPLIED
-    // The initial velocity is set correctly and should be maintained
-
-    // Update position
-    coin.x += coin.velocityX;
-    coin.y += coin.velocityY;
-
+  private static handleReflectiveCollisions(coin: Coin, platforms: Platform[], ground: Ground): void {
     // Check collisions with boundaries and reflect
     this.handlePowerCoinBoundaryCollisions(coin);
 
