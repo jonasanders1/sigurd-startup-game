@@ -81,6 +81,8 @@ export const sendGameCompletionData = (data: {
   lives: number;
   multiplier: number;
   levelHistory: any[];
+  totalCoinsCollected?: number;
+  totalPowerModeActivations?: number;
 }) => {
   console.log('🎮 Sending game completion data to host:', data);
   const event = new CustomEvent('game:completed', {

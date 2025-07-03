@@ -2,6 +2,7 @@ import { Player, Monster, Bomb, Platform, Ground, Coin } from "../types/interfac
 import { COLORS } from "../types/constants";
 import { playerSprite } from "@/entities/Player";
 import { GAME_CONFIG } from "../types/constants";
+import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 
 export class RenderManager {
   private canvas: HTMLCanvasElement;
@@ -18,7 +19,9 @@ export class RenderManager {
     bombs: Bomb[],
     monsters: Monster[],
     ground: Ground | null,
-    coins: Coin[] = []
+    coins: Coin[] = [],
+    floatingTexts: any[] = [],
+    coinManager?: any
   ): void {
     this.clearCanvas();
     if (ground) {
@@ -26,9 +29,10 @@ export class RenderManager {
     }
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
-    this.renderCoins(coins);
+    this.renderCoins(coins, coinManager);
     this.renderMonsters(monsters);
     this.renderPlayer(player);
+    this.renderFloatingTexts(floatingTexts);
   }
 
   private clearCanvas(): void {
@@ -113,28 +117,42 @@ export class RenderManager {
     });
   }
 
-  private renderCoins(coins: Coin[]): void {
+  private renderCoins(coins: Coin[], coinManager?: any): void {
     coins.forEach((coin) => {
       if (coin.isCollected) {
         return; // Don't render collected coins
       }
 
-      // Set coin color based on type
+      // Get coin configuration for color and effects
+      const coinConfig = COIN_TYPES[coin.type];
+      let coinColor = COLORS.COIN_POWER; // Default fallback
+
+      if (coinConfig) {
+        // Special handling for P-coins - use dynamic color based on time
+        if (coin.type === 'POWER' && coinManager) {
+          coinColor = coinManager.getPcoinCurrentColor(coin);
+        } else {
+          coinColor = coinConfig.color;
+        }
+      } else {
+        // Legacy color mapping
       switch (coin.type) {
         case 'POWER':
-          this.ctx.fillStyle = COLORS.COIN_POWER;
+            coinColor = COLORS.COIN_POWER;
           break;
         case 'BONUS_MULTIPLIER':
-          this.ctx.fillStyle = COLORS.COIN_BONUS;
+            coinColor = COLORS.COIN_BONUS;
           break;
         case 'EXTRA_LIFE':
-          this.ctx.fillStyle = COLORS.COIN_LIFE;
+            coinColor = COLORS.COIN_LIFE;
           break;
         default:
-          this.ctx.fillStyle = COLORS.COIN_POWER;
+            coinColor = COLORS.COIN_POWER;
+        }
       }
 
       // Draw coin as a circle
+      this.ctx.fillStyle = coinColor;
       this.ctx.beginPath();
       this.ctx.arc(
         coin.x + coin.width / 2,
@@ -166,6 +184,22 @@ export class RenderManager {
         coin.x + coin.width / 2,
         coin.y + coin.height / 2 + 4
       );
+
+      // Add special visual effects based on coin type
+      if (coinConfig?.physics?.customUpdate) {
+        // Add floating effect for custom physics coins
+        this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this.ctx.arc(
+          coin.x + coin.width / 2,
+          coin.y + coin.height / 2,
+          coin.width / 2 + 2,
+          0,
+          2 * Math.PI
+        );
+        this.ctx.stroke();
+      }
     });
   }
 
@@ -173,8 +207,20 @@ export class RenderManager {
     monsters.forEach((monster) => {
       if (!monster.isActive) return;
 
-      // Use different color for frozen monsters
-      this.ctx.fillStyle = monster.isFrozen ? COLORS.MONSTER_FROZEN : monster.color;
+      // Handle blinking effect for frozen monsters
+      let monsterColor = monster.isFrozen ? COLORS.MONSTER_FROZEN : monster.color;
+      
+      if (monster.isBlinking) {
+        const time = Date.now();
+        // Blink every 200ms (5 times per second)
+        if (Math.floor(time / 200) % 2 === 0) {
+          monsterColor = COLORS.MONSTER_FROZEN; // Normal frozen color
+        } else {
+          monsterColor = "#FF0000"; // Red warning color
+        }
+      }
+
+      this.ctx.fillStyle = monsterColor;
       this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
 
       // Add simple eyes
@@ -191,5 +237,57 @@ export class RenderManager {
         this.ctx.fillRect(monster.x + monster.width - 3, monster.y + monster.height - 3, 2, 2);
       }
     });
+  }
+
+  private renderFloatingTexts(floatingTexts: any[]): void {
+    const currentTime = Date.now();
+    
+    // Save original text properties
+    const originalTextAlign = this.ctx.textAlign;
+    const originalTextBaseline = this.ctx.textBaseline;
+    const originalFont = this.ctx.font;
+    const originalFillStyle = this.ctx.fillStyle;
+    const originalGlobalAlpha = this.ctx.globalAlpha;
+    const originalShadowColor = this.ctx.shadowColor;
+    const originalShadowBlur = this.ctx.shadowBlur;
+    const originalShadowOffsetX = this.ctx.shadowOffsetX;
+    const originalShadowOffsetY = this.ctx.shadowOffsetY;
+    
+    floatingTexts.forEach(text => {
+      const elapsed = currentTime - text.startTime;
+      const progress = elapsed / text.duration;
+      
+      // Calculate fade out effect
+      const alpha = Math.max(0, 1 - progress);
+      
+      // Calculate upward movement
+      const yOffset = progress * 30; // Move up 30 pixels over the duration
+      
+      // Set text properties
+      this.ctx.fillStyle = text.color;
+      this.ctx.globalAlpha = alpha;
+      this.ctx.font = `bold ${text.fontSize}px Arial`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      
+      // Draw text with shadow for better visibility
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      this.ctx.shadowBlur = 2;
+      this.ctx.shadowOffsetX = 1;
+      this.ctx.shadowOffsetY = 1;
+      
+      this.ctx.fillText(text.text, text.x, text.y - yOffset);
+    });
+    
+    // Restore original text properties
+    this.ctx.textAlign = originalTextAlign;
+    this.ctx.textBaseline = originalTextBaseline;
+    this.ctx.font = originalFont;
+    this.ctx.fillStyle = originalFillStyle;
+    this.ctx.globalAlpha = originalGlobalAlpha;
+    this.ctx.shadowColor = originalShadowColor;
+    this.ctx.shadowBlur = originalShadowBlur;
+    this.ctx.shadowOffsetX = originalShadowOffsetX;
+    this.ctx.shadowOffsetY = originalShadowOffsetY;
   }
 }

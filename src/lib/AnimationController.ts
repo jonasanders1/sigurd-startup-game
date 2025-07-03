@@ -46,13 +46,11 @@ export class AnimationController {
 
     // Check for MAP_CLEARED state transition
     if (gameState === "MAP_CLEARED" && !this.isMapCleared) {
-      console.log("🎉 Map cleared - starting fall sequence");
       this.isMapCleared = true;
       this.mapClearedFallComplete = false;
-      
+
       // If player is already grounded when map is cleared, immediately complete
       if (isGrounded) {
-        console.log("🎉 Map cleared - player already grounded, completing immediately");
         this.mapClearedFallComplete = true;
       }
     }
@@ -65,15 +63,11 @@ export class AnimationController {
         this.sprite.currentFrameIndex >=
           this.sprite.currentAnimation.frames.length - 1
       ) {
-        console.log("🎯 Landing animation finished");
         this.isLanding = false;
 
         // If this was the map cleared landing, mark fall as complete
         if (this.isMapCleared) {
           this.mapClearedFallComplete = true;
-          console.log(
-            "🎉 Map cleared fall complete - playing completion animation"
-          );
         }
       }
     }
@@ -86,11 +80,11 @@ export class AnimationController {
 
     if (justLanded && !this.isLanding && this.isMapCleared) {
       // Map cleared landing - play landing animation
-      console.log("🎯 Map cleared landing detected! Playing landing animation");
+
       this.setLandingAnimation();
     } else if (justLanded && !this.isLanding) {
       // Normal landing - play landing animation
-      console.log("🎯 Landing detected! Playing landing animation");
+
       this.setLandingAnimation();
     } else if (!this.isLanding) {
       // Normal animation update (only if not currently landing)
@@ -116,20 +110,19 @@ export class AnimationController {
     if (this.isMapCleared) {
       if (this.mapClearedFallComplete) {
         // Fall complete - play completion animation
-        console.log("🎉 Playing completion animation");
+
         this.sprite.setAnimation("ghost-complete");
       } else if (!isGrounded) {
         // Still falling - use jump animation
-        console.log("🎉 Map cleared - falling to ground");
+
         this.handleAirAnimations(moveDirection, lastDirection);
       } else {
         // Player is on ground - they just landed from falling
-        console.log("🎉 Map cleared - player just landed, playing completion animation");
+
         this.mapClearedFallComplete = true;
         this.sprite.setAnimation("ghost-complete");
       }
     } else if (gameState === "MAP_CLEARED") {
-      console.log("🎉 Map cleared - starting fall sequence");
       this.isMapCleared = true;
       this.mapClearedFallComplete = false;
       // Start falling immediately
@@ -195,9 +188,7 @@ export class AnimationController {
   setLandingAnimation(): void {
     const { lastDirection } = this.currentState;
     const animation = lastDirection === "right" ? "land-right" : "land-left";
-    console.log(
-      `🎯 Setting landing animation: ${animation} (direction: ${lastDirection})`
-    );
+
     this.sprite.setAnimation(animation);
     this.isLanding = true;
   }

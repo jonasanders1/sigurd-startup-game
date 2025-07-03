@@ -11,6 +11,9 @@ export interface CoinSlice {
     powerModeEndTime: number;
   };
   firebombCount: number;
+  totalCoinsCollected: number;
+  totalPowerCoinsCollected: number;
+  totalBonusMultiplierCoinsCollected: number;
   
   // Actions
   setCoins: (coins: Coin[]) => void;
@@ -20,6 +23,7 @@ export interface CoinSlice {
   resetCoinState: () => void;
   updateMonsterStates: (monsters: any[]) => void;
   resetEffects: () => void;
+  getCoinStats: () => { totalCoinsCollected: number; totalPowerCoinsCollected: number; totalBonusMultiplierCoinsCollected: number };
 }
 
 export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
@@ -30,6 +34,9 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     powerModeEndTime: 0
   },
   firebombCount: 0,
+  totalCoinsCollected: 0,
+  totalPowerCoinsCollected: 0,
+  totalBonusMultiplierCoinsCollected: 0,
   
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -56,26 +63,52 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       powerModeEndTime: coinManager.isPowerModeActive() ? Date.now() + GAME_CONFIG.POWER_COIN_DURATION : 0
     };
     
+    // Update total collection counters
+    const currentState = get();
+    const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
+    const newTotalPowerCoinsCollected = currentState.totalPowerCoinsCollected + (coin.type === 'POWER' ? 1 : 0);
+    const newTotalBonusMultiplierCoinsCollected = currentState.totalBonusMultiplierCoinsCollected + (coin.type === 'BONUS_MULTIPLIER' ? 1 : 0);
+    
     set({ 
       coins: updatedCoins,
-      activeEffects
+      activeEffects,
+      totalCoinsCollected: newTotalCoinsCollected,
+      totalPowerCoinsCollected: newTotalPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected
     });
     
-    // Add points to score if we have access to the score system
+    // Handle coin-specific effects
     const api = get();
-    if ('addScore' in api) {
-      // Add points based on coin type
-      let points = 0;
-      if (coin.type === 'POWER') {
-        points = GAME_CONFIG.POWER_COIN_POINTS;
+    
+    if (coin.type === 'POWER') {
+      // Add points for POWER coin
+      if ('addScore' in api) {
+        (api as any).addScore(GAME_CONFIG.POWER_COIN_POINTS);
       }
-      
-      if (points > 0) {
+    } else if (coin.type === 'BONUS_MULTIPLIER') {
+      // Handle BONUS_MULTIPLIER coin effects
+      if ('addScore' in api && 'multiplier' in api) {
+        const currentMultiplier = (api as any).multiplier;
+        const points = 1000 * currentMultiplier;
         (api as any).addScore(points);
+        
+        // Increase multiplier if not at max
+        if (currentMultiplier < GAME_CONFIG.MAX_MULTIPLIER) {
+          // Use the multiplier slice's method to properly increase multiplier
+          if ('addMultiplierScore' in api) {
+            // Add enough points to reach the next multiplier threshold
+            const { MULTIPLIER_THRESHOLDS } = GAME_CONFIG;
+            const nextThreshold = MULTIPLIER_THRESHOLDS[(currentMultiplier + 1) as keyof typeof MULTIPLIER_THRESHOLDS];
+            if (nextThreshold !== undefined) {
+              const pointsNeeded = nextThreshold - (api as any).multiplierScore;
+              (api as any).addMultiplierScore(pointsNeeded);
+            }
+          }
+        }
       }
     }
     
-    console.log(`💰 Coin collected: ${coin.type}`);
+    console.log(`💰 Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`);
   },
   
   onFirebombCollected: () => {
@@ -101,8 +134,20 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
         powerMode: false,
         powerModeEndTime: 0
       },
-      firebombCount: 0
+      firebombCount: 0,
+      totalCoinsCollected: 0,
+      totalPowerCoinsCollected: 0,
+      totalBonusMultiplierCoinsCollected: 0
     });
+  },
+  
+  getCoinStats: () => {
+    const state = get();
+    return {
+      totalCoinsCollected: state.totalCoinsCollected,
+      totalPowerCoinsCollected: state.totalPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected: state.totalBonusMultiplierCoinsCollected
+    };
   },
   
   updateMonsterStates: (monsters: any[]) => {

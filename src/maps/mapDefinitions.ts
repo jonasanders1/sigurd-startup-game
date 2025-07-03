@@ -2,19 +2,19 @@ import { MapDefinition } from '../types/interfaces';
 import { GAME_CONFIG, COLORS } from '../types/constants';
 import { MonsterType, CoinType } from '../types/enums';
 
+// Bomb Jack Level 1 - Classic layout with symmetrical platforms
 export const level1Map: MapDefinition = {
   id: 'level1',
-  name: 'Startup Norge',
+  name: 'Bomb Jack Level 1',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 100,
   playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
   backgroundColor: COLORS.BACKGROUND,
   theme: 'classic',
-  groupSequence: [1, 2, 3, 4, 5, 6],
+  groupSequence: [1, 2, 3, 4, 5],
   difficulty: 1,
   
-  // Ground covering entire width at bottom
   ground: {
     x: 0,
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
@@ -24,68 +24,80 @@ export const level1Map: MapDefinition = {
   },
   
   platforms: [
+    // Bottom platforms
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 120, height: 20, color: COLORS.PLATFORM },
+    { x: 580, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 120, height: 20, color: COLORS.PLATFORM },
+    
     // Middle platforms
-    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 150, height: 20, color: COLORS.PLATFORM },
-    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 150, height: 20, color: COLORS.PLATFORM },
+    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 100, height: 20, color: COLORS.PLATFORM },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 100, height: 20, color: COLORS.PLATFORM },
+    
+    // Upper platforms
+    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 670, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 80, height: 20, color: COLORS.PLATFORM },
     
     // Top platforms
-    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 120, height: 20, color: COLORS.PLATFORM },
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 580, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 120, height: 20, color: COLORS.PLATFORM },
+    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 360, width: 100, height: 20, color: COLORS.PLATFORM },
+    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 360, width: 100, height: 20, color: COLORS.PLATFORM },
     
-    // High platform
-    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 480, width: 200, height: 20, color: COLORS.PLATFORM }
+    // Highest platform
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 440, width: 100, height: 20, color: COLORS.PLATFORM }
   ],
   
   bombs: [
-    // Group 1 (bottom level)
-    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
-    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
-    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 4, group: 1, isCollected: false, isBlinking: false },
+    // Ground level bombs
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
+    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
+    { x: 380, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
     
-    // Group 2 (middle level)
-    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
-    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
-    { x: 580, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
+    // Bottom platform bombs
+    { x: 130, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 4, group: 2, isCollected: false, isBlinking: false },
+    { x: 610, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
     
-    // Group 3 (top level)
-    { x: 130, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 9, group: 3, isCollected: false, isBlinking: false },
-    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 10, group: 3, isCollected: false, isBlinking: false },
-    { x: 380, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
-    { x: 420, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 12, group: 3, isCollected: false, isBlinking: false },
+    // Middle platform bombs
+    { x: 220, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 6, group: 3, isCollected: false, isBlinking: false },
+    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 7, group: 3, isCollected: false, isBlinking: false },
     
-    // More bombs to reach 23 total
-    { x: 610, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 13, group: 4, isCollected: false, isBlinking: false },
-    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 14, group: 4, isCollected: false, isBlinking: false },
-    { x: 320, y: GAME_CONFIG.CANVAS_HEIGHT - 510, width: 16, height: 16, order: 15, group: 5, isCollected: false, isBlinking: false },
-    { x: 360, y: GAME_CONFIG.CANVAS_HEIGHT - 510, width: 16, height: 16, order: 16, group: 5, isCollected: false, isBlinking: false },
-    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 510, width: 16, height: 16, order: 17, group: 5, isCollected: false, isBlinking: false },
-    { x: 440, y: GAME_CONFIG.CANVAS_HEIGHT - 510, width: 16, height: 16, order: 18, group: 5, isCollected: false, isBlinking: false },
-    { x: 480, y: GAME_CONFIG.CANVAS_HEIGHT - 510, width: 16, height: 16, order: 19, group: 5, isCollected: false, isBlinking: false },
-    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 20, group: 6, isCollected: false, isBlinking: false },
-    { x: 750, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 21, group: 6, isCollected: false, isBlinking: false },
-    { x: 30, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 22, group: 6, isCollected: false, isBlinking: false },
-    { x: 770, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
+    // Upper platform bombs
+    { x: 70, y: GAME_CONFIG.CANVAS_HEIGHT - 310, width: 16, height: 16, order: 8, group: 4, isCollected: false, isBlinking: false },
+    { x: 690, y: GAME_CONFIG.CANVAS_HEIGHT - 310, width: 16, height: 16, order: 9, group: 4, isCollected: false, isBlinking: false },
+    
+    // Top platform bombs
+    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 10, group: 5, isCollected: false, isBlinking: false },
+    { x: 570, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 11, group: 5, isCollected: false, isBlinking: false },
+    
+    // Highest platform bombs
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 470, width: 16, height: 16, order: 12, group: 5, isCollected: false, isBlinking: false },
+    
+    // Additional scattered bombs
+    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 16, height: 16, order: 13, group: 5, isCollected: false, isBlinking: false },
+    { x: 750, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 16, height: 16, order: 14, group: 5, isCollected: false, isBlinking: false },
+    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 15, group: 5, isCollected: false, isBlinking: false },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 16, group: 5, isCollected: false, isBlinking: false },
+    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 16, height: 16, order: 17, group: 5, isCollected: false, isBlinking: false },
+    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 16, height: 16, order: 18, group: 5, isCollected: false, isBlinking: false },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 19, group: 5, isCollected: false, isBlinking: false },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 20, group: 5, isCollected: false, isBlinking: false },
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 16, height: 16, order: 21, group: 5, isCollected: false, isBlinking: false },
+    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 16, height: 16, order: 22, group: 5, isCollected: false, isBlinking: false },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 23, group: 5, isCollected: false, isBlinking: false }
   ],
   
   coinSpawnPoints: [
-    // Power coin spawn points - only 2 per map with non-cardinal angles
-    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 45 },
-    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 200, type: CoinType.POWER, spawnAngle: 135 }
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 45 },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 250, type: CoinType.POWER, spawnAngle: 135 }
   ],
   
   monsters: [
     {
-      x: 350,
+      x: 300,
       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 300,
-      patrolEndX: 500,
+      patrolStartX: 250,
+      patrolEndX: 450,
       speed: 1,
       direction: 1,
       isActive: true
@@ -98,94 +110,106 @@ export const level1Map: MapDefinition = {
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
       patrolStartX: 150,
-      patrolEndX: 300,
-      speed: 1.5,
+      patrolEndX: 350,
+      speed: 1.2,
       direction: -1,
       isActive: true
     }
   ]
 };
 
+// Bomb Jack Level 2 - More complex layout with staggered platforms
 export const level2Map: MapDefinition = {
   id: 'level2',
-  name: 'Innovasjon Norge',
+  name: 'Bomb Jack Level 2',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
   playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
   backgroundColor: COLORS.BACKGROUND,
   theme: 'advanced',
-  groupSequence: [1, 2, 3, 4, 5, 6],
+  groupSequence: [1, 2, 3, 4, 5],
   difficulty: 2,
   
-  // Ground covering entire width at bottom
   ground: {
     x: 0,
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: COLORS.PLATFORM
+    color: COLORS.GROUND
   },
   
   platforms: [
-    // Remove the bottom platforms and keep only elevated ones
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 100, height: 20, color: COLORS.PLATFORM },
+    // Bottom platforms - staggered
+    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 80, height: 20, color: COLORS.PLATFORM },
     
-    // Staggered middle platforms
-    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 480, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 680, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 80, height: 20, color: COLORS.PLATFORM },
+    // Middle platforms
+    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 100, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 100, height: 20, color: COLORS.PLATFORM },
+    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 100, height: 20, color: COLORS.PLATFORM },
     
-    // Higher platforms
-    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 120, height: 20, color: COLORS.PLATFORM },
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 630, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 120, height: 20, color: COLORS.PLATFORM },
+    // Upper platforms
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 260, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 260, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 80, height: 20, color: COLORS.PLATFORM },
     
     // Top platforms
-    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 460, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 100, height: 20, color: COLORS.PLATFORM }
+    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 100, height: 20, color: COLORS.PLATFORM },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 360, width: 100, height: 20, color: COLORS.PLATFORM },
+    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 100, height: 20, color: COLORS.PLATFORM },
+    
+    // Highest platforms
+    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 440, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 80, height: 20, color: COLORS.PLATFORM }
   ],
   
   bombs: [
-    // Level 2 bomb placement - more challenging layout
-    { x: 75, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
-    { x: 275, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
-    { x: 475, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
-    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 4, group: 1, isCollected: false, isBlinking: false },
+    // Ground level bombs
+    { x: 80, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
+    { x: 280, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
+    { x: 480, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
+    { x: 680, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 4, group: 1, isCollected: false, isBlinking: false },
     
-    { x: 130, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
-    { x: 320, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
-    { x: 510, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
-    { x: 710, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
+    // Bottom platform bombs
+    { x: 90, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
+    { x: 290, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
+    { x: 490, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
+    { x: 690, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
     
-    { x: 80, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 16, height: 16, order: 9, group: 3, isCollected: false, isBlinking: false },
-    { x: 280, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 16, height: 16, order: 10, group: 3, isCollected: false, isBlinking: false },
-    { x: 480, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
-    { x: 680, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 16, height: 16, order: 12, group: 3, isCollected: false, isBlinking: false },
+    // Middle platform bombs
+    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 9, group: 3, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 10, group: 3, isCollected: false, isBlinking: false },
+    { x: 570, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
     
-    { x: 180, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 13, group: 4, isCollected: false, isBlinking: false },
-    { x: 380, y: GAME_CONFIG.CANVAS_HEIGHT - 480, width: 16, height: 16, order: 14, group: 4, isCollected: false, isBlinking: false },
-    { x: 580, y: GAME_CONFIG.CANVAS_HEIGHT - 440, width: 16, height: 16, order: 15, group: 4, isCollected: false, isBlinking: false },
+    // Upper platform bombs
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 12, group: 4, isCollected: false, isBlinking: false },
+    { x: 320, y: GAME_CONFIG.CANVAS_HEIGHT - 310, width: 16, height: 16, order: 13, group: 4, isCollected: false, isBlinking: false },
+    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 14, group: 4, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 310, width: 16, height: 16, order: 15, group: 4, isCollected: false, isBlinking: false },
     
-    // Additional bombs scattered around
-    { x: 25, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 16, height: 16, order: 16, group: 5, isCollected: false, isBlinking: false },
-    { x: 775, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 16, height: 16, order: 17, group: 5, isCollected: false, isBlinking: false },
-    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 18, group: 5, isCollected: false, isBlinking: false },
-    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 19, group: 5, isCollected: false, isBlinking: false },
-    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 20, group: 6, isCollected: false, isBlinking: false },
-    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 400, width: 16, height: 16, order: 21, group: 6, isCollected: false, isBlinking: false },
-    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 16, height: 16, order: 22, group: 6, isCollected: false, isBlinking: false },
-    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 400, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
+    // Top platform bombs
+    { x: 220, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 16, group: 5, isCollected: false, isBlinking: false },
+    { x: 420, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 17, group: 5, isCollected: false, isBlinking: false },
+    { x: 620, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 18, group: 5, isCollected: false, isBlinking: false },
+    
+    // Highest platform bombs
+    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 19, group: 5, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 470, width: 16, height: 16, order: 20, group: 5, isCollected: false, isBlinking: false },
+    { x: 570, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 21, group: 5, isCollected: false, isBlinking: false },
+    
+    // Additional scattered bombs
+    { x: 25, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 22, group: 5, isCollected: false, isBlinking: false },
+    { x: 775, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 23, group: 5, isCollected: false, isBlinking: false }
   ],
   
   coinSpawnPoints: [
-    // Power coin spawn points for level 2 - only 2 per map with non-cardinal angles
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 60 },
-    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 180, type: CoinType.POWER, spawnAngle: 120 }
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 60 },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 250, type: CoinType.POWER, spawnAngle: 120 }
   ],
   
   monsters: [
@@ -203,44 +227,45 @@ export const level2Map: MapDefinition = {
       isActive: true
     },
     {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 190,
+      x: 450,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 130,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 450,
+      patrolStartX: 400,
       patrolEndX: 600,
-      speed: 2,
+      speed: 1.8,
       direction: -1,
       isActive: true
     },
     {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 310,
+      x: 150,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 50,
-      patrolEndX: 200,
-      speed: 1.8,
+      patrolStartX: 100,
+      patrolEndX: 300,
+      speed: 1.3,
       direction: 1,
       isActive: true
     }
   ]
 };
 
+// Bomb Jack Level 3 - Complex maze-like layout
 export const level3Map: MapDefinition = {
   id: 'level3',
-  name: 'Kommunehuset',
+  name: 'Bomb Jack Level 3',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
   playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
   backgroundColor: COLORS.BACKGROUND,
-  theme: 'innovation',
-  groupSequence: [1, 2, 3, 4, 5, 6],
+  theme: 'maze',
+  groupSequence: [1, 2, 3, 4, 5],
   difficulty: 3,
   
   ground: {
@@ -252,88 +277,96 @@ export const level3Map: MapDefinition = {
   },
   
   platforms: [
-    // Floating platforms with gaps
-    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 80, height: 20, color: COLORS.PLATFORM },
+    // Bottom platforms - zigzag pattern
+    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
     
-    // Zigzag pattern
-    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 220, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 220, width: 100, height: 20, color: COLORS.PLATFORM },
+    // Middle platforms - alternating heights
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 80, height: 20, color: COLORS.PLATFORM },
     
-    // High platforms
-    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 80, height: 20, color: COLORS.PLATFORM },
+    // Upper platforms - cross pattern
+    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 240, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 260, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 240, width: 60, height: 20, color: COLORS.PLATFORM },
     
-    // Top platforms
-    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 120, height: 20, color: COLORS.PLATFORM },
-    { x: 480, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 120, height: 20, color: COLORS.PLATFORM }
+    // Top platforms - scattered
+    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 70, height: 20, color: COLORS.PLATFORM },
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 70, height: 20, color: COLORS.PLATFORM },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 70, height: 20, color: COLORS.PLATFORM },
+    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 70, height: 20, color: COLORS.PLATFORM },
+    
+    // Highest platforms
+    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 400, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 400, width: 80, height: 20, color: COLORS.PLATFORM }
   ],
   
   bombs: [
     // Ground level bombs
-    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
-    { x: 320, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
-    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
-    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 4, group: 1, isCollected: false, isBlinking: false },
+    { x: 70, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
+    { x: 220, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
+    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 4, group: 1, isCollected: false, isBlinking: false },
+    { x: 670, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 5, group: 1, isCollected: false, isBlinking: false },
     
-    // First platform level
-    { x: 130, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
-    { x: 330, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
-    { x: 530, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
-    { x: 730, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
+    // Bottom platform bombs
+    { x: 80, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
+    { x: 230, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
+    { x: 380, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
+    { x: 530, y: GAME_CONFIG.CANVAS_HEIGHT - 130, width: 16, height: 16, order: 9, group: 2, isCollected: false, isBlinking: false },
+    { x: 680, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 10, group: 2, isCollected: false, isBlinking: false },
     
-    // Zigzag level
-    { x: 80, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 9, group: 3, isCollected: false, isBlinking: false },
-    { x: 280, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 10, group: 3, isCollected: false, isBlinking: false },
-    { x: 480, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
-    { x: 680, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 12, group: 3, isCollected: false, isBlinking: false },
+    // Middle platform bombs
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
+    { x: 320, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 12, group: 3, isCollected: false, isBlinking: false },
+    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 13, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 14, group: 3, isCollected: false, isBlinking: false },
     
-    // High platforms
-    { x: 180, y: GAME_CONFIG.CANVAS_HEIGHT - 330, width: 16, height: 16, order: 13, group: 4, isCollected: false, isBlinking: false },
-    { x: 380, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 14, group: 4, isCollected: false, isBlinking: false },
-    { x: 580, y: GAME_CONFIG.CANVAS_HEIGHT - 330, width: 16, height: 16, order: 15, group: 4, isCollected: false, isBlinking: false },
+    // Upper platform bombs
+    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 15, group: 4, isCollected: false, isBlinking: false },
+    { x: 420, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 16, group: 4, isCollected: false, isBlinking: false },
+    { x: 670, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 17, group: 4, isCollected: false, isBlinking: false },
     
-    // Top platforms
-    { x: 230, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 16, group: 5, isCollected: false, isBlinking: false },
-    { x: 510, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 17, group: 5, isCollected: false, isBlinking: false },
+    // Top platform bombs
+    { x: 70, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 18, group: 5, isCollected: false, isBlinking: false },
+    { x: 270, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 19, group: 5, isCollected: false, isBlinking: false },
+    { x: 470, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 20, group: 5, isCollected: false, isBlinking: false },
+    { x: 670, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 21, group: 5, isCollected: false, isBlinking: false },
     
-    // Scattered bombs
-    { x: 25, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 18, group: 6, isCollected: false, isBlinking: false },
-    { x: 775, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 19, group: 6, isCollected: false, isBlinking: false },
-    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 20, group: 6, isCollected: false, isBlinking: false },
-    { x: 650, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 21, group: 6, isCollected: false, isBlinking: false },
-    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 22, group: 6, isCollected: false, isBlinking: false },
-    { x: 430, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
+    // Highest platform bombs
+    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 430, width: 16, height: 16, order: 22, group: 5, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 23, group: 5, isCollected: false, isBlinking: false },
+    { x: 570, y: GAME_CONFIG.CANVAS_HEIGHT - 430, width: 16, height: 16, order: 24, group: 5, isCollected: false, isBlinking: false }
   ],
   
   coinSpawnPoints: [
-    // Power coin spawn points for level 3 - only 2 per map with non-cardinal angles
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 75 },
-    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 200, type: CoinType.POWER, spawnAngle: 105 }
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 75 },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 250, type: CoinType.POWER, spawnAngle: 105 }
   ],
   
   monsters: [
     {
-      x: 300,
+      x: 200,
       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 250,
-      patrolEndX: 450,
+      patrolStartX: 150,
+      patrolEndX: 350,
       speed: 2,
       direction: 1,
       isActive: true
     },
     {
       x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 130,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 110,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
@@ -345,14 +378,14 @@ export const level3Map: MapDefinition = {
       isActive: true
     },
     {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      x: 350,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 190,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 50,
-      patrolEndX: 250,
+      patrolStartX: 300,
+      patrolEndX: 500,
       speed: 1.8,
       direction: 1,
       isActive: true
@@ -360,16 +393,17 @@ export const level3Map: MapDefinition = {
   ]
 };
 
+// Bomb Jack Level 4 - Vertical tower layout
 export const level4Map: MapDefinition = {
   id: 'level4',
-  name: 'Altinn',
+  name: 'Bomb Jack Level 4',
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStartX: 50,
   playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
   backgroundColor: COLORS.BACKGROUND,
-  theme: 'ocean',
-  groupSequence: [1, 2, 3, 4, 5, 6],
+  theme: 'tower',
+  groupSequence: [1, 2, 3, 4, 5],
   difficulty: 4,
   
   ground: {
@@ -381,131 +415,137 @@ export const level4Map: MapDefinition = {
   },
   
   platforms: [
-    // Underwater platforms - scattered layout
-    { x: 80, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
-    { x: 220, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
-    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
-    { x: 660, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
+    // Ground access platforms
+    { x: 50, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
+    { x: 750, y: GAME_CONFIG.CANVAS_HEIGHT - 80, width: 60, height: 20, color: COLORS.PLATFORM },
     
-    // Mid-level platforms
-    { x: 150, y: GAME_CONFIG.CANVAS_HEIGHT - 140, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 80, height: 20, color: COLORS.PLATFORM },
-    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 140, width: 80, height: 20, color: COLORS.PLATFORM },
+    // Left tower platforms
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 240, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 360, width: 50, height: 20, color: COLORS.PLATFORM },
     
-    // Higher platforms
-    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 220, width: 70, height: 20, color: COLORS.PLATFORM },
-    { x: 300, y: GAME_CONFIG.CANVAS_HEIGHT - 240, width: 70, height: 20, color: COLORS.PLATFORM },
-    { x: 500, y: GAME_CONFIG.CANVAS_HEIGHT - 220, width: 70, height: 20, color: COLORS.PLATFORM },
-    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 240, width: 70, height: 20, color: COLORS.PLATFORM },
+    // Right tower platforms
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 120, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 160, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 200, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 240, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 280, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 50, height: 20, color: COLORS.PLATFORM },
+    { x: 700, y: GAME_CONFIG.CANVAS_HEIGHT - 360, width: 50, height: 20, color: COLORS.PLATFORM },
     
-    // Top platforms
-    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 90, height: 20, color: COLORS.PLATFORM },
-    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 90, height: 20, color: COLORS.PLATFORM },
-    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 320, width: 90, height: 20, color: COLORS.PLATFORM },
-    
-    // Floating platforms
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 100, height: 20, color: COLORS.PLATFORM },
-    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 420, width: 100, height: 20, color: COLORS.PLATFORM }
+    // Connecting platforms
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 140, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 140, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 180, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 220, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 220, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 260, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 350, y: GAME_CONFIG.CANVAS_HEIGHT - 340, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 80, height: 20, color: COLORS.PLATFORM },
+    { x: 450, y: GAME_CONFIG.CANVAS_HEIGHT - 380, width: 80, height: 20, color: COLORS.PLATFORM }
   ],
   
   bombs: [
-    // Bottom level
-    { x: 100, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
-    { x: 240, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
-    { x: 540, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 3, group: 1, isCollected: false, isBlinking: false },
-    { x: 680, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 4, group: 1, isCollected: false, isBlinking: false },
+    // Ground level bombs
+    { x: 70, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 1, group: 1, isCollected: false, isBlinking: false },
+    { x: 770, y: GAME_CONFIG.CANVAS_HEIGHT - 70, width: 16, height: 16, order: 2, group: 1, isCollected: false, isBlinking: false },
     
-    // First platform level
-    { x: 110, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
-    { x: 250, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
-    { x: 550, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
-    { x: 690, y: GAME_CONFIG.CANVAS_HEIGHT - 110, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
+    // Left tower bombs
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 3, group: 2, isCollected: false, isBlinking: false },
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 4, group: 2, isCollected: false, isBlinking: false },
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 5, group: 2, isCollected: false, isBlinking: false },
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 6, group: 2, isCollected: false, isBlinking: false },
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 310, width: 16, height: 16, order: 7, group: 2, isCollected: false, isBlinking: false },
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 8, group: 2, isCollected: false, isBlinking: false },
+    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 9, group: 2, isCollected: false, isBlinking: false },
     
-    // Mid-level
-    { x: 170, y: GAME_CONFIG.CANVAS_HEIGHT - 170, width: 16, height: 16, order: 9, group: 3, isCollected: false, isBlinking: false },
-    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 10, group: 3, isCollected: false, isBlinking: false },
-    { x: 570, y: GAME_CONFIG.CANVAS_HEIGHT - 170, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
+    // Right tower bombs
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 150, width: 16, height: 16, order: 10, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 190, width: 16, height: 16, order: 11, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 230, width: 16, height: 16, order: 12, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 13, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 310, width: 16, height: 16, order: 14, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 15, group: 3, isCollected: false, isBlinking: false },
+    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 390, width: 16, height: 16, order: 16, group: 3, isCollected: false, isBlinking: false },
     
-    // Higher level
-    { x: 120, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 12, group: 4, isCollected: false, isBlinking: false },
-    { x: 320, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 13, group: 4, isCollected: false, isBlinking: false },
-    { x: 520, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 14, group: 4, isCollected: false, isBlinking: false },
-    { x: 720, y: GAME_CONFIG.CANVAS_HEIGHT - 270, width: 16, height: 16, order: 15, group: 4, isCollected: false, isBlinking: false },
-    
-    // Top level
-    { x: 220, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 16, group: 5, isCollected: false, isBlinking: false },
-    { x: 420, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 17, group: 5, isCollected: false, isBlinking: false },
-    { x: 620, y: GAME_CONFIG.CANVAS_HEIGHT - 350, width: 16, height: 16, order: 18, group: 5, isCollected: false, isBlinking: false },
-    
-    // Floating level
-    { x: 270, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 19, group: 6, isCollected: false, isBlinking: false },
-    { x: 470, y: GAME_CONFIG.CANVAS_HEIGHT - 450, width: 16, height: 16, order: 20, group: 6, isCollected: false, isBlinking: false },
-    
-    // Scattered bombs
-    { x: 30, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 16, height: 16, order: 21, group: 6, isCollected: false, isBlinking: false },
-    { x: 770, y: GAME_CONFIG.CANVAS_HEIGHT - 100, width: 16, height: 16, order: 22, group: 6, isCollected: false, isBlinking: false },
-    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 300, width: 16, height: 16, order: 23, group: 6, isCollected: false, isBlinking: false }
+    // Connecting platform bombs
+    { x: 270, y: GAME_CONFIG.CANVAS_HEIGHT - 170, width: 16, height: 16, order: 17, group: 4, isCollected: false, isBlinking: false },
+    { x: 470, y: GAME_CONFIG.CANVAS_HEIGHT - 170, width: 16, height: 16, order: 18, group: 4, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 210, width: 16, height: 16, order: 19, group: 4, isCollected: false, isBlinking: false },
+    { x: 270, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 20, group: 4, isCollected: false, isBlinking: false },
+    { x: 470, y: GAME_CONFIG.CANVAS_HEIGHT - 250, width: 16, height: 16, order: 21, group: 4, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 290, width: 16, height: 16, order: 22, group: 4, isCollected: false, isBlinking: false },
+    { x: 270, y: GAME_CONFIG.CANVAS_HEIGHT - 330, width: 16, height: 16, order: 23, group: 4, isCollected: false, isBlinking: false },
+    { x: 470, y: GAME_CONFIG.CANVAS_HEIGHT - 330, width: 16, height: 16, order: 24, group: 4, isCollected: false, isBlinking: false },
+    { x: 370, y: GAME_CONFIG.CANVAS_HEIGHT - 370, width: 16, height: 16, order: 25, group: 4, isCollected: false, isBlinking: false },
+    { x: 270, y: GAME_CONFIG.CANVAS_HEIGHT - 410, width: 16, height: 16, order: 26, group: 4, isCollected: false, isBlinking: false },
+    { x: 470, y: GAME_CONFIG.CANVAS_HEIGHT - 410, width: 16, height: 16, order: 27, group: 4, isCollected: false, isBlinking: false }
+  ],
+  
+  coinSpawnPoints: [
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 150, type: CoinType.POWER, spawnAngle: 30 },
+    { x: 400, y: GAME_CONFIG.CANVAS_HEIGHT - 250, type: CoinType.POWER, spawnAngle: 150 }
   ],
   
   monsters: [
     {
-      x: 220,
+      x: 100,
       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 180,
-      patrolEndX: 380,
+      patrolStartX: 50,
+      patrolEndX: 250,
       speed: 2.5,
       direction: 1,
       isActive: true
     },
     {
-      x: 520,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 110,
+      x: 700,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 480,
-      patrolEndX: 680,
+      patrolStartX: 650,
+      patrolEndX: 850,
       speed: 2.8,
       direction: -1,
       isActive: true
     },
     {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 250,
+      x: 350,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 100,
-      patrolEndX: 300,
+      patrolStartX: 300,
+      patrolEndX: 500,
       speed: 2.2,
       direction: 1,
       isActive: true
     },
     {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      x: 250,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
       width: GAME_CONFIG.MONSTER_SIZE,
       height: GAME_CONFIG.MONSTER_SIZE,
       color: COLORS.MONSTER,
       type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 600,
-      patrolEndX: 800,
-      speed: 2.3,
+      patrolStartX: 200,
+      patrolEndX: 400,
+      speed: 2.6,
       direction: -1,
       isActive: true
     }
-  ],
-  
-  coinSpawnPoints: [
-    // Power coin spawn points for level 4 - only 2 per map with non-cardinal angles
-    { x: 200, y: GAME_CONFIG.CANVAS_HEIGHT - 120, type: CoinType.POWER, spawnAngle: 30 },
-    { x: 600, y: GAME_CONFIG.CANVAS_HEIGHT - 160, type: CoinType.POWER, spawnAngle: 150 }
   ]
 };
 

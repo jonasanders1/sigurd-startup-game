@@ -29,6 +29,7 @@ export interface Player {
     direction: number;
     isActive: boolean;
     isFrozen?: boolean;
+    isBlinking?: boolean; // For power mode warning
   }
   
   export interface Bomb {
@@ -55,6 +56,8 @@ export interface Player {
     spawnX: number;
     spawnY: number;
     effectDuration?: number;
+    colorIndex?: number; // For P-coins to track current color
+    spawnTime?: number; // For P-coins to track when they spawned
   }
   
   export interface CoinSpawnPoint {
@@ -120,4 +123,41 @@ export interface Player {
       powerModeEndTime: number;
     };
     firebombCount: number;
+  }
+  
+  // New interfaces for scalable coin system
+  export interface CoinEffect {
+    type: string;
+    duration?: number;
+    points?: number;
+    apply: (gameState: any) => void;
+    remove?: (gameState: any) => void;
+  }
+  
+  export interface CoinPhysicsConfig {
+    hasGravity: boolean;
+    bounces: boolean;
+    reflects: boolean;
+    customUpdate?: (coin: Coin, platforms: Platform[], ground: Ground) => void;
+  }
+  
+  export interface CoinTypeConfig {
+    type: string;
+    color: string;
+    points: number;
+    physics: CoinPhysicsConfig;
+    effects: CoinEffect[];
+    spawnCondition?: (gameState: any) => boolean;
+    maxActive?: number;
+  }
+
+  export interface FloatingText {
+    id: string;
+    text: string;
+    x: number;
+    y: number;
+    startTime: number;
+    duration: number;
+    color: string;
+    fontSize: number;
   }

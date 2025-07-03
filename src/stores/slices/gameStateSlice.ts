@@ -117,6 +117,10 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
           const multiplier =
             "multiplier" in get() ? (get() as any).multiplier : 1;
 
+          // Calculate total coin stats from level history
+          const totalCoinsCollected = levelHistory.reduce((total, level) => total + level.coinsCollected, 0);
+          const totalPowerModeActivations = levelHistory.reduce((total, level) => total + level.powerModeActivations, 0);
+
           sendGameCompletionData({
             finalScore: get().score,
             totalLevels: mapDefinitions.length,
@@ -125,6 +129,8 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
             lives: newLives,
             multiplier,
             levelHistory,
+            totalCoinsCollected,
+            totalPowerModeActivations
           });
         }
       },

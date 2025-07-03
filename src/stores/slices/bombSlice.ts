@@ -1,7 +1,7 @@
-import { StateCreator } from 'zustand';
-import { Bomb } from '../../types/interfaces';
-import { BombManager } from '../../managers/bombManager';
-import { calculateBombScore, formatScoreLog } from '../../lib/scoringUtils';
+import { StateCreator } from "zustand";
+import { Bomb } from "../../types/interfaces";
+import { BombManager } from "../../managers/bombManager";
+import { calculateBombScore, formatScoreLog } from "../../lib/scoringUtils";
 
 export interface BombSlice {
   bombs: Bomb[];
@@ -26,9 +26,9 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
   collectBomb: (bombOrder: number) => {
     const { bombs, bombManager } = get();
     
-    const bomb = bombs.find(b => b.order === bombOrder);
+    const bomb = bombs.find((b) => b.order === bombOrder);
     if (!bomb || !bombManager) {
-      console.warn('Bomb or bomb manager not found');
+      console.warn("Bomb or bomb manager not found");
       return { isValid: false, isCorrect: false };
     }
 
@@ -43,33 +43,61 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
     
     // Get current multiplier from the store
     const api = get();
-    const currentMultiplier = 'multiplier' in api ? (api as any).multiplier : 1;
+    const currentMultiplier = "multiplier" in api ? (api as any).multiplier : 1;
     
     // Calculate score using utility function
     const scoreCalculation = calculateBombScore(isFirebomb, currentMultiplier);
     
     // Add score to game state
-    if ('addScore' in api) {
+    if ("addScore" in api) {
       (api as any).addScore(scoreCalculation.actualPoints);
     }
     
     // Add points to multiplier system
-    if ('addMultiplierScore' in api) {
+    if ("addMultiplierScore" in api) {
       (api as any).addMultiplierScore(scoreCalculation.actualPoints);
+    }
+
+    // Notify coin manager about points earned (not bonus)
+    if ("coinManager" in api && (api as any).coinManager) {
+      (api as any).coinManager.onPointsEarned(
+        scoreCalculation.actualPoints,
+        false
+      );
     }
     
     // Log the score
     console.log(formatScoreLog(scoreCalculation));
 
-    const updatedBombs = bombs.map(b => {
+    // Add floating text for correct bomb collection
+    if (isFirebomb && "addFloatingText" in api) {
+      const bomb = bombs.find((b) => b.order === bombOrder);
+      if (bomb) {
+        const text = `${scoreCalculation.actualPoints}`;
+        (api as any).addFloatingText(
+          text,
+          bomb.x + bomb.width / 2,
+          bomb.y + bomb.height / 2,
+          1000, // duration
+          '#FFD700', // color
+          15 // fontSize
+        );
+      }
+    }
+
+    const updatedBombs = bombs.map((b) => {
       if (b.order === bombOrder) {
         return { ...b, isCollected: true, isCorrect: result.isCorrect };
       }
       
       const nextGroup = bombManager.getActiveGroup();
       const nextOrder = bombManager.getNextBombOrder();
-      const isNextBomb = nextGroup !== null && nextOrder !== null && 
-                         b.group === nextGroup && b.order === nextOrder && !b.isCollected;
+      const isNextBomb =
+        nextGroup !== null &&
+        nextOrder !== null &&
+        b.group === nextGroup &&
+        b.order === nextOrder &&
+        !b.isCollected;
       
       return { ...b, isBlinking: isNextBomb };
     });
@@ -77,10 +105,10 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
     set({
       bombs: updatedBombs,
       correctOrderCount: bombManager.getCorrectOrderCount(),
-      collectedBombs: Array.from(bombManager.getCollectedBombs()).map(id => {
-        const [group, order] = id.split('-').map(Number);
+      collectedBombs: Array.from(bombManager.getCollectedBombs()).map((id) => {
+        const [group, order] = id.split("-").map(Number);
         return order;
-      })
+      }),
     });
 
     return { isValid: true, isCorrect: result.isCorrect };
@@ -100,7 +128,7 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
       collectedBombs: [],
       correctOrderCount: 0,
       nextBombOrder: 1,
-      bombManager: null
+      bombManager: null,
     });
-  }
+  },
 });
