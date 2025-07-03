@@ -77,17 +77,34 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected
     });
     
-    // Add points to score if we have access to the score system
+    // Handle coin-specific effects
     const api = get();
-    if ('addScore' in api) {
-      // Add points based on coin type
-      let points = 0;
-      if (coin.type === 'POWER') {
-        points = GAME_CONFIG.POWER_COIN_POINTS;
+    
+    if (coin.type === 'POWER') {
+      // Add points for POWER coin
+      if ('addScore' in api) {
+        (api as any).addScore(GAME_CONFIG.POWER_COIN_POINTS);
       }
-      
-      if (points > 0) {
+    } else if (coin.type === 'BONUS_MULTIPLIER') {
+      // Handle BONUS_MULTIPLIER coin effects
+      if ('addScore' in api && 'multiplier' in api) {
+        const currentMultiplier = (api as any).multiplier;
+        const points = 1000 * currentMultiplier;
         (api as any).addScore(points);
+        
+        // Increase multiplier if not at max
+        if (currentMultiplier < GAME_CONFIG.MAX_MULTIPLIER) {
+          // Use the multiplier slice's method to properly increase multiplier
+          if ('addMultiplierScore' in api) {
+            // Add enough points to reach the next multiplier threshold
+            const { MULTIPLIER_THRESHOLDS } = GAME_CONFIG;
+            const nextThreshold = MULTIPLIER_THRESHOLDS[(currentMultiplier + 1) as keyof typeof MULTIPLIER_THRESHOLDS];
+            if (nextThreshold !== undefined) {
+              const pointsNeeded = nextThreshold - (api as any).multiplierScore;
+              (api as any).addMultiplierScore(pointsNeeded);
+            }
+          }
+        }
       }
     }
     
