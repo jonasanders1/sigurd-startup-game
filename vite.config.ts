@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     lib: {
-      entry: "src/game-wrapper.tsx",
+      entry: "src/components/core/GameWrapper.tsx",
       name: "SigurdStartup",
       fileName: "sigurd-startup",
       formats: ["iife"], // needed for use in browser as <script>
