@@ -136,17 +136,17 @@ export class RenderManager {
         }
       } else {
         // Legacy color mapping
-        switch (coin.type) {
-          case 'POWER':
+      switch (coin.type) {
+        case 'POWER':
             coinColor = COLORS.COIN_POWER;
-            break;
-          case 'BONUS_MULTIPLIER':
+          break;
+        case 'BONUS_MULTIPLIER':
             coinColor = COLORS.COIN_BONUS;
-            break;
-          case 'EXTRA_LIFE':
+          break;
+        case 'EXTRA_LIFE':
             coinColor = COLORS.COIN_LIFE;
-            break;
-          default:
+          break;
+        default:
             coinColor = COLORS.COIN_POWER;
         }
       }

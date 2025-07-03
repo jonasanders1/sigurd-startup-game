@@ -17,7 +17,7 @@ export class CoinPhysics {
 
     // Apply gravity if configured
     if (physicsConfig?.hasGravity !== false) {
-      coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
+    coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
     }
 
     // Update position

@@ -3,12 +3,12 @@
 
 export const VERSION = {
   major: 1,
-  minor: 0,
-  patch: 1,
-  build: 5,
-  timestamp: 1751408152955,
-  hash: 'LPKKC5',
-  full: '1.0.1'
+  minor: 1,
+  patch: 0,
+  build: 0,
+  timestamp: 1751488678180,
+  hash: 'GPDHX8',
+  full: '1.1.0'
 };
 
 // Version string for easy access

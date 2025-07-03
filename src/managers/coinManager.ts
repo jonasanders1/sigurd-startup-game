@@ -49,16 +49,16 @@ export class CoinManager {
     // Update coin physics based on coin type
     this.coins.forEach((coin) => {
       if (coin.isCollected) return;
-
+      
       const coinConfig = COIN_TYPES[coin.type];
       if (coinConfig) {
         CoinPhysics.updateCoin(coin, platforms, ground, coinConfig.physics);
       } else {
         // Fallback to legacy behavior
         if (coin.type === CoinType.POWER) {
-          CoinPhysics.updatePowerCoin(coin, platforms, ground);
-        } else {
-          CoinPhysics.updateCoin(coin, platforms, ground);
+        CoinPhysics.updatePowerCoin(coin, platforms, ground);
+      } else {
+        CoinPhysics.updateCoin(coin, platforms, ground);
         }
       }
     });
@@ -87,9 +87,9 @@ export class CoinManager {
     } else {
       // Legacy behavior - check if any coin of this type exists
       const existingCoin = this.coins.find((coin) => coin.type === type);
-      if (existingCoin) {
-        console.log(`🪙 ${type} coin already exists, skipping spawn`);
-        return;
+    if (existingCoin) {
+      console.log(`🪙 ${type} coin already exists, skipping spawn`);
+      return;
       }
     }
 
@@ -99,7 +99,7 @@ export class CoinManager {
     } else {
       initialVelocity = CoinPhysics.createInitialVelocity();
     }
-
+    
     const coin: Coin = {
       type,
       x,
@@ -192,7 +192,7 @@ export class CoinManager {
       const spawnPoints = this.spawnPoints.filter(
         (point) => point.type === coinConfig.type
       );
-
+    
       if (spawnPoints.length > 0) {
         const spawnPoint =
           spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
@@ -202,7 +202,7 @@ export class CoinManager {
           spawnPoint.y,
           spawnPoint.spawnAngle
         );
-      } else {
+    } else {
         // Fallback spawn position - spawn from top for gravity coins
         const spawnX = 400 + (Math.random() - 0.5) * 200;
         const spawnY = 50; // Start from top of screen
@@ -370,7 +370,7 @@ export class CoinManager {
               spawnY = 100 + Math.random() * 100; // Random position for other coins
             }
             this.spawnCoin(coinConfig.type as CoinType, spawnX, spawnY);
-          }
+    }
         }
       }
     });
@@ -379,7 +379,7 @@ export class CoinManager {
   collectCoin(coin: Coin, gameState?: any): void {
     coin.isCollected = true;
     console.log(`🪙 Collected ${coin.type} coin`);
-
+    
     const coinConfig = COIN_TYPES[coin.type];
     if (coinConfig && gameState) {
       // Calculate points earned from this coin
@@ -429,10 +429,10 @@ export class CoinManager {
       });
     } else {
       // Legacy behavior
-      if (coin.type === CoinType.POWER) {
-        this.activatePowerMode();
-      }
+    if (coin.type === CoinType.POWER) {
+      this.activatePowerMode();
     }
+  }
   }
 
   private checkEffectsEnd(gameState?: any): void {
