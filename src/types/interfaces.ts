@@ -58,6 +58,8 @@ export interface Player {
     effectDuration?: number;
     colorIndex?: number; // For P-coins to track current color
     spawnTime?: number; // For P-coins to track when they spawned
+    platformDirection?: number | null; // For platform movement
+    groundDirection?: number | null; // For ground movement
   }
   
   export interface CoinSpawnPoint {
@@ -124,14 +126,56 @@ export interface Player {
     };
     firebombCount: number;
   }
+
+  // Comprehensive GameState interface for type safety
+  export interface GameStateInterface {
+    // Player state
+    player: Player;
+    
+    // Game state
+    currentState: string;
+    currentLevel: number;
+    score: number;
+    lives: number;
+    multiplier: number;
+    multiplierScore: number;
+    
+    // Collections
+    monsters: Monster[];
+    bombs: Bomb[];
+    coins: Coin[];
+    platforms: Platform[];
+    ground: Ground;
+    
+    // Effects
+    activeEffects: {
+      powerMode: boolean;
+      powerModeEndTime: number;
+    };
+    
+    // Counters
+    firebombCount: number;
+    totalCoinsCollected: number;
+    totalPowerCoinsCollected: number;
+    totalBonusMultiplierCoinsCollected: number;
+    
+    // Managers
+    coinManager?: {
+      resetMonsterKillCount: () => void;
+    };
+    
+    // Methods
+    addScore: (points: number) => void;
+    setMultiplier: (multiplier: number, score: number) => void;
+  }
   
   // New interfaces for scalable coin system
   export interface CoinEffect {
     type: string;
     duration?: number;
     points?: number;
-    apply: (gameState: any) => void;
-    remove?: (gameState: any) => void;
+    apply: (gameState: GameStateInterface) => void;
+    remove?: (gameState: GameStateInterface) => void;
   }
   
   export interface CoinPhysicsConfig {
@@ -147,7 +191,7 @@ export interface Player {
     points: number;
     physics: CoinPhysicsConfig;
     effects: CoinEffect[];
-    spawnCondition?: (gameState: any) => boolean;
+    spawnCondition?: (gameState: GameStateInterface) => boolean;
     maxActive?: number;
   }
 

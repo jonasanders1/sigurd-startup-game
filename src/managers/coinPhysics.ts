@@ -1,6 +1,7 @@
 import { Coin, Platform, Ground, CoinPhysicsConfig } from '../types/interfaces';
 import { GAME_CONFIG } from '../types/constants';
 import { COIN_PHYSICS } from '../config/coinTypes';
+import { log } from '../lib/logger';
 
 export class CoinPhysics {
   /**
@@ -9,26 +10,28 @@ export class CoinPhysics {
   static updateCoin(coin: Coin, platforms: Platform[], ground: Ground, physicsConfig?: CoinPhysicsConfig): void {
     if (coin.isCollected) return;
 
-    // Use custom update function if provided
-    if (physicsConfig?.customUpdate) {
-      physicsConfig.customUpdate(coin, platforms, ground);
-      return;
-    }
+    if (physicsConfig) {
+      // Use the provided physics configuration
+      if (physicsConfig.hasGravity) {
+        coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
+      }
+      
+      coin.x += coin.velocityX;
+      coin.y += coin.velocityY;
 
-    // Apply gravity if configured
-    if (physicsConfig?.hasGravity !== false) {
-    coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
-    }
+      if (physicsConfig.reflects) {
+        this.handleReflectiveCollisions(coin, platforms, ground);
+      } else if (physicsConfig.bounces) {
+        this.handleBouncingCollisions(coin, platforms, ground);
+      }
 
-    // Update position
-    coin.x += coin.velocityX;
-    coin.y += coin.velocityY;
-
-    // Handle collisions based on physics configuration
-    if (physicsConfig?.reflects) {
-      this.handleReflectiveCollisions(coin, platforms, ground);
-    } else if (physicsConfig?.bounces !== false) {
-      this.handleBouncingCollisions(coin, platforms, ground);
+      // Use custom update function if provided
+      if (physicsConfig.customUpdate) {
+        physicsConfig.customUpdate(coin, platforms, ground);
+      }
+    } else {
+      // Fallback to standard physics
+      this.updateStandardCoin(coin, platforms, ground);
     }
   }
 
@@ -102,26 +105,26 @@ export class CoinPhysics {
     if (coin.x <= 0) {
       coin.x = 0;
       coin.velocityX = Math.abs(coin.velocityX); // Reflect horizontally
-      console.log(`🪙 Power coin hit left boundary, reflected X velocity`);
+      log.debug("Power coin hit left boundary, reflected X velocity");
     }
     // Right boundary
     else if (coin.x + coin.width >= GAME_CONFIG.CANVAS_WIDTH) {
       coin.x = GAME_CONFIG.CANVAS_WIDTH - coin.width;
       coin.velocityX = -Math.abs(coin.velocityX); // Reflect horizontally
-      console.log(`🪙 Power coin hit right boundary, reflected X velocity`);
+      log.debug("Power coin hit right boundary, reflected X velocity");
     }
 
     // Top boundary
     if (coin.y <= 0) {
       coin.y = 0;
       coin.velocityY = Math.abs(coin.velocityY); // Reflect vertically
-      console.log(`🪙 Power coin hit top boundary, reflected Y velocity`);
+      log.debug("Power coin hit top boundary, reflected Y velocity");
     }
     // Bottom boundary - this should rarely happen since we have ground collision
     else if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
       coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
       coin.velocityY = -Math.abs(coin.velocityY); // Reflect vertically
-      console.log(`🪙 Power coin hit bottom boundary, reflected Y velocity`);
+      log.debug("Power coin hit bottom boundary, reflected Y velocity");
     }
   }
 
@@ -179,7 +182,7 @@ export class CoinPhysics {
         // Move coin out of collision
         this.moveCoinOutOfCollision(coin, platform);
         
-        console.log(`🪙 Power coin hit platform, reflected with normal (${normal.x.toFixed(2)}, ${normal.y.toFixed(2)})`);
+        log.debug(`Power coin hit platform, reflected with normal (${normal.x.toFixed(2)}, ${normal.y.toFixed(2)})`);
         
         // Only handle one collision per frame to avoid multiple reflections
         break;
@@ -211,7 +214,7 @@ export class CoinPhysics {
       // Reflect the Y velocity and move the coin above the ground
       coin.velocityY = -Math.abs(coin.velocityY); // Reflect upward
       coin.y = ground.y - coin.height; // Move above ground
-      console.log(`🪙 Power coin hit ground, reflected Y velocity upward`);
+      log.debug("Power coin hit ground, reflected Y velocity upward");
     }
   }
 

@@ -7,9 +7,10 @@ import { GAME_CONFIG, DEV_CONFIG } from "../types/constants";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { AudioManager } from "./AudioManager";
 import { AudioEvent } from "../types/enums";
-import { playerSprite } from "@/entities/Player";
+import { playerSprite } from "../entities/Player";
 import { AnimationController } from "../lib/AnimationController";
 import { sendGameReady, sendGameStateUpdate, sendMapCompletionData } from "../lib/communicationUtils";
+import { log } from "../lib/logger";
 
 export class GameManager {
   private inputManager: InputManager;
@@ -46,8 +47,8 @@ export class GameManager {
   start(): void {
     // Check if DEV_MODE is enabled
     if (DEV_CONFIG.ENABLED) {
-      console.log("🚀 DEV_MODE is ENABLED");
-      console.log(`🎯 Target state: ${DEV_CONFIG.TARGET_STATE}`);
+      log.dev("DEV_MODE is ENABLED");
+      log.dev(`Target state: ${DEV_CONFIG.TARGET_STATE}`);
       this.initializeDevMode();
     } else {
       // Reset game state to ensure fresh start
@@ -137,7 +138,7 @@ export class GameManager {
         gameState.setMenuType(MenuType.GAME_OVER);
         break;
       default:
-        console.warn(
+        log.warn(
           `Unknown DEV_MODE target state: ${DEV_CONFIG.TARGET_STATE}`
         );
         gameState.setState(GameState.MENU);
@@ -145,11 +146,11 @@ export class GameManager {
     }
 
     // Set multiplier LAST to override any automatic calculations
-    console.log(`🎮 DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x with ${DEV_CONFIG.MOCK_DATA.multiplierScore} progress`);
+    log.dev(`DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x with ${DEV_CONFIG.MOCK_DATA.multiplierScore} progress`);
     gameState.setMultiplier(DEV_CONFIG.MOCK_DATA.multiplier, DEV_CONFIG.MOCK_DATA.multiplierScore);
 
-    console.log(
-      `🎮 DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}`
+    log.dev(
+      `DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}`
     );
     this.devModeInitialized = true;
   }
@@ -287,21 +288,21 @@ export class GameManager {
     const stateChanged = this.previousGameState !== currentState;
 
     if (stateChanged) {
-      console.log(
-        `🎵 Game state changed: ${this.previousGameState} -> ${currentState}`
+      log.audio(
+        `Game state changed: ${this.previousGameState} -> ${currentState}`
       );
     }
 
     // Start music if we should be playing and aren't already
     if (shouldPlayMusic && !this.isBackgroundMusicPlaying) {
-      console.log("🎵 Starting background music");
+      log.audio("Starting background music");
       this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
       this.isBackgroundMusicPlaying = true;
     }
 
     // Stop music if we shouldn't be playing but are
     if (!shouldPlayMusic && this.isBackgroundMusicPlaying) {
-      console.log("🛑 Stopping background music");
+      log.audio("Stopping background music");
       this.audioManager.stopBackgroundMusic();
       this.isBackgroundMusicPlaying = false;
     }
@@ -472,7 +473,7 @@ export class GameManager {
 
     if (ground && coinManager) {
       // Check spawn conditions for all coin types
-      coinManager.checkSpawnConditions(gameState);
+      coinManager.checkSpawnConditions(gameState as unknown as Record<string, unknown>);
       
       // Let CoinManager handle all coin physics updates
       coinManager.update(platforms, ground, gameState);
@@ -586,7 +587,7 @@ export class GameManager {
       // Pass gameState to the coin manager for the new effect system
       const coinManager = gameState.coinManager;
       if (coinManager) {
-        coinManager.collectCoin(collectedCoin, gameState);
+        coinManager.collectCoin(collectedCoin, gameState as unknown as Record<string, unknown>);
       }
       
       gameState.collectCoin(collectedCoin);
@@ -628,7 +629,7 @@ export class GameManager {
           gameState.coinManager.onPointsEarned(points, false);
         }
         
-        console.log(`💀 Monster killed during power mode: ${points} points`);
+        log.debug(`Monster killed during power mode: ${points} points`);
         
         // Play monster kill sound (same as coin collect sound)
         this.audioManager.playSound(AudioEvent.COIN_COLLECT);
@@ -697,7 +698,7 @@ export class GameManager {
     const gameState = useGameStore.getState();
     if (gameState.collectedBombs.length === GAME_CONFIG.TOTAL_BOMBS) {
       // Level completed - this will trigger a state change which will stop the music
-      console.log("🎉 Level completed - proceeding to next phase");
+      log.game("Level completed - proceeding to next phase");
 
       // Record if player was grounded when map was cleared
       this.wasGroundedWhenMapCleared = gameState.player.isGrounded;

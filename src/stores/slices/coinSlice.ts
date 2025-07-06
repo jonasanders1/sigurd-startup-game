@@ -1,7 +1,8 @@
 import { StateCreator } from 'zustand';
-import { Coin, CoinSpawnPoint } from '../../types/interfaces';
+import { Coin, CoinSpawnPoint, Monster } from '../../types/interfaces';
 import { CoinManager } from '../../managers/coinManager';
 import { GAME_CONFIG } from '../../types/constants';
+import { log } from '../../lib/logger';
 
 export interface CoinSlice {
   coins: Coin[];
@@ -21,7 +22,7 @@ export interface CoinSlice {
   collectCoin: (coin: Coin) => void;
   onFirebombCollected: () => void;
   resetCoinState: () => void;
-  updateMonsterStates: (monsters: any[]) => void;
+  updateMonsterStates: (monsters: Monster[]) => void;
   resetEffects: () => void;
   getCoinStats: () => { totalCoinsCollected: number; totalPowerCoinsCollected: number; totalBonusMultiplierCoinsCollected: number };
 }
@@ -83,32 +84,32 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     if (coin.type === 'POWER') {
       // Add points for POWER coin
       if ('addScore' in api) {
-        (api as any).addScore(GAME_CONFIG.POWER_COIN_POINTS);
+        (api as { addScore: (points: number) => void }).addScore(GAME_CONFIG.POWER_COIN_POINTS);
       }
     } else if (coin.type === 'BONUS_MULTIPLIER') {
       // Handle BONUS_MULTIPLIER coin effects
       if ('addScore' in api && 'multiplier' in api) {
-        const currentMultiplier = (api as any).multiplier;
+        const currentMultiplier = (api as { multiplier: number }).multiplier;
         const points = 1000 * currentMultiplier;
-        (api as any).addScore(points);
+        (api as { addScore: (points: number) => void }).addScore(points);
         
         // Increase multiplier if not at max
         if (currentMultiplier < GAME_CONFIG.MAX_MULTIPLIER) {
           // Use the multiplier slice's method to properly increase multiplier
-          if ('addMultiplierScore' in api) {
+          if ('addMultiplierScore' in api && 'multiplierScore' in api) {
             // Add enough points to reach the next multiplier threshold
             const { MULTIPLIER_THRESHOLDS } = GAME_CONFIG;
             const nextThreshold = MULTIPLIER_THRESHOLDS[(currentMultiplier + 1) as keyof typeof MULTIPLIER_THRESHOLDS];
             if (nextThreshold !== undefined) {
-              const pointsNeeded = nextThreshold - (api as any).multiplierScore;
-              (api as any).addMultiplierScore(pointsNeeded);
+              const pointsNeeded = nextThreshold - (api as { multiplierScore: number }).multiplierScore;
+              (api as { addMultiplierScore: (points: number) => void }).addMultiplierScore(pointsNeeded);
             }
           }
         }
       }
     }
     
-    console.log(`💰 Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`);
+    log.debug(`Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`);
   },
   
   onFirebombCollected: () => {
@@ -150,7 +151,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     };
   },
   
-  updateMonsterStates: (monsters: any[]) => {
+  updateMonsterStates: (monsters: Monster[]) => {
     const { coinManager } = get();
     if (!coinManager) return;
     

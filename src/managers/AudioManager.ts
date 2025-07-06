@@ -1,6 +1,12 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { ASSET_PATHS } from "../config/assets";
 import { useGameStore } from "../stores/gameStore";
+import { log } from "../lib/logger";
+
+// Type definition for webkit AudioContext
+interface WebkitWindow extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
 
 export class AudioManager {
   private audioContext: AudioContext | null = null;
@@ -17,12 +23,12 @@ export class AudioManager {
   private initializeAudioContext(): void {
     try {
       this.audioContext = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
+        (window as WebkitWindow).webkitAudioContext)();
       this.backgroundMusicGain = this.audioContext.createGain();
       this.backgroundMusicGain.connect(this.audioContext.destination);
       this.updateAudioVolumes(); // Set initial volume based on settings
     } catch (error) {
-      console.warn("Web Audio API not supported:", error);
+      log.warn("Web Audio API not supported:", error);
     }
   }
 
@@ -37,7 +43,7 @@ export class AudioManager {
       );
       
     } catch (error) {
-      console.warn("Failed to load background music:", error);
+      log.warn("Failed to load background music:", error);
     }
   }
 
@@ -61,7 +67,7 @@ export class AudioManager {
         this.playMapClearedSound();
         break;
       case AudioEvent.BONUS_SCREEN:
-        console.log("🔥 Bonus sound");
+        log.audio("Bonus sound");
         this.playBonusSound();
         break;
       case AudioEvent.COIN_COLLECT:
@@ -77,7 +83,7 @@ export class AudioManager {
         }
         break;
       default:
-        console.log(`Audio event ${event} not implemented yet`);
+        log.debug(`Audio event ${event} not implemented yet`);
     }
   }
 
@@ -318,7 +324,7 @@ export class AudioManager {
       this.backgroundMusicSource.start();
       
     } catch (error) {
-      console.warn("Failed to play background music file:", error);
+      log.warn("Failed to play background music file:", error);
     }
   }
 

@@ -6,8 +6,17 @@ import {
   sendScoreToHost,
   sendGameStateUpdate,
   sendGameCompletionData,
+  LevelHistoryEntry,
 } from "@/lib/communicationUtils";
 import { mapDefinitions } from "@/maps/mapDefinitions";
+import { log } from "../../lib/logger";
+
+interface StoreAPI {
+  currentMap?: { name: string };
+  resetMultiplier: () => void;
+  getLevelHistory: () => Array<{ coinsCollected: number; powerModeActivations: number }>;
+  multiplier: number;
+}
 
 export interface GameStateSlice {
   currentState: GameState;
@@ -34,8 +43,8 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
   set,
   get
 ) => {
-  console.log(
-    `🎮 Initializing game state slice with ${GAME_CONFIG.STARTING_LIVES} lives`
+  log.info(
+    `Initializing game state slice with ${GAME_CONFIG.STARTING_LIVES} lives`
   );
   return {
     currentState: GameState.MENU,
@@ -60,8 +69,8 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       }
 
       // Get current map for state update
-      const currentMap =
-        "currentMap" in get() ? (get() as any).currentMap : null;
+      const api = get();
+      const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
       sendGameStateUpdate(state, currentMap?.name);
     },
 
@@ -80,13 +89,13 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
         
         // Prevent losing life if already at 0 or game is already over
         if (lives <= 0 || currentState === GameState.GAME_OVER) {
-          console.log(`🚫 Cannot lose life: lives=${lives}, state=${currentState}`);
+          log.warn(`Cannot lose life: lives=${lives}, state=${currentState}`);
           return;
         }
         
         const newLives = lives - 1;
         
-        console.log(`💔 Losing life: ${lives} → ${newLives}`);
+        log.info(`Losing life: ${lives} → ${newLives}`);
 
         // Set new lives first
         set({ lives: newLives });
@@ -95,27 +104,25 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
         set({ levelScore: 0 });
 
         // Reset multiplier directly
-        if ("resetMultiplier" in get()) {
-          console.log("🔄 Resetting multiplier on death...");
-          (get() as any).resetMultiplier();
+        const api = get();
+        if ("resetMultiplier" in api) {
+          log.debug("Resetting multiplier on death...");
+          (api as { resetMultiplier: () => void }).resetMultiplier();
         }
 
         // Check if game over after setting new lives
         if (newLives <= 0) {
-          console.log(`🎯 GAME OVER triggered at ${newLives} lives`);
+          log.info(`GAME OVER triggered at ${newLives} lives`);
           set({
             currentState: GameState.GAME_OVER,
             showMenu: MenuType.GAME_OVER,
           });
-          const currentMap =
-            "currentMap" in get() ? (get() as any).currentMap : null;
+          const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
           sendGameStateUpdate(GameState.GAME_OVER, currentMap?.name);
 
           // Send game completion data for game over
-          const levelHistory =
-            "getLevelHistory" in get() ? (get() as any).getLevelHistory() : [];
-          const multiplier =
-            "multiplier" in get() ? (get() as any).multiplier : 1;
+          const levelHistory = "getLevelHistory" in api ? (api as { getLevelHistory: () => LevelHistoryEntry[] }).getLevelHistory() : [];
+          const multiplier = "multiplier" in api ? (api as { multiplier: number }).multiplier : 1;
 
           // Calculate total coin stats from level history
           const totalCoinsCollected = levelHistory.reduce((total, level) => total + level.coinsCollected, 0);
@@ -143,14 +150,14 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       set({ levelScore: 0 });
 
       // Reset multiplier directly
-      if ("resetMultiplier" in get()) {
-        console.log("🔄 Resetting multiplier on level change...");
-        (get() as any).resetMultiplier();
+      const api = get();
+      if ("resetMultiplier" in api) {
+        log.debug("Resetting multiplier on level change...");
+        (api as { resetMultiplier: () => void }).resetMultiplier();
       }
 
       // Send state update with new level info
-      const currentMap =
-        "currentMap" in get() ? (get() as any).currentMap : null;
+      const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
       sendGameStateUpdate(GameState.PLAYING, currentMap?.name);
     },
 
@@ -164,9 +171,9 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       });
 
       // Get multiplier and currentMap from the store if available
-      const multiplier = "multiplier" in get() ? (get() as any).multiplier : 1;
-      const currentMap =
-        "currentMap" in get() ? (get() as any).currentMap : null;
+      const api = get();
+      const multiplier = "multiplier" in api ? (api as { multiplier: number }).multiplier : 1;
+      const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
 
       // Send comprehensive score data to host
       sendScoreToHost(
@@ -183,8 +190,8 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
     },
 
     resetGameState: () => {
-      console.log(
-        `🔄 Resetting game state - setting lives to ${GAME_CONFIG.STARTING_LIVES}`
+      log.info(
+        `Resetting game state - setting lives to ${GAME_CONFIG.STARTING_LIVES}`
       );
       set({
         currentState: GameState.MENU,
@@ -199,8 +206,8 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       });
 
       // Send state update
-      const currentMap =
-        "currentMap" in get() ? (get() as any).currentMap : null;
+      const api = get();
+      const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
       sendGameStateUpdate(GameState.MENU, currentMap?.name);
     },
 

@@ -1,8 +1,13 @@
-import { Player, Monster, Bomb, Platform, Ground, Coin } from "../types/interfaces";
+import { Player, Monster, Bomb, Platform, Ground, Coin, FloatingText } from "../types/interfaces";
 import { COLORS } from "../types/constants";
-import { playerSprite } from "@/entities/Player";
+import { playerSprite } from "../entities/Player";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
+import { log } from "../lib/logger";
+
+interface CoinManagerInterface {
+  getPcoinCurrentColor: (coin: Coin) => string;
+}
 
 export class RenderManager {
   private canvas: HTMLCanvasElement;
@@ -11,6 +16,7 @@ export class RenderManager {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
+    log.debug("RenderManager initialized with canvas");
   }
 
   render(
@@ -20,8 +26,8 @@ export class RenderManager {
     monsters: Monster[],
     ground: Ground | null,
     coins: Coin[] = [],
-    floatingTexts: any[] = [],
-    coinManager?: any
+    floatingTexts: FloatingText[] = [],
+    coinManager?: CoinManagerInterface
   ): void {
     this.clearCanvas();
     if (ground) {
@@ -105,54 +111,34 @@ export class RenderManager {
       );
       this.ctx.fill();
 
-      // Draw order number
+      // Draw bomb number
       this.ctx.fillStyle = "#000000";
-      this.ctx.font = "10px Arial";
+      this.ctx.font = "12px Arial";
       this.ctx.textAlign = "center";
       this.ctx.fillText(
         bomb.order.toString(),
         bomb.x + bomb.width / 2,
-        bomb.y + bomb.height / 2 + 3
+        bomb.y + bomb.height / 2 + 4
       );
     });
   }
 
-  private renderCoins(coins: Coin[], coinManager?: any): void {
+  private renderCoins(coins: Coin[], coinManager?: CoinManagerInterface): void {
     coins.forEach((coin) => {
       if (coin.isCollected) {
         return; // Don't render collected coins
       }
 
-      // Get coin configuration for color and effects
       const coinConfig = COIN_TYPES[coin.type];
-      let coinColor = COLORS.COIN_POWER; // Default fallback
+      let color = coinConfig?.color || "#FFD700"; // Default gold color
 
-      if (coinConfig) {
-        // Special handling for P-coins - use dynamic color based on time
-        if (coin.type === 'POWER' && coinManager) {
-          coinColor = coinManager.getPcoinCurrentColor(coin);
-        } else {
-          coinColor = coinConfig.color;
-        }
-      } else {
-        // Legacy color mapping
-      switch (coin.type) {
-        case 'POWER':
-            coinColor = COLORS.COIN_POWER;
-          break;
-        case 'BONUS_MULTIPLIER':
-            coinColor = COLORS.COIN_BONUS;
-          break;
-        case 'EXTRA_LIFE':
-            coinColor = COLORS.COIN_LIFE;
-          break;
-        default:
-            coinColor = COLORS.COIN_POWER;
-        }
+      // Special handling for P-coins (power coins)
+      if (coin.type === "POWER" && coinManager) {
+        color = coinManager.getPcoinCurrentColor(coin);
       }
 
-      // Draw coin as a circle
-      this.ctx.fillStyle = coinColor;
+      // Draw coin as circle
+      this.ctx.fillStyle = color;
       this.ctx.beginPath();
       this.ctx.arc(
         coin.x + coin.width / 2,
@@ -163,131 +149,71 @@ export class RenderManager {
       );
       this.ctx.fill();
 
-      // Add a shimmer effect
-      this.ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-      this.ctx.beginPath();
-      this.ctx.arc(
-        coin.x + coin.width / 2 - 2,
-        coin.y + coin.height / 2 - 2,
-        coin.width / 4,
-        0,
-        2 * Math.PI
-      );
-      this.ctx.fill();
-
-      // Draw coin type letter
-      this.ctx.fillStyle = "#FFFFFF";
-      this.ctx.font = "bold 12px Arial";
+      // Add coin type indicator
+      this.ctx.fillStyle = "#000";
+      this.ctx.font = "10px Arial";
       this.ctx.textAlign = "center";
-      this.ctx.fillText(
-        coin.type.charAt(0),
-        coin.x + coin.width / 2,
-        coin.y + coin.height / 2 + 4
-      );
-
-      // Add special visual effects based on coin type
-      if (coinConfig?.physics?.customUpdate) {
-        // Add floating effect for custom physics coins
-        this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-        this.ctx.lineWidth = 1;
-        this.ctx.beginPath();
-        this.ctx.arc(
-          coin.x + coin.width / 2,
-          coin.y + coin.height / 2,
-          coin.width / 2 + 2,
-          0,
-          2 * Math.PI
-        );
-        this.ctx.stroke();
+      
+      let coinSymbol = "C";
+      if (coin.type === "POWER") {
+        coinSymbol = "P";
+      } else if (coin.type === "BONUS_MULTIPLIER") {
+        coinSymbol = "B";
+      } else if (coin.type === "MONSTER_FREEZE") {
+        coinSymbol = "M";
       }
+
+      this.ctx.fillText(
+        coinSymbol,
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2 + 2
+      );
     });
   }
 
   private renderMonsters(monsters: Monster[]): void {
     monsters.forEach((monster) => {
-      if (!monster.isActive) return;
-
-      // Handle blinking effect for frozen monsters
-      let monsterColor = monster.isFrozen ? COLORS.MONSTER_FROZEN : monster.color;
-      
-      if (monster.isBlinking) {
-        const time = Date.now();
-        // Blink every 200ms (5 times per second)
-        if (Math.floor(time / 200) % 2 === 0) {
-          monsterColor = COLORS.MONSTER_FROZEN; // Normal frozen color
-        } else {
-          monsterColor = "#FF0000"; // Red warning color
-        }
+      if (!monster.isActive) {
+        return; // Don't render inactive monsters
       }
 
-      this.ctx.fillStyle = monsterColor;
-      this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
-
-      // Add simple eyes
-      this.ctx.fillStyle = "#FFFFFF";
-      this.ctx.fillRect(monster.x + 3, monster.y + 3, 3, 3);
-      this.ctx.fillRect(monster.x + monster.width - 6, monster.y + 3, 3, 3);
-
-      // Add frozen effect (ice crystals) for frozen monsters
+      // Different color for frozen monsters
       if (monster.isFrozen) {
-        this.ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        this.ctx.fillRect(monster.x + 1, monster.y + 1, 2, 2);
-        this.ctx.fillRect(monster.x + monster.width - 3, monster.y + 1, 2, 2);
-        this.ctx.fillRect(monster.x + 1, monster.y + monster.height - 3, 2, 2);
-        this.ctx.fillRect(monster.x + monster.width - 3, monster.y + monster.height - 3, 2, 2);
+        this.ctx.fillStyle = COLORS.MONSTER_FROZEN;
+      } else {
+        this.ctx.fillStyle = monster.color;
       }
+
+      this.ctx.fillRect(
+        monster.x,
+        monster.y,
+        monster.width,
+        monster.height
+      );
+
+      // Draw monster eyes
+      this.ctx.fillStyle = "#000";
+      this.ctx.fillRect(
+        monster.x + 2,
+        monster.y + 2,
+        2,
+        2
+      );
+      this.ctx.fillRect(
+        monster.x + monster.width - 4,
+        monster.y + 2,
+        2,
+        2
+      );
     });
   }
 
-  private renderFloatingTexts(floatingTexts: any[]): void {
-    const currentTime = Date.now();
-    
-    // Save original text properties
-    const originalTextAlign = this.ctx.textAlign;
-    const originalTextBaseline = this.ctx.textBaseline;
-    const originalFont = this.ctx.font;
-    const originalFillStyle = this.ctx.fillStyle;
-    const originalGlobalAlpha = this.ctx.globalAlpha;
-    const originalShadowColor = this.ctx.shadowColor;
-    const originalShadowBlur = this.ctx.shadowBlur;
-    const originalShadowOffsetX = this.ctx.shadowOffsetX;
-    const originalShadowOffsetY = this.ctx.shadowOffsetY;
-    
-    floatingTexts.forEach(text => {
-      const elapsed = currentTime - text.startTime;
-      const progress = elapsed / text.duration;
-      
-      // Calculate fade out effect
-      const alpha = Math.max(0, 1 - progress);
-      
-      // Calculate upward movement
-      const yOffset = progress * 30; // Move up 30 pixels over the duration
-      
-      // Set text properties
+  private renderFloatingTexts(floatingTexts: FloatingText[]): void {
+    floatingTexts.forEach((text) => {
       this.ctx.fillStyle = text.color;
-      this.ctx.globalAlpha = alpha;
-      this.ctx.font = `bold ${text.fontSize}px Arial`;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      
-      // Draw text with shadow for better visibility
-      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      this.ctx.shadowBlur = 2;
-      this.ctx.shadowOffsetX = 1;
-      this.ctx.shadowOffsetY = 1;
-      
-      this.ctx.fillText(text.text, text.x, text.y - yOffset);
+      this.ctx.font = `${text.fontSize}px Arial`;
+      this.ctx.textAlign = "center";
+      this.ctx.fillText(text.text, text.x, text.y);
     });
-    
-    // Restore original text properties
-    this.ctx.textAlign = originalTextAlign;
-    this.ctx.textBaseline = originalTextBaseline;
-    this.ctx.font = originalFont;
-    this.ctx.fillStyle = originalFillStyle;
-    this.ctx.globalAlpha = originalGlobalAlpha;
-    this.ctx.shadowColor = originalShadowColor;
-    this.ctx.shadowBlur = originalShadowBlur;
-    this.ctx.shadowOffsetX = originalShadowOffsetX;
-    this.ctx.shadowOffsetY = originalShadowOffsetY;
   }
 }
