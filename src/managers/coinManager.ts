@@ -5,11 +5,19 @@ import {
   Platform,
   Ground,
   CoinTypeConfig,
+  GameStateInterface,
+  CoinEffect,
 } from "../types/interfaces";
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { CoinPhysics } from "./coinPhysics";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
+import { log } from "../lib/logger";
+
+interface EffectData {
+  endTime: number;
+  effect: CoinEffect;
+}
 
 export class CoinManager {
   private coins: Coin[] = [];
@@ -17,8 +25,7 @@ export class CoinManager {
   private firebombCount: number = 0;
   private powerModeActive: boolean = false;
   private powerModeEndTime: number = 0;
-  private activeEffects: Map<string, { endTime: number; effect: any }> =
-    new Map();
+  private activeEffects: Map<string, EffectData> = new Map();
   private triggeredSpawnConditions: Set<string> = new Set(); // Track which spawn conditions have been triggered
   private lastProcessedScore: number = 0; // Track the last score threshold that was processed
   private lastScoreCheck: number = 0; // Track the last score we checked
@@ -28,7 +35,7 @@ export class CoinManager {
 
   constructor(spawnPoints: CoinSpawnPoint[] = []) {
     this.spawnPoints = spawnPoints;
-    console.log("🪙 CoinManager initialized");
+    log.debug("CoinManager initialized");
   }
 
   reset(): void {
@@ -45,7 +52,7 @@ export class CoinManager {
     // Don't reset pCoinColorIndex - let it persist across sessions
   }
 
-  update(platforms: Platform[], ground: Ground, gameState?: any): void {
+  update(platforms: Platform[], ground: Ground, gameState?: GameStateInterface): void {
     // Update coin physics based on coin type
     this.coins.forEach((coin) => {
       if (coin.isCollected) return;
@@ -79,8 +86,8 @@ export class CoinManager {
         (coin) => coin.type === type && !coin.isCollected
       );
       if (existingCoins.length >= coinConfig.maxActive) {
-        console.log(
-          `🪙 ${type} coin limit reached (${coinConfig.maxActive}), skipping spawn`
+        log.debug(
+          `${type} coin limit reached (${coinConfig.maxActive}), skipping spawn`
         );
         return;
       }
@@ -88,7 +95,7 @@ export class CoinManager {
       // Legacy behavior - check if any coin of this type exists
       const existingCoin = this.coins.find((coin) => coin.type === type);
     if (existingCoin) {
-      console.log(`🪙 ${type} coin already exists, skipping spawn`);
+      log.debug(`${type} coin already exists, skipping spawn`);
       return;
       }
     }
@@ -117,12 +124,12 @@ export class CoinManager {
     if (type === CoinType.POWER) {
       coin.colorIndex = 0; // Start with blue (index 0)
       coin.spawnTime = Date.now();
-      console.log(`🎨 Spawning P-coin with Blue color (100 points)`);
+      log.debug("Spawning P-coin with Blue color (100 points)");
     }
 
     this.coins.push(coin);
-    console.log(
-      `🪙 Spawned ${type} coin at (${x}, ${y}) with angle ${
+    log.debug(
+      `Spawned ${type} coin at (${x}, ${y}) with angle ${
         spawnAngle || "random"
       }`
     );
@@ -130,7 +137,7 @@ export class CoinManager {
 
   onFirebombCollected(): void {
     this.firebombCount++;
-    console.log(`🔥 Firebomb count: ${this.firebombCount}`);
+    log.debug(`Firebomb count: ${this.firebombCount}`);
 
     // Check spawn conditions immediately when firebomb count changes
     this.checkSpawnConditionsOnFirebombChange();
@@ -140,8 +147,8 @@ export class CoinManager {
   onPointsEarned(points: number, isBonus: boolean = false): void {
     if (!isBonus) {
       this.bombAndMonsterPoints += points;
-      console.log(
-        `💰 Points earned: ${points}, total bomb/monster points: ${this.bombAndMonsterPoints}`
+      log.debug(
+        `Points earned: ${points}, total bomb/monster points: ${this.bombAndMonsterPoints}`
       );
 
       // Check for B-coin spawn conditions immediately when points are earned
@@ -172,14 +179,14 @@ export class CoinManager {
 
       // Check if we've already triggered this spawn condition
       if (this.triggeredSpawnConditions.has(spawnKey)) {
-        console.log(
-          `🪙 B-coin spawn condition already triggered for threshold ${currentThreshold}`
+        log.debug(
+          `B-coin spawn condition already triggered for threshold ${currentThreshold}`
         );
         return;
       }
 
-      console.log(
-        `🪙 B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold} (bomb/monster points: ${this.bombAndMonsterPoints})`
+      log.debug(
+        `B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold} (bomb/monster points: ${this.bombAndMonsterPoints})`
       );
 
       // Mark this spawn condition as triggered
@@ -202,11 +209,6 @@ export class CoinManager {
           spawnPoint.y,
           spawnPoint.spawnAngle
         );
-    } else {
-        // Fallback spawn position - spawn from top for gravity coins
-        const spawnX = 400 + (Math.random() - 0.5) * 200;
-        const spawnY = 50; // Start from top of screen
-        this.spawnCoin(coinConfig.type as CoinType, spawnX, spawnY);
       }
     }
   }
@@ -232,8 +234,8 @@ export class CoinManager {
             return; // Already triggered this spawn condition
           }
 
-          console.log(
-            `🪙 P-coin spawn condition met (firebombCount: ${this.firebombCount}, key: ${spawnKey})`
+          log.debug(
+            `P-coin spawn condition met (firebombCount: ${this.firebombCount}, key: ${spawnKey})`
           );
 
           // Mark this spawn condition as triggered
@@ -265,7 +267,7 @@ export class CoinManager {
   }
 
   // Check spawn conditions for other types (score-based, time-based, etc.)
-  checkSpawnConditions(gameState: any): void {
+  checkSpawnConditions(gameState: Record<string, unknown>): void {
     Object.values(COIN_TYPES).forEach((coinConfig) => {
       // Skip firebomb-based spawns as they're handled separately
       if (
@@ -302,8 +304,8 @@ export class CoinManager {
                 currentThreshold >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL
               ) {
                 spawnKey = `${coinConfig.type}_${currentThreshold}`;
-                console.log(
-                  `🪙 B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold} (bomb/monster points: ${this.bombAndMonsterPoints})`
+                log.debug(
+                  `B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold} (bomb/monster points: ${this.bombAndMonsterPoints})`
                 );
               } else {
                 return; // Skip this spawn condition
@@ -321,11 +323,11 @@ export class CoinManager {
               .includes("totalBonusMultiplierCoinsCollected")
           ) {
             const bonusCount =
-              gameState.totalBonusMultiplierCoinsCollected || 0;
+              (gameState.totalBonusMultiplierCoinsCollected as number) || 0;
             const threshold = Math.floor(bonusCount / 10) * 10;
             spawnKey = `${coinConfig.type}_${threshold}`;
-            console.log(
-              `🪙 M-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}`
+            log.debug(
+              `M-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}`
             );
           }
 
@@ -334,8 +336,8 @@ export class CoinManager {
             return; // Already triggered this spawn condition
           }
 
-          console.log(
-            `🪙 Spawn condition met for ${coinConfig.type} coin (key: ${spawnKey})`
+          log.debug(
+            `Spawn condition met for ${coinConfig.type} coin (key: ${spawnKey})`
           );
 
           // Mark this spawn condition as triggered
@@ -376,9 +378,9 @@ export class CoinManager {
     });
   }
 
-  collectCoin(coin: Coin, gameState?: any): void {
+  collectCoin(coin: Coin, gameState?: Record<string, unknown>): void {
     coin.isCollected = true;
-    console.log(`🪙 Collected ${coin.type} coin`);
+    log.debug(`Collected ${coin.type} coin`);
     
     const coinConfig = COIN_TYPES[coin.type];
     if (coinConfig && gameState) {
@@ -389,23 +391,23 @@ export class CoinManager {
       if (coin.type === CoinType.POWER) {
         const spawnTime = coin.spawnTime || Date.now();
         const colorData = this.getPcoinColorForTime(spawnTime);
-        const currentMultiplier = gameState.multiplier || 1;
+        const currentMultiplier = (gameState.multiplier as number) || 1;
         pointsEarned = colorData.points * currentMultiplier;
 
-        console.log(
-          `🎨 P-coin collected: ${colorData.name} color, ${colorData.points} × ${currentMultiplier} = ${pointsEarned} points`
+        log.debug(
+          `P-coin collected: ${colorData.name} color, ${colorData.points} × ${currentMultiplier} = ${pointsEarned} points`
         );
       }
       // Special handling for B-coin (Bonus Multiplier) - points = 1000 * current multiplier
       else if (coin.type === CoinType.BONUS_MULTIPLIER) {
-        const currentMultiplier = gameState.multiplier || 1;
+        const currentMultiplier = (gameState.multiplier as number) || 1;
         pointsEarned = 1000 * currentMultiplier;
       }
 
       // Show floating text for points earned
-      if (gameState.addFloatingText) {
+      if ('addFloatingText' in gameState && typeof gameState.addFloatingText === 'function') {
         const text = pointsEarned.toString();
-        gameState.addFloatingText(
+        (gameState.addFloatingText as (text: string, x: number, y: number, duration: number, color: string, fontSize: number) => void)(
           text,
           coin.x + coin.width / 2,
           coin.y + coin.height / 2,
@@ -417,7 +419,7 @@ export class CoinManager {
 
       // Apply all effects for this coin type
       coinConfig.effects.forEach((effect) => {
-        effect.apply(gameState);
+        effect.apply(gameState as GameStateInterface);
 
         // Track timed effects
         if (effect.duration) {
@@ -435,7 +437,7 @@ export class CoinManager {
   }
   }
 
-  private checkEffectsEnd(gameState?: any): void {
+  private checkEffectsEnd(gameState?: Record<string, unknown>): void {
     const currentTime = Date.now();
     const effectsToRemove: string[] = [];
 
@@ -443,7 +445,7 @@ export class CoinManager {
       if (currentTime >= effectData.endTime) {
         effectsToRemove.push(effectType);
         if (effectData.effect.remove && gameState) {
-          effectData.effect.remove(gameState);
+          effectData.effect.remove(gameState as GameStateInterface);
         }
       }
     });
@@ -455,7 +457,7 @@ export class CoinManager {
     // Legacy power mode check
     if (this.powerModeActive && Date.now() >= this.powerModeEndTime) {
       this.powerModeActive = false;
-      console.log("⚡ Power mode deactivated");
+      log.debug("Power mode deactivated");
     }
   }
 
@@ -502,8 +504,8 @@ export class CoinManager {
     }
 
     const totalPoints = basePoints * multiplier;
-    console.log(
-      `💀 Monster kill #${this.monsterKillCount}: ${basePoints} × ${multiplier} = ${totalPoints} points`
+    log.debug(
+      `Monster kill #${this.monsterKillCount}: ${basePoints} × ${multiplier} = ${totalPoints} points`
     );
 
     return totalPoints;
@@ -544,15 +546,15 @@ export class CoinManager {
   advancePcoinColor(): void {
     this.pCoinColorIndex = (this.pCoinColorIndex + 1) % P_COIN_COLORS.length;
     const newColor = this.getCurrentPcoinColor();
-    console.log(
-      `🎨 P-coin color advanced to: ${newColor.name} (${newColor.points} points)`
+    log.debug(
+      `P-coin color advanced to: ${newColor.name} (${newColor.points} points)`
     );
   }
 
   // Reset monster kill count when power mode starts
   resetMonsterKillCount(): void {
     this.monsterKillCount = 0;
-    console.log("🔄 Monster kill count reset for new power mode session");
+    log.debug("Monster kill count reset for new power mode session");
   }
 
   // Legacy methods for backward compatibility
@@ -560,8 +562,8 @@ export class CoinManager {
     this.powerModeActive = true;
     this.powerModeEndTime = Date.now() + GAME_CONFIG.POWER_COIN_DURATION;
     this.resetMonsterKillCount(); // Reset kill count when power mode starts
-    console.log(
-      `⚡ Power mode activated for ${GAME_CONFIG.POWER_COIN_DURATION}ms`
+    log.debug(
+      `Power mode activated for ${GAME_CONFIG.POWER_COIN_DURATION}ms`
     );
   }
 
@@ -610,7 +612,7 @@ export class CoinManager {
     this.coins = [];
     this.activeEffects.clear();
     this.bombAndMonsterPoints = 0;
-    console.log("🪙 Coin effects reset");
+    log.debug("Coin effects reset");
   }
 
   // New method to get coin configuration

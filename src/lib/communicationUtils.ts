@@ -1,3 +1,5 @@
+import { log } from './logger';
+
 export interface MapCompletionData {
   mapName: string;
   level: number;
@@ -14,6 +16,17 @@ export interface MapCompletionData {
   powerModeActivations?: number; // Number of times power mode was activated
 }
 
+export interface LevelHistoryEntry {
+  level: number;
+  mapName: string;
+  score: number;
+  bonus: number;
+  completionTime: number;
+  coinsCollected: number;
+  powerModeActivations: number;
+  timestamp: number;
+}
+
 export const sendScoreToHost = (score: number, map: string, level?: number, lives?: number, multiplier?: number) => {
   const scoreData = {
     score,
@@ -24,7 +37,7 @@ export const sendScoreToHost = (score: number, map: string, level?: number, live
     multiplier
   };
   
-  console.log('🎮 Sending score to host:', scoreData);
+  log.debug('Sending score to host:', scoreData);
   
   // Send current score update
   const scoreEvent = new CustomEvent('scoreUpdate', {
@@ -44,7 +57,7 @@ export const sendScoreToHost = (score: number, map: string, level?: number, live
 };
 
 export const sendGameReady = () => {
-  console.log('🎮 Game ready signal sent to host');
+  log.debug('Game ready signal sent to host');
   const event = new CustomEvent('game:ready', {
     detail: { timestamp: Date.now() },
     bubbles: true,
@@ -54,7 +67,7 @@ export const sendGameReady = () => {
 };
 
 export const sendGameStateUpdate = (state: string, map?: string) => {
-  console.log('🎮 Game state update sent to host:', state, map);
+  log.debug('Game state update sent to host:', state, map);
   const event = new CustomEvent('game:state-updated', {
     detail: { state, map, timestamp: Date.now() },
     bubbles: true,
@@ -64,7 +77,7 @@ export const sendGameStateUpdate = (state: string, map?: string) => {
 };
 
 export const sendMapCompletionData = (data: MapCompletionData) => {
-  console.log('🎮 Sending map completion data to host:', data);
+  log.debug('Sending map completion data to host:', data);
   const event = new CustomEvent('game:map-completed', {
     detail: data,
     bubbles: true,
@@ -80,11 +93,11 @@ export const sendGameCompletionData = (data: {
   timestamp: number;
   lives: number;
   multiplier: number;
-  levelHistory: any[];
+  levelHistory: LevelHistoryEntry[];
   totalCoinsCollected?: number;
   totalPowerModeActivations?: number;
 }) => {
-  console.log('🎮 Sending game completion data to host:', data);
+  log.debug('Sending game completion data to host:', data);
   const event = new CustomEvent('game:completed', {
     detail: data,
     bubbles: true,

@@ -2,6 +2,11 @@ import { useEffect } from "react";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 
+// Type definition for webkit fullscreen element
+interface WebkitDocument extends Document {
+  webkitFullscreenElement?: Element | null;
+}
+
 export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
   const { currentState, setState, setMenuType, isPaused } = useGameStore();
 
@@ -26,7 +31,7 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
           // Exit fullscreen if in fullscreen mode
           if (
             document.fullscreenElement ||
-            (document as any).webkitFullscreenElement
+            (document as WebkitDocument).webkitFullscreenElement
           ) {
             event.preventDefault();
             onFullscreenToggle?.();
@@ -55,6 +60,7 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
               setMenuType(MenuType.PAUSE);
             }
           }
+          break;
 
         case " ":
           if (currentState === GameState.PAUSED) {

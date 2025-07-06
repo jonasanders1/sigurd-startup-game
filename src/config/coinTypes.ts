@@ -2,6 +2,10 @@ import {
   CoinTypeConfig,
   CoinEffect,
   CoinPhysicsConfig,
+  GameStateInterface,
+  Coin,
+  Platform,
+  Ground,
 } from "../types/interfaces";
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
@@ -12,9 +16,9 @@ export const COIN_EFFECTS = {
     type: "POWER_MODE",
     duration: GAME_CONFIG.POWER_COIN_DURATION,
     points: GAME_CONFIG.POWER_COIN_POINTS,
-    apply: (gameState: any) => {
+    apply: (gameState: GameStateInterface) => {
       // Freeze monsters
-      gameState.monsters.forEach((monster: any) => {
+      gameState.monsters.forEach((monster) => {
         monster.isFrozen = true;
       });
       // Enable monster killing
@@ -27,9 +31,9 @@ export const COIN_EFFECTS = {
         gameState.coinManager.resetMonsterKillCount();
       }
     },
-    remove: (gameState: any) => {
+    remove: (gameState: GameStateInterface) => {
       // Unfreeze monsters
-      gameState.monsters.forEach((monster: any) => {
+      gameState.monsters.forEach((monster) => {
         monster.isFrozen = false;
       });
       gameState.activeEffects.powerMode = false;
@@ -39,14 +43,14 @@ export const COIN_EFFECTS = {
   BONUS_MULTIPLIER: {
     type: "BONUS_MULTIPLIER",
     points: 0, // Points will be calculated dynamically
-    apply: (gameState: any) => {
+    apply: (gameState: GameStateInterface) => {
       // Give points based on current multiplier (1000 * multiplier)
       const points = 1000 * gameState.multiplier;
       gameState.addScore(points);
 
       // Increase multiplier
       if (gameState.multiplier < GAME_CONFIG.MAX_MULTIPLIER) {
-        gameState.multiplier += 1;
+        gameState.setMultiplier(gameState.multiplier + 1, 0);
       }
     },
   },
@@ -54,7 +58,7 @@ export const COIN_EFFECTS = {
   EXTRA_LIFE: {
     type: "EXTRA_LIFE",
     points: 1000,
-    apply: (gameState: any) => {
+    apply: (gameState: GameStateInterface) => {
       // Add extra life
       gameState.lives += 1;
     },
@@ -79,7 +83,7 @@ export const COIN_PHYSICS = {
     hasGravity: true,
     bounces: false,
     reflects: false,
-    customUpdate: (coin: any, platforms: any[], ground: any) => {
+    customUpdate: (coin: Coin, platforms: Platform[], ground: Ground) => {
       // Only vertical gravity, no horizontal movement
       coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
       coin.y += coin.velocityY;
@@ -111,7 +115,7 @@ export const COIN_PHYSICS = {
 
       // Check if coin is currently on a platform
       let isOnPlatform = false;
-      let currentPlatform = null;
+      let currentPlatform: Platform | null = null;
 
       for (const platform of platforms) {
         // Check if coin is on top of this platform with more precise detection
@@ -144,16 +148,6 @@ export const COIN_PHYSICS = {
         const platformSpeed = 1; // Increased speed for better movement
         const nextX = coin.x + coin.platformDirection * platformSpeed;
 
-        console.log("Platform bounds check:", {
-          coinX: coin.x,
-          coinWidth: coin.width,
-          nextX: nextX,
-          platformX: currentPlatform.x,
-          platformWidth: currentPlatform.width,
-          leftCheck: nextX + coin.width <= currentPlatform.x,
-          rightCheck: nextX >= currentPlatform.x + currentPlatform.width,
-          direction: coin.platformDirection,
-        });
         // Check if coin is near or past the platform edge
         const edgeTolerance = 1; // Small tolerance for edge detection
 
@@ -217,7 +211,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     points: 0, // Points will be calculated dynamically based on color
     physics: COIN_PHYSICS.POWER,
     effects: [COIN_EFFECTS.POWER_MODE],
-    spawnCondition: (gameState: any) => {
+    spawnCondition: (gameState: GameStateInterface) => {
       // Spawn every 9 firebombs collected in correct order
       return gameState.firebombCount % 9 === 0;
     },
@@ -230,7 +224,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     points: GAME_CONFIG.BONUS_MULTIPLIER_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
-    spawnCondition: (gameState: any) => {
+    spawnCondition: (gameState: GameStateInterface) => {
       // Spawn every BONUS_COIN_SPAWN_INTERVAL points
       const score = gameState.score || 0;
       return score > 0 && score % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0;
@@ -244,7 +238,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     points: GAME_CONFIG.EXTRA_LIFE_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.EXTRA_LIFE],
-    spawnCondition: (gameState: any) => {
+    spawnCondition: (gameState: GameStateInterface) => {
       // Spawn for every 10 bonus multiplier coins collected
       const bonusCount = gameState.totalBonusMultiplierCoinsCollected || 0;
       return bonusCount > 0 && bonusCount % 10 === 0;
@@ -266,14 +260,14 @@ export const COIN_TYPES = {
     effects: [{
       type: 'SPEED_BOOST',
       duration: 3000,
-      apply: (gameState) => {
+      apply: (gameState: GameStateInterface) => {
         gameState.player.moveSpeed *= 1.5;
       },
-      remove: (gameState) => {
+      remove: (gameState: GameStateInterface) => {
         gameState.player.moveSpeed /= 1.5;
       }
     }],
-    spawnCondition: (gameState) => gameState.score % 3000 === 0
+    spawnCondition: (gameState: GameStateInterface) => gameState.score % 3000 === 0
   },
   
   MAGNET: {
@@ -284,10 +278,10 @@ export const COIN_TYPES = {
     effects: [{
       type: 'MAGNET',
       duration: 4000,
-      apply: (gameState) => {
+      apply: (gameState: GameStateInterface) => {
         gameState.activeEffects.magnetMode = true;
       },
-      remove: (gameState) => {
+      remove: (gameState: GameStateInterface) => {
         gameState.activeEffects.magnetMode = false;
       }
     }]

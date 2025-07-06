@@ -2,6 +2,7 @@ import { StateCreator } from "zustand";
 import { Bomb } from "../../types/interfaces";
 import { BombManager } from "../../managers/bombManager";
 import { calculateBombScore, formatScoreLog } from "../../lib/scoringUtils";
+import { log } from "../../lib/logger";
 
 export interface BombSlice {
   bombs: Bomb[];
@@ -28,7 +29,7 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
     
     const bomb = bombs.find((b) => b.order === bombOrder);
     if (!bomb || !bombManager) {
-      console.warn("Bomb or bomb manager not found");
+      log.warn("Bomb or bomb manager not found");
       return { isValid: false, isCorrect: false };
     }
 
@@ -43,38 +44,38 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
     
     // Get current multiplier from the store
     const api = get();
-    const currentMultiplier = "multiplier" in api ? (api as any).multiplier : 1;
+    const currentMultiplier = "multiplier" in api ? (api as { multiplier: number }).multiplier : 1;
     
     // Calculate score using utility function
     const scoreCalculation = calculateBombScore(isFirebomb, currentMultiplier);
     
     // Add score to game state
     if ("addScore" in api) {
-      (api as any).addScore(scoreCalculation.actualPoints);
+      (api as { addScore: (points: number) => void }).addScore(scoreCalculation.actualPoints);
     }
     
     // Add points to multiplier system
     if ("addMultiplierScore" in api) {
-      (api as any).addMultiplierScore(scoreCalculation.actualPoints);
+      (api as { addMultiplierScore: (points: number) => void }).addMultiplierScore(scoreCalculation.actualPoints);
     }
 
     // Notify coin manager about points earned (not bonus)
-    if ("coinManager" in api && (api as any).coinManager) {
-      (api as any).coinManager.onPointsEarned(
+    if ("coinManager" in api && (api as { coinManager?: { onPointsEarned: (points: number, isBonus: boolean) => void } }).coinManager) {
+      (api as { coinManager: { onPointsEarned: (points: number, isBonus: boolean) => void } }).coinManager.onPointsEarned(
         scoreCalculation.actualPoints,
         false
       );
     }
     
     // Log the score
-    console.log(formatScoreLog(scoreCalculation));
+    log.score(formatScoreLog(scoreCalculation));
 
     // Add floating text for correct bomb collection
     if (isFirebomb && "addFloatingText" in api) {
       const bomb = bombs.find((b) => b.order === bombOrder);
       if (bomb) {
         const text = `${scoreCalculation.actualPoints}`;
-        (api as any).addFloatingText(
+        (api as { addFloatingText: (text: string, x: number, y: number, duration: number, color: string, fontSize: number) => void }).addFloatingText(
           text,
           bomb.x + bomb.width / 2,
           bomb.y + bomb.height / 2,

@@ -9,21 +9,25 @@ export interface AudioSettings {
   sfxMuted: boolean;
 }
 
+interface AudioManagerInterface {
+  updateVolumes: () => void;
+}
+
 export interface AudioSettingsSlice {
   audioSettings: AudioSettings;
-  audioManager: any | null;
+  audioManager: AudioManagerInterface | null;
   updateAudioSettings: (settings: Partial<AudioSettings>) => void;
   resetAudioSettings: () => void;
-  setAudioManager: (audioManager: any) => void;
+  setAudioManager: (audioManager: AudioManagerInterface) => void;
 }
 
 const defaultAudioSettings: AudioSettings = {
   masterVolume: 80,
   musicVolume: 70,
   sfxVolume: 90,
-  masterMuted: true,
-  musicMuted: true,
-  sfxMuted: true,
+  masterMuted: false,
+  musicMuted: false,
+  sfxMuted: false,
 };
 
 export const createAudioSettingsSlice: StateCreator<AudioSettingsSlice> = (
@@ -55,7 +59,7 @@ export const createAudioSettingsSlice: StateCreator<AudioSettingsSlice> = (
     }
   },
 
-  setAudioManager: (audioManager: any) => {
+  setAudioManager: (audioManager: AudioManagerInterface) => {
     set({ audioManager });
   },
 });
