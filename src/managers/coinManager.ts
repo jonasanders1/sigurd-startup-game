@@ -71,7 +71,7 @@ export class CoinManager {
     });
 
     // Check if effects should end
-    this.checkEffectsEnd(gameState);
+    this.checkEffectsEnd(gameState as unknown as Record<string, unknown>);
 
     // Remove collected coins
     this.coins = this.coins.filter((coin) => !coin.isCollected);
@@ -225,7 +225,7 @@ export class CoinManager {
           firebombCount: this.firebombCount,
         };
 
-        if (coinConfig.spawnCondition(combinedState)) {
+        if (coinConfig.spawnCondition(combinedState as unknown as GameStateInterface)) {
           // Create a unique key for this spawn condition
           const spawnKey = `${coinConfig.type}_${this.firebombCount}`;
 
@@ -280,7 +280,7 @@ export class CoinManager {
           firebombCount: this.firebombCount,
         };
 
-        if (coinConfig.spawnCondition(combinedState)) {
+        if (coinConfig.spawnCondition(combinedState as unknown as GameStateInterface)) {
           // Create a unique key for this spawn condition based on the current state
           let spawnKey = `${coinConfig.type}`;
 
@@ -419,7 +419,7 @@ export class CoinManager {
 
       // Apply all effects for this coin type
       coinConfig.effects.forEach((effect) => {
-        effect.apply(gameState as GameStateInterface);
+        effect.apply(gameState as unknown as GameStateInterface);
 
         // Track timed effects
         if (effect.duration) {
@@ -445,7 +445,7 @@ export class CoinManager {
       if (currentTime >= effectData.endTime) {
         effectsToRemove.push(effectType);
         if (effectData.effect.remove && gameState) {
-          effectData.effect.remove(gameState as GameStateInterface);
+          effectData.effect.remove(gameState as unknown as GameStateInterface);
         }
       }
     });
