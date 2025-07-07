@@ -10,7 +10,7 @@ import {
   Zap,
   CircleDollarSign,
   Map,
-  Coffee,
+  Heart,
 } from "lucide-react";
 import { calculateMultiplierProgress } from "../../../lib/scoringUtils";
 import { useFullscreen } from "../../../hooks/useFullscreen";
@@ -153,14 +153,18 @@ const InGameMenu: React.FC = () => {
       </div>
 
       {/* Lives */}
-      <div className="absolute left-3 bottom-2">
+      <div
+        className={`absolute left-3 bottom-2 ${
+          isFullscreen ? "bottom-4" : "bottom-2"
+        }`}
+      >
         <div className="text-xl font-bold text-red-400 flex items-center gap-1">
           {Array.from({ length: 3 }).map((_, index) => (
-            <Coffee
-              color="#81B64C"
-              size={20}
+            <Heart
+              color="#ff3143"
+              size={isFullscreen ? 25 : 20}
               key={index}
-              fill={index < lives ? "#81B64C" : "none"}
+              fill={index < lives ? "#ff3143" : "none"}
             />
           ))}
         </div>

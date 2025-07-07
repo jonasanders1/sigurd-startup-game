@@ -21,6 +21,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
     canvas.width = GAME_CONFIG.CANVAS_WIDTH;
     canvas.height = GAME_CONFIG.CANVAS_HEIGHT;
 
+
+
     // Initialize game manager
     gameManagerRef.current = new GameManager(canvas);
     gameManagerRef.current.start();
@@ -75,11 +77,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
   }, [isFullscreen]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={`shadow-black/10 shadow-lg ${className}`}
-      style={canvasStyle}
-    />
+    <div className="relative">
+      <canvas
+        ref={canvasRef}
+        className={`shadow-black/10 shadow-lg rounded-lg ${className}`}
+        style={canvasStyle}
+      />
+    </div>
   );
 };
 

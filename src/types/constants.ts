@@ -1,12 +1,16 @@
+import { AudioSettings } from "@/stores/slices/audioSettingsSlice";
+
 export const GAME_CONFIG = {
   CANVAS_WIDTH: 800,
   CANVAS_HEIGHT: 600,
   PLAYER_HEIGHT: 40,
   PLAYER_WIDTH: 25,
-  BOMB_SIZE: 16,
+  BOMB_SIZE: 25,
   MONSTER_SIZE: 18,
   PLATFORM_HEIGHT: 20,
   COIN_SIZE: 20, // Size of coins
+  USE_SPRITES: true,
+  PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
 
   // Physics - Reduced for moon-like gravity
   GRAVITY: 0.3,
@@ -67,10 +71,28 @@ export const GAME_CONFIG = {
   },
 };
 
+export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
+  masterVolume: 80,
+  musicVolume: 70,
+  sfxVolume: 90,
+  masterMuted: true,
+  musicMuted: true,
+  sfxMuted: true,
+};
+
 // Development Mode Configuration
 export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
-  TARGET_STATE: "START_MENU", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
+  TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
+  TARGET_LEVEL: 1, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  // Available levels:
+  // 1: Bomb Jack Level 1 (classic)
+  // 2: Bomb Jack Level 2 (advanced) 
+  // 3: Bomb Jack Level 3 (maze)
+  // 4: Bomb Jack Level 4 (tower)
+  // 5: NAV (research)
+  // 6: Skatteetaten (environment)
+  // 7: Silicon Valley (finance)
   MOCK_DATA: {
     score: 15000,
     lives: 2,

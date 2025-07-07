@@ -8,6 +8,7 @@ import { MultiplierSlice, createMultiplierSlice } from './slices/multiplierSlice
 import { AudioSettingsSlice, createAudioSettingsSlice } from './slices/audioSettingsSlice';
 import { CoinSlice, createCoinSlice } from './slices/coinSlice';
 import { FloatingTextSlice, createFloatingTextSlice } from './slices/floatingTextSlice';
+
 import { MapDefinition } from '../types/interfaces';
 import { CoinManager } from '../managers/coinManager';
 

@@ -65,7 +65,14 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
         case " ":
           if (currentState === GameState.PAUSED) {
             event.preventDefault();
-            setState(GameState.PLAYING);
+            // Show countdown before resuming
+            setMenuType(MenuType.COUNTDOWN);
+            setState(GameState.COUNTDOWN);
+            
+            // After 3 seconds, start the game
+            setTimeout(() => {
+              setState(GameState.PLAYING);
+            }, 3000);
           }
           break;
       }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import GameCanvas from "./GameCanvas";
@@ -16,12 +16,15 @@ import { DEV_CONFIG } from "@/types/constants";
 import { Circle } from "lucide-react";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
+import { useBackgroundPreloading } from "../hooks/useBackgroundPreloading";
 import { VERSION_STRING, getVersion } from "../version";
 
 const MainGame: React.FC = () => {
   const { currentState, showMenu } = useGameStore();
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
   const { toggleFullscreen } = useFullscreen();
+  const { isFullscreen } = useFullscreen();
+  const { isPreloading } = useBackgroundPreloading();
 
   const handleFullscreenToggle = () => {
     const gameElement = gameContainerRef.current?.closest(
@@ -38,11 +41,20 @@ const MainGame: React.FC = () => {
   useKeyboardShortcuts(handleFullscreenToggle);
 
   return (
-    <div
-      ref={gameContainerRef}
-      className="relative rounded-lg"
-    >
+    <div ref={gameContainerRef} className="relative rounded-lg">
       <GameCanvas />
+
+      {/* Loading overlay */}
+      {isPreloading && (
+        <Menu>
+          <div className="text-white text-center">
+            <div className="text-lg font-bold mb-2">Loading Backgrounds...</div>
+            <div className="text-sm text-gray-300">
+              Please wait while we prepare your game
+            </div>
+          </div>
+        </Menu>
+      )}
 
       {DEV_CONFIG.ENABLED && (
         <div className="text-white text-2xl absolute top-1 left-1 bg-red-500 rounded-full p-1 flex items-center justify-center gap-1 z-50">
@@ -52,55 +64,63 @@ const MainGame: React.FC = () => {
       )}
 
       {/* Version display */}
-      <div className="absolute bottom-3 right-3 text-xs text-muted-foreground z-40">
+      <div
+        className={`absolute bottom-3 right-3 ${
+          isFullscreen ? "text-md" : "text-xs"
+        } text-muted-foreground z-40 ${isFullscreen ? "bottom-4" : "bottom-3"}`}
+      >
         v{VERSION_STRING} (Build {getVersion().build})
       </div>
 
       {/* Menu overlays positioned relative to the canvas */}
-      {showMenu === MenuType.START && (
-        <Menu>
-          <StartMenu />
-        </Menu>
-      )}
-      {showMenu === MenuType.COUNTDOWN && (
-        <Menu>
-          <CountdownOverlay />
-        </Menu>
-      )}
-      {showMenu === MenuType.PAUSE && (
-        <Menu>
-          <PauseMenu />
-        </Menu>
-      )}
-      {showMenu === MenuType.SETTINGS && (
-        <Menu>
-          <SettingsMenu />
-        </Menu>
-      )}
-      {currentState === GameState.PLAYING && (
-        <Menu transparent={true}>
-          <InGameMenu />
-        </Menu>
-      )}
-      {showMenu === MenuType.BONUS && (
-        <Menu>
-          <BonusScreen />
-        </Menu>
-      )}
-      {showMenu === MenuType.VICTORY && (
-        <Menu>
-          <VictoryMenu />
-        </Menu>
-      )}
-      {showMenu === MenuType.GAME_OVER && (
-        <Menu>
-          <GameOverScreen />
-        </Menu>
-      )}
-      {showMenu === MenuType.AUDIO_SETTINGS && (
-        <Menu>
-          <AudioSettingsMenu />
-        </Menu>
+      {!isPreloading && (
+        <>
+          {showMenu === MenuType.START && (
+            <Menu>
+              <StartMenu />
+            </Menu>
+          )}
+          {showMenu === MenuType.COUNTDOWN && (
+            <Menu>
+              <CountdownOverlay />
+            </Menu>
+          )}
+          {showMenu === MenuType.PAUSE && (
+            <Menu>
+              <PauseMenu />
+            </Menu>
+          )}
+          {showMenu === MenuType.SETTINGS && (
+            <Menu>
+              <SettingsMenu />
+            </Menu>
+          )}
+          {currentState === GameState.PLAYING && (
+            <Menu transparent={true}>
+              <InGameMenu />
+            </Menu>
+          )}
+          {showMenu === MenuType.BONUS && (
+            <Menu>
+              <BonusScreen />
+            </Menu>
+          )}
+          {showMenu === MenuType.VICTORY && (
+            <Menu>
+              <VictoryMenu />
+            </Menu>
+          )}
+          {showMenu === MenuType.GAME_OVER && (
+            <Menu>
+              <GameOverScreen />
+            </Menu>
+          )}
+          {showMenu === MenuType.AUDIO_SETTINGS && (
+            <Menu>
+              <AudioSettingsMenu />
+            </Menu>
+          )}
+        </>
       )}
     </div>
   );
