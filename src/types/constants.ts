@@ -3,7 +3,7 @@ import { AudioSettings } from "@/stores/slices/audioSettingsSlice";
 export const GAME_CONFIG = {
   CANVAS_WIDTH: 800,
   CANVAS_HEIGHT: 600,
-  PLAYER_HEIGHT: 40,
+  PLAYER_HEIGHT: 35,
   PLAYER_WIDTH: 25,
   BOMB_SIZE: 25,
   MONSTER_SIZE: 18,
@@ -84,7 +84,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 4, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
+  TARGET_LEVEL: 2, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
   // Available levels:
   // 1: Bomb Jack Level 1 (classic)
   // 2: Bomb Jack Level 2 (advanced) 

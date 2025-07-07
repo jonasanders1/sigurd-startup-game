@@ -182,7 +182,7 @@ export interface MapDefinition {
   monsters: Monster[];
   coinSpawnPoints?: CoinSpawnPoint[];
   monsterSpawnPoints?: MonsterSpawnPoint[];
-  background: string;
+  background?: string;
 
   groupSequence: number[];
   timeLimit?: number;
