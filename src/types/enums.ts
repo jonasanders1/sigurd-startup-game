@@ -22,13 +22,18 @@ export enum GameState {
   }
   
   export enum MonsterType {
-    HORIZONTAL_PATROL = 'HORIZONTAL_PATROL'
-  }
+  HORIZONTAL_PATROL = 'HORIZONTAL_PATROL',
+  VERTICAL_PATROL = 'VERTICAL_PATROL',
+  CHASER = 'CHASER',
+  AMBUSHER = 'AMBUSHER',
+  FLOATER = 'FLOATER'
+}
   
   export enum CoinType {
     POWER = 'POWER',
     BONUS_MULTIPLIER = 'BONUS_MULTIPLIER',
-    EXTRA_LIFE = 'EXTRA_LIFE'
+    EXTRA_LIFE = 'EXTRA_LIFE',
+    MONSTER_FREEZE = 'MONSTER_FREEZE'
   }
   
   export enum AudioEvent {

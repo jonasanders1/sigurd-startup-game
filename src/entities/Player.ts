@@ -27,18 +27,7 @@ const jumpFrames = [
   loadImage("jumping/jump3.png"),
 ];
 
-// const floatFrames = [ghostFloat1, ghostFloat2].map((src) => {
-//   const img = new Image();
-//   img.src = src;
-//   return img;
-// });
 
-// const ghostCompleteFrames = [
-//   loadImage("ghost-map-complete/ghost-map-complete1.png"),
-//   loadImage("ghost-map-complete/ghost-map-complete2.png"),
-//   loadImage("ghost-map-complete/ghost-map-complete3.png"),
-//   loadImage("ghost-map-complete/ghost-map-complete4.png"),
-// ];
 
 const completeFrames = [
   loadImage("complete/complete1.png"),

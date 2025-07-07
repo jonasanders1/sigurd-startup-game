@@ -3,13 +3,20 @@ import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
 import { GameState, MenuType } from "../../../types/enums";
 import { Play, Settings, Home, RotateCcw } from "lucide-react";
-import { mapDefinitions } from "../../../maps/mapDefinitions";
+
 
 const PauseMenu: React.FC = () => {
   const { setState, setMenuType, resetGame } = useGameStore();
 
   const resumeGame = () => {
-    setState(GameState.PLAYING);
+    // Show countdown before resuming
+    setMenuType(MenuType.COUNTDOWN);
+    setState(GameState.COUNTDOWN);
+    
+    // After 3 seconds, start the game
+    setTimeout(() => {
+      setState(GameState.PLAYING);
+    }, 3000);
   };
 
   const openSettings = () => {
@@ -25,19 +32,13 @@ const PauseMenu: React.FC = () => {
   const restartGame = () => {
     resetGame();
 
-    // Reload the current level since resetGame() cleared the level data
-    const gameState = useGameStore.getState();
-    const currentLevel = gameState.currentLevel;
-
-    // Reload the level data for the current level
-    if (currentLevel <= mapDefinitions.length) {
-      const mapDefinition = mapDefinitions[currentLevel - 1];
-      gameState.initializeLevel(mapDefinition);
-    }
-
+    // Set state to MENU with no current map to trigger level reload in GameManager
+    setState(GameState.MENU);
     setMenuType(MenuType.COUNTDOWN);
-    setState(GameState.COUNTDOWN);
 
+    // Start countdown immediately, GameManager will handle the level reload
+    setState(GameState.COUNTDOWN);
+    
     // After 3 seconds, start the game
     setTimeout(() => {
       setState(GameState.PLAYING);

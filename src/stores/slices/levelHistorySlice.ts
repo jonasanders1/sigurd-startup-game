@@ -10,13 +10,15 @@ export interface LevelResult {
   hasBonus: boolean;
   coinsCollected: number;
   powerModeActivations: number;
+  completionTime: number;
+  timestamp: number;
 }
 
 export interface LevelHistorySlice {
   levelHistory: LevelResult[];
   
   addLevelResult: (result: LevelResult) => void;
-  getLevelHistory: () => LevelResult[];
+  getLevelResults: () => LevelResult[];
   resetLevelHistory: () => void;
 }
 
@@ -25,11 +27,15 @@ export const createLevelHistorySlice: StateCreator<LevelHistorySlice> = (set, ge
   
   addLevelResult: (result: LevelResult) => {
     set((state) => ({
-      levelHistory: [...state.levelHistory, result]
+      levelHistory: [...state.levelHistory, {
+        ...result,
+        completionTime: result.completionTime || 0,
+        timestamp: result.timestamp || Date.now()
+      }]
     }));
   },
   
-  getLevelHistory: () => {
+  getLevelResults: () => {
     return get().levelHistory;
   },
   

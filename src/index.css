@@ -81,7 +81,7 @@
     --primary-light: #94cc5b;
     --primary-dark: #436324;
     --primary-opacity-hover: #8bc2546f;
-    
+
     --primary-foreground: #ffffff;
 
     --secondary: #484744;
@@ -148,23 +148,6 @@
 
   :-ms-fullscreen {
     background: var(--background);
-  }
-
-  /* Prevent scrollbars in fullscreen */
-  :fullscreen * {
-    overflow: hidden;
-  }
-
-  :-webkit-full-screen * {
-    overflow: hidden;
-  }
-
-  :-moz-full-screen * {
-    overflow: hidden;
-  }
-
-  :-ms-fullscreen * {
-    overflow: hidden;
   }
 }
 

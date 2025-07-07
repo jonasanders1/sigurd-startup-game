@@ -1,6 +1,7 @@
 import { InputManager } from "./InputManager";
 import { CollisionManager } from "./CollisionManager";
 import { RenderManager } from "./RenderManager";
+import { MonsterSpawnManager } from "./MonsterSpawnManager";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import { GAME_CONFIG, DEV_CONFIG } from "../types/constants";
@@ -16,6 +17,7 @@ export class GameManager {
   private inputManager: InputManager;
   private collisionManager: CollisionManager;
   private renderManager: RenderManager;
+  private monsterSpawnManager: MonsterSpawnManager;
   private audioManager: AudioManager;
   private animationController: AnimationController;
   private animationFrameId: number | null = null;
@@ -33,6 +35,9 @@ export class GameManager {
     this.renderManager = new RenderManager(canvas);
     this.audioManager = new AudioManager();
     this.animationController = new AnimationController(playerSprite);
+    
+    // Initialize monster spawn manager with empty array initially
+    this.monsterSpawnManager = new MonsterSpawnManager([]);
     
     // Bind the game loop once to prevent multiple instances
     this.boundGameLoop = this.gameLoop.bind(this);
@@ -90,10 +95,15 @@ export class GameManager {
       }
     }
 
-    // Set level
-    for (let i = 1; i < DEV_CONFIG.MOCK_DATA.currentLevel; i++) {
-      gameState.nextLevel();
-      // Re-initialize level data after each level change
+    // Set level to target level in dev mode
+    const targetLevel = DEV_CONFIG.TARGET_LEVEL;
+    if (targetLevel > 1) {
+      // Reset to level 1 first, then advance to target level
+      gameState.resetLevelState();
+      for (let i = 1; i < targetLevel; i++) {
+        gameState.nextLevel();
+      }
+      // Load the target level data
       this.loadCurrentLevel();
     }
 
@@ -150,7 +160,7 @@ export class GameManager {
     gameState.setMultiplier(DEV_CONFIG.MOCK_DATA.multiplier, DEV_CONFIG.MOCK_DATA.multiplierScore);
 
     log.dev(
-      `DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}`
+      `DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}, level: ${DEV_CONFIG.TARGET_LEVEL}`
     );
     this.devModeInitialized = true;
   }
@@ -177,6 +187,18 @@ export class GameManager {
 
       // Reset animation controller state when loading new level
       this.animationController.reset();
+      
+      // Load parallax background for this level based on map name (non-blocking)
+      this.renderManager.loadMapBackground(mapDefinition.name);
+      
+      // Initialize monster spawn manager with map-specific spawn points
+      if (mapDefinition.monsterSpawnPoints) {
+        log.info(`GameManager: Initializing MonsterSpawnManager with ${mapDefinition.monsterSpawnPoints.length} spawn points`);
+        this.monsterSpawnManager.initializeLevel(mapDefinition.monsterSpawnPoints);
+      } else {
+        log.info(`GameManager: Initializing MonsterSpawnManager with no spawn points`);
+        this.monsterSpawnManager.initializeLevel([]);
+      }
       
       // Record map start time for completion tracking
       this.mapStartTime = Date.now();
@@ -441,25 +463,51 @@ export class GameManager {
   }
 
   private updateMonsters(deltaTime: number): void {
+    // Update monster spawn manager (handles spawning and behavior)
+    const currentTime = Date.now();
+    console.log(`GameManager: Updating monsters at time ${currentTime}`);
+    log.debug(`GameManager: Updating monsters at time ${currentTime}`);
+    this.monsterSpawnManager.update(currentTime);
+    
+    // Get fresh game state after monster spawning
     const gameState = useGameStore.getState();
+    console.log(`GameManager: After spawn manager update, current monsters: ${gameState.monsters.length}`);
+    
+    // Update existing monsters with basic movement (for static monsters from map)
     const monsters = gameState.monsters.map((monster) => {
       if (!monster.isActive) return monster;
 
       // Don't move monsters if they are frozen
       if (monster.isFrozen) return monster;
 
-      // Simple patrol AI
-      monster.x += monster.speed * monster.direction;
+      // Only apply basic patrol AI to static monsters (not dynamically spawned ones)
+      if (!monster.spawnTime) {
+        // Simple patrol AI for static monsters
+        monster.x += monster.speed * monster.direction;
 
-      // Check patrol bounds
-      if (
-        monster.x <= monster.patrolStartX ||
-        monster.x >= monster.patrolEndX
-      ) {
-        monster.direction *= -1;
+        // Check patrol bounds
+        if (
+          monster.x <= monster.patrolStartX ||
+          monster.x >= monster.patrolEndX
+        ) {
+          monster.direction *= -1;
+        }
       }
 
       return monster;
+    });
+
+    log.debug(`GameManager: After monster updates, total monsters: ${monsters.length}`, {
+      monsters: monsters.map(m => ({ 
+        type: m.type, 
+        x: m.x, 
+        y: m.y, 
+        isActive: m.isActive, 
+        spawnTime: m.spawnTime,
+        width: m.width,
+        height: m.height,
+        color: m.color
+      }))
     });
 
     gameState.updateMonsters(monsters);
@@ -634,9 +682,8 @@ export class GameManager {
         // Play monster kill sound (same as coin collect sound)
         this.audioManager.playSound(AudioEvent.COIN_COLLECT);
         
-        // Remove the monster from the game
-        const updatedMonsters = monsters.filter(m => m !== hitMonster);
-        gameState.updateMonsters(updatedMonsters);
+        // Remove the monster from the game using spawn manager
+        this.monsterSpawnManager.removeMonster(hitMonster);
       } else {
         // Normal monster collision - player dies
         this.audioManager.playSound(AudioEvent.MONSTER_HIT);
@@ -683,6 +730,9 @@ export class GameManager {
 
       // Reset animation controller state
       this.animationController.reset();
+
+      // Reload parallax background for the current level
+      this.renderManager.loadMapBackground(currentMap.name);
 
       // Show countdown before resuming
       gameState.setMenuType(MenuType.COUNTDOWN);
@@ -749,6 +799,8 @@ export class GameManager {
         hasBonus: bonusPoints > 0,
         coinsCollected: coinsCollected,
         powerModeActivations: powerModeActivations,
+        completionTime: completionTime,
+        timestamp: Date.now(),
       };
       gameState.addLevelResult(levelResult);
 

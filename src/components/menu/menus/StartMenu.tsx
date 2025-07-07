@@ -46,7 +46,7 @@ const StartMenu: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
+    <div className="flex flex-col items-center justify-center h-full rounded-lg">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

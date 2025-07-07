@@ -9,7 +9,7 @@ const Menu = ({
 }) => {
   return (
     <div
-      className={`absolute inset-0 flex items-center justify-center z-50 ${
+      className={`absolute inset-0 flex items-center justify-center z-50 rounded-lg ${
         transparent ? "bg-transparent" : "bg-menu backdrop-blur-sm"
       }`}
     >

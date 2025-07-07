@@ -1,15 +1,13 @@
 // Auto-generated version file
 // This file is updated during the build process
 
-import { log } from './lib/logger';
-
 export const VERSION = {
   major: 1,
   minor: 1,
   patch: 0,
-  build: 1,
-  timestamp: 1751551567610,
-  hash: '24TP8P',
+  build: 3,
+  timestamp: 1751838888137,
+  hash: 'UC2DL6',
   full: '1.1.0'
 };
 
@@ -29,7 +27,7 @@ export const getVersion = () => ({
 
 // Version info for console logging
 export const logVersion = () => {
-  log.game(`Sigurd Startup Game v${VERSION_STRING} (Build ${VERSION.build})`);
-  log.info(`Hash: ${VERSION.hash}`);
-  log.info(`Built: ${new Date(VERSION.timestamp).toISOString()}`);
+  console.log(`🎮 Sigurd Startup Game v${VERSION_STRING} (Build ${VERSION.build})`);
+  console.log(`📦 Hash: ${VERSION.hash}`);
+  console.log(`⏰ Built: ${new Date(VERSION.timestamp).toISOString()}`);
 };

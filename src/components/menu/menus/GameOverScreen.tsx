@@ -36,7 +36,7 @@ const GameOverScreen: React.FC = () => {
                       Bane
                     </th>
                     <th className="text-left py-2 px-2 text-primary font-semibold">
-                      Korrekt
+                      Mynter
                     </th>
                     <th className="text-left py-2 px-2 text-primary font-semibold">
                       Finansiering
@@ -53,13 +53,13 @@ const GameOverScreen: React.FC = () => {
                         {level.level} ({level.mapName})
                       </td>
                       <td className="py-2 px-2 text-gray-300">
-                        {level.correctOrderCount}/{level.totalBombs}
+                        {level.coinsCollected}
                       </td>
                       <td className="py-2 px-2 text-gray-300">
                         {level.score.toLocaleString()}
                       </td>
                       <td className="py-2 px-2">
-                        {level.hasBonus ? (
+                        {level.bonus > 0 ? (
                           <span className="text-yellow-400 font-semibold">
                             {level.bonus.toLocaleString()} kr
                           </span>
