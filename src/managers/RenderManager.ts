@@ -108,12 +108,29 @@ export class RenderManager {
   private renderPlatforms(platforms: Platform[]): void {
     platforms.forEach((platform) => {
       this.ctx.fillStyle = platform.color;
-      this.ctx.fillRect(
-        platform.x,
-        platform.y,
-        platform.width,
-        platform.height
-      );
+      this.ctx.strokeStyle = platform.borderColor;
+      
+      // Draw rounded rectangle
+      const radius = 4; // Corner radius
+      const x = platform.x;
+      const y = platform.y;
+      const width = platform.width;
+      const height = platform.height;
+      
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + radius, y);
+      this.ctx.lineTo(x + width - radius, y);
+      this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      this.ctx.lineTo(x + width, y + height - radius);
+      this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      this.ctx.lineTo(x + radius, y + height);
+      this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      this.ctx.lineTo(x, y + radius);
+      this.ctx.quadraticCurveTo(x, y, x + radius, y);
+      this.ctx.closePath();
+      this.ctx.lineWidth = 3;
+      this.ctx.stroke();
+      this.ctx.fill();
     });
   }
 

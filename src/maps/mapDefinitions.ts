@@ -1,4 +1,4 @@
-import { MapDefinition, Bomb } from "../types/interfaces";
+import { MapDefinition, Bomb, Platform } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
 import { MonsterType, CoinType } from "../types/enums";
 
@@ -26,14 +26,36 @@ const createBomb = (
   isBlinking: false,
 });
 
+// Helper function to create platforms with default height and color
+const createPlatform = (
+  x: number,
+  y: number,
+  width: number,
+  color: string = COLORS.PLATFORM,
+  borderColor: string = "#000"
+) => ({
+  x,
+  y,
+  width,
+  height: GAME_CONFIG.PLATFORM_HEIGHT,
+  borderColor,
+  color,
+});
+
+const centerPoint = () => {
+  return {
+    x: GAME_CONFIG.CANVAS_WIDTH / 2,
+    y: GAME_CONFIG.CANVAS_HEIGHT / 2,
+  };
+};
+
 // Bomb Jack Level 1 - Classic layout with symmetrical platforms
 export const level1Map: MapDefinition = {
   id: "level1",
   name: "Taco Street",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStartX: 100,
-  playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
+  playerStart: centerPoint(),
   ...createBackgroundConfig("Taco Street"),
 
   groupSequence: [1, 2, 3, 4, 5],
@@ -49,77 +71,23 @@ export const level1Map: MapDefinition = {
 
   platforms: [
     // Bottom platforms
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 120,
-      height: 20,
-      color: "#fff",
-    },
-    {
-      x: 580,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 120,
-      height: 20,
-      color: "#fff",
-    },
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 120, 120, "#525d60"),
+    createPlatform(580, GAME_CONFIG.CANVAS_HEIGHT - 120, 120, "#525d60"),
 
     // Middle platforms
-    {
-      x: 200,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 200,
-      width: 100,
-      height: 20,
-      color: "#fff",
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 200,
-      width: 100,
-      height: 20,
-      color: "#fff",
-    },
+    createPlatform(200, GAME_CONFIG.CANVAS_HEIGHT - 200, 100, "#525d60"),
+    createPlatform(500, GAME_CONFIG.CANVAS_HEIGHT - 200, 100, "#525d60"),
 
     // Upper platforms
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 280,
-      width: 80,
-      height: 20,
-      color: "#fff",
-    },
-    {
-      x: 670,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 280,
-      width: 80,
-      height: 20,
-      color: "#fff",
-    },
+    createPlatform(50, GAME_CONFIG.CANVAS_HEIGHT - 280, 80, "#525d60"),
+    createPlatform(670, GAME_CONFIG.CANVAS_HEIGHT - 280, 80, "#525d60"),
 
     // Top platforms
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 100,
-      height: 20,
-      color: "#fff",
-    },
-    {
-      x: 550,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 100,
-      height: 20,
-      color: "#fff",
-    },
+    createPlatform(150, GAME_CONFIG.CANVAS_HEIGHT - 360, 100, "#525d60"),
+    createPlatform(550, GAME_CONFIG.CANVAS_HEIGHT - 360, 100, "#525d60"),
 
     // Highest platform
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 440,
-      width: 100,
-      height: 20,
-      color: "#fff",
-    },
+    createPlatform(350, GAME_CONFIG.CANVAS_HEIGHT - 440, 100, "#525d60"),
   ],
 
   bombs: [
@@ -290,8 +258,7 @@ export const level2Map: MapDefinition = {
   name: "The Future City",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStartX: 50,
-  playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
+  playerStart: centerPoint(),
   ...createBackgroundConfig("The Future City"),
 
   groupSequence: [1, 2, 3, 4, 5],
@@ -302,138 +269,138 @@ export const level2Map: MapDefinition = {
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: COLORS.GROUND,
+    color: "#75202d",
   },
 
   platforms: [
     // Bottom platforms - staggered
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 450,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(
+      50,
+      GAME_CONFIG.CANVAS_HEIGHT - 100,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      250,
+      GAME_CONFIG.CANVAS_HEIGHT - 120,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      450,
+      GAME_CONFIG.CANVAS_HEIGHT - 100,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      650,
+      GAME_CONFIG.CANVAS_HEIGHT - 120,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
 
     // Middle platforms
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 100,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 200,
-      width: 100,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 550,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 100,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(
+      150,
+      GAME_CONFIG.CANVAS_HEIGHT - 180,
+      100,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      350,
+      GAME_CONFIG.CANVAS_HEIGHT - 200,
+      100,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      550,
+      GAME_CONFIG.CANVAS_HEIGHT - 180,
+      100,
+      "#75212d",
+      "#b63348"
+    ),
 
     // Upper platforms
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 260,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 300,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 280,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 260,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 280,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(
+      100,
+      GAME_CONFIG.CANVAS_HEIGHT - 260,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      300,
+      GAME_CONFIG.CANVAS_HEIGHT - 280,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      500,
+      GAME_CONFIG.CANVAS_HEIGHT - 260,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      700,
+      GAME_CONFIG.CANVAS_HEIGHT - 280,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
 
     // Top platforms
-    {
-      x: 200,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 340,
-      width: 100,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 100,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 600,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 340,
-      width: 100,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(
+      200,
+      GAME_CONFIG.CANVAS_HEIGHT - 340,
+      100,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      400,
+      GAME_CONFIG.CANVAS_HEIGHT - 360,
+      100,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      600,
+      GAME_CONFIG.CANVAS_HEIGHT - 340,
+      100,
+      "#75212d",
+      "#b63348"
+    ),
 
     // Highest platforms
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 440,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 550,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(
+      150,
+      GAME_CONFIG.CANVAS_HEIGHT - 420,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      350,
+      GAME_CONFIG.CANVAS_HEIGHT - 440,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
+    createPlatform(
+      550,
+      GAME_CONFIG.CANVAS_HEIGHT - 420,
+      80,
+      "#75212d",
+      "#b63348"
+    ),
   ],
 
   bombs: [
@@ -593,8 +560,7 @@ export const level3Map: MapDefinition = {
   name: "Mountain Peak",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStartX: 50,
-  playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
+  playerStart: centerPoint(),
   ...createBackgroundConfig("Mountain Peak"),
 
   groupSequence: [1, 2, 3, 4, 5],
@@ -605,152 +571,38 @@ export const level3Map: MapDefinition = {
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: COLORS.GROUND,
+    color: "#56687a",
   },
 
   platforms: [
     // Bottom platforms - zigzag pattern
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 80,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 200,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 80,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 80,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(50, GAME_CONFIG.CANVAS_HEIGHT - 80, 60, "#56687a"),
+    createPlatform(200, GAME_CONFIG.CANVAS_HEIGHT - 100, 60, "#56687a"),
+    createPlatform(350, GAME_CONFIG.CANVAS_HEIGHT - 80, 60, "#56687a"),
+    createPlatform(500, GAME_CONFIG.CANVAS_HEIGHT - 100, 60, "#56687a"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 80, 60, "#56687a"),
 
     // Middle platforms - alternating heights
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 160,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 300,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 160,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 160, 80, "#56687a"),
+    createPlatform(300, GAME_CONFIG.CANVAS_HEIGHT - 180, 80, "#56687a"),
+    createPlatform(500, GAME_CONFIG.CANVAS_HEIGHT - 160, 80, "#56687a"),
+    createPlatform(700, GAME_CONFIG.CANVAS_HEIGHT - 180, 80, "#56687a"),
 
     // Upper platforms - cross pattern
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 260,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(150, GAME_CONFIG.CANVAS_HEIGHT - 240, 60, "#56687a"),
+    createPlatform(400, GAME_CONFIG.CANVAS_HEIGHT - 260, 60, "#56687a"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 240, 60, "#56687a"),
 
     // Top platforms - scattered
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 320,
-      width: 70,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 340,
-      width: 70,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 450,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 320,
-      width: 70,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 340,
-      width: 70,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(50, GAME_CONFIG.CANVAS_HEIGHT - 320, 70, "#56687a"),
+    createPlatform(250, GAME_CONFIG.CANVAS_HEIGHT - 340, 70, "#56687a"),
+    createPlatform(450, GAME_CONFIG.CANVAS_HEIGHT - 320, 70, "#56687a"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 340, 70, "#56687a"),
 
     // Highest platforms
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 400,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 550,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 400,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(150, GAME_CONFIG.CANVAS_HEIGHT - 400, 80, "#56687a"),
+    createPlatform(350, GAME_CONFIG.CANVAS_HEIGHT - 420, 80, "#56687a"),
+    createPlatform(550, GAME_CONFIG.CANVAS_HEIGHT - 400, 80, "#56687a"),
   ],
 
   bombs: [
@@ -855,8 +707,7 @@ export const level4Map: MapDefinition = {
   name: "Valley of Shadows",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStartX: 50,
-  playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
+  playerStart: centerPoint(),
   ...createBackgroundConfig("Valley of Shadows"),
 
   groupSequence: [1, 2, 3, 4, 5],
@@ -867,206 +718,22 @@ export const level4Map: MapDefinition = {
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: COLORS.GROUND,
+    color: "#583c2d",
   },
 
   platforms: [
-    // Ground access platforms
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 80,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 750,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 80,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-
     // Left tower platforms
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 160,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 200,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 280,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 320,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 120, 100, "#aa7557"),
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 200, 100, "#aa7557"),
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 280, 100, "#aa7557"),
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 360, 100, "#aa7557"),
     // Right tower platforms
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 160,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 200,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 280,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 320,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 120, 100, "#aa7557"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 200, 100, "#aa7557"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 280, 100, "#aa7557"),
 
-    // Connecting platforms
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 140,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 450,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 140,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 220,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 450,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 220,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 260,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 300,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 450,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 300,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 350,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 340,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 380,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 450,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 380,
-      width: 80,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    // middle platform
+    createPlatform(250, GAME_CONFIG.CANVAS_HEIGHT - 185, 340, "#aa7557"),
   ],
 
   bombs: [
@@ -1195,8 +862,7 @@ export const level5Map: MapDefinition = {
   name: "Future City 2",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStartX: 50,
-  playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
+  playerStart: centerPoint(),
   ...createBackgroundConfig("Future City 2"),
 
   groupSequence: [1, 2, 3, 4, 5, 6],
@@ -1207,109 +873,27 @@ export const level5Map: MapDefinition = {
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: COLORS.GROUND,
+    color: "#8d4fc9",
   },
 
   platforms: [
-    // Minimal ground platforms
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 60,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 750,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 60,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-
     // Floating platforms in spiral pattern
-    {
-      x: 200,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 600,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(200, GAME_CONFIG.CANVAS_HEIGHT - 120, 60, "#8d4fc9"),
+    createPlatform(600, GAME_CONFIG.CANVAS_HEIGHT - 100, 60, "#8d4fc9"),
 
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 150, 60, "#8d4fc9"),
+    createPlatform(700, GAME_CONFIG.CANVAS_HEIGHT - 180, 60, "#8d4fc9"),
 
-    {
-      x: 300,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(300, GAME_CONFIG.CANVAS_HEIGHT - 240, 60, "#8d4fc9"),
+    createPlatform(500, GAME_CONFIG.CANVAS_HEIGHT - 240, 60, "#8d4fc9"),
 
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 300,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 300,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(150, GAME_CONFIG.CANVAS_HEIGHT - 300, 60, "#8d4fc9"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 300, 60, "#8d4fc9"),
 
-    {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(400, GAME_CONFIG.CANVAS_HEIGHT - 300, 60, "#8d4fc9"),
 
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 550,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(250, GAME_CONFIG.CANVAS_HEIGHT - 420, 60, "#8d4fc9"),
+    createPlatform(550, GAME_CONFIG.CANVAS_HEIGHT - 420, 60, "#8d4fc9"),
   ],
 
   bombs: [
@@ -1649,8 +1233,7 @@ export const level6Map: MapDefinition = {
   name: "Ocean Depths",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStartX: 50,
-  playerStartY: GAME_CONFIG.CANVAS_HEIGHT - 150,
+  playerStart: centerPoint(),
   ...createBackgroundConfig("Ocean Depths"),
 
   groupSequence: [1, 2, 3, 4, 5, 6],
@@ -1661,109 +1244,27 @@ export const level6Map: MapDefinition = {
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: COLORS.GROUND,
+    color: "#47567f",
   },
 
   platforms: [
-    // Minimal ground platforms
-    {
-      x: 50,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 60,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 750,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 60,
-      width: 50,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-
     // Floating platforms in spiral pattern
-    {
-      x: 200,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 600,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 120,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(200, GAME_CONFIG.CANVAS_HEIGHT - 120, 60, "#ebb185"),
+    createPlatform(600, GAME_CONFIG.CANVAS_HEIGHT - 110, 60, "#ebb185"),
 
-    {
-      x: 100,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 700,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 180,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(100, GAME_CONFIG.CANVAS_HEIGHT - 180, 60, "#ebb185"),
+    createPlatform(700, GAME_CONFIG.CANVAS_HEIGHT - 180, 60, "#ebb185"),
 
-    {
-      x: 300,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 240,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(300, GAME_CONFIG.CANVAS_HEIGHT - 240, 60, "#ebb185"),
+    createPlatform(500, GAME_CONFIG.CANVAS_HEIGHT - 240, 60, "#ebb185"),
 
-    {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 300,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 300,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(150, GAME_CONFIG.CANVAS_HEIGHT - 300, 60, "#ebb185"),
+    createPlatform(650, GAME_CONFIG.CANVAS_HEIGHT - 300, 60, "#ebb185"),
 
-    {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 360,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(400, GAME_CONFIG.CANVAS_HEIGHT - 370, 60, "#ebb185"),
 
-    {
-      x: 250,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
-    {
-      x: 550,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 420,
-      width: 60,
-      height: 20,
-      color: COLORS.PLATFORM,
-    },
+    createPlatform(250, GAME_CONFIG.CANVAS_HEIGHT - 420, 60, "#ebb185"),
+    createPlatform(550, GAME_CONFIG.CANVAS_HEIGHT - 420, 60, "#ebb185"),
   ],
 
   bombs: [
@@ -1779,7 +1280,7 @@ export const level6Map: MapDefinition = {
       isBlinking: false,
     },
     {
-      x: 795,
+      x: 750,
       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
       width: 16,
       height: 16,

@@ -73,9 +73,6 @@ export class GameManager {
   private initializeDevMode(): void {
     const gameState = useGameStore.getState();
 
-    // ALWAYS initialize level data first - this is crucial for proper rendering
-    this.loadCurrentLevel();
-
     // Reset game state first
     gameState.resetGameState();
     
@@ -103,9 +100,9 @@ export class GameManager {
       for (let i = 1; i < targetLevel; i++) {
         gameState.nextLevel();
       }
-      // Load the target level data
-      this.loadCurrentLevel();
     }
+    // Always load the current level data
+    this.loadCurrentLevel();
 
     // Set the target state
     switch (DEV_CONFIG.TARGET_STATE) {
@@ -716,8 +713,8 @@ export class GameManager {
 
       // Reset player position
       gameState.setPlayerPosition(
-        currentMap.playerStartX,
-        currentMap.playerStartY
+        currentMap.playerStart.x,
+        currentMap.playerStart.y
       );
 
       // Reset monsters to starting positions

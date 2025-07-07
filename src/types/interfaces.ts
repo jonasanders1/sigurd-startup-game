@@ -156,6 +156,7 @@ export interface Platform {
   width: number;
   height: number;
   color: string;
+  borderColor?: string;
 }
 
 export interface Ground {
@@ -171,8 +172,10 @@ export interface MapDefinition {
   name: string;
   width: number;
   height: number;
-  playerStartX: number;
-  playerStartY: number;
+  playerStart: {
+    x: number;
+    y: number;
+  };
   platforms: Platform[];
   ground: Ground;
   bombs: Bomb[];

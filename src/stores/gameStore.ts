@@ -70,7 +70,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     });
     
     // Set player position
-    get().setPlayerPosition(mapData.playerStartX, mapData.playerStartY);
+    get().setPlayerPosition(mapData.playerStart.x, mapData.playerStart.y);
     
     return { bombManager, firstBomb };
   }
