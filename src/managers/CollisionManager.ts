@@ -16,6 +16,11 @@ export class CollisionManager {
     return collision;
   }
 
+  checkMonsterGroundCollision(monster: Monster, ground: Ground): CollisionResult {
+    const collision = this.checkFullCollision(monster, ground);
+    return collision;
+  }
+
   checkPlayerCoinCollision(player: Player, coins: Coin[]): Coin | null {
     for (const coin of coins) {
       if (!coin.isCollected && this.isColliding(player, coin)) {
@@ -25,25 +30,25 @@ export class CollisionManager {
     return null;
   }
 
-  private checkFullCollision(player: Player, surface: { x: number; y: number; width: number; height: number }): CollisionResult {
-    // Calculate player's next position
-    const nextX = player.x + player.velocityX;
-    const nextY = player.y + player.velocityY;
+  private checkFullCollision(entity: { x: number; y: number; width: number; height: number; velocityX?: number; velocityY?: number }, surface: { x: number; y: number; width: number; height: number }): CollisionResult {
+    // Calculate entity's next position
+    const nextX = entity.x + (entity.velocityX || 0);
+    const nextY = entity.y + (entity.velocityY || 0);
     
     // Check if there would be a collision at the next position
-    if (this.wouldCollide(nextX, nextY, player.width, player.height, surface)) {
+    if (this.wouldCollide(nextX, nextY, entity.width, entity.height, surface)) {
       // Determine which side of the collision is happening
-      const playerCenterX = player.x + player.width / 2;
-      const playerCenterY = player.y + player.height / 2;
+      const entityCenterX = entity.x + entity.width / 2;
+      const entityCenterY = entity.y + entity.height / 2;
       const surfaceCenterX = surface.x + surface.width / 2;
       const surfaceCenterY = surface.y + surface.height / 2;
       
-      const deltaX = playerCenterX - surfaceCenterX;
-      const deltaY = playerCenterY - surfaceCenterY;
+      const deltaX = entityCenterX - surfaceCenterX;
+      const deltaY = entityCenterY - surfaceCenterY;
       
       // Calculate overlap on each axis
-      const overlapX = (player.width + surface.width) / 2 - Math.abs(deltaX);
-      const overlapY = (player.height + surface.height) / 2 - Math.abs(deltaY);
+      const overlapX = (entity.width + surface.width) / 2 - Math.abs(deltaX);
+      const overlapY = (entity.height + surface.height) / 2 - Math.abs(deltaY);
       
       // Resolve collision based on smallest overlap
       if (overlapX < overlapY) {

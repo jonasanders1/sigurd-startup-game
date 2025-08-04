@@ -6,3 +6,8 @@ export const ASSET_PATHS = {
   audio: isDev ? '/audio' : '/dist/audio',
   images: isDev ? '/assets' : '/dist/assets'
 }; 
+
+// Helper function to get background image path using the same pattern as sprites
+export const getBackgroundImagePath = (theme: string, layer: number): string => {
+  return `${ASSET_PATHS.images}/map-images/${theme}/${layer}.png`;
+}; 

@@ -84,7 +84,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 2, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
+  TARGET_LEVEL: 3, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
   // Available levels:
   // 1: Bomb Jack Level 1 (classic)
   // 2: Bomb Jack Level 2 (advanced) 
@@ -108,8 +108,16 @@ export const COLORS = {
   BOMB: "#FFD700",
   BOMB_COLLECTED: "#666666",
   BOMB_NEXT: "#FF0000",
-  MONSTER: "#FF4444",
+  MONSTER: "#FF4444", // Default monster color (fallback)
   MONSTER_FROZEN: "#4444FF", // Blue color for frozen monsters
+  
+  // Unique monster type colors
+  MONSTER_HORIZONTAL_PATROL: "#FF4444", // Red - horizontal patrol
+  MONSTER_VERTICAL_PATROL: "#44FF44", // Green - vertical patrol
+  MONSTER_CHASER: "#FF8844", // Orange - chaser
+  MONSTER_AMBUSHER: "#8844FF", // Purple - ambusher
+  MONSTER_FLOATER: "#44FFFF", // Cyan - floater
+  
   PLATFORM: "#484744",
   BACKGROUND: "#262521",
   GROUND: "#484744",

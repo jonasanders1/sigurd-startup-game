@@ -31,6 +31,17 @@ interface BaseMonster {
   spawnTime?: number; // When this monster was spawned
   lastDirectionChange?: number; // For behavior timing
   behaviorState?: string; // Current behavior state
+  // New properties for gravity-based movement
+  velocityX?: number;
+  velocityY?: number;
+  isGrounded?: boolean;
+  gravity?: number;
+  isFalling?: boolean; // Whether the monster is currently falling
+  currentPlatform?: Platform | null; // Current platform the monster is on
+  spawnSide?: 'left' | 'right'; // Which side of the platform it spawned on
+  walkLengths?: number; // How many times to walk across the platform before falling
+  currentWalkCount?: number; // Current walk count
+  originalSpawnX?: number; // Original spawn position for fall detection
 }
 
 // Patrol monster (horizontal and vertical)
@@ -40,6 +51,7 @@ interface PatrolMonster extends BaseMonster {
   patrolEndX: number;
   patrolStartY?: number; // For vertical patrol
   patrolEndY?: number; // For vertical patrol
+  patrolSide?: "left" | "right"; // Which side of platform to patrol on (for vertical patrol)
 }
 
 // Chaser monster
@@ -76,6 +88,7 @@ interface FloaterMonster extends BaseMonster {
   patrolEndX: number;
   patrolStartY?: number;
   patrolEndY?: number;
+  startAngle?: number; // Starting angle in degrees for straight-line movement
 }
 
 // Union type for all monster types
@@ -157,6 +170,7 @@ export interface Platform {
   height: number;
   color: string;
   borderColor?: string;
+  isVertical?: boolean; // Indicates if this is a vertical platform (wall)
 }
 
 export interface Ground {
