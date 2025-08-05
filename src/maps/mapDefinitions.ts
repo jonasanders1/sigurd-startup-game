@@ -179,45 +179,9 @@ export const level1Map: MapDefinition = {
       patrolEndY: GAME_CONFIG.CANVAS_HEIGHT - 50, 
       speed: 1.5,
     },
-    // Early spawns (0-10 seconds)
-    { 
-      x: 100, 
-      y: GAME_CONFIG.CANVAS_HEIGHT - 70, 
-      type: MonsterType.HORIZONTAL_PATROL, 
-      spawnDelay: 5000, // 5 seconds
-      patrolStartX: 50, 
-      patrolEndX: 200, 
-      speed: 1.0,
-    },
-    { 
-      x: 700, 
-      y: GAME_CONFIG.CANVAS_HEIGHT - 70, 
-      type: MonsterType.HORIZONTAL_PATROL, 
-      spawnDelay: 8000, // 8 seconds
-      patrolStartX: 650, 
-      patrolEndX: 750, 
-      speed: 1.2,
-    },
     
     // Mid-game spawns (15-30 seconds)
-    { 
-      x: 50, 
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100, 
-      type: MonsterType.VERTICAL_PATROL, 
-      spawnDelay: 15000, // 15 seconds
-      patrolStartY: GAME_CONFIG.CANVAS_HEIGHT - 200, 
-      patrolEndY: GAME_CONFIG.CANVAS_HEIGHT - 50, 
-      speed: 1.0,
-    },
-    { 
-      x: 750, 
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100, 
-      type: MonsterType.VERTICAL_PATROL, 
-      spawnDelay: 20000, // 20 seconds
-      patrolStartY: GAME_CONFIG.CANVAS_HEIGHT - 200, 
-      patrolEndY: GAME_CONFIG.CANVAS_HEIGHT - 50, 
-      speed: 1.2,
-    },
+  
     
     // Late game spawns (45-60 seconds)
     { 
@@ -238,10 +202,10 @@ export const level1Map: MapDefinition = {
   
   monsters: [
     // Monster on the first platform (left side, 2 walks)
-    createHorizontalPatrolMonster(95, 220, 200, "left", 2, 1),
-    createVerticalPatrolMonster(96, 220, 150, "left", 1, 1),
-    // Monster on the top platform (right side, 1 walk)
-    createHorizontalPatrolMonster(480, 150, 200, "right", 1, 1.2),
+    // createHorizontalPatrolMonster(95, 220, 200, "left", 2, 1),
+    // createVerticalPatrolMonster(96, 220, 150, "left", 1, 1),
+    // // Monster on the top platform (right side, 1 walk)
+    // createHorizontalPatrolMonster(480, 150, 200, "right", 1, 1.2),
   ],
 };
 

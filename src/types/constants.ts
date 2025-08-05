@@ -82,9 +82,9 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 
 // Development Mode Configuration
 export const DEV_CONFIG = {
-  ENABLED: false, // Set to false to disable dev mode
+  ENABLED: true, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 3, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
+  TARGET_LEVEL: 1, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
   // Available levels:
   // 1: Bomb Jack Level 1 (classic)
   // 2: Bomb Jack Level 2 (advanced) 
