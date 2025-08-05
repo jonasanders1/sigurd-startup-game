@@ -99,7 +99,7 @@ export const COIN_PHYSICS = {
           coin.groundDirection = Math.random() < 0.5 ? -1 : 1; // Random initial direction
         }
 
-        const groundSpeed = 1;
+        const groundSpeed = 0.5; // Reduced from 1 for slower movement
         coin.x += coin.groundDirection * groundSpeed;
 
         // Bounce off walls
@@ -145,7 +145,7 @@ export const COIN_PHYSICS = {
         }
 
         // Calculate next position
-        const platformSpeed = 1; // Increased speed for better movement
+        const platformSpeed = 0.5; // Reduced from 1 for slower movement
         const nextX = coin.x + coin.platformDirection * platformSpeed;
 
         // Check if coin is near or past the platform edge

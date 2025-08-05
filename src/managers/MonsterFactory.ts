@@ -30,7 +30,8 @@ const createBaseMonster = (
   x: number,
   y: number,
   type: MonsterType,
-  speed: number = 1
+  speed: number = 1,
+  spawnDelay: number = 0
 ): Partial<Monster> => ({
   x,
   y,
@@ -41,6 +42,7 @@ const createBaseMonster = (
   speed,
   direction: 1,
   isActive: true,
+  spawnDelay,
 });
 
 /**
@@ -52,6 +54,7 @@ const createBaseMonster = (
  * @param walkLengths - Number of walks before falling (legacy parameter, kept for compatibility)
  * @param speed - Movement speed
  * @param direction - Initial direction (optional, auto-determined by spawn side)
+ * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
 export const createHorizontalPatrolMonster = (
   platformX: number,
@@ -60,7 +63,8 @@ export const createHorizontalPatrolMonster = (
   spawnSide: "left" | "right" = "left",
   walkLengths: number = 1,
   speed: number = 1,
-  direction?: number
+  direction?: number,
+  spawnDelay: number = 0
 ): Monster => {
   const x =
     spawnSide === "left"
@@ -70,7 +74,7 @@ export const createHorizontalPatrolMonster = (
   const initialDirection = direction || (spawnSide === "left" ? 1 : -1);
 
   return {
-    ...createBaseMonster(x, y, MonsterType.HORIZONTAL_PATROL, speed),
+    ...createBaseMonster(x, y, MonsterType.HORIZONTAL_PATROL, speed, spawnDelay),
     patrolStartX: platformX,
     patrolEndX: platformX + platformWidth,
     direction: initialDirection,
@@ -86,6 +90,7 @@ export const createHorizontalPatrolMonster = (
  * @param side - Which side of the platform to patrol on ("left" or "right")
  * @param speed - Movement speed
  * @param direction - Initial direction (1 = down, -1 = up)
+ * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
 export const createVerticalPatrolMonster = (
   platformX: number,
@@ -93,15 +98,16 @@ export const createVerticalPatrolMonster = (
   patrolHeight: number,
   side: "left" | "right" = "left",
   speed: number = 1,
-  direction: number = 1
+  direction: number = 1,
+  spawnDelay: number = 0
 ): Monster => {
   // Calculate monster X position based on side
   const x = side === "left" 
     ? platformX - GAME_CONFIG.MONSTER_SIZE  // Left side of platform
-    : platformX + GAME_CONFIG.MONSTER_SIZE;                            // Right side of platform
+    : platformX + GAME_CONFIG.MONSTER_SIZE; // Right side of platform
 
   return {
-    ...createBaseMonster(x, startY, MonsterType.VERTICAL_PATROL, speed),
+    ...createBaseMonster(x, startY, MonsterType.VERTICAL_PATROL, speed, spawnDelay),
     patrolStartY: startY,
     patrolEndY: startY + patrolHeight,
     direction,
@@ -115,15 +121,17 @@ export const createVerticalPatrolMonster = (
  * @param startY - Starting Y position
  * @param startAngle - Starting angle in degrees (0-360)
  * @param speed - Movement speed
+ * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
 export const createFloaterMonster = (
   startX: number,
   startY: number,
   startAngle: number = 45,
-  speed: number = 1
+  speed: number = 1,
+  spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.FLOATER, speed),
+    ...createBaseMonster(startX, startY, MonsterType.FLOATER, speed, spawnDelay),
     startAngle,
     spawnTime: Date.now(),
   } as Monster;
@@ -136,16 +144,18 @@ export const createFloaterMonster = (
  * @param speed - Movement speed
  * @param directness - How directly it follows the player (0.0-1.0)
  * @param updateInterval - How often to update the chase target (ms)
+ * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
 export const createChaserMonster = (
   startX: number,
   startY: number,
   speed: number = 1,
   directness: number = 1,
-  updateInterval: number = 500
+  updateInterval: number = 500,
+  spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.CHASER, speed),
+    ...createBaseMonster(startX, startY, MonsterType.CHASER, speed, spawnDelay),
     direction: 0, // Chaser doesn't use direction property
     directness,
     chaseUpdateInterval: updateInterval,
@@ -153,28 +163,22 @@ export const createChaserMonster = (
 };
 
 /**
- * Creates an ambusher monster that wanders and periodically ambushes
+ * Creates an ambusher monster that wanders freely and periodically ambushes
  * @param startX - Starting X position
  * @param startY - Starting Y position
- * @param patrolWidth - Width of the patrol area
- * @param patrolHeight - Height of the patrol area
  * @param speed - Movement speed
  * @param ambushInterval - Time between ambushes (ms)
+ * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
 export const createAmbusherMonster = (
   startX: number,
   startY: number,
-  patrolWidth: number,
-  patrolHeight: number = 100,
   speed: number = 1,
-  ambushInterval: number = 5000
+  ambushInterval: number = 5000,
+  spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.AMBUSHER, speed),
-    patrolStartX: startX,
-    patrolEndX: startX + patrolWidth,
-    patrolStartY: startY,
-    patrolEndY: startY + patrolHeight,
+    ...createBaseMonster(startX, startY, MonsterType.AMBUSHER, speed, spawnDelay),
     ambushCooldown: 0, // Initialize ambush cooldown
   } as Monster;
 };
@@ -227,8 +231,6 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
       return createAmbusherMonster(
         x,
         y,
-        config.patrolWidth || 200,
-        config.patrolHeight || 100,
         speed,
         config.ambushInterval || 5000
       );

@@ -76,9 +76,9 @@ export class DifficultyManager {
         speed: 1.0,
       },
       chaser: {
-        speed: 1.5,
-        directness: 0.7, // How directly it chases (0-1)
-        updateInterval: 100, // How often it recalculates path
+        speed: 1,
+        directness: 0.3, // How directly it chases (0-1)
+        updateInterval: 500, // How often it recalculates path
       },
       floater: {
         speed: 1.2,
@@ -91,12 +91,12 @@ export class DifficultyManager {
     scaling: {
       ambusher: {
         ambushInterval: -1000, // 1 second faster per 10-second interval
-        speed: 1.0, // 1.0 speed increase per 10-second interval
+        speed: 0.25, // 1.0 speed increase per 10-second interval
       },
       chaser: {
-        speed: 1.5,
-        directness: 0.2, // More direct over time
-        updateInterval: -20, // 20ms faster updates per 10-second interval
+        speed: 0.25,
+        directness: 0.1, // More direct over time
+        updateInterval: -50, // 50ms faster updates per 10-second interval
       },
       floater: {
         speed: 0.8,

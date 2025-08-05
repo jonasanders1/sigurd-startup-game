@@ -6,7 +6,7 @@ export const GAME_CONFIG = {
   PLAYER_HEIGHT: 35,
   PLAYER_WIDTH: 25,
   BOMB_SIZE: 25,
-  MONSTER_SIZE: 18,
+  MONSTER_SIZE: 25,
   PLATFORM_HEIGHT: 15,
   COIN_SIZE: 20, // Size of coins
   USE_SPRITES: true,
@@ -22,7 +22,7 @@ export const GAME_CONFIG = {
   // Coin physics
   COIN_BOUNCE_SPEED: 3, // Initial speed when coin bounces
   COIN_BOUNCE_DAMPING: 0.8, // How much the coin slows down on bounce
-  COIN_GRAVITY: 0.2, // Gravity affecting coins
+  COIN_GRAVITY: 0.1, // Gravity affecting coins (reduced from 0.2)
 
   // Jump mechanics
   MIN_JUMP_DURATION: 50, // Minimum time for a jump (ms)
@@ -92,6 +92,8 @@ export const DEV_CONFIG = {
   // 4: Bomb Jack Level 4 (tower)
   // 5: NAV (research)
   // 6: Skatteetaten (environment)
+  
+  GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
   
   MOCK_DATA: {
     score: 15000,

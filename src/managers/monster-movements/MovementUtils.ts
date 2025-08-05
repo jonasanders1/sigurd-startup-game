@@ -112,4 +112,52 @@ export class MovementUtils {
     }
     return false;
   }
+
+  /**
+   * Check if monster would be outside map boundaries at the given position
+   */
+  public static isOutsideBoundaries(
+    monster: Monster,
+    newX: number,
+    newY: number
+  ): boolean {
+    return (
+      newX <= 0 ||
+      newX + monster.width >= GAME_CONFIG.CANVAS_WIDTH ||
+      newY <= 0 ||
+      newY + monster.height >= GAME_CONFIG.CANVAS_HEIGHT
+    );
+  }
+
+  /**
+   * Clamp monster position to map boundaries
+   */
+  public static clampToBoundaries(monster: Monster): void {
+    monster.x = Math.max(0, Math.min(monster.x, GAME_CONFIG.CANVAS_WIDTH - monster.width));
+    monster.y = Math.max(0, Math.min(monster.y, GAME_CONFIG.CANVAS_HEIGHT - monster.height));
+  }
+
+  /**
+   * Check if movement to new position is safe (no platform collisions and within boundaries)
+   */
+  public static isMovementSafe(
+    monster: Monster,
+    newX: number,
+    newY: number,
+    platforms: any[]
+  ): boolean {
+    // Check boundary collisions
+    if (this.isOutsideBoundaries(monster, newX, newY)) {
+      return false;
+    }
+
+    // Check platform collisions
+    for (const platform of platforms) {
+      if (this.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, platform)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 } 

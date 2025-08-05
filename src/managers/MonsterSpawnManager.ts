@@ -4,20 +4,14 @@ import { GAME_CONFIG, COLORS } from "../types/constants";
 import { logger } from "../lib/logger";
 import { useGameStore } from "../stores/gameStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
+// MonsterFactory functions are now used directly in spawn points
 
 export class MonsterSpawnManager {
   private levelStartTime: number = 0;
   private spawnPoints: MonsterSpawnPoint[] = [];
   private spawnedMonsters: Set<string> = new Set(); // Track which spawn points have been used
   private behaviorManager: MonsterBehaviorManager;
-
-  // Monster wave system
-  private currentWave: number = 0;
-  private waveStartTime: number = 0;
-  private maxMonstersOnScreen: number = 8; // Maximum monsters allowed at once
-  private minMonstersForNewWave: number = 3; // Minimum monsters before spawning new ones
-  private waveCooldown: number = 5000; // 5 seconds between waves
-  private lastWaveTime: number = 0;
+  private pendingSpawns: Map<string, number> = new Map(); // Track pending spawns with their scheduled times
 
   constructor(spawnPoints: MonsterSpawnPoint[] = []) {
     this.spawnPoints = spawnPoints;
@@ -29,82 +23,109 @@ export class MonsterSpawnManager {
     this.spawnPoints = spawnPoints;
     this.levelStartTime = Date.now();
     this.spawnedMonsters.clear();
+    this.pendingSpawns.clear();
+
+    // Schedule all spawn points based on their spawnDelay
+    this.scheduleSpawns();
 
     logger.info(
       `Initialized monster spawn manager with ${spawnPoints.length} spawn points`
     );
   }
 
+  private scheduleSpawns(): void {
+    this.spawnPoints.forEach((spawnPoint, index) => {
+      const spawnKey = `spawn-${index}`;
+      const scheduledTime = this.levelStartTime + spawnPoint.spawnDelay;
+      
+      this.pendingSpawns.set(spawnKey, scheduledTime);
+      
+      logger.debug(
+        `Scheduled monster spawn at ${scheduledTime} (${spawnPoint.spawnDelay}ms delay)`
+      );
+    });
+  }
+
   public update(currentTime: number): void {
     const gameState = useGameStore.getState();
-    const timeElapsed = currentTime - this.levelStartTime;
     const currentMonsterCount = gameState.monsters.filter(
       (m) => m.isActive
     ).length;
 
-    // Add console.log for immediate visibility
+    // Debug logging (reduced frequency)
+    if (this.pendingSpawns.size > 0 && currentTime % 10000 < 16) { // Every ~10 seconds
+      console.log(`[MonsterSpawnManager] Pending spawns: ${this.pendingSpawns.size}`);
+    }
 
-    // Check if we should spawn new monsters based on wave system
-    this.checkWaveSpawning(currentTime, gameState, currentMonsterCount);
+    // Check for monsters that should spawn now
+    this.checkScheduledSpawns(currentTime, gameState);
 
     // Update monster behaviors
     this.behaviorManager.updateMonsterBehaviors(currentTime, gameState);
   }
 
-  private spawnMonster(
-    spawnPoint: MonsterSpawnPoint,
-    currentTime: number,
-    gameState: any
-  ): void {
-    // Add console.log for immediate visibility
+  private checkScheduledSpawns(currentTime: number, gameState: any): void {
+    const spawnsToExecute: string[] = [];
 
-    const monster: Monster = {
-      x: spawnPoint.x,
-      y: spawnPoint.y,
-      width: GAME_CONFIG.MONSTER_SIZE, // Normal monster size
-      height: GAME_CONFIG.MONSTER_SIZE, // Normal monster size
-      color: spawnPoint.color || this.getMonsterColor(spawnPoint.type), // Use spawn point color if available, otherwise get default
-      type: spawnPoint.type as MonsterType,
-      patrolStartX: spawnPoint.patrolStartX || spawnPoint.x - 100,
-      patrolEndX: spawnPoint.patrolEndX || spawnPoint.x + 100,
-      patrolStartY: spawnPoint.patrolStartY,
-      patrolEndY: spawnPoint.patrolEndY,
-      speed: spawnPoint.speed,
-      direction: spawnPoint.direction || (Math.random() > 0.5 ? 1 : -1),
-      isActive: true,
-      spawnTime: currentTime,
-      lastDirectionChange: currentTime,
-      behaviorState: "patrol",
-    };
+    // Find all spawns that should happen now
+    this.pendingSpawns.forEach((scheduledTime, spawnKey) => {
+      if (currentTime >= scheduledTime) {
+        spawnsToExecute.push(spawnKey);
+      }
+    });
 
-    // Add to game state monsters using the proper update method
-    if (gameState.updateMonsters) {
-      const currentMonsters = gameState.monsters || [];
-      const updatedMonsters = [...currentMonsters, monster];
+    // Execute all pending spawns
+    spawnsToExecute.forEach(spawnKey => {
+      // console.log(`[MonsterSpawnManager] Executing spawn: ${spawnKey}`);
+      this.executeSpawn(spawnKey, currentTime, gameState);
+      this.pendingSpawns.delete(spawnKey);
+    });
+  }
 
-      gameState.updateMonsters(updatedMonsters);
+  private executeSpawn(spawnKey: string, currentTime: number, gameState: any): void {
+    // Find the spawn point by parsing the key
+    const keyParts = spawnKey.split('-');
+    const index = parseInt(keyParts[1]);
 
-      // Verify the monster was actually added
-      const verifyState = useGameStore.getState();
-    } else {
-      logger.warn("Game state updateMonsters method is not available");
+    const spawnPoint = this.spawnPoints[index];
+    if (!spawnPoint) {
+      logger.warn(`Spawn point not found for key: ${spawnKey}`);
+      return;
+    }
+
+    // Create monster using the provided function
+    let monster: Monster;
+    
+    try {
+      monster = spawnPoint.createMonster();
+
+      // Add custom color override if specified
+      if (spawnPoint.color) {
+        monster.color = spawnPoint.color;
+      }
+
+      // Add to game state
+      this.addMonsterToGameState(monster, gameState);
+      
+      // Mark as spawned
+      this.spawnedMonsters.add(spawnKey);
+      
+      logger.info(
+        `Spawned monster: ${monster.type} at (${monster.x}, ${monster.y})`
+      );
+
+    } catch (error) {
+      logger.error(`Failed to spawn monster: ${error}`);
     }
   }
 
-  private getMonsterColor(type: string): string {
-    switch (type) {
-      case MonsterType.HORIZONTAL_PATROL:
-        return COLORS.MONSTER;
-      case MonsterType.VERTICAL_PATROL:
-        return "#FF6B6B"; // Red
-      case MonsterType.CHASER:
-        return "#FFD93D"; // Yellow
-      case MonsterType.AMBUSHER:
-        return "#FF8800"; // Orange
-      case MonsterType.FLOATER:
-        return "#4ECDC4"; // Cyan
-      default:
-        return COLORS.MONSTER;
+  private addMonsterToGameState(monster: Monster, gameState: any): void {
+    if (gameState.updateMonsters) {
+      const currentMonsters = gameState.monsters || [];
+      const updatedMonsters = [...currentMonsters, monster];
+      gameState.updateMonsters(updatedMonsters);
+    } else {
+      logger.warn("Game state updateMonsters method is not available");
     }
   }
 
@@ -123,81 +144,34 @@ export class MonsterSpawnManager {
     }
   }
 
-  private checkWaveSpawning(
-    currentTime: number,
-    gameState: any,
-    currentMonsterCount: number
-  ): void {
-    // Don't spawn if we're at max monsters
-    if (currentMonsterCount >= this.maxMonstersOnScreen) {
-      return;
-    }
-
-    // Check if enough time has passed since last wave
-    if (currentTime - this.lastWaveTime < this.waveCooldown) {
-      return;
-    }
-
-    // Check if we have enough monsters to justify a new wave
-    if (currentMonsterCount >= this.minMonstersForNewWave) {
-      return;
-    }
-
-    // Time to spawn a new wave!
-    this.spawnWave(currentTime, gameState, currentMonsterCount);
-  }
-
-  private spawnWave(
-    currentTime: number,
-    gameState: any,
-    currentMonsterCount: number
-  ): void {
-    this.currentWave++;
-    this.waveStartTime = currentTime;
-    this.lastWaveTime = currentTime;
-
-    const monstersToSpawn = Math.min(
-      this.maxMonstersOnScreen - currentMonsterCount,
-      3 // Spawn up to 3 monsters per wave
-    );
-
-    // Get available spawn points (not yet used)
-    const availableSpawnPoints = this.spawnPoints.filter(
-      (spawnPoint, index) => {
-        const spawnKey = `${spawnPoint.x}-${spawnPoint.y}-${spawnPoint.type}`;
-        return !this.spawnedMonsters.has(spawnKey);
-      }
-    );
-
-    // Shuffle available spawn points for randomness
-    const shuffledSpawnPoints = [...availableSpawnPoints].sort(
-      () => Math.random() - 0.5
-    );
-
-    // Spawn monsters from the wave
-    for (
-      let i = 0;
-      i < Math.min(monstersToSpawn, shuffledSpawnPoints.length);
-      i++
-    ) {
-      const spawnPoint = shuffledSpawnPoints[i];
-      const spawnKey = `${spawnPoint.x}-${spawnPoint.y}-${spawnPoint.type}`;
-
-      // Add some randomness to spawn timing within the wave
-      const spawnDelay = Math.random() * 2000; // 0-2 seconds delay within wave
-
-      setTimeout(() => {
-        this.spawnMonster(spawnPoint, Date.now(), gameState);
-        this.spawnedMonsters.add(spawnKey);
-      }, spawnDelay);
-    }
-  }
-
   public reset(): void {
     this.levelStartTime = Date.now();
     this.spawnedMonsters.clear();
-    this.currentWave = 0;
-    this.waveStartTime = 0;
-    this.lastWaveTime = 0;
+    this.pendingSpawns.clear();
+    this.scheduleSpawns();
+  }
+
+  // Debug method to get spawn status
+  public getSpawnStatus(): any {
+    return {
+      totalSpawnPoints: this.spawnPoints.length,
+      spawnedCount: this.spawnedMonsters.size,
+      pendingSpawns: this.pendingSpawns.size,
+      pendingSpawnsList: Array.from(this.pendingSpawns.entries()).map(([key, time]) => ({
+        key,
+        scheduledTime: time,
+        timeUntilSpawn: time - Date.now()
+      }))
+    };
+  }
+
+  // Debug method to expose spawn status to global scope for console access
+  public debugSpawnStatus(): void {
+    const status = this.getSpawnStatus();
+    console.log('[MonsterSpawnManager] Debug Status:', status);
+    
+    // Also expose to global scope for easy console access
+    (window as any).monsterSpawnStatus = status;
+    (window as any).monsterSpawnManager = this;
   }
 }

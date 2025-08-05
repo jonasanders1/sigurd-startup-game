@@ -23,12 +23,26 @@ export class ChaserMovement {
       monster.lastDirectionChange = currentTime;
       monster.chaseTargetX = player.x;
       monster.chaseTargetY = player.y;
-      monster.chaseUpdateInterval = scaledValues.chaser.updateInterval; // Use scaled interval
+      
+      // Store randomization multipliers (not absolute values) to preserve difficulty scaling
+      (monster as any).updateIntervalMultiplier = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+      (monster as any).directnessMultiplier = 0.85 + Math.random() * 0.3; // 0.85 to 1.15
+      (monster as any).speedMultiplier = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
+      
+      // Add random offset to initial target to prevent immediate convergence
+      const targetOffsetX = (Math.random() - 0.5) * 50; // ±25 pixels
+      const targetOffsetY = (Math.random() - 0.5) * 50; // ±25 pixels
+      monster.chaseTargetX = player.x + targetOffsetX;
+      monster.chaseTargetY = player.y + targetOffsetY;
+      
+      // Add random delay to prevent all chasers from updating at the same time
+      monster.lastDirectionChange = currentTime + Math.random() * scaledValues.chaser.updateInterval;
     }
 
     const platforms = gameState.platforms || [];
-    const directness = scaledValues.chaser.directness; // Use scaled directness
-    const updateInterval = scaledValues.chaser.updateInterval; // Use scaled interval
+    // Apply individual multipliers to scaled values to preserve difficulty scaling
+    const directness = scaledValues.chaser.directness * ((monster as any).directnessMultiplier || 1);
+    const updateInterval = scaledValues.chaser.updateInterval * ((monster as any).updateIntervalMultiplier || 1);
 
     // Update chase target periodically (creates "drifting" effect)
     const timeSinceLastUpdate = currentTime - (monster.lastDirectionChange || currentTime);
@@ -37,8 +51,13 @@ export class ChaserMovement {
       const currentTargetX = monster.chaseTargetX || monster.x;
       const currentTargetY = monster.chaseTargetY || monster.y;
       
-      monster.chaseTargetX = currentTargetX + (player.x - currentTargetX) * directness;
-      monster.chaseTargetY = currentTargetY + (player.y - currentTargetY) * directness;
+      // Only add random offset occasionally (not every update) to reduce jittering
+      const shouldAddOffset = Math.random() < 0.3; // 30% chance
+      const randomOffsetX = shouldAddOffset ? (Math.random() - 0.5) * 15 : 0; // ±7.5 pixels, or 0
+      const randomOffsetY = shouldAddOffset ? (Math.random() - 0.5) * 15 : 0; // ±7.5 pixels, or 0
+      
+      monster.chaseTargetX = currentTargetX + (player.x + randomOffsetX - currentTargetX) * directness;
+      monster.chaseTargetY = currentTargetY + (player.y + randomOffsetY - currentTargetY) * directness;
       
       monster.lastDirectionChange = currentTime;
       
@@ -58,50 +77,52 @@ export class ChaserMovement {
     // logger.debug(`Chaser at (${monster.x}, ${monster.y}), target at (${targetX}, ${targetY}), dx=${dx}, dy=${dy}, distance=${distance}`);
     
     // Only move if we're not too close to the target (prevents jittering)
-    if (distance > 10) {
-      // Simple direct movement - move towards target using scaled speed
-      const moveX = Math.sign(dx) * scaledValues.chaser.speed;
-      const moveY = Math.sign(dy) * scaledValues.chaser.speed;
+    // Increased threshold to reduce micro-movements
+    if (distance > 20) {
+      // Simple direct movement - move towards target using scaled speed with individual multiplier
+      const individualSpeed = scaledValues.chaser.speed * ((monster as any).speedMultiplier || 1);
+      const moveX = Math.sign(dx) * individualSpeed;
+      const moveY = Math.sign(dy) * individualSpeed;
       
-      const newX = monster.x + moveX;
-      const newY = monster.y + moveY;
+      this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, gameState.ground);
+    } else if (distance > 5) {
+      // When close to target, use slower, smoother movement to prevent jittering
+      const individualSpeed = scaledValues.chaser.speed * ((monster as any).speedMultiplier || 1) * 0.5; // Half speed when close
+      const moveX = Math.sign(dx) * individualSpeed;
+      const moveY = Math.sign(dy) * individualSpeed;
       
-      // logger.debug(`Chaser movement: (${moveX}, ${moveY}), new position: (${newX}, ${newY})`);
-      
-      // Check platform collisions for X movement
-      let canMoveX = true;
-      for (const platform of platforms) {
-        if (MovementUtils.checkMonsterPlatformCollision({ ...monster, x: newX }, platform)) {
-          canMoveX = false;
-          break;
-        }
-      }
-      
-      // Check platform collisions for Y movement
-      let canMoveY = true;
-      for (const platform of platforms) {
-        if (MovementUtils.checkMonsterPlatformCollision({ ...monster, y: newY }, platform)) {
-          canMoveY = false;
-          break;
-        }
-      }
-      
-      // Apply movement if possible
-      if (canMoveX) {
-        monster.x = newX;
-      }
-      
-      if (canMoveY) {
-        monster.y = newY;
-      }
-      
-      // Handle ground collision
-      this.handleGroundCollision(monster, gameState.ground);
-      
-      // If we can't move in either direction, try to find an alternative path
-      if (!canMoveX && !canMoveY) {
-        this.findAlternativePath(monster, targetX, targetY, platforms);
-      }
+      this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, gameState.ground);
+    }
+    // If distance <= 5, don't move at all to prevent jittering
+  }
+  
+  private applyMovement(monster: Monster, moveX: number, moveY: number, targetX: number, targetY: number, platforms: any[], ground: any): void {
+    const newX = monster.x + moveX;
+    const newY = monster.y + moveY;
+    
+    // logger.debug(`Chaser movement: (${moveX}, ${moveY}), new position: (${newX}, ${newY})`);
+    
+    // Check if X movement is safe (platforms and boundaries)
+    const canMoveX = MovementUtils.isMovementSafe(monster, newX, monster.y, platforms);
+    
+    // Check if Y movement is safe (platforms and boundaries)
+    const canMoveY = MovementUtils.isMovementSafe(monster, monster.x, newY, platforms);
+    
+    // Apply movement if possible
+    if (canMoveX) {
+      monster.x = newX;
+    }
+    
+    if (canMoveY) {
+      monster.y = newY;
+    }
+    
+    // Handle ground collision
+    this.handleGroundCollision(monster, ground);
+    
+    // If we can't move in either direction, try to find an alternative path
+    if (!canMoveX && !canMoveY) {
+      this.findAlternativePath(monster, targetX, targetY, platforms);
     }
   }
   
@@ -113,11 +134,16 @@ export class ChaserMovement {
     // This creates a more natural "go around" behavior
     
     // Determine which direction to try first based on target position
-    const targetDirection = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
+    // Add some randomization to prevent all chasers from choosing the same path
+    const randomFactor = Math.random();
+    const targetDirection = Math.abs(dx) > Math.abs(dy) 
+      ? (randomFactor > 0.7 ? 'vertical' : 'horizontal')  // 30% chance to choose vertical even if horizontal is closer
+      : (randomFactor > 0.7 ? 'horizontal' : 'vertical'); // 30% chance to choose horizontal even if vertical is closer
     
     if (targetDirection === 'horizontal') {
       // Target is more horizontally distant - try moving vertically to go around
-      const verticalDirections = [1, -1]; // Try up, then down
+      // Randomize direction order to prevent all chasers from choosing the same path
+      const verticalDirections = Math.random() > 0.5 ? [1, -1] : [-1, 1]; // Randomize up/down order
       
       for (const verticalDir of verticalDirections) {
         const newY = monster.y + verticalDir * monster.speed;
@@ -156,7 +182,8 @@ export class ChaserMovement {
       }
     } else {
       // Target is more vertically distant - try moving horizontally to go around
-      const horizontalDirections = [1, -1]; // Try right, then left
+      // Randomize direction order to prevent all chasers from choosing the same path
+      const horizontalDirections = Math.random() > 0.5 ? [1, -1] : [-1, 1]; // Randomize left/right order
       
       for (const horizontalDir of horizontalDirections) {
         const newX = monster.x + horizontalDir * monster.speed;
