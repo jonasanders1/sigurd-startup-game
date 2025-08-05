@@ -26,47 +26,49 @@ export class AmbusherMovement {
     const platforms = gameState.platforms || [];
 
     if (monster.behaviorState === 'wandering') {
-      // Simple wandering: move in random direction
+      // Initialize current wandering direction if not set
+      if (!(monster as any).targetX || !(monster as any).targetY) {
+        this.chooseNewWanderingDirection(monster, currentTime);
+      }
+
       const timeSinceDirectionChange = currentTime - (monster.lastDirectionChange || currentTime);
 
       // Change direction every 2-4 seconds
       if (timeSinceDirectionChange > 2000 + Math.random() * 2000) {
-        monster.lastDirectionChange = currentTime;
+        this.chooseNewWanderingDirection(monster, currentTime);
       }
 
-      // Simple movement: pick a random direction and try to move
+      // Move toward current wandering target
       const moveSpeed = scaledValues.ambusher.speed * 0.5; // Use scaled speed
-      const directions = [
-        { x: moveSpeed, y: 0 },   // Right
-        { x: -moveSpeed, y: 0 },  // Left
-        { x: 0, y: moveSpeed },   // Down
-        { x: 0, y: -moveSpeed },  // Up
-      ];
+      const targetX = (monster as any).targetX || monster.x;
+      const targetY = (monster as any).targetY || monster.y;
+      
+      // Calculate direction to target
+      const dx = targetX - monster.x;
+      const dy = targetY - monster.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // Try each direction until one works
-      let moved = false;
-      for (const direction of directions) {
-        const newX = monster.x + direction.x;
-        const newY = monster.y + direction.y;
+      if (distance > 5) {
+        // Normalize direction
+        const normX = dx / distance;
+        const normY = dy / distance;
+
+        // Try to move toward target
+        const newX = monster.x + moveSpeed * normX;
+        const newY = monster.y + moveSpeed * normY;
         
-        // Check if new position is safe
-        let canMove = true;
-        for (const platform of platforms) {
-          if (MovementUtils.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, platform)) {
-            canMove = false;
-            break;
-          }
-        }
-
-        if (canMove) {
+        // Check if new position is safe (platforms and boundaries)
+        if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
           monster.x = newX;
           monster.y = newY;
-          moved = true;
-          break;
+        } else {
+          // If blocked, choose new direction
+          this.chooseNewWanderingDirection(monster, currentTime);
         }
+      } else {
+        // Reached target, choose new direction
+        this.chooseNewWanderingDirection(monster, currentTime);
       }
-
-      // If we couldn't move, just stay still (don't get stuck trying to move)
 
       // Check if it's time to ambush using scaled interval
       monster.ambushCooldown += 16;
@@ -96,16 +98,8 @@ export class AmbusherMovement {
         const newX = monster.x + ambushSpeed * normX;
         const newY = monster.y + ambushSpeed * normY;
 
-        // Check if movement is safe
-        let canMove = true;
-        for (const platform of platforms) {
-          if (MovementUtils.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, platform)) {
-            canMove = false;
-            break;
-          }
-        }
-
-        if (canMove) {
+        // Check if movement is safe (platforms and boundaries)
+        if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
           monster.x = newX;
           monster.y = newY;
         } else {
@@ -121,5 +115,36 @@ export class AmbusherMovement {
         logger.debug('Ambusher reached target, returning to wandering');
       }
     }
+  }
+
+  private chooseNewWanderingDirection(monster: Monster, currentTime: number): void {
+    // Choose a random direction (up, down, left, right, or diagonal)
+    const directions = [
+      { x: 1, y: 0 },   // Right
+      { x: -1, y: 0 },  // Left
+      { x: 0, y: 1 },   // Down
+      { x: 0, y: -1 },  // Up
+      { x: 1, y: 1 },   // Down-Right
+      { x: -1, y: 1 },  // Down-Left
+      { x: 1, y: -1 },  // Up-Right
+      { x: -1, y: -1 }, // Up-Left
+    ];
+
+    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+    
+    // Set a target point in that direction (within map bounds)
+    const targetDistance = 50 + Math.random() * 100; // Random distance between 50-150 pixels
+    const newTargetX = Math.max(0, Math.min(
+      monster.x + randomDirection.x * targetDistance,
+      GAME_CONFIG.CANVAS_WIDTH - monster.width
+    ));
+    const newTargetY = Math.max(0, Math.min(
+      monster.y + randomDirection.y * targetDistance,
+      GAME_CONFIG.CANVAS_HEIGHT - monster.height
+    ));
+
+    (monster as any).targetX = newTargetX;
+    (monster as any).targetY = newTargetY;
+    monster.lastDirectionChange = currentTime;
   }
 } 

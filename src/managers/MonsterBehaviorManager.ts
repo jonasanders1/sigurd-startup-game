@@ -6,6 +6,7 @@ import {
   AmbusherMovement,
   FloaterMovement
 } from "./monster-movements";
+import { MovementUtils } from "./monster-movements/MovementUtils";
 
 export class MonsterBehaviorManager {
   private patrolMovement: PatrolMovement;
@@ -41,6 +42,9 @@ export class MonsterBehaviorManager {
           this.floaterMovement.update(monster, currentTime);
           break;
       }
+
+      // Safety check: clamp monster to boundaries if it somehow got outside
+      MovementUtils.clampToBoundaries(monster);
     });
   }
 }

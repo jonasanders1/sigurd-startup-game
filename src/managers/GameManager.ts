@@ -488,16 +488,16 @@ export class GameManager {
 
       // Only apply basic patrol AI to static monsters (not dynamically spawned ones)
       // Exclude vertical patrol monsters as they have their own movement system
-      if (!monster.spawnTime && monster.type !== "VERTICAL_PATROL") {
-        // Simple patrol AI for static monsters
-        monster.x += monster.speed * monster.direction;
+      if (!monster.spawnTime && monster.type === "HORIZONTAL_PATROL") {
+        // Simple patrol AI for static horizontal patrol monsters
+        const newX = monster.x + monster.speed * monster.direction;
 
-        // Check patrol bounds
-        if (
-          monster.x <= monster.patrolStartX ||
-          monster.x >= monster.patrolEndX
-        ) {
+        // Check patrol bounds (map boundaries are handled by MonsterBehaviorManager)
+        const patrolMonster = monster as any; // We know it's HORIZONTAL_PATROL
+        if (newX <= patrolMonster.patrolStartX || newX >= patrolMonster.patrolEndX) {
           monster.direction *= -1;
+        } else {
+          monster.x = newX;
         }
       }
 
@@ -659,6 +659,12 @@ export class GameManager {
       monsters
     );
     if (hitMonster) {
+      // Check if god mode is enabled in dev config
+      if (DEV_CONFIG.GOD_MODE) {
+        log.dev("God mode enabled - player is invincible to monsters");
+        return; // Ignore monster collision entirely
+      }
+      
       // Check if power mode is active - if so, kill the monster instead
       if (gameState.activeEffects.powerMode) {
         // Monster is killed during power mode - use progressive bonus system
@@ -734,7 +740,7 @@ export class GameManager {
       // Reset monsters to starting positions
       const resetMonsters = currentMap.monsters.map((monster) => ({
         ...monster,
-        x: monster.patrolStartX,
+        x: (monster as any).patrolStartX || monster.x,
         direction: 1, // Reset to initial direction
       }));
       gameState.updateMonsters(resetMonsters);

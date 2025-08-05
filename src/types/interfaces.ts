@@ -31,6 +31,7 @@ interface BaseMonster {
   spawnTime?: number; // When this monster was spawned
   lastDirectionChange?: number; // For behavior timing
   behaviorState?: string; // Current behavior state
+  spawnDelay?: number; // When this monster should spawn (in milliseconds)
   // New properties for gravity-based movement
   velocityX?: number;
   velocityY?: number;
@@ -70,10 +71,6 @@ interface ChaserMonster extends BaseMonster {
 // Ambusher monster
 interface AmbusherMonster extends BaseMonster {
   type: "AMBUSHER";
-  patrolStartX: number;
-  patrolEndX: number;
-  patrolStartY?: number;
-  patrolEndY?: number;
   targetX?: number; // For wandering behavior
   targetY?: number; // For wandering behavior
   ambushCooldown?: number; // Time until next ambush
@@ -150,17 +147,9 @@ export interface CoinSpawnPoint {
 }
 
 export interface MonsterSpawnPoint {
-  x: number;
-  y: number;
-  type: string;
   spawnDelay: number; // When this monster should spawn (in milliseconds)
-  patrolStartX?: number;
-  patrolEndX?: number;
-  patrolStartY?: number;
-  patrolEndY?: number;
-  speed: number;
-  direction?: number; // 1 or -1, random if not specified
-  color?: string; // Optional custom color for the monster
+  createMonster: () => Monster; // Function that creates the monster using MonsterFactory
+  color?: string; // Optional custom color override for the monster
 }
 
 export interface Platform {
