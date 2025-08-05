@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from '../types/constants';
+import { getBackgroundImagePath } from '../config/assets';
 
 interface ParallaxLayer {
   image: HTMLImageElement;
@@ -133,7 +134,7 @@ export class ParallaxManager {
       const img = new Image();
       img.onload = () => resolve(true);
       img.onerror = () => resolve(false);
-      img.src = `/assets/map-images/${this.cityTheme}/${layerNumber}.png`;
+      img.src = getBackgroundImagePath(this.cityTheme, layerNumber);
     });
   }
 
@@ -186,7 +187,8 @@ export class ParallaxManager {
         reject(new Error(`Failed to load layer ${layerNumber}`));
       };
       
-      img.src = `/assets/map-images/${this.cityTheme}/${layerNumber}.png`;
+      // Use the helper function to get the correct path for dev vs build
+      img.src = getBackgroundImagePath(this.cityTheme, layerNumber);
     });
   }
 
@@ -214,8 +216,8 @@ export class ParallaxManager {
       if (this.isLoading) {
         this.renderLoading(ctx);
       } else {
-        // Fallback: render a simple gradient background
-        this.renderFallback(ctx);
+      // Fallback: render a simple gradient background
+      this.renderFallback(ctx);
       }
       return;
     }

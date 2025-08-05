@@ -46,7 +46,7 @@ export const createMultiplierSlice: StateCreator<MultiplierSlice> = (set, get) =
   },
   
   setMultiplier: (multiplier: number, multiplierScore: number) => {
-    console.log(`🔧 MultiplierSlice: Setting multiplier to ${multiplier}x with ${multiplierScore} progress`);
+    
     set({ multiplier, multiplierScore });
   }
 }); 

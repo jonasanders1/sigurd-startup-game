@@ -78,11 +78,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
 
   return (
     <div className="relative">
-      <canvas
-        ref={canvasRef}
+    <canvas
+      ref={canvasRef}
         className={`shadow-black/10 shadow-lg rounded-lg ${className}`}
-        style={canvasStyle}
-      />
+      style={canvasStyle}
+    />
     </div>
   );
 };

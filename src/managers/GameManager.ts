@@ -2,6 +2,7 @@ import { InputManager } from "./InputManager";
 import { CollisionManager } from "./CollisionManager";
 import { RenderManager } from "./RenderManager";
 import { MonsterSpawnManager } from "./MonsterSpawnManager";
+import { DifficultyManager } from "./DifficultyManager";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import { GAME_CONFIG, DEV_CONFIG } from "../types/constants";
@@ -20,6 +21,7 @@ export class GameManager {
   private monsterSpawnManager: MonsterSpawnManager;
   private audioManager: AudioManager;
   private animationController: AnimationController;
+  private difficultyManager: DifficultyManager;
   private animationFrameId: number | null = null;
   private lastTime = 0;
   private isBackgroundMusicPlaying = false;
@@ -35,6 +37,7 @@ export class GameManager {
     this.renderManager = new RenderManager(canvas);
     this.audioManager = new AudioManager();
     this.animationController = new AnimationController(playerSprite);
+    this.difficultyManager = DifficultyManager.getInstance();
     
     // Initialize monster spawn manager with empty array initially
     this.monsterSpawnManager = new MonsterSpawnManager([]);
@@ -185,6 +188,9 @@ export class GameManager {
       // Reset animation controller state when loading new level
       this.animationController.reset();
       
+      // Start difficulty scaling for this map
+      this.difficultyManager.startMap();
+      
       // Load parallax background for this level based on map name (non-blocking)
       this.renderManager.loadMapBackground(mapDefinition.name);
       
@@ -333,6 +339,9 @@ export class GameManager {
     this.updatePlayer(deltaTime);
     this.updateMonsters(deltaTime);
     this.updateCoins(deltaTime);
+    
+    // Check difficulty updates regularly (this will trigger logs every 10 seconds)
+    this.difficultyManager.getScaledValues();
   }
 
   private updatePlayer(deltaTime: number): void {
@@ -462,13 +471,13 @@ export class GameManager {
   private updateMonsters(deltaTime: number): void {
     // Update monster spawn manager (handles spawning and behavior)
     const currentTime = Date.now();
-    console.log(`GameManager: Updating monsters at time ${currentTime}`);
-    log.debug(`GameManager: Updating monsters at time ${currentTime}`);
+    
+    // log.debug(`GameManager: Updating monsters at time ${currentTime}`);
     this.monsterSpawnManager.update(currentTime);
     
     // Get fresh game state after monster spawning
     const gameState = useGameStore.getState();
-    console.log(`GameManager: After spawn manager update, current monsters: ${gameState.monsters.length}`);
+  
     
     // Update existing monsters with basic movement (for static monsters from map)
     const monsters = gameState.monsters.map((monster) => {
@@ -478,7 +487,8 @@ export class GameManager {
       if (monster.isFrozen) return monster;
 
       // Only apply basic patrol AI to static monsters (not dynamically spawned ones)
-      if (!monster.spawnTime) {
+      // Exclude vertical patrol monsters as they have their own movement system
+      if (!monster.spawnTime && monster.type !== "VERTICAL_PATROL") {
         // Simple patrol AI for static monsters
         monster.x += monster.speed * monster.direction;
 
@@ -494,18 +504,18 @@ export class GameManager {
       return monster;
     });
 
-    log.debug(`GameManager: After monster updates, total monsters: ${monsters.length}`, {
-      monsters: monsters.map(m => ({ 
-        type: m.type, 
-        x: m.x, 
-        y: m.y, 
-        isActive: m.isActive, 
-        spawnTime: m.spawnTime,
-        width: m.width,
-        height: m.height,
-        color: m.color
-      }))
-    });
+    // log.debug(`GameManager: After monster updates, total monsters: ${monsters.length}`, {
+    //   monsters: monsters.map(m => ({ 
+    //     type: m.type, 
+    //     x: m.x, 
+    //     y: m.y, 
+    //     isActive: m.isActive, 
+    //     spawnTime: m.spawnTime,
+    //     width: m.width,
+    //     height: m.height,
+    //     color: m.color
+    //   }))
+    // });
 
     gameState.updateMonsters(monsters);
   }
@@ -710,6 +720,10 @@ export class GameManager {
     if (currentMap) {
       // Clear floating texts when respawning
       gameState.clearAllFloatingTexts();
+
+      // Reset difficulty to base values when player dies
+      this.difficultyManager.resetOnDeath();
+      log.debug("DifficultyManager: Reset difficulty to base values after player death");
 
       // Reset player position
       gameState.setPlayerPosition(

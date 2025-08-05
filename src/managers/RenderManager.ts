@@ -239,7 +239,7 @@ export class RenderManager {
   }
 
   private renderMonsters(monsters: Monster[]): void {
-    log.debug(`Rendering ${monsters.length} monsters`);
+    // log.debug(`Rendering ${monsters.length} monsters`);
 
     monsters.forEach((monster, index) => {
       if (!monster.isActive) {
@@ -247,15 +247,15 @@ export class RenderManager {
         return; // Don't render inactive monsters
       }
 
-      log.debug(`Rendering monster ${index}:`, {
-        type: monster.type,
-        x: monster.x,
-        y: monster.y,
-        color: monster.color,
-        isActive: monster.isActive,
-        isFrozen: monster.isFrozen,
-        isBlinking: monster.isBlinking,
-      });
+      // log.debug(`Rendering monster ${index}:`, {
+      //   type: monster.type,
+      //   x: monster.x,
+      //   y: monster.y,
+      //   color: monster.color,
+      //   isActive: monster.isActive,
+      //   isFrozen: monster.isFrozen,
+      //   isBlinking: monster.isBlinking,
+      // });
 
       // Handle blinking effect for monsters about to unfreeze
       let monsterColor = monster.color;
