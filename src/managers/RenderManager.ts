@@ -53,7 +53,7 @@ export class RenderManager {
 
     // Render background first
     this.renderBackground();
-    
+
     // Render game elements on top
     if (ground) {
       this.renderGround(ground);
@@ -95,34 +95,31 @@ export class RenderManager {
       this.ctx.fillStyle = player.color;
       this.ctx.fillRect(player.x, player.y, player.width, player.height);
     }
-
-    // Add a simple glow effect when floating
-    if (player.isFloating) {
-      // this.ctx.shadowColor = player.color;
-      // this.ctx.shadowBlur = 10;
-      // this.ctx.fillRect(player.x, player.y, 10, 10);
-      // this.ctx.shadowBlur = 0;
-    }
   }
 
   private renderPlatforms(platforms: Platform[]): void {
     platforms.forEach((platform) => {
       this.ctx.fillStyle = platform.color;
       this.ctx.strokeStyle = platform.borderColor;
-      
+
       // Draw rounded rectangle
       const radius = 4; // Corner radius
       const x = platform.x;
       const y = platform.y;
       const width = platform.width;
       const height = platform.height;
-      
+
       this.ctx.beginPath();
       this.ctx.moveTo(x + radius, y);
       this.ctx.lineTo(x + width - radius, y);
       this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
       this.ctx.lineTo(x + width, y + height - radius);
-      this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      this.ctx.quadraticCurveTo(
+        x + width,
+        y + height,
+        x + width - radius,
+        y + height
+      );
       this.ctx.lineTo(x + radius, y + height);
       this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
       this.ctx.lineTo(x, y + radius);
@@ -176,7 +173,7 @@ export class RenderManager {
         // Fallback to colored rectangles
         this.ctx.fillStyle = bomb.isBlinking ? COLORS.BOMB_NEXT : COLORS.BOMB;
         this.ctx.fillRect(bomb.x, bomb.y, bomb.width, bomb.height);
-        
+
         // Draw bomb number
         this.ctx.fillStyle = "#000000";
         this.ctx.font = "12px Arial";
@@ -217,17 +214,21 @@ export class RenderManager {
       this.ctx.fill();
 
       // Add coin type indicator
-      this.ctx.fillStyle = "#000";
-      this.ctx.font = "10px Arial";
+      this.ctx.fillStyle = "#fff";
+      this.ctx.font = "14px Arial";
       this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
 
       let coinSymbol = "C";
       if (coin.type === "POWER") {
         coinSymbol = "P";
+        this.ctx.fillStyle = "#000";
       } else if (coin.type === "BONUS_MULTIPLIER") {
         coinSymbol = "B";
-      } else if (coin.type === "MONSTER_FREEZE") {
-        coinSymbol = "M";
+        this.ctx.fillStyle = "#fff";
+      } else if (coin.type === "EXTRA_LIFE") {
+        coinSymbol = "E";
+        this.ctx.fillStyle = "#000";
       }
 
       this.ctx.fillText(
@@ -280,27 +281,30 @@ export class RenderManager {
     });
   }
 
-  private renderFloatingTexts(floatingTexts: FloatingText[], deltaTime: number): void {
+  private renderFloatingTexts(
+    floatingTexts: FloatingText[],
+    deltaTime: number
+  ): void {
     floatingTexts.forEach((text) => {
       // Calculate animation progress
       const elapsed = Date.now() - text.startTime;
       const progress = Math.min(elapsed / text.duration, 1);
-      
+
       // Animate position (float upward)
       const floatDistance = 50; // How far the text floats up
-      const animatedY = text.y - (floatDistance * progress);
-      
+      const animatedY = text.y - floatDistance * progress;
+
       // Animate opacity (fade out)
       const opacity = 1 - progress;
-      
+
       // Apply opacity
       this.ctx.globalAlpha = opacity;
-      
+
       this.ctx.fillStyle = text.color;
       this.ctx.font = `${text.fontSize}px Arial`;
       this.ctx.textAlign = "center";
       this.ctx.fillText(text.text, text.x, animatedY);
-      
+
       // Reset opacity
       this.ctx.globalAlpha = 1;
     });

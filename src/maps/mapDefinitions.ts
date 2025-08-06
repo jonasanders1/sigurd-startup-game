@@ -164,10 +164,25 @@ export const level1Map: MapDefinition = {
       y: 75,
       type: CoinType.BONUS_MULTIPLIER,
     },
+    {
+      x: 200,
+      y: 75,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 200,
+      y: 75,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 200,
+      y: 75,
+      type: CoinType.EXTRA_LIFE,
+    },
   ],
 
   monsterSpawnPoints: [
-    // Test monster - spawns immediately
+    // // Test monster - spawns immediately
     {
       spawnDelay: 4000,
       createMonster: () =>
@@ -185,29 +200,10 @@ export const level1Map: MapDefinition = {
       spawnDelay: 10000, // Spawn immediately
       createMonster: () => createFloaterMonster(50, 500, 45),
     },
-
-    // Late game spawns (45-60 seconds)
-    // {
-    //   spawnDelay: 45000, // 45 seconds
-    //   createMonster: () =>
-    //     createChaserMonster(
-    //       0, // startX
-    //       GAME_CONFIG.CANVAS_HEIGHT - 70, // startY
-    //       1.5, // speed
-    //       0.3, // directness
-    //       500 // updateInterval
-    //     ),
-    // },
-    // {
-    //   spawnDelay: 60000, // 60 seconds
-    //   createMonster: () =>
-    //     createAmbusherMonster(
-    //       200, // startX
-    //       GAME_CONFIG.CANVAS_HEIGHT - 200, // startY
-    //       1.8, // speed
-    //       5000 // ambushInterval
-    //     ),
-    // },
+    {
+      spawnDelay: 20000,
+      createMonster: () => createAmbusherMonster(500, 500, 1),
+    },
   ],
 
   monsters: [
@@ -240,11 +236,9 @@ export const level2Map: MapDefinition = {
     // Bottom platforms
     createPlatform(165, 475, { width: 150, height: 15 }, "#d4896a", "#262335"),
     createPlatform(485, 475, { width: 150, height: 15 }, "#d4896a", "#262335"),
-
     // Middle platforms
     createPlatform(300, 380, { width: 200, height: 15 }, "#d4896a", "#262335"),
     createPlatform(300, 240, { width: 200, height: 15 }, "#d4896a", "#262335"),
-
     // Top platforms
     createPlatform(165, 130, { width: 150, height: 15 }, "#d4896a", "#262335"),
     createPlatform(485, 130, { width: 150, height: 15 }, "#d4896a", "#262335"),
@@ -304,67 +298,53 @@ export const level2Map: MapDefinition = {
       type: CoinType.POWER,
       spawnAngle: 120,
     },
+    {
+      x: 520,
+      y: 100,
+      type: CoinType.BONUS_MULTIPLIER,
+      spawnAngle: 120,
+    },
+    {
+      x: 180,
+      y: 100,
+      type: CoinType.BONUS_MULTIPLIER,
+      spawnAngle: 120,
+    },
+    {
+      x: 520,
+      y: 100,
+      type: CoinType.EXTRA_LIFE,
+      spawnAngle: 120,
+    },
+    {
+      x: 180,
+      y: 100,
+      type: CoinType.EXTRA_LIFE,
+      spawnAngle: 120,
+    },
   ],
 
   monsterSpawnPoints: [
     // // More aggressive early spawns for level 2
-    // {
-    //   x: 250,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-    //   type: MonsterType.HORIZONTAL_PATROL,
-    //   spawnDelay: 3000, // 3 seconds
-    //   patrolStartX: 200,
-    //   patrolEndX: 400,
-    //   speed: 1.5,
-    // },
-    // {
-    //   x: 450,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 130,
-    //   type: MonsterType.HORIZONTAL_PATROL,
-    //   spawnDelay: 6000, // 6 seconds
-    //   patrolStartX: 400,
-    //   patrolEndX: 600,
-    //   speed: 1.8,
-    // },
-    // // Floaters for mid-game
-    // {
-    //   x: 100,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-    //   type: MonsterType.FLOATER,
-    //   spawnDelay: 12000, // 12 seconds
-    //   speed: 0.8,
-    // },
-    // {
-    //   x: 700,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-    //   type: MonsterType.FLOATER,
-    //   spawnDelay: 15000, // 15 seconds
-    //   speed: 0.8,
-    // },
-    // // Chasers and ambushers for late game
-    // {
-    //   x: 150,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-    //   type: MonsterType.AMBUSHER,
-    //   spawnDelay: 25000, // 25 seconds
-    //   speed: 2.0,
-    // },
-    // {
-    //   x: 600,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-    //   type: MonsterType.CHASER,
-    //   spawnDelay: 35000, // 35 seconds
-    //   speed: 1.8,
-    // },
+    {
+      spawnDelay: 7000,
+      createMonster: () => createChaserMonster(750, 500, 1),
+    },
+    {
+      spawnDelay: 15000,
+      createMonster: () => createAmbusherMonster(50, 500, 1),
+    },
   ],
 
   monsters: [
-    // Monster on bottom left platform (left side, 3 walks)
-    createHorizontalPatrolMonster(165, 475, 150, "left", 3, 1.5),
-    // Monster on bottom right platform (right side, 2 walks)
-    createHorizontalPatrolMonster(485, 475, 150, "right", 2, 1.8),
-    // Monster on middle platform (left side, 1 walk)
-    createHorizontalPatrolMonster(300, 380, 200, "left", 1, 1.3),
+    // Monster on top left platform (left side, 3 walks)
+    createHorizontalPatrolMonster(165, 130, 150, "left", 0, 0.7),
+    // Monster on top right platform (right side, 2 walks)
+    createHorizontalPatrolMonster(485, 130, 150, "right", 0, 1),
+    // Monster on upper middle platform (left side, 1 walk)
+    createHorizontalPatrolMonster(300, 240, 200, "left", 0, 1),
+    createFloaterMonster(50, 300, 45, 1),
+    createFloaterMonster(750, 500, 155, 1),
   ],
 };
 
@@ -436,47 +416,48 @@ export const level3Map: MapDefinition = {
 
   monsters: [
     // Static monster on horizontal platform
-    // createHorizontalPatrolMonster(300, 300, 200, "left", 2, 1),
-    // createChaserMonster(200, 200, 1, 0.1, 500),
+    createHorizontalPatrolMonster(150, 490, 500, "left", 0, 1),
+    createHorizontalPatrolMonster(150, 130, 500, "left", 0, 1),
+    createHorizontalPatrolMonster(150, 130, 500, "right", 0, 1),
+    createHorizontalPatrolMonster(100, 400, 200, "right", 0, 1),
+    createHorizontalPatrolMonster(500, 400, 200, "left", 0, 1),
+    createChaserMonster(200, 200, 1, 0.1, 500),
   ],
 
   monsterSpawnPoints: [
     // Vertical patrol monster - spawns after 3 seconds
-    // {
-    //   spawnDelay: 3000,
-    //   createMonster: () => createChaserMonster(200, 200, 1, 0.1, 500, 4000),
-    // },
-    // // Chaser monster - spawns after 6 seconds
-    // {
-    //   spawnDelay: 6000,
-    //   createMonster: () => createChaserMonster(
-    //     550, // startX
-    //     550, // startY
-    //     1.5, // speed
-    //     0.3, // directness
-    //     500 // updateInterval
-    //   ),
-    // },
-    // // Example: Floater monster - spawns after 9 seconds
-    // {
-    //   spawnDelay: 9000,
-    //   createMonster: () => createFloaterMonster(
-    //     400, // startX
-    //     200, // startY
-    //     45, // startAngle
-    //     0.8 // speed
-    //   ),
-    // },
-    // // Example: Ambusher monster - spawns after 12 seconds
-    // {
-    //   spawnDelay: 12000,
-    //   createMonster: () => createAmbusherMonster(
-    //     200, // startX
-    //     300, // startY
-    //     1.3, // speed
-    //     5000 // ambushInterval
-    //   ),
-    // },
+    {
+      spawnDelay: 3000,
+      createMonster: () =>
+        createFloaterMonster(
+          centerX(GAME_CONFIG.MONSTER_SIZE),
+          centerY(GAME_CONFIG.MONSTER_SIZE),
+          150,
+          1
+        ),
+    },
+    {
+      spawnDelay: 6000,
+      createMonster: () =>
+        createFloaterMonster(
+          centerX(GAME_CONFIG.MONSTER_SIZE),
+          centerY(GAME_CONFIG.MONSTER_SIZE),
+          50,
+          1
+        ),
+    },
+    // Chaser monster - spawns after 6 seconds
+
+    {
+      spawnDelay: 5000,
+      createMonster: () =>
+        createAmbusherMonster(
+          50, // startX
+          550, // startY
+          1.5, // speed
+          500 // updateInterval
+        ),
+    },
   ],
 };
 
@@ -571,21 +552,87 @@ export const level4Map: MapDefinition = {
   ],
 
   coinSpawnPoints: [
+    // {
+    //   x: 400,
+    //   y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+    //   type: CoinType.POWER,
+    //   spawnAngle: 30,
+    // },
+    // {
+    //   x: 400,
+    //   y: GAME_CONFIG.CANVAS_HEIGHT - 250,
+    //   type: CoinType.POWER,
+    //   spawnAngle: 150,
+    // },
+  ],
+  monsterSpawnPoints: [
+    // Vertical patrol monster - spawns after 3 seconds
     {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-      type: CoinType.POWER,
-      spawnAngle: 30,
+      spawnDelay: 4000,
+      createMonster: () =>
+        createFloaterMonster(
+          centerX(GAME_CONFIG.MONSTER_SIZE),
+          centerY(GAME_CONFIG.MONSTER_SIZE),
+          65,
+          1
+        ),
     },
     {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 250,
-      type: CoinType.POWER,
-      spawnAngle: 150,
+      spawnDelay: 6000,
+      createMonster: () => createFloaterMonster(240, 350, 40, 1),
+    },
+    // // Chaser monster - spawns after 6 seconds
+
+    {
+      spawnDelay: 2000,
+      createMonster: () =>
+        createAmbusherMonster(
+          50, // startX
+          50, // startY
+          2, // speed
+          300 // updateInterval
+        ),
+    },
+    {
+      spawnDelay: 4000,
+      createMonster: () =>
+        createAmbusherMonster(
+          50, // startX
+          50, // startY
+          2, // speed
+          300 // updateInterval
+        ),
+    },
+    {
+      spawnDelay: 4000,
+      createMonster: () =>
+        createChaserMonster(
+          centerX(GAME_CONFIG.MONSTER_SIZE), // startX
+          centerY(GAME_CONFIG.MONSTER_SIZE), // startY
+          3, // Speed
+          0.5 // Directness
+          // updateInterval
+        ),
+    },
+    {
+      spawnDelay: 9000,
+      createMonster: () =>
+        createChaserMonster(
+          590, // startX
+          400, // startY
+          3, // Speed
+          0.5 // Directness
+          // updateInterval
+        ),
     },
   ],
 
-  monsters: [],
+  monsters: [
+    createVerticalPatrolMonster(500, 170, 350, "right"),
+    createVerticalPatrolMonster(240, 60, 340, "right"),
+    createHorizontalPatrolMonster(90, 500, 200, "left"),
+    createHorizontalPatrolMonster(90, 45, 150, "right"),
+  ],
 };
 
 // Level 5 - Kommunehuset

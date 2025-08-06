@@ -325,11 +325,11 @@ export class CoinManager {
           ) {
             const bonusCount =
               (gameState.totalBonusMultiplierCoinsCollected as number) || 0;
-            const threshold = Math.floor(bonusCount / 10) * 10;
+            const threshold = Math.floor(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
             spawnKey = `${coinConfig.type}_${threshold}`;
-            log.debug(
-              `M-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}`
-            );
+            // log.debug(
+            //   `E-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}, ratio=${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}, shouldSpawn=${bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0}`
+            // );
           }
 
           // Check if we've already triggered this spawn condition
@@ -403,6 +403,11 @@ export class CoinManager {
       else if (coin.type === CoinType.BONUS_MULTIPLIER) {
         const currentMultiplier = (gameState.multiplier as number) || 1;
         pointsEarned = 1000 * currentMultiplier;
+      }
+      // Special handling for E-coin (Extra Life) - add extra life and award points
+      else if (coin.type === CoinType.EXTRA_LIFE) {
+        const currentMultiplier = (gameState.multiplier as number) || 1;
+        pointsEarned = coinConfig.points * currentMultiplier;
       }
 
       // Show floating text for points earned

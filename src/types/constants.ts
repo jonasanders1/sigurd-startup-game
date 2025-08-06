@@ -8,7 +8,7 @@ export const GAME_CONFIG = {
   BOMB_SIZE: 25,
   MONSTER_SIZE: 25,
   PLATFORM_HEIGHT: 25,
-  COIN_SIZE: 20, // Size of coins
+  COIN_SIZE: 25, // Size of coins
   USE_SPRITES: true,
   PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
 
@@ -34,8 +34,8 @@ export const GAME_CONFIG = {
 
   // Coin spawning rules
   POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 9 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 5000 points
-  EXTRA_LIFE_COIN_RATIO: 10, // Extra life coin appears for every 10 bonus multiplier coins
+  BONUS_COIN_SPAWN_INTERVAL: 1000, // Bonus multiplier coin appears every 5000 points
+  EXTRA_LIFE_COIN_RATIO: 2, // Extra life coin appears for every 10 bonus multiplier coins
 
   // Coin effects
   POWER_COIN_DURATION: 7000, // Power coin effect duration in milliseconds (7 seconds)
@@ -75,25 +75,18 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   masterVolume: 80,
   musicVolume: 70,
   sfxVolume: 90,
-  masterMuted: true,
-  musicMuted: true,
-  sfxMuted: true,
+  masterMuted: false,
+  musicMuted: false,
+  sfxMuted: false,
 };
 
 // Development Mode Configuration
 export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 1, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
-  // Available levels:
-  // 1: Bomb Jack Level 1 (classic)
-  // 2: Bomb Jack Level 2 (advanced)
-  // 3: Bomb Jack Level 3 (maze)
-  // 4: Bomb Jack Level 4 (tower)
-  // 5: NAV (research)
-  // 6: Skatteetaten (environment)
+  TARGET_LEVEL: 4, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
-  GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
+  GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)
 
   MOCK_DATA: {
     score: 15000,

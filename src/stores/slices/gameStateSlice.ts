@@ -32,6 +32,7 @@ export interface GameStateSlice {
   setState: (state: GameState) => void;
   setMenuType: (menuType: MenuType) => void;
   loseLife: () => void;
+  addLife: () => void;
   nextLevel: () => void;
   addScore: (points: number) => void;
   resetGameState: () => void;
@@ -140,6 +141,14 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
             totalPowerModeActivations
           });
         }
+      },
+
+      addLife: () => {
+        const { lives } = get();
+        const newLives = lives + 1;
+        
+        log.info(`Adding life: ${lives} → ${newLives}`);
+        set({ lives: newLives });
       },
 
     nextLevel: () => {
