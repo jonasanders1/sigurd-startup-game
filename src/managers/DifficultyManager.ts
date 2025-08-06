@@ -72,6 +72,7 @@ export class DifficultyManager {
   private isPaused: boolean = false;
   private pauseStartTime: number = 0;
   private totalPausedTime: number = 0;
+  private isPausedByPowerMode: boolean = false; // Track if paused due to power mode
 
   // Default difficulty configuration
   private static readonly DEFAULT_CONFIG: DifficultyConfig = {
@@ -296,17 +297,38 @@ export class DifficultyManager {
     }
   }
 
+  public pauseForPowerMode(): void {
+    if (!this.isPausedByPowerMode) {
+      this.isPausedByPowerMode = true;
+      this.pause(); // Use the existing pause logic
+      logger.debug("DifficultyManager: Paused difficulty scaling for power mode");
+    }
+  }
+
   public resume(): void {
     if (this.isPaused) {
       this.isPaused = false;
+      this.isPausedByPowerMode = false; // Clear power mode pause flag
       const pauseDuration = Date.now() - this.pauseStartTime;
       this.totalPausedTime += pauseDuration;
       logger.debug(`DifficultyManager: Resumed difficulty scaling (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
     }
   }
 
+  public resumeFromPowerMode(): void {
+    if (this.isPausedByPowerMode) {
+      this.isPausedByPowerMode = false;
+      this.resume(); // Use the existing resume logic
+      logger.debug("DifficultyManager: Resumed difficulty scaling from power mode");
+    }
+  }
+
   public isCurrentlyPaused(): boolean {
     return this.isPaused;
+  }
+
+  public isCurrentlyPausedByPowerMode(): boolean {
+    return this.isPausedByPowerMode;
   }
 
   public updateDifficultyConfig(newConfig: Partial<DifficultyConfig>): void {

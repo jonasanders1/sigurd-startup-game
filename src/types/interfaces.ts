@@ -256,6 +256,18 @@ export interface GameStateInterface {
   // Managers
   coinManager?: {
     resetMonsterKillCount: () => void;
+    getPcoinColorForTime?: (spawnTime: number) => {
+      color: string;
+      points: number;
+      name: string;
+      index: number;
+      duration?: number;
+    };
+    getPowerModeEndTime?: () => number;
+  };
+  difficultyManager?: {
+    pause: () => void;
+    resume: () => void;
   };
 
   // Methods
@@ -268,7 +280,7 @@ export interface CoinEffect {
   type: string;
   duration?: number;
   points?: number;
-  apply: (gameState: GameStateInterface) => void;
+  apply: (gameState: GameStateInterface, coin?: any) => void;
   remove?: (gameState: GameStateInterface) => void;
 }
 

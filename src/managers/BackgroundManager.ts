@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from '../types/constants';
+import { ASSET_PATHS } from '../config/assets';
 
 interface BackgroundImage {
   image: HTMLImageElement;
@@ -60,7 +61,7 @@ export class BackgroundManager {
         return;
       }
 
-      const image = await this.loadImage(`/assets/maps-bg-images/${imageFileName}`);
+      const image = await this.loadImage(`${ASSET_PATHS.images}/maps-bg-images/${imageFileName}`);
       
       this.currentBackground = {
         image: image,
@@ -187,7 +188,7 @@ export class BackgroundManager {
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
-          img.src = `/assets/maps-bg-images/${background}`;
+          img.src = `${ASSET_PATHS.images}/maps-bg-images/${background}`;
         });
         loadedCount++;
         console.log(`Preloaded background: ${background} (${loadedCount}/${backgrounds.length})`);

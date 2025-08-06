@@ -60,10 +60,20 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       c === coin ? { ...c, isCollected: true } : c
     );
     
-    // Update active effects
+    // Update active effects with dynamic duration for P-coins
+    let powerModeEndTime = 0;
+    if (coinManager.isPowerModeActive()) {
+      if (coin.type === 'POWER' && coin.spawnTime !== undefined) {
+        // Get duration based on coin color
+        const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
+        powerModeEndTime = Date.now() + colorData.duration;
+      }
+      // No fallback needed - if it's not a P-coin, power mode shouldn't be active
+    }
+    
     const activeEffects = {
       powerMode: coinManager.isPowerModeActive(),
-      powerModeEndTime: coinManager.isPowerModeActive() ? Date.now() + GAME_CONFIG.POWER_COIN_DURATION : 0
+      powerModeEndTime
     };
     
     // Update total collection counters
@@ -187,10 +197,16 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     }
     
     // Update active effects state
+    let powerModeEndTime = 0;
+    if (isPowerModeActive && coinManager) {
+      // For ongoing power mode, get the actual end time from the effect
+      powerModeEndTime = coinManager.getPowerModeEndTime();
+    }
+    
     set({
       activeEffects: {
         powerMode: isPowerModeActive,
-        powerModeEndTime: isPowerModeActive ? Date.now() + GAME_CONFIG.POWER_COIN_DURATION : 0
+        powerModeEndTime
       }
     });
   },

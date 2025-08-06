@@ -311,7 +311,10 @@ export class GameManager {
   private handleDifficultyPause(currentState: GameState): void {
     // Pause difficulty scaling and monster spawning when game is not in PLAYING state
     if (currentState === GameState.PLAYING) {
-      this.difficultyManager.resume();
+      // Only resume if not paused by power mode
+      if (!this.difficultyManager.isCurrentlyPausedByPowerMode()) {
+        this.difficultyManager.resume();
+      }
       this.monsterSpawnManager.resume();
     } else {
       this.difficultyManager.pause();
@@ -653,12 +656,7 @@ export class GameManager {
     if (collectedCoin) {
       this.audioManager.playSound(AudioEvent.COIN_COLLECT);
       
-      // Pass gameState to the coin manager for the new effect system
-      const coinManager = gameState.coinManager;
-      if (coinManager) {
-        coinManager.collectCoin(collectedCoin, gameState as unknown as Record<string, unknown>);
-      }
-      
+      // Let the coin slice handle the collection (it will call coinManager.collectCoin internally)
       gameState.collectCoin(collectedCoin);
       
       // If it's a power coin, play special sound

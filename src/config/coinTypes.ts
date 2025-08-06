@@ -14,29 +14,63 @@ import { GAME_CONFIG } from "../types/constants";
 export const COIN_EFFECTS = {
   POWER_MODE: {
     type: "POWER_MODE",
-    duration: GAME_CONFIG.POWER_COIN_DURATION,
+    duration: GAME_CONFIG.POWER_COIN_DURATION, // Default duration (will be overridden)
     points: GAME_CONFIG.POWER_COIN_POINTS,
-    apply: (gameState: GameStateInterface) => {
-      // Freeze monsters
-      gameState.monsters.forEach((monster) => {
-        monster.isFrozen = true;
-      });
+    apply: (gameState: GameStateInterface, coin?: any) => {
+      // Calculate duration based on coin color if available
+      let duration = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
+      
+      if (coin && coin.spawnTime !== undefined) {
+        // Get the color data for this specific coin
+        const coinManager = gameState.coinManager;
+        if (coinManager && typeof coinManager.getPcoinColorForTime === 'function') {
+          try {
+            const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
+            duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
+          } catch (error) {
+            console.warn('Failed to get P-coin color data, using default duration:', error);
+          }
+        }
+      }
+      
+      // Freeze monsters (safely handle undefined monsters)
+      if (gameState.monsters && Array.isArray(gameState.monsters)) {
+        gameState.monsters.forEach((monster) => {
+          monster.isFrozen = true;
+        });
+      }
+      
       // Enable monster killing
       gameState.activeEffects.powerMode = true;
-      gameState.activeEffects.powerModeEndTime =
-        Date.now() + GAME_CONFIG.POWER_COIN_DURATION;
+      gameState.activeEffects.powerModeEndTime = Date.now() + duration;
 
       // Reset monster kill count for new power mode session
       if (gameState.coinManager) {
         gameState.coinManager.resetMonsterKillCount();
       }
+      
+      // Pause difficulty scaling during power mode
+      if (gameState.difficultyManager) {
+        console.log("Pausing difficulty scaling (power mode active)");
+        gameState.difficultyManager.pause();
+      }
+      
+      // Log the actual duration being used
+      console.log(`Power mode activated for ${duration}ms (${duration/1000}s)`);
     },
     remove: (gameState: GameStateInterface) => {
-      // Unfreeze monsters
-      gameState.monsters.forEach((monster) => {
-        monster.isFrozen = false;
-      });
+      // Unfreeze monsters (safely handle undefined monsters)
+      if (gameState.monsters && Array.isArray(gameState.monsters)) {
+        gameState.monsters.forEach((monster) => {
+          monster.isFrozen = false;
+        });
+      }
       gameState.activeEffects.powerMode = false;
+      
+      // Resume difficulty scaling when power mode ends
+      if (gameState.difficultyManager) {
+        gameState.difficultyManager.resume();
+      }
     },
   },
 
@@ -167,15 +201,15 @@ export const COIN_PHYSICS = {
   },
 };
 
-// P-coin color progression system
+// P-coin color progression system with duration scaling
 export const P_COIN_COLORS = [
-  { color: "#0066FF", points: 100, name: "Blue" }, // Blue
-  { color: "#FF0000", points: 200, name: "Red" }, // Red
-  { color: "#800080", points: 300, name: "Purple" }, // Purple
-  { color: "#00FF00", points: 500, name: "Green" }, // Green
-  { color: "#00FFFF", points: 800, name: "Cyan" }, // Cyan
-  { color: "#FFFF00", points: 1200, name: "Yellow" }, // Yellow
-  { color: "#808080", points: 2000, name: "Gray" }, // Gray
+  { color: "#0066FF", points: 100, name: "Blue", duration: 3000 }, // Blue - 3 seconds
+  { color: "#FF0000", points: 200, name: "Red", duration: 4000 }, // Red - 4 seconds
+  { color: "#800080", points: 300, name: "Purple", duration: 5000 }, // Purple - 5 seconds
+  { color: "#00FF00", points: 500, name: "Green", duration: 6000 }, // Green - 6 seconds
+  { color: "#00FFFF", points: 800, name: "Cyan", duration: 7000 }, // Cyan - 7 seconds
+  { color: "#FFFF00", points: 1200, name: "Yellow", duration: 8000 }, // Yellow - 8 seconds
+  { color: "#808080", points: 2000, name: "Gray", duration: 10000 }, // Gray - 10 seconds
 ];
 
 // Define all coin types according to user specifications
