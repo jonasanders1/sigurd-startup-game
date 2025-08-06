@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ParallaxManager } from '../managers/ParallaxManager';
+import { BackgroundManager } from '../managers/BackgroundManager';
 
 export const useBackgroundPreloading = () => {
   const [isPreloading, setIsPreloading] = useState(true);
 
   useEffect(() => {
     // Preload all background images to prevent flashing
-    ParallaxManager.preloadAllBackgrounds().then(() => {
+    BackgroundManager.preloadAllBackgrounds().then(() => {
       console.log("All background images preloaded");
       setIsPreloading(false);
     }).catch(error => {

@@ -226,7 +226,8 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
     spawnCondition: (gameState: GameStateInterface) => {
       // Spawn every BONUS_COIN_SPAWN_INTERVAL points
-      const score = gameState.score || 0;
+      // Use bombAndMonsterPoints if available, otherwise fall back to total score
+      const score = (gameState as any).bombAndMonsterPoints || gameState.score || 0;
       return score > 0 && score % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0;
     },
     maxActive: 1,

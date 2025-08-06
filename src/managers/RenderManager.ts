@@ -14,7 +14,7 @@ import { SpriteInstance } from "../lib/SpriteInstance";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import { log } from "../lib/logger";
-import { ParallaxManager } from "./ParallaxManager";
+import { BackgroundManager } from "./BackgroundManager";
 
 interface CoinManagerInterface {
   getPcoinCurrentColor: (coin: Coin) => string;
@@ -24,13 +24,13 @@ export class RenderManager {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private lastTime: number = 0;
-  private parallaxManager: ParallaxManager;
+  private backgroundManager: BackgroundManager;
   private bombSprites: Map<number, SpriteInstance> = new Map(); // Individual sprites for each bomb
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
-    this.parallaxManager = new ParallaxManager(canvas.width, canvas.height);
+    this.backgroundManager = new BackgroundManager(canvas.width, canvas.height);
     log.debug("RenderManager initialized with canvas");
   }
 
@@ -48,11 +48,11 @@ export class RenderManager {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
-    // Update parallax background based on player position
-    this.parallaxManager.update(player.x, player.y);
+    // Update background based on player position
+    this.backgroundManager.update(player.x, player.y);
 
-    // Render parallax background first
-    this.renderParallaxBackground();
+    // Render background first
+    this.renderBackground();
     
     // Render game elements on top
     if (ground) {
@@ -71,10 +71,10 @@ export class RenderManager {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  private renderParallaxBackground(): void {
+  private renderBackground(): void {
     if (GAME_CONFIG.USE_SPRITES && GAME_CONFIG.PARALLAX_ENABLED) {
-      // Use parallax background when sprites and parallax are enabled
-      this.parallaxManager.render(this.ctx);
+      // Use background when sprites and parallax are enabled
+      this.backgroundManager.render(this.ctx);
     } else {
       // Fallback to solid background when sprites or parallax are disabled
       this.clearCanvas();
@@ -308,27 +308,27 @@ export class RenderManager {
 
   // Public method to load a city theme
   loadCityTheme(cityName: string): void {
-    this.parallaxManager.loadCityTheme(cityName);
+    this.backgroundManager.loadMapBackground(cityName);
   }
 
   // Public method to load a background by map name
   loadMapBackground(mapName: string): void {
-    this.parallaxManager.loadMapBackground(mapName);
+    this.backgroundManager.loadMapBackground(mapName);
   }
 
-  // Check if parallax background is ready
+  // Check if background is ready
   isParallaxReady(): boolean {
-    return this.parallaxManager.isReady();
+    return this.backgroundManager.isReady();
   }
 
-  // Check if parallax is currently loading
+  // Check if background is currently loading
   isParallaxLoading(): boolean {
-    return this.parallaxManager.isCurrentlyLoading();
+    return this.backgroundManager.isCurrentlyLoading();
   }
 
   // Get current map name
   getCurrentMapName(): string {
-    return this.parallaxManager.getCurrentMapName();
+    return this.backgroundManager.getCurrentMapName();
   }
 
   // Clear bomb sprites (call when bombs are reset)

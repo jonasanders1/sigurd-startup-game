@@ -30,7 +30,21 @@ const PauseMenu: React.FC = () => {
   };
 
   const restartGame = () => {
-    resetGame();
+    // Don't call resetGame() as it clears everything
+    // Instead, just reset the current level state and player position
+    const { resetBombState, resetPlayer, resetEffects, clearAllFloatingTexts, currentMap } = useGameStore.getState();
+    
+    // Reset level-specific state
+    resetBombState();
+    resetPlayer();
+    resetEffects();
+    clearAllFloatingTexts();
+    
+    // Re-initialize the current level if we have a map
+    if (currentMap) {
+      const { initializeLevel } = useGameStore.getState();
+      initializeLevel(currentMap);
+    }
 
     // Set state to MENU with no current map to trigger level reload in GameManager
     setState(GameState.MENU);

@@ -17,6 +17,9 @@ export class PatrolMovement {
   }
 
   private updateHorizontalPatrol(monster: Monster, currentTime: number): void {
+    // Type guard to ensure this is a patrol monster
+    if (!isPatrolMonster(monster)) return;
+    
     // Get scaled speed from DifficultyManager
     const difficultyManager = DifficultyManager.getInstance();
     const scaledValues = difficultyManager.getScaledValues();
@@ -67,12 +70,12 @@ export class PatrolMovement {
       const gameState = useGameStore.getState();
       const platforms = gameState.platforms || [];
       const patrolSide = (monster as any).patrolSide || "left";
+      const targetPlatformX = (monster as any).targetPlatformX;
       
-      // Find the target vertical platform
+      // Find the target vertical platform using the stored targetPlatformX
       const targetPlatform = platforms.find(platform => 
         platform.isVertical && 
-        ((patrolSide === "left" && monster.x <= platform.x) || 
-         (patrolSide === "right" && monster.x >= platform.x))
+        Math.abs(platform.x - targetPlatformX) < 1 // Use exact match with small tolerance
       );
       
       if (targetPlatform) {

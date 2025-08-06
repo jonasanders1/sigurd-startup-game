@@ -9,13 +9,6 @@ import {
   createAmbusherMonster,
 } from "../managers/MonsterFactory";
 
-// Function to create background configuration based on parallax settings
-const createBackgroundConfig = (mapName: string) => {
-  return {
-    background: GAME_CONFIG.PARALLAX_ENABLED ? mapName : COLORS.BACKGROUND,
-  };
-};
-
 // Helper function to create bombs with default size
 const createBomb = (
   x: number,
@@ -66,42 +59,47 @@ const createVerticalPlatform = (
   isVertical: true, // Mark as vertical platform
 });
 
-const centerPoint = () => {
+const centerX = (offsetWidth: number) =>
+  (GAME_CONFIG.CANVAS_WIDTH - offsetWidth) / 2;
+const centerY = (offsetHeight: number) =>
+  (GAME_CONFIG.CANVAS_HEIGHT - offsetHeight) / 2;
+
+const centerPoint = (offsetWidth: number, offsetHeight: number) => {
   return {
-    x: GAME_CONFIG.CANVAS_WIDTH / 2,
-    y: GAME_CONFIG.CANVAS_HEIGHT / 2,
+    x: centerX(offsetWidth),
+    y: centerY(offsetHeight),
   };
 };
 
-// Bomb Jack Level 1 - Classic layout with symmetrical platforms
+// Level 1 - Startup Lab - Norge
 export const level1Map: MapDefinition = {
   id: "level1",
-  name: "Taco Street",
+  name: "startup lab",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(),
-  ...createBackgroundConfig("Taco Street"),
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
   groupSequence: [1, 2, 3, 4, 5],
-  difficulty: 1,
 
   ground: {
     x: 0,
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: "#46474c",
+    color: "#88a2bc",
   },
 
   platforms: [
     // bottom left
-    createVerticalPlatform(96, 220, 150, "#ebb185"),
-    createPlatform(95, 450, { width: 200, height: 15 }, "#ebb185"),
+    createVerticalPlatform(96, 220, 150, "#abccee", "#4f6a8f"),
+    createVerticalPlatform(684, 220, 150, "#abccee", "#4f6a8f"),
+
     // Top right
-    createPlatform(480, 150, { width: 200, height: 15 }, "#ebb185"),
-    createPlatform(684, 220, { width: 15, height: 150 }, "#ebb185"),
-    createPlatform(430, 430, { width: 200, height: 15 }, "#ebb185"),
-    createPlatform(170, 170, { width: 200, height: 15 }, "#ebb185"),
+    createPlatform(95, 450, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
+    createPlatform(480, 150, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
+
+    createPlatform(430, 430, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
+    createPlatform(170, 170, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
   ],
 
   bombs: [
@@ -145,24 +143,24 @@ export const level1Map: MapDefinition = {
 
   coinSpawnPoints: [
     {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      x: centerX(GAME_CONFIG.COIN_SIZE),
+      y: centerY(GAME_CONFIG.COIN_SIZE),
       type: CoinType.POWER,
       spawnAngle: 45,
     },
     {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 250,
+      x: 570,
+      y: 50,
       type: CoinType.POWER,
       spawnAngle: 135,
     },
+    // {
+    //   x: centerX(GAME_CONFIG.COIN_SIZE),
+    //   y: 75,
+    //   type: CoinType.BONUS_MULTIPLIER,
+    // },
     {
-      x: 500,
-      y: 75,
-      type: CoinType.BONUS_MULTIPLIER,
-    },
-    {
-      x: 150,
+      x: 200,
       y: 75,
       type: CoinType.BONUS_MULTIPLIER,
     },
@@ -171,12 +169,12 @@ export const level1Map: MapDefinition = {
   monsterSpawnPoints: [
     // Test monster - spawns immediately
     {
-      spawnDelay: 0, // Spawn immediately
+      spawnDelay: 4000,
       createMonster: () =>
         createHorizontalPatrolMonster(
-          300, // platformX
-          GAME_CONFIG.CANVAS_HEIGHT - 70 + GAME_CONFIG.MONSTER_SIZE, // platformY
-          200, // platformWidth
+          430, // platformX
+          430, // platformWidth
+          200,
           "left", // spawnSide
           1, // walkLengths
           1.0 // speed
@@ -184,83 +182,72 @@ export const level1Map: MapDefinition = {
     },
     // Another test monster - spawns immediately at different location
     {
-      spawnDelay: 0, // Spawn immediately
-      createMonster: () =>
-        createVerticalPatrolMonster(
-          600, // platformX
-          GAME_CONFIG.CANVAS_HEIGHT - 150, // startY
-          100, // patrolHeight
-          "left", // side
-          1.5, // speed
-          1 // direction
-        ),
+      spawnDelay: 10000, // Spawn immediately
+      createMonster: () => createFloaterMonster(50, 500, 45),
     },
 
     // Late game spawns (45-60 seconds)
-    {
-      spawnDelay: 45000, // 45 seconds
-      createMonster: () =>
-        createChaserMonster(
-          0, // startX
-          GAME_CONFIG.CANVAS_HEIGHT - 70, // startY
-          1.5, // speed
-          0.3, // directness
-          500 // updateInterval
-        ),
-    },
-    {
-      spawnDelay: 60000, // 60 seconds
-      createMonster: () =>
-        createAmbusherMonster(
-          200, // startX
-          GAME_CONFIG.CANVAS_HEIGHT - 200, // startY
-          1.8, // speed
-          5000 // ambushInterval
-        ),
-    },
+    // {
+    //   spawnDelay: 45000, // 45 seconds
+    //   createMonster: () =>
+    //     createChaserMonster(
+    //       0, // startX
+    //       GAME_CONFIG.CANVAS_HEIGHT - 70, // startY
+    //       1.5, // speed
+    //       0.3, // directness
+    //       500 // updateInterval
+    //     ),
+    // },
+    // {
+    //   spawnDelay: 60000, // 60 seconds
+    //   createMonster: () =>
+    //     createAmbusherMonster(
+    //       200, // startX
+    //       GAME_CONFIG.CANVAS_HEIGHT - 200, // startY
+    //       1.8, // speed
+    //       5000 // ambushInterval
+    //     ),
+    // },
   ],
 
   monsters: [
-    // Monster on the first platform (left side, 2 walks)
-    createVerticalPatrolMonster(95, 220, 220, "right", 2, 1),
-    // createVerticalPatrolMonster(96, 220, 150, "left", 1, 1),
-    // // Monster on the top platform (right side, 1 walk)
-    // createHorizontalPatrolMonster(480, 150, 200, "right", 1, 1.2),
+    createVerticalPatrolMonster(105, 220, 220, "right", 2, 1),
+    createVerticalPatrolMonster(695, 220, 220, "right", 2, 1),
+    createHorizontalPatrolMonster(170, 170, 200, "left"),
+    createChaserMonster(250, 300, 1, 0.3),
   ],
 };
 
-// Bomb Jack Level 2 - More complex layout with staggered platforms
+// Level 2 - Innovasjon Norge
 export const level2Map: MapDefinition = {
   id: "level2",
-  name: "The Future City",
+  name: "innovasjon norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(),
-  ...createBackgroundConfig("The Future City"),
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
   groupSequence: [1, 2, 3, 4, 5],
-  difficulty: 2,
 
   ground: {
     x: 0,
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: "#75202d",
+    color: "#262335",
   },
 
   platforms: [
     // Bottom platforms
-    createPlatform(165, 475, { width: 150, height: 15 }, "#75212d", "#b63348"),
-    createPlatform(485, 475, { width: 150, height: 15 }, "#75212d", "#b63348"),
+    createPlatform(165, 475, { width: 150, height: 15 }, "#d4896a", "#262335"),
+    createPlatform(485, 475, { width: 150, height: 15 }, "#d4896a", "#262335"),
 
     // Middle platforms
-    createPlatform(300, 380, { width: 200, height: 15 }, "#75212d", "#b63348"),
-    createPlatform(300, 240, { width: 200, height: 15 }, "#75212d", "#b63348"),
+    createPlatform(300, 380, { width: 200, height: 15 }, "#d4896a", "#262335"),
+    createPlatform(300, 240, { width: 200, height: 15 }, "#d4896a", "#262335"),
 
     // Top platforms
-    createPlatform(165, 130, { width: 150, height: 15 }, "#75212d", "#b63348"),
-    createPlatform(485, 130, { width: 150, height: 15 }, "#75212d", "#b63348"),
+    createPlatform(165, 130, { width: 150, height: 15 }, "#d4896a", "#262335"),
+    createPlatform(485, 130, { width: 150, height: 15 }, "#d4896a", "#262335"),
   ],
 
   bombs: [
@@ -300,8 +287,8 @@ export const level2Map: MapDefinition = {
     createBomb(280, 500, 21, 7),
 
     // Group 8
-    createBomb(360, 265, 22, 8),
-    createBomb(410, 265, 23, 8),
+    createBomb(360, 345, 22, 8),
+    createBomb(410, 345, 23, 8),
   ],
 
   coinSpawnPoints: [
@@ -381,48 +368,84 @@ export const level2Map: MapDefinition = {
   ],
 };
 
+// Level 3 - Skatteetaten
 export const level3Map: MapDefinition = {
   id: "level3",
-  name: "Mountain Peak",
+  name: "skatteetaten",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(),
-  ...createBackgroundConfig("Mountain Peak"),
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
-  groupSequence: [1, 2, 3, 4, 5],
-  difficulty: 3,
+  groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
   ground: {
     x: 0,
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: "#56687a",
+    color: "#3c4c56",
   },
 
   platforms: [
-    // Horizontal platform
-    createPlatform(300, 300, { width: 200, height: 15 }, "#56687a"),
-    // Vertical platform (wall)
-    createVerticalPlatform(550, 200, 200, "#56687a"),
+    // Bottom long platform
+    createPlatform(150, 490, { width: 500, height: 15 }, "#acc7d0", "#556d7b"),
+    // Middle lower platforms
+    createPlatform(100, 400, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
+    createPlatform(500, 400, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
+    // Middle upper platforms
+    createPlatform(100, 250, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
+    createPlatform(500, 250, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
+    // Top platforms
+    createPlatform(150, 130, { width: 500, height: 15 }, "#acc7d0", "#556d7b"),
   ],
 
-  bombs: [],
+  bombs: [
+    // Group 1
+    createBomb(540, 275, 1, 1),
+    createBomb(590, 275, 2, 1),
+    createBomb(640, 275, 3, 1),
+    // Group 2
+    createBomb(240, 275, 4, 2),
+    createBomb(190, 275, 5, 2),
+    createBomb(140, 275, 6, 2),
+    // Group 3
+    createBomb(325, 515, 7, 3),
+    createBomb(375, 515, 8, 3),
+    createBomb(425, 515, 9, 3),
+    // Group 4
+    createBomb(760, 360, 10, 4),
+    createBomb(760, 310, 11, 4),
+    createBomb(760, 260, 12, 4),
+    // Group 5
+    createBomb(15, 360, 13, 5),
+    createBomb(15, 310, 14, 5),
+    createBomb(15, 260, 15, 5),
+    // Group 6
+    createBomb(325, 155, 16, 6),
+    createBomb(375, 155, 17, 6),
+    createBomb(425, 155, 18, 6),
+    createBomb(375, 205, 19, 6),
+    createBomb(375, 255, 20, 6),
+    // Group 7
+    createBomb(580, 455, 21, 7),
+    createBomb(195, 455, 22, 7),
+    createBomb(375, 95, 23, 7),
+  ],
 
   coinSpawnPoints: [],
 
   monsters: [
     // Static monster on horizontal platform
     // createHorizontalPatrolMonster(300, 300, 200, "left", 2, 1),
-    createChaserMonster(200, 200, 1, 0.1, 500),
+    // createChaserMonster(200, 200, 1, 0.1, 500),
   ],
 
   monsterSpawnPoints: [
     // Vertical patrol monster - spawns after 3 seconds
-    {
-      spawnDelay: 3000,
-      createMonster: () => createChaserMonster(200, 200, 1, 0.1, 500, 4000),
-    },
+    // {
+    //   spawnDelay: 3000,
+    //   createMonster: () => createChaserMonster(200, 200, 1, 0.1, 500, 4000),
+    // },
     // // Chaser monster - spawns after 6 seconds
     // {
     //   spawnDelay: 6000,
@@ -457,1138 +480,1047 @@ export const level3Map: MapDefinition = {
   ],
 };
 
-// // Bomb Jack Level 4 - Vertical tower layout
-// export const level4Map: MapDefinition = {
-//   id: "level4",
-//   name: "Valley of Shadows",
-//   width: GAME_CONFIG.CANVAS_WIDTH,
-//   height: GAME_CONFIG.CANVAS_HEIGHT,
-//   playerStart: centerPoint(),
-//   ...createBackgroundConfig("Valley of Shadows"),
+// Level 4 - NAV
+export const level4Map: MapDefinition = {
+  id: "level4",
+  name: "nav",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
-//   groupSequence: [1, 2, 3, 4, 5],
-//   difficulty: 4,
+  groupSequence: [1, 2, 3, 4, 5],
 
-//   ground: {
-//     x: 0,
-//     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-//     width: GAME_CONFIG.CANVAS_WIDTH,
-//     height: 40,
-//     color: "#583c2d",
-//   },
+  ground: {
+    x: 0,
+    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: 40,
+    color: "#586c5c",
+  },
 
-//   platforms: [
-//     // Left tower platforms
-//     createPlatform(
-//       100,
-//       GAME_CONFIG.CANVAS_HEIGHT - 120,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
-//     createPlatform(
-//       100,
-//       GAME_CONFIG.CANVAS_HEIGHT - 200,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
-//     createPlatform(
-//       100,
-//       GAME_CONFIG.CANVAS_HEIGHT - 280,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
-//     createPlatform(
-//       100,
-//       GAME_CONFIG.CANVAS_HEIGHT - 360,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
-//     // Right tower platforms
-//     createPlatform(
-//       650,
-//       GAME_CONFIG.CANVAS_HEIGHT - 120,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
-//     createPlatform(
-//       650,
-//       GAME_CONFIG.CANVAS_HEIGHT - 200,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
-//     createPlatform(
-//       650,
-//       GAME_CONFIG.CANVAS_HEIGHT - 280,
-//       { width: 100, height: 15 },
-//       "#aa7557"
-//     ),
+  platforms: [
+    /* BOTTOM TUNNELs */
+    // Bottom horizontal tunnel
+    createPlatform(580, 500, { width: 150, height: 15 }, "#586c5c", "#202e32"),
+    // Upper horizontal tunnel
+    createPlatform(580, 445, { width: 150, height: 15 }, "#586c5c", "#202e32"),
+    // left vetical tunnel
+    createVerticalPlatform(500, 245, 150, "#586c5c", "#202e32"),
+    // right vetical tunnel
+    createVerticalPlatform(555, 245, 150, "#586c5c", "#202e32"),
 
-//     // middle platform
-//     createPlatform(
-//       250,
-//       GAME_CONFIG.CANVAS_HEIGHT - 185,
-//       { width: 340, height: 15 },
-//       "#aa7557"
-//     ),
-//   ],
+    /* UPPER TUNNEL */
+    // Upper horizontal tunnel
+    createPlatform(90, 45, { width: 150, height: 15 }, "#586c5c", "#202e32"),
+    // Bottom horizontal tunnel
+    createPlatform(90, 100, { width: 150, height: 15 }, "#586c5c", "#202e32"),
+    // left vetical tunnel
+    createVerticalPlatform(240, 160, 150, "#586c5c", "#202e32"),
+    // right vetical tunnel
+    createVerticalPlatform(295, 160, 150, "#586c5c", "#202e32"),
 
-//   bombs: [
-//     // Ground level bombs
-//     createBomb(70, GAME_CONFIG.CANVAS_HEIGHT - 70, 1, 1),
-//     createBomb(770, GAME_CONFIG.CANVAS_HEIGHT - 70, 2, 1),
+    // DIAGONAL PLATFORMS
+    // bottom platform
+    createPlatform(90, 500, { width: 200, height: 15 }, "#586c5c", "#202e32"),
+    // lower middel platform
+    createPlatform(235, 400, { width: 150, height: 15 }, "#586c5c", "#202e32"),
+    // upper middel platform
+    createPlatform(415, 145, { width: 150, height: 15 }, "#586c5c", "#202e32"),
+    // upper platform
+    createPlatform(530, 45, { width: 200, height: 15 }, "#586c5c", "#202e32"),
+  ],
 
-//     // Left tower bombs
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 150, 3, 2),
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 190, 4, 2),
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 230, 5, 2),
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 270, 6, 2),
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 310, 7, 2),
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 350, 8, 2),
-//     createBomb(120, GAME_CONFIG.CANVAS_HEIGHT - 390, 9, 2),
+  bombs: [
+    // Bottom horizontal tunnel bombs - GROUP 1
+    createBomb(595, 467, 1, 1),
+    createBomb(645, 467, 2, 1),
+    createBomb(695, 467, 3, 1),
 
-//     // Right tower bombs
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 150, 10, 3),
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 190, 11, 3),
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 230, 12, 3),
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 270, 13, 3),
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 310, 14, 3),
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 350, 15, 3),
-//     createBomb(720, GAME_CONFIG.CANVAS_HEIGHT - 390, 16, 3),
+    // Bottom vetical tunnel bombs - GROUP 2
+    createBomb(522, 255, 4, 2),
+    createBomb(522, 305, 5, 2),
+    createBomb(522, 355, 6, 2),
 
-//     // Connecting platform bombs
-//     createBomb(270, GAME_CONFIG.CANVAS_HEIGHT - 170, 17, 4),
-//     createBomb(470, GAME_CONFIG.CANVAS_HEIGHT - 170, 18, 4),
-//     createBomb(370, GAME_CONFIG.CANVAS_HEIGHT - 210, 19, 4),
-//     createBomb(270, GAME_CONFIG.CANVAS_HEIGHT - 250, 20, 4),
-//     createBomb(470, GAME_CONFIG.CANVAS_HEIGHT - 250, 21, 4),
-//     createBomb(370, GAME_CONFIG.CANVAS_HEIGHT - 290, 22, 4),
-//     createBomb(270, GAME_CONFIG.CANVAS_HEIGHT - 330, 23, 4),
-//     createBomb(470, GAME_CONFIG.CANVAS_HEIGHT - 330, 24, 4),
-//     createBomb(370, GAME_CONFIG.CANVAS_HEIGHT - 370, 25, 4),
-//     createBomb(270, GAME_CONFIG.CANVAS_HEIGHT - 410, 26, 4),
-//     createBomb(470, GAME_CONFIG.CANVAS_HEIGHT - 410, 27, 4),
-//   ],
+    // Bottom platform - GROUP 3
+    createBomb(130, 467, 7, 3),
+    createBomb(180, 467, 8, 3),
+    createBomb(230, 467, 9, 3),
 
-//   coinSpawnPoints: [
-//     {
-//       x: 400,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       type: CoinType.POWER,
-//       spawnAngle: 30,
-//     },
-//     {
-//       x: 400,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 250,
-//       type: CoinType.POWER,
-//       spawnAngle: 150,
-//     },
-//   ],
+    // Lower middel platform bombs - GROUP 4
+    createBomb(250, 367, 10, 4),
+    createBomb(300, 367, 11, 4),
+    createBomb(350, 367, 12, 4),
 
-//   monsters: [
-//     {
-//       x: 100,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 50,
-//       patrolEndX: 250,
-//       speed: 2.5,
-//       direction: 1,
-//       isActive: true,
-//     },
-//     {
-//       x: 700,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 650,
-//       patrolEndX: 850,
-//       speed: 2.8,
-//       direction: -1,
-//       isActive: true,
-//     },
-//     {
-//       x: 300,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 170,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 250,
-//       patrolEndX: 450,
-//       speed: 3.8,
-//       direction: 1,
-//       isActive: true,
-//     },
-//     {
-//       x: 500,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 290,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 450,
-//       patrolEndX: 650,
-//       speed: 3.6,
-//       direction: -1,
-//       isActive: true,
-//     },
-//     {
-//       x: 400,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 350,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 350,
-//       patrolEndX: 550,
-//       speed: 4,
-//       direction: 1,
-//       isActive: true,
-//     },
-//   ],
-// };
+    // Upper vetical tunnel bombs - GROUP 5
+    createBomb(263, 170, 13, 5),
+    createBomb(263, 220, 14, 5),
+    createBomb(263, 270, 15, 5),
 
-// export const level5Map: MapDefinition = {
-//   id: "level5",
-//   name: "Future City 2",
-//   width: GAME_CONFIG.CANVAS_WIDTH,
-//   height: GAME_CONFIG.CANVAS_HEIGHT,
-//   playerStart: centerPoint(),
-//   ...createBackgroundConfig("Future City 2"),
+    // Upper horizontal tunnel bombs - GROUP 6
+    createBomb(100, 67, 16, 6),
+    createBomb(150, 67, 17, 6),
+    createBomb(200, 67, 18, 6),
 
-//   groupSequence: [1, 2, 3, 4, 5, 6],
-//   difficulty: 5,
+    // Upper middel platform bombs - GROUP 7
+    createBomb(430, 113, 19, 7),
+    createBomb(480, 113, 20, 7),
+    createBomb(530, 113, 21, 7),
+    // Upper platform bombs - GROUP 8
+    createBomb(630, 68, 22, 8),
+    createBomb(680, 68, 23, 8),
+  ],
 
-//   ground: {
-//     x: 0,
-//     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-//     width: GAME_CONFIG.CANVAS_WIDTH,
-//     height: 40,
-//     color: "#8d4fc9",
-//   },
+  coinSpawnPoints: [
+    {
+      x: 400,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      type: CoinType.POWER,
+      spawnAngle: 30,
+    },
+    {
+      x: 400,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 250,
+      type: CoinType.POWER,
+      spawnAngle: 150,
+    },
+  ],
 
-//   platforms: [
-//     // Floating platforms in spiral pattern
-//     createPlatform(
-//       200,
-//       GAME_CONFIG.CANVAS_HEIGHT - 120,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
-//     createPlatform(
-//       600,
-//       GAME_CONFIG.CANVAS_HEIGHT - 100,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
+  monsters: [],
+};
 
-//     createPlatform(
-//       100,
-//       GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
-//     createPlatform(
-//       700,
-//       GAME_CONFIG.CANVAS_HEIGHT - 180,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
+// Level 5 - Kommunehuset
+export const level5Map: MapDefinition = {
+  id: "level5",
+  name: "kommunehuset",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
-//     createPlatform(
-//       300,
-//       GAME_CONFIG.CANVAS_HEIGHT - 240,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
-//     createPlatform(
-//       500,
-//       GAME_CONFIG.CANVAS_HEIGHT - 240,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
+  groupSequence: [1, 2, 3, 4, 5, 6],
 
-//     createPlatform(
-//       150,
-//       GAME_CONFIG.CANVAS_HEIGHT - 300,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
-//     createPlatform(
-//       650,
-//       GAME_CONFIG.CANVAS_HEIGHT - 300,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
+  ground: {
+    x: 0,
+    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: 40,
+    color: "#8d4fc9",
+  },
 
-//     createPlatform(
-//       400,
-//       GAME_CONFIG.CANVAS_HEIGHT - 300,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
+  platforms: [
+    // Floating platforms in spiral pattern
+    createPlatform(
+      200,
+      GAME_CONFIG.CANVAS_HEIGHT - 120,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
+    createPlatform(
+      600,
+      GAME_CONFIG.CANVAS_HEIGHT - 100,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
 
-//     createPlatform(
-//       250,
-//       GAME_CONFIG.CANVAS_HEIGHT - 420,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
-//     createPlatform(
-//       550,
-//       GAME_CONFIG.CANVAS_HEIGHT - 420,
-//       { width: 60, height: 60 },
-//       "#8d4fc9"
-//     ),
-//   ],
+    createPlatform(
+      100,
+      GAME_CONFIG.CANVAS_HEIGHT - 150,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
+    createPlatform(
+      700,
+      GAME_CONFIG.CANVAS_HEIGHT - 180,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
 
-//   bombs: [
-//     // Ground level
-//     {
-//       x: 70,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: 16,
-//       height: 16,
-//       order: 1,
-//       group: 1,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 795,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: 16,
-//       height: 16,
-//       order: 2,
-//       group: 1,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      300,
+      GAME_CONFIG.CANVAS_HEIGHT - 240,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
+    createPlatform(
+      500,
+      GAME_CONFIG.CANVAS_HEIGHT - 240,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
 
-//     // First floating level
-//     {
-//       x: 220,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 3,
-//       group: 2,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 620,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 4,
-//       group: 2,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      150,
+      GAME_CONFIG.CANVAS_HEIGHT - 300,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
+    createPlatform(
+      650,
+      GAME_CONFIG.CANVAS_HEIGHT - 300,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
 
-//     // Second level
-//     {
-//       x: 120,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 5,
-//       group: 3,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 720,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 6,
-//       group: 3,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      400,
+      GAME_CONFIG.CANVAS_HEIGHT - 300,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
 
-//     // Third level
-//     {
-//       x: 320,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 7,
-//       group: 4,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 540,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 8,
-//       group: 4,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      250,
+      GAME_CONFIG.CANVAS_HEIGHT - 420,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
+    createPlatform(
+      550,
+      GAME_CONFIG.CANVAS_HEIGHT - 420,
+      { width: 60, height: 60 },
+      "#8d4fc9"
+    ),
+  ],
 
-//     // Fourth level
-//     {
-//       x: 170,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 9,
-//       group: 5,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 670,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 10,
-//       group: 5,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+  bombs: [
+    // Ground level
+    {
+      x: 70,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
+      width: 16,
+      height: 16,
+      order: 1,
+      group: 1,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 795,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
+      width: 16,
+      height: 16,
+      order: 2,
+      group: 1,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//     // Fifth level
-//     {
-//       x: 420,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 390,
-//       width: 16,
-//       height: 16,
-//       order: 11,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    // First floating level
+    {
+      x: 220,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 3,
+      group: 2,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 620,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 4,
+      group: 2,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//     // Sixth level
-//     {
-//       x: 270,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 450,
-//       width: 16,
-//       height: 16,
-//       order: 12,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 570,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 450,
-//       width: 16,
-//       height: 16,
-//       order: 13,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    // Second level
+    {
+      x: 120,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 5,
+      group: 3,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 720,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 6,
+      group: 3,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//     // Additional scattered bombs
-//     {
-//       x: 25,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 90,
-//       width: 16,
-//       height: 16,
-//       order: 14,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 775,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 90,
-//       width: 16,
-//       height: 16,
-//       order: 15,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 180,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 16,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 620,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 17,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 280,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 18,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 520,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 19,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 370,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 20,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 470,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 21,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 220,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 22,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 580,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 23,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//   ],
+    // Third level
+    {
+      x: 320,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 7,
+      group: 4,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 540,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 8,
+      group: 4,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   monsters: [
-//     {
-//       x: 150,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 100,
-//       patrolEndX: 300,
-//       speed: 4,
-//       direction: 1,
-//       isActive: true,
-//     },
-//     {
-//       x: 650,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 130,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 600,
-//       patrolEndX: 800,
-//       speed: 4.2,
-//       direction: -1,
-//       isActive: true,
-//     },
-//     {
-//       x: 300,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 170,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 250,
-//       patrolEndX: 450,
-//       speed: 3.8,
-//       direction: 1,
-//       isActive: true,
-//     },
-//     {
-//       x: 500,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 290,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 450,
-//       patrolEndX: 650,
-//       speed: 3.6,
-//       direction: -1,
-//       isActive: true,
-//     },
-//     {
-//       x: 400,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 350,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 350,
-//       patrolEndX: 550,
-//       speed: 4,
-//       direction: 1,
-//       isActive: true,
-//     },
-//   ],
+    // Fourth level
+    {
+      x: 170,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 9,
+      group: 5,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 670,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 10,
+      group: 5,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   coinSpawnPoints: [
-//     // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
-//     {
-//       x: 300,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-//       type: CoinType.POWER,
-//       spawnAngle: 165,
-//     },
-//     {
-//       x: 500,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 140,
-//       type: CoinType.POWER,
-//       spawnAngle: 15,
-//     },
-//   ],
-// };
-// export const level6Map: MapDefinition = {
-//   id: "level6",
-//   name: "Ocean Depths",
-//   width: GAME_CONFIG.CANVAS_WIDTH,
-//   height: GAME_CONFIG.CANVAS_HEIGHT,
-//   playerStart: centerPoint(),
-//   ...createBackgroundConfig("Ocean Depths"),
+    // Fifth level
+    {
+      x: 420,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 390,
+      width: 16,
+      height: 16,
+      order: 11,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   groupSequence: [1, 2, 3, 4, 5, 6],
-//   difficulty: 5,
+    // Sixth level
+    {
+      x: 270,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 450,
+      width: 16,
+      height: 16,
+      order: 12,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 570,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 450,
+      width: 16,
+      height: 16,
+      order: 13,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   ground: {
-//     x: 0,
-//     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-//     width: GAME_CONFIG.CANVAS_WIDTH,
-//     height: 40,
-//     color: "#47567f",
-//   },
+    // Additional scattered bombs
+    {
+      x: 25,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 90,
+      width: 16,
+      height: 16,
+      order: 14,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 775,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 90,
+      width: 16,
+      height: 16,
+      order: 15,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 180,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 16,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 620,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 17,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 280,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 18,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 520,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 19,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 370,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 20,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 470,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 21,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 220,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 22,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 580,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 23,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+  ],
 
-//   platforms: [
-//     // Floating platforms in spiral pattern
-//     createPlatform(
-//       200,
-//       GAME_CONFIG.CANVAS_HEIGHT - 120,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
-//     createPlatform(
-//       600,
-//       GAME_CONFIG.CANVAS_HEIGHT - 110,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
+  monsters: [
+    {
+      x: 150,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 100,
+      patrolEndX: 300,
+      speed: 4,
+      direction: 1,
+      isActive: true,
+    },
+    {
+      x: 650,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 130,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 600,
+      patrolEndX: 800,
+      speed: 4.2,
+      direction: -1,
+      isActive: true,
+    },
+    {
+      x: 300,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 170,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 250,
+      patrolEndX: 450,
+      speed: 3.8,
+      direction: 1,
+      isActive: true,
+    },
+    {
+      x: 500,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 290,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 450,
+      patrolEndX: 650,
+      speed: 3.6,
+      direction: -1,
+      isActive: true,
+    },
+    {
+      x: 400,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 350,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 350,
+      patrolEndX: 550,
+      speed: 4,
+      direction: 1,
+      isActive: true,
+    },
+  ],
 
-//     createPlatform(
-//       100,
-//       GAME_CONFIG.CANVAS_HEIGHT - 180,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
-//     createPlatform(
-//       700,
-//       GAME_CONFIG.CANVAS_HEIGHT - 180,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
+  coinSpawnPoints: [
+    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
+    {
+      x: 300,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
+      type: CoinType.POWER,
+      spawnAngle: 165,
+    },
+    {
+      x: 500,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 140,
+      type: CoinType.POWER,
+      spawnAngle: 15,
+    },
+  ],
+};
 
-//     createPlatform(
-//       300,
-//       GAME_CONFIG.CANVAS_HEIGHT - 240,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
-//     createPlatform(
-//       500,
-//       GAME_CONFIG.CANVAS_HEIGHT - 240,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
+// Level 6 - Alltinn Norge
+export const level6Map: MapDefinition = {
+  id: "level6",
+  name: "alltinn norge",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
-//     createPlatform(
-//       150,
-//       GAME_CONFIG.CANVAS_HEIGHT - 300,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
-//     createPlatform(
-//       650,
-//       GAME_CONFIG.CANVAS_HEIGHT - 300,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
+  groupSequence: [1, 2, 3, 4, 5, 6],
 
-//     createPlatform(
-//       400,
-//       GAME_CONFIG.CANVAS_HEIGHT - 370,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
+  ground: {
+    x: 0,
+    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: 40,
+    color: "#47567f",
+  },
 
-//     createPlatform(
-//       250,
-//       GAME_CONFIG.CANVAS_HEIGHT - 420,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
-//     createPlatform(
-//       550,
-//       GAME_CONFIG.CANVAS_HEIGHT - 420,
-//       { width: 60, height: 60 },
-//       "#ebb185"
-//     ),
-//   ],
+  platforms: [
+    // Floating platforms in spiral pattern
+    createPlatform(
+      200,
+      GAME_CONFIG.CANVAS_HEIGHT - 120,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
+    createPlatform(
+      600,
+      GAME_CONFIG.CANVAS_HEIGHT - 110,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
 
-//   bombs: [
-//     // Ground level
-//     {
-//       x: 70,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: 16,
-//       height: 16,
-//       order: 1,
-//       group: 1,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 750,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: 16,
-//       height: 16,
-//       order: 2,
-//       group: 1,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      100,
+      GAME_CONFIG.CANVAS_HEIGHT - 180,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
+    createPlatform(
+      700,
+      GAME_CONFIG.CANVAS_HEIGHT - 180,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
 
-//     // First floating level
-//     {
-//       x: 220,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 3,
-//       group: 2,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 620,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 4,
-//       group: 2,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      300,
+      GAME_CONFIG.CANVAS_HEIGHT - 240,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
+    createPlatform(
+      500,
+      GAME_CONFIG.CANVAS_HEIGHT - 240,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
 
-//     // Second level
-//     {
-//       x: 120,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 5,
-//       group: 3,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 720,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 6,
-//       group: 3,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      150,
+      GAME_CONFIG.CANVAS_HEIGHT - 300,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
+    createPlatform(
+      650,
+      GAME_CONFIG.CANVAS_HEIGHT - 300,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
 
-//     // Third level
-//     {
-//       x: 320,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 7,
-//       group: 4,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 540,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 8,
-//       group: 4,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      400,
+      GAME_CONFIG.CANVAS_HEIGHT - 370,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
 
-//     // Fourth level
-//     {
-//       x: 170,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 9,
-//       group: 5,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 670,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 10,
-//       group: 5,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    createPlatform(
+      250,
+      GAME_CONFIG.CANVAS_HEIGHT - 420,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
+    createPlatform(
+      550,
+      GAME_CONFIG.CANVAS_HEIGHT - 420,
+      { width: 60, height: 60 },
+      "#ebb185"
+    ),
+  ],
 
-//     // Fifth level
-//     {
-//       x: 420,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 390,
-//       width: 16,
-//       height: 16,
-//       order: 11,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+  bombs: [
+    // Ground level
+    {
+      x: 70,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
+      width: 16,
+      height: 16,
+      order: 1,
+      group: 1,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 750,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
+      width: 16,
+      height: 16,
+      order: 2,
+      group: 1,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//     // Sixth level
-//     {
-//       x: 270,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 450,
-//       width: 16,
-//       height: 16,
-//       order: 12,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 570,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 450,
-//       width: 16,
-//       height: 16,
-//       order: 13,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
+    // First floating level
+    {
+      x: 220,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 3,
+      group: 2,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 620,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 4,
+      group: 2,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//     // Additional scattered bombs
-//     {
-//       x: 25,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 90,
-//       width: 16,
-//       height: 16,
-//       order: 14,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 775,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 90,
-//       width: 16,
-//       height: 16,
-//       order: 15,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 180,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 16,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 620,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-//       width: 16,
-//       height: 16,
-//       order: 17,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 280,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 18,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 520,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-//       width: 16,
-//       height: 16,
-//       order: 19,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 370,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 20,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 470,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-//       width: 16,
-//       height: 16,
-//       order: 21,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 220,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 22,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//     {
-//       x: 580,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-//       width: 16,
-//       height: 16,
-//       order: 23,
-//       group: 6,
-//       isCollected: false,
-//       isBlinking: false,
-//     },
-//   ],
+    // Second level
+    {
+      x: 120,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 5,
+      group: 3,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 720,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 6,
+      group: 3,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   monsters: [
-//     {
-//       x: 150,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 100,
-//       patrolEndX: 300,
-//       speed: 4,
-//       direction: 1,
-//       isActive: true,
-//     },
-//     {
-//       x: 650,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 130,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 600,
-//       patrolEndX: 800,
-//       speed: 4.2,
-//       direction: -1,
-//       isActive: true,
-//     },
-//     {
-//       x: 300,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 170,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 250,
-//       patrolEndX: 450,
-//       speed: 3.8,
-//       direction: 1,
-//       isActive: true,
-//     },
-//     {
-//       x: 500,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 290,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 450,
-//       patrolEndX: 650,
-//       speed: 3.6,
-//       direction: -1,
-//       isActive: true,
-//     },
-//     {
-//       x: 400,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 350,
-//       width: GAME_CONFIG.MONSTER_SIZE,
-//       height: GAME_CONFIG.MONSTER_SIZE,
-//       color: COLORS.MONSTER,
-//       type: MonsterType.HORIZONTAL_PATROL,
-//       patrolStartX: 350,
-//       patrolEndX: 550,
-//       speed: 4,
-//       direction: 1,
-//       isActive: true,
-//     },
-//   ],
+    // Third level
+    {
+      x: 320,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 7,
+      group: 4,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 540,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 8,
+      group: 4,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   coinSpawnPoints: [
-//     // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
-//     {
-//       x: 300,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 100,
-//       type: CoinType.POWER,
-//       spawnAngle: 165,
-//     },
-//     {
-//       x: 500,
-//       y: GAME_CONFIG.CANVAS_HEIGHT - 140,
-//       type: CoinType.POWER,
-//       spawnAngle: 15,
-//     },
-//   ],
-// };
+    // Fourth level
+    {
+      x: 170,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 9,
+      group: 5,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 670,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 10,
+      group: 5,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-// export const level7Map: MapDefinition = {
-//   id: "level1",
-//   name: "Taco Street",
-//   width: GAME_CONFIG.CANVAS_WIDTH,
-//   height: GAME_CONFIG.CANVAS_HEIGHT,
-//   playerStart: centerPoint(),
-//   ...createBackgroundConfig("Taco Street"),
+    // Fifth level
+    {
+      x: 420,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 390,
+      width: 16,
+      height: 16,
+      order: 11,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   groupSequence: [1, 2, 3, 4, 5],
-//   difficulty: 1,
+    // Sixth level
+    {
+      x: 270,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 450,
+      width: 16,
+      height: 16,
+      order: 12,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 570,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 450,
+      width: 16,
+      height: 16,
+      order: 13,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
 
-//   ground: {
-//     x: 0,
-//     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-//     width: GAME_CONFIG.CANVAS_WIDTH,
-//     height: 40,
-//     color: "#46474c",
-//   },
+    // Additional scattered bombs
+    {
+      x: 25,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 90,
+      width: 16,
+      height: 16,
+      order: 14,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 775,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 90,
+      width: 16,
+      height: 16,
+      order: 15,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 180,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 16,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 620,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      width: 16,
+      height: 16,
+      order: 17,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 280,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 18,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 520,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
+      width: 16,
+      height: 16,
+      order: 19,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 370,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 20,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 470,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
+      width: 16,
+      height: 16,
+      order: 21,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 220,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 22,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+    {
+      x: 580,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
+      width: 16,
+      height: 16,
+      order: 23,
+      group: 6,
+      isCollected: false,
+      isBlinking: false,
+    },
+  ],
 
-//   platforms: [
-//     // bottom left
-//     createPlatform(95, 220, { width: 15, height: 150 }, "#ebb185"),
-//     createPlatform(95, 450, { width: 200, height: 15 }, "#ebb185"),
-//     // Top right
-//     createPlatform(480, 150, { width: 200, height: 15 }, "#ebb185"),
-//     createPlatform(684, 220, { width: 15, height: 150 }, "#ebb185"),
-//     createPlatform(430, 430, { width: 200, height: 15 }, "#ebb185"),
-//     createPlatform(170, 170, { width: 200, height: 15 }, "#ebb185"),
-//   ],
+  monsters: [
+    {
+      x: 150,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 100,
+      patrolEndX: 300,
+      speed: 4,
+      direction: 1,
+      isActive: true,
+    },
+    {
+      x: 650,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 130,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 600,
+      patrolEndX: 800,
+      speed: 4.2,
+      direction: -1,
+      isActive: true,
+    },
+    {
+      x: 300,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 170,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 250,
+      patrolEndX: 450,
+      speed: 3.8,
+      direction: 1,
+      isActive: true,
+    },
+    {
+      x: 500,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 290,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 450,
+      patrolEndX: 650,
+      speed: 3.6,
+      direction: -1,
+      isActive: true,
+    },
+    {
+      x: 400,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 350,
+      width: GAME_CONFIG.MONSTER_SIZE,
+      height: GAME_CONFIG.MONSTER_SIZE,
+      color: COLORS.MONSTER,
+      type: MonsterType.HORIZONTAL_PATROL,
+      patrolStartX: 350,
+      patrolEndX: 550,
+      speed: 4,
+      direction: 1,
+      isActive: true,
+    },
+  ],
 
-//   bombs: [
-//     // Group 1
-//     createBomb(440, 400, 1, 1),
-//     createBomb(490, 400, 2, 1),
-//     createBomb(540, 400, 3, 1),
-//     createBomb(590, 400, 4, 1),
+  coinSpawnPoints: [
+    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
+    {
+      x: 300,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
+      type: CoinType.POWER,
+      spawnAngle: 165,
+    },
+    {
+      x: 500,
+      y: GAME_CONFIG.CANVAS_HEIGHT - 140,
+      type: CoinType.POWER,
+      spawnAngle: 15,
+    },
+  ],
+};
 
-//     // Group 2
-//     createBomb(180, 140, 1, 2),
-//     createBomb(230, 140, 2, 2),
-//     createBomb(280, 140, 3, 2),
-//     createBomb(330, 140, 4, 2),
+export const level7Map: MapDefinition = {
+  id: "level7",
+  name: "silicone vally",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
 
-//     // Group 3
-//     createBomb(710, 230, 1, 3),
-//     createBomb(710, 280, 2, 3),
-//     createBomb(710, 330, 3, 3),
+  groupSequence: [1, 2, 3, 4, 5],
 
-//     // Group 4
-//     createBomb(130, 470, 1, 4),
-//     createBomb(180, 470, 2, 4),
-//     createBomb(230, 470, 3, 4),
+  ground: {
+    x: 0,
+    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: 40,
+    color: "#46474c",
+  },
 
-//     // Group 5
-//     createBomb(520, 70, 1, 5),
-//     createBomb(570, 70, 2, 5),
-//     createBomb(620, 70, 3, 5),
+  platforms: [
+    // bottom left
+    createPlatform(95, 220, { width: 15, height: 150 }, "#ebb185"),
+    createPlatform(95, 450, { width: 200, height: 15 }, "#ebb185"),
+    // Top right
+    createPlatform(480, 150, { width: 200, height: 15 }, "#ebb185"),
+    createPlatform(684, 220, { width: 15, height: 150 }, "#ebb185"),
+    createPlatform(430, 430, { width: 200, height: 15 }, "#ebb185"),
+    createPlatform(170, 170, { width: 200, height: 15 }, "#ebb185"),
+  ],
 
-//     // Group 6
-//     createBomb(120, 230, 1, 6),
-//     createBomb(120, 280, 2, 6),
-//     createBomb(120, 330, 3, 6),
+  bombs: [
+    // Group 1
+    createBomb(440, 400, 1, 1),
+    createBomb(490, 400, 2, 1),
+    createBomb(540, 400, 3, 1),
+    createBomb(590, 400, 4, 1),
 
-//     // Group 7
-//     createBomb(130, 420, 1, 7),
-//     createBomb(180, 420, 2, 7),
-//     createBomb(230, 420, 3, 7),
-//   ],
+    // Group 2
+    createBomb(180, 140, 1, 2),
+    createBomb(230, 140, 2, 2),
+    createBomb(280, 140, 3, 2),
+    createBomb(330, 140, 4, 2),
 
-//   coinSpawnPoints: [],
+    // Group 3
+    createBomb(710, 230, 1, 3),
+    createBomb(710, 280, 2, 3),
+    createBomb(710, 330, 3, 3),
 
-//   monsterSpawnPoints: [
-//     // Test monster - spawns immediately
-//   ],
+    // Group 4
+    createBomb(130, 470, 1, 4),
+    createBomb(180, 470, 2, 4),
+    createBomb(230, 470, 3, 4),
 
-//   monsters: [],
-// };
+    // Group 5
+    createBomb(520, 70, 1, 5),
+    createBomb(570, 70, 2, 5),
+    createBomb(620, 70, 3, 5),
+
+    // Group 6
+    createBomb(120, 230, 1, 6),
+    createBomb(120, 280, 2, 6),
+    createBomb(120, 330, 3, 6),
+
+    // Group 7
+    createBomb(130, 420, 1, 7),
+    createBomb(180, 420, 2, 7),
+    createBomb(230, 420, 3, 7),
+  ],
+
+  coinSpawnPoints: [],
+
+  monsterSpawnPoints: [
+    // Test monster - spawns immediately
+  ],
+
+  monsters: [],
+};
 
 export const mapDefinitions = [
   level1Map,
   level2Map,
   level3Map,
-  // level4Map,
+  level4Map,
   // level5Map,
   // level6Map,
   // level7Map,

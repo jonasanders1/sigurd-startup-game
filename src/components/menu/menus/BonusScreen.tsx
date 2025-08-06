@@ -101,7 +101,11 @@ const BonusScreen: React.FC = () => {
             </div>
             {!DEV_CONFIG.ENABLED && (
               <div className="text-sm text-gray-400 mt-2">
-                Fortsetter til neste bane...
+                {mapDefinitions.length > currentLevel ? (
+                  `Fortsetter til ${mapDefinitions[currentLevel]?.name || 'Neste nivå'}...`
+                ) : (
+                  ''
+                )}
               </div>
             )}
           </div>

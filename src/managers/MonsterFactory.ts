@@ -104,7 +104,7 @@ export const createVerticalPatrolMonster = (
   // Calculate monster X position based on side
   const x = side === "left" 
     ? platformX - GAME_CONFIG.MONSTER_SIZE  // Left side of platform
-    : platformX + GAME_CONFIG.MONSTER_SIZE; // Right side of platform
+    : platformX + 15; // Right side of platform (15 is the standard wall thickness)
 
   return {
     ...createBaseMonster(x, startY, MonsterType.VERTICAL_PATROL, speed, spawnDelay),
@@ -112,6 +112,7 @@ export const createVerticalPatrolMonster = (
     patrolEndY: startY + patrolHeight,
     direction,
     patrolSide: side, // Store which side to patrol on
+    targetPlatformX: platformX, // Store the target platform X position
   } as Monster;
 };
 

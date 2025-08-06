@@ -53,6 +53,7 @@ interface PatrolMonster extends BaseMonster {
   patrolStartY?: number; // For vertical patrol
   patrolEndY?: number; // For vertical patrol
   patrolSide?: "left" | "right"; // Which side of platform to patrol on (for vertical patrol)
+  targetPlatformX?: number; // Target platform X position for vertical patrol monsters
 }
 
 // Chaser monster
@@ -189,7 +190,7 @@ export interface MapDefinition {
 
   groupSequence: number[];
   timeLimit?: number;
-  difficulty: number;
+  
 }
 
 export interface CollisionResult {
@@ -204,6 +205,11 @@ export interface BombCollectionState {
   activeGroup: number | null;
   nextBombOrder: number | null;
   gameStarted: boolean;
+}
+
+export interface centerPoint {
+  offsetHeight: number,
+  offsetWidth: number,
 }
 
 export interface CoinState {

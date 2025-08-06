@@ -67,6 +67,11 @@ export class DifficultyManager {
   private lastUpdateTime: number = 0;
   private updateInterval: number = 30000; // 30 seconds
   private currentValues: any = null;
+  
+  // Pause functionality
+  private isPaused: boolean = false;
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
 
   // Default difficulty configuration
   private static readonly DEFAULT_CONFIG: DifficultyConfig = {
@@ -142,6 +147,9 @@ export class DifficultyManager {
     this.lastUpdateTime = Date.now();
     this.currentDifficulty = JSON.parse(JSON.stringify(DifficultyManager.DEFAULT_CONFIG));
     this.currentValues = this.calculateCurrentValues();
+    this.isPaused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
     logger.debug("DifficultyManager: Started new map, resetting difficulty");
     
     // Log initial values
@@ -153,6 +161,9 @@ export class DifficultyManager {
     this.lastUpdateTime = Date.now();
     this.currentDifficulty = JSON.parse(JSON.stringify(DifficultyManager.DEFAULT_CONFIG));
     this.currentValues = this.calculateCurrentValues();
+    this.isPaused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
     logger.debug("DifficultyManager: Player died, resetting difficulty to base values");
     
     // Log reset values
@@ -189,7 +200,7 @@ export class DifficultyManager {
     floater: { speed: number; bounceAngle: number };
     patrol: { speed: number };
   } {
-    const timeElapsed = (Date.now() - this.mapStartTime) / 1000; // Time in seconds
+    const timeElapsed = this.getTimeElapsed(); // Use adjusted time that accounts for pauses
     const intervals = Math.floor(timeElapsed / 10); // Number of 10-second intervals
 
     return {
@@ -271,7 +282,31 @@ export class DifficultyManager {
   }
 
   public getTimeElapsed(): number {
-    return (Date.now() - this.mapStartTime) / 1000;
+    const currentTime = Date.now();
+    const actualElapsed = currentTime - this.mapStartTime;
+    const adjustedElapsed = actualElapsed - this.totalPausedTime;
+    return adjustedElapsed / 1000;
+  }
+
+  public pause(): void {
+    if (!this.isPaused) {
+      this.isPaused = true;
+      this.pauseStartTime = Date.now();
+      logger.debug("DifficultyManager: Paused difficulty scaling");
+    }
+  }
+
+  public resume(): void {
+    if (this.isPaused) {
+      this.isPaused = false;
+      const pauseDuration = Date.now() - this.pauseStartTime;
+      this.totalPausedTime += pauseDuration;
+      logger.debug(`DifficultyManager: Resumed difficulty scaling (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
+    }
+  }
+
+  public isCurrentlyPaused(): boolean {
+    return this.isPaused;
   }
 
   public updateDifficultyConfig(newConfig: Partial<DifficultyConfig>): void {

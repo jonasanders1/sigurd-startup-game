@@ -218,6 +218,9 @@ export class GameManager {
     // This must be called before dev mode checks to ensure music stops when paused
     this.handleBackgroundMusic(gameState.currentState);
 
+    // Handle difficulty manager pause/resume based on game state
+    this.handleDifficultyPause(gameState.currentState);
+
     // DEV_MODE: Skip normal game logic if we're in dev mode and not in PLAYING state
     if (DEV_CONFIG.ENABLED && this.devModeInitialized) {
       // Only run normal game logic if we're in PLAYING state in dev mode
@@ -303,6 +306,17 @@ export class GameManager {
 
     this.render();
     this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
+  }
+
+  private handleDifficultyPause(currentState: GameState): void {
+    // Pause difficulty scaling and monster spawning when game is not in PLAYING state
+    if (currentState === GameState.PLAYING) {
+      this.difficultyManager.resume();
+      this.monsterSpawnManager.resume();
+    } else {
+      this.difficultyManager.pause();
+      this.monsterSpawnManager.pause();
+    }
   }
 
   private handleBackgroundMusic(currentState: GameState): void {

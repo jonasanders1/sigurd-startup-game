@@ -12,6 +12,11 @@ export class MonsterSpawnManager {
   private spawnedMonsters: Set<string> = new Set(); // Track which spawn points have been used
   private behaviorManager: MonsterBehaviorManager;
   private pendingSpawns: Map<string, number> = new Map(); // Track pending spawns with their scheduled times
+  
+  // Pause functionality
+  private isPaused: boolean = false;
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
 
   constructor(spawnPoints: MonsterSpawnPoint[] = []) {
     this.spawnPoints = spawnPoints;
@@ -24,6 +29,9 @@ export class MonsterSpawnManager {
     this.levelStartTime = Date.now();
     this.spawnedMonsters.clear();
     this.pendingSpawns.clear();
+    this.isPaused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
 
     // Schedule all spawn points based on their spawnDelay
     this.scheduleSpawns();
@@ -64,12 +72,43 @@ export class MonsterSpawnManager {
     this.behaviorManager.updateMonsterBehaviors(currentTime, gameState);
   }
 
+  public pause(): void {
+    if (!this.isPaused) {
+      this.isPaused = true;
+      this.pauseStartTime = Date.now();
+      logger.debug("MonsterSpawnManager: Paused monster spawning");
+    }
+  }
+
+  public resume(): void {
+    if (this.isPaused) {
+      this.isPaused = false;
+      const pauseDuration = Date.now() - this.pauseStartTime;
+      this.totalPausedTime += pauseDuration;
+      logger.debug(`MonsterSpawnManager: Resumed monster spawning (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
+    }
+  }
+
+  public isCurrentlyPaused(): boolean {
+    return this.isPaused;
+  }
+
+  private getAdjustedTime(): number {
+    const currentTime = Date.now();
+    const actualElapsed = currentTime - this.levelStartTime;
+    const adjustedElapsed = actualElapsed - this.totalPausedTime;
+    return this.levelStartTime + adjustedElapsed;
+  }
+
   private checkScheduledSpawns(currentTime: number, gameState: any): void {
     const spawnsToExecute: string[] = [];
 
+    // Use adjusted time that accounts for pauses
+    const adjustedTime = this.getAdjustedTime();
+
     // Find all spawns that should happen now
     this.pendingSpawns.forEach((scheduledTime, spawnKey) => {
-      if (currentTime >= scheduledTime) {
+      if (adjustedTime >= scheduledTime) {
         spawnsToExecute.push(spawnKey);
       }
     });

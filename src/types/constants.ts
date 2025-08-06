@@ -7,7 +7,7 @@ export const GAME_CONFIG = {
   PLAYER_WIDTH: 25,
   BOMB_SIZE: 25,
   MONSTER_SIZE: 25,
-  PLATFORM_HEIGHT: 15,
+  PLATFORM_HEIGHT: 25,
   COIN_SIZE: 20, // Size of coins
   USE_SPRITES: true,
   PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
@@ -82,19 +82,19 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 
 // Development Mode Configuration
 export const DEV_CONFIG = {
-  ENABLED: true, // Set to false to disable dev mode
+  ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
   TARGET_LEVEL: 1, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
   // Available levels:
   // 1: Bomb Jack Level 1 (classic)
-  // 2: Bomb Jack Level 2 (advanced) 
+  // 2: Bomb Jack Level 2 (advanced)
   // 3: Bomb Jack Level 3 (maze)
   // 4: Bomb Jack Level 4 (tower)
   // 5: NAV (research)
   // 6: Skatteetaten (environment)
-  
+
   GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
-  
+
   MOCK_DATA: {
     score: 15000,
     lives: 2,
@@ -112,14 +112,14 @@ export const COLORS = {
   BOMB_NEXT: "#FF0000",
   MONSTER: "#FF4444", // Default monster color (fallback)
   MONSTER_FROZEN: "#4444FF", // Blue color for frozen monsters
-  
+
   // Unique monster type colors
   MONSTER_HORIZONTAL_PATROL: "#FF4444", // Red - horizontal patrol
   MONSTER_VERTICAL_PATROL: "#44FF44", // Green - vertical patrol
   MONSTER_CHASER: "#FF8844", // Orange - chaser
   MONSTER_AMBUSHER: "#8844FF", // Purple - ambusher
   MONSTER_FLOATER: "#44FFFF", // Cyan - floater
-  
+
   PLATFORM: "#484744",
   BACKGROUND: "#262521",
   GROUND: "#484744",

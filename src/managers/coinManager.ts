@@ -278,6 +278,7 @@ export class CoinManager {
         const combinedState = {
           ...gameState,
           firebombCount: this.firebombCount,
+          bombAndMonsterPoints: this.bombAndMonsterPoints,
         };
 
         if (coinConfig.spawnCondition(combinedState as unknown as GameStateInterface)) {
