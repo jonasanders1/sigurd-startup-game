@@ -28,7 +28,7 @@ export class RenderManager {
   private backgroundManager: BackgroundManager;
   private bombSprites: Map<number, SpriteInstance> = new Map(); // Individual sprites for each bomb
   private currentSpawnManager: any = null;
-  private currentMap: any = null;
+  private currentGameState: any = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -47,11 +47,12 @@ export class RenderManager {
     floatingTexts: FloatingText[] = [],
     coinManager?: CoinManagerInterface,
     spawnManager?: any,
-    currentMap?: any
+    currentMap?: any,
+    gameState?: any
   ): void {
-    // Store spawn manager and current map for use in indicator rendering
+    // Store spawn manager and game state for use in indicator rendering
     this.currentSpawnManager = spawnManager;
-    this.currentMap = currentMap;
+    this.currentGameState = gameState;
     const currentTime = Date.now();
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
@@ -290,102 +291,104 @@ export class RenderManager {
 
     // Render respawn indicators for dead monsters
     this.renderRespawnIndicators(monsters);
-    
+
     // Render spawn indicators for pending dynamic spawns
     this.renderSpawnIndicators(this.currentSpawnManager);
   }
 
   private renderRespawnIndicators(monsters: Monster[]): void {
     const respawnManager = OptimizedRespawnManager.getInstance();
-    
-    // Get indicator color from current map, fallback to white
-    const indicatorColor = this.currentMap?.spawnIndicatorColor || "#ffffff";
-    
+
     monsters.forEach((monster) => {
       if (monster.isDead && monster.originalSpawnPoint) {
         const timeRemaining = respawnManager.getRespawnTimeRemaining(monster);
-        if (timeRemaining > 0) {
+        const secondsRemaining = Math.ceil(timeRemaining / 1000);
+        if (timeRemaining > 0 && secondsRemaining <= 3) {
+          // Only show in final 3 seconds
           // Draw respawn indicator at original spawn point
           const spawnPoint = monster.originalSpawnPoint;
-          
-          // Draw a ghostly outline with map-specific color
-          this.ctx.strokeStyle = `${indicatorColor}80`; // 50% opacity
-          this.ctx.lineWidth = 2;
-          this.ctx.setLineDash([5, 5]);
-          this.ctx.strokeRect(spawnPoint.x, spawnPoint.y, monster.width, monster.height);
-          this.ctx.setLineDash([]);
-          
-          // Draw respawn timer with background for better readability
-          const secondsRemaining = Math.ceil(timeRemaining / 1000);
-          const text = `${secondsRemaining}s`;
+
+          // Use monster's actual color with pulsating effect
+          const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
+          const monsterColor = monster.color || "#ffffff";
+
+          // Draw a pulsating filled rectangle using monster's color
+          this.ctx.fillStyle = `${monsterColor}${Math.floor(
+            pulseIntensity * 1 * 255
+          )
+            .toString(16)
+            .padStart(2, "0")}`;
+          this.ctx.fillRect(
+            spawnPoint.x,
+            spawnPoint.y,
+            monster.width,
+            monster.height
+          );
+
+          // Draw respawn timer inside the rectangle
+          const text = `${secondsRemaining}`;
           const textX = spawnPoint.x + monster.width / 2;
-          const textY = spawnPoint.y - 10;
-          
-          // Draw text background
-          this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-          this.ctx.font = "12px Arial";
+          const textY = spawnPoint.y + monster.height / 2 + 4;
+
+          // Draw text using monster's color
+          this.ctx.fillStyle = "#ffffff"; // White text for contrast
+          this.ctx.font = "16px Arial";
           this.ctx.textAlign = "center";
-          const textMetrics = this.ctx.measureText(text);
-          const textWidth = textMetrics.width;
-          const textHeight = 14;
-          this.ctx.fillRect(textX - textWidth/2 - 3, textY - textHeight + 2, textWidth + 6, textHeight);
-          
-          // Draw text
-          this.ctx.fillStyle = `${indicatorColor}cc`; // 80% opacity
+          this.ctx.textBaseline = "middle";
           this.ctx.fillText(text, textX, textY);
         }
       }
     });
   }
 
-  private renderSpawnIndicators(spawnManager?: any): void {
+    private renderSpawnIndicators(spawnManager?: any): void {
     if (!spawnManager) {
       return;
     }
     
-    // Get indicator color from current map, fallback to cyan
-    const indicatorColor = this.currentMap?.spawnIndicatorColor || "#00ffff";
+    // Only show spawn indicators when game is in PLAYING state
+    if (!this.currentGameState || this.currentGameState.currentState !== "PLAYING") {
+      return;
+    }
     
     try {
       const pendingSpawns = spawnManager.getPendingSpawns();
       
       pendingSpawns.forEach((spawn: any) => {
         const timeRemaining = spawnManager.getSpawnTimeRemaining(spawn);
-        if (timeRemaining > 0 && timeRemaining <= 10000) { // Only show if within 10 seconds
-          // Create a temporary monster to get its dimensions
+        const secondsRemaining = Math.ceil(timeRemaining / 1000);
+        if (timeRemaining > 0 && secondsRemaining <= 3) {
+          // Only show in final 3 seconds
+          // Create a temporary monster to get its dimensions and color
           const tempMonster = spawn.spawnPoint.createMonster();
           
-          // Draw a pulsing spawn indicator
+          // Use monster's actual color with pulsating effect
           const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
+          const monsterColor = tempMonster.color || "#ffffff";
           
-          // Draw background glow
-          this.ctx.fillStyle = `${indicatorColor}${Math.floor(pulseIntensity * 0.2 * 255).toString(16).padStart(2, '0')}`;
-          this.ctx.fillRect(tempMonster.x - 5, tempMonster.y - 5, tempMonster.width + 10, tempMonster.height + 10);
+          // Draw a pulsating filled rectangle using monster's color
+          this.ctx.fillStyle = `${monsterColor}${Math.floor(
+            pulseIntensity * 1 * 255
+          )
+            .toString(16)
+            .padStart(2, "0")}`;
+          this.ctx.fillRect(
+            tempMonster.x,
+            tempMonster.y,
+            tempMonster.width,
+            tempMonster.height
+          );
           
-          // Draw outline
-          this.ctx.strokeStyle = `${indicatorColor}${Math.floor(pulseIntensity * 255).toString(16).padStart(2, '0')}`;
-          this.ctx.lineWidth = 3;
-          this.ctx.setLineDash([8, 4]);
-          this.ctx.strokeRect(tempMonster.x, tempMonster.y, tempMonster.width, tempMonster.height);
-          this.ctx.setLineDash([]);
-          
-          // Draw spawn timer with background for better readability
-          const secondsRemaining = Math.ceil(timeRemaining / 1000);
-          const text = `Spawn in ${secondsRemaining}s`;
+          // Draw spawn timer inside the rectangle
+          const text = `${secondsRemaining}`;
           const textX = tempMonster.x + tempMonster.width / 2;
-          const textY = tempMonster.y - 15;
+          const textY = tempMonster.y + tempMonster.height / 2;
           
-          // Draw text background
-          this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-          this.ctx.font = "14px Arial";
+          // Draw text using white for contrast
+          this.ctx.fillStyle = "#ffffff"; // White text for contrast
+          this.ctx.font = "16px Arial";
           this.ctx.textAlign = "center";
-          const textMetrics = this.ctx.measureText(text);
-          const textWidth = textMetrics.width;
-          const textHeight = 16;
-          this.ctx.fillRect(textX - textWidth/2 - 4, textY - textHeight + 2, textWidth + 8, textHeight);
-          
-          // Draw text
-          this.ctx.fillStyle = `${indicatorColor}${Math.floor(pulseIntensity * 255).toString(16).padStart(2, '0')}`;
+          this.ctx.textBaseline = "middle";
           this.ctx.fillText(text, textX, textY);
         }
       });
@@ -417,6 +420,7 @@ export class RenderManager {
       this.ctx.fillStyle = text.color;
       this.ctx.font = `${text.fontSize}px Arial`;
       this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
       this.ctx.fillText(text.text, text.x, animatedY);
 
       // Reset opacity

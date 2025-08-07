@@ -160,4 +160,36 @@ export class MovementUtils {
 
     return true;
   }
+
+  /**
+   * Check if movement to new position is safe (including ground collision)
+   */
+  public static isMovementSafeWithGround(
+    monster: Monster,
+    newX: number,
+    newY: number,
+    platforms: any[],
+    ground: any
+  ): boolean {
+    // Check boundary collisions
+    if (this.isOutsideBoundaries(monster, newX, newY)) {
+      return false;
+    }
+
+    // Check platform collisions
+    for (const platform of platforms) {
+      if (this.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, platform)) {
+        return false;
+      }
+    }
+
+    // Check ground collision
+    if (ground) {
+      if (this.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, ground)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 } 

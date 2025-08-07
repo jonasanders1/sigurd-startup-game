@@ -46,10 +46,10 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const levelSlice = createLevelSlice(set, get, api);
     const { bombManager, firstBomb } = levelSlice.initializeLevel(mapData);
     
-    // Set up bombs with blinking state
+    // Set up bombs without initial blinking (blinking will start after first bomb is collected)
     const bombsWithState = mapData.bombs.map(bomb => ({
       ...bomb,
-      isBlinking: bomb.group === firstBomb?.group && bomb.order === firstBomb?.order,
+      isBlinking: false, // No initial blinking - will be set after first bomb collection
       isCollected: false,
       isCorrect: false
     }));

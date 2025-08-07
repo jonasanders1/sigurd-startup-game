@@ -39,16 +39,19 @@ export class OptimizedRespawnManager {
   // ===== CONFIGURATION =====
   private getDefaultRespawnConfig(): RespawnConfig {
     return {
-      ambusher: 15000, // 15 seconds
-      chaser: 10000,   // 10 seconds
-      floater: 20000,  // 20 seconds
-      patrol: 12000,   // 12 seconds
+      ambusher: 10000, // 10 seconds
+      chaser: 7000, // 7 seconds
+      floater: 15000, // 15 seconds
+      patrol: 8000, // 8 seconds
     };
   }
 
   public updateRespawnConfig(newConfig: Partial<RespawnConfig>): void {
     this.respawnConfig = { ...this.respawnConfig, ...newConfig };
-    logger.debug("OptimizedRespawnManager: Updated respawn configuration", this.respawnConfig);
+    logger.debug(
+      "OptimizedRespawnManager: Updated respawn configuration",
+      this.respawnConfig
+    );
   }
 
   public getRespawnConfig(): RespawnConfig {
@@ -71,13 +74,21 @@ export class OptimizedRespawnManager {
     monster.isDead = true;
     monster.isActive = false;
     monster.deathTime = Date.now();
-    monster.respawnTime = monster.deathTime + this.getRespawnDelay(monster.type);
+    monster.respawnTime =
+      monster.deathTime + this.getRespawnDelay(monster.type);
 
     // Add to dead monsters list (sorted by respawn time for efficient processing)
-    const deadMonster: DeadMonster = { monster, respawnTime: monster.respawnTime };
+    const deadMonster: DeadMonster = {
+      monster,
+      respawnTime: monster.respawnTime,
+    };
     this.insertSorted(deadMonster);
 
-    logger.monster(`${monster.type} killed - respawning in ${this.getRespawnDelay(monster.type) / 1000}s`);
+    logger.monster(
+      `${monster.type} killed - respawning in ${
+        this.getRespawnDelay(monster.type) / 1000
+      }s`
+    );
   }
 
   private insertSorted(deadMonster: DeadMonster): void {
@@ -100,7 +111,7 @@ export class OptimizedRespawnManager {
   // ===== UPDATE LOOP =====
   public update(): Monster[] {
     const currentTime = Date.now();
-    
+
     // Throttle updates for better performance
     if (currentTime - this.lastUpdateTime < this.updateInterval) {
       return [];
@@ -115,14 +126,21 @@ export class OptimizedRespawnManager {
     const monstersToRespawn: Monster[] = [];
 
     // Process respawns (since array is sorted, we can process from the beginning)
-    while (this.deadMonsters.length > 0 && this.deadMonsters[0].respawnTime <= currentTime) {
+    while (
+      this.deadMonsters.length > 0 &&
+      this.deadMonsters[0].respawnTime <= currentTime
+    ) {
       const deadMonster = this.deadMonsters.shift()!;
       const respawnedMonster = this.respawnMonster(deadMonster.monster);
       monstersToRespawn.push(respawnedMonster);
     }
 
     if (monstersToRespawn.length > 0) {
-      logger.monster(`Respawning ${monstersToRespawn.length} monsters: ${monstersToRespawn.map(m => m.type).join(', ')}`);
+      logger.monster(
+        `Respawning ${monstersToRespawn.length} monsters: ${monstersToRespawn
+          .map((m) => m.type)
+          .join(", ")}`
+      );
     }
 
     return monstersToRespawn;
@@ -145,19 +163,22 @@ export class OptimizedRespawnManager {
 
   private respawnMonster(monster: Monster): Monster {
     const spawnPoint = monster.originalSpawnPoint!;
-    
+
     // Reset monster state
     this.resetMonsterState(monster, spawnPoint);
-    
+
     // Reset individual scaling for this monster
     this.scalingManager.resetMonsterScaling(monster);
 
     logger.monster(`${monster.type} respawned`);
-    
+
     return monster;
   }
 
-  private resetMonsterState(monster: Monster, spawnPoint: { x: number; y: number }): void {
+  private resetMonsterState(
+    monster: Monster,
+    spawnPoint: { x: number; y: number }
+  ): void {
     // Reset basic state
     monster.isDead = false;
     monster.isActive = true;
@@ -165,18 +186,18 @@ export class OptimizedRespawnManager {
     monster.y = spawnPoint.y;
     monster.isFrozen = false;
     monster.isBlinking = false;
-    
+
     // Reset movement properties
     monster.velocityX = 0;
     monster.velocityY = 0;
     monster.isGrounded = false;
     monster.isFalling = false;
     monster.currentPlatform = null;
-    
+
     // Reset behavior state
     monster.behaviorState = undefined;
     monster.lastDirectionChange = undefined;
-    
+
     // Clear respawn properties
     monster.deathTime = undefined;
     monster.respawnTime = undefined;
@@ -194,7 +215,9 @@ export class OptimizedRespawnManager {
       case "VERTICAL_PATROL":
         return this.respawnConfig.patrol;
       default:
-        logger.warn(`Unknown monster type for respawn delay: ${monsterType}, using default`);
+        logger.warn(
+          `Unknown monster type for respawn delay: ${monsterType}, using default`
+        );
         return this.respawnConfig.patrol;
     }
   }
@@ -205,7 +228,7 @@ export class OptimizedRespawnManager {
   }
 
   public getDeadMonsters(): Monster[] {
-    return this.deadMonsters.map(dm => dm.monster);
+    return this.deadMonsters.map((dm) => dm.monster);
   }
 
   public getRespawnTimeRemaining(monster: Monster): number {
@@ -216,7 +239,9 @@ export class OptimizedRespawnManager {
   }
 
   public getNextRespawnTime(): number | null {
-    return this.deadMonsters.length > 0 ? this.deadMonsters[0].respawnTime : null;
+    return this.deadMonsters.length > 0
+      ? this.deadMonsters[0].respawnTime
+      : null;
   }
 
   public reset(): void {
@@ -227,11 +252,13 @@ export class OptimizedRespawnManager {
 
   public setUpdateInterval(intervalMs: number): void {
     this.updateInterval = intervalMs;
-    logger.debug(`OptimizedRespawnManager: Update interval set to ${intervalMs}ms`);
+    logger.debug(
+      `OptimizedRespawnManager: Update interval set to ${intervalMs}ms`
+    );
   }
 
   public cleanup(): void {
     this.deadMonsters = [];
     this.lastUpdateTime = 0;
   }
-} 
+}

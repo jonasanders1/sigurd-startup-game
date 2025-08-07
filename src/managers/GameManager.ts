@@ -13,7 +13,11 @@ import { AudioManager } from "./AudioManager";
 import { AudioEvent } from "../types/enums";
 import { playerSprite } from "../entities/Player";
 import { AnimationController } from "../lib/AnimationController";
-import { sendGameReady, sendGameStateUpdate, sendMapCompletionData } from "../lib/communicationUtils";
+import {
+  sendGameReady,
+  sendGameStateUpdate,
+  sendMapCompletionData,
+} from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 
 export class GameManager {
@@ -42,16 +46,16 @@ export class GameManager {
     this.animationController = new AnimationController(playerSprite);
     this.scalingManager = ScalingManager.getInstance();
     this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
-    
+
     // Initialize monster spawn manager with empty array initially
     this.monsterSpawnManager = new OptimizedSpawnManager();
-    
+
     // Bind the game loop once to prevent multiple instances
     this.boundGameLoop = this.gameLoop.bind(this);
-    
+
     // Set AudioManager reference in store for settings updates
     const gameState = useGameStore.getState();
-    if ('setAudioManager' in gameState) {
+    if ("setAudioManager" in gameState) {
       gameState.setAudioManager(this.audioManager);
     }
   }
@@ -66,14 +70,14 @@ export class GameManager {
       // Reset game state to ensure fresh start
       const gameState = useGameStore.getState();
       gameState.resetGame();
-      
+
       // Initialize first level normally
       this.loadCurrentLevel();
     }
-    
+
     // Send game ready signal to host
     sendGameReady();
-    
+
     this.gameLoop(0);
   }
 
@@ -82,7 +86,7 @@ export class GameManager {
 
     // Reset game state first
     gameState.resetGameState();
-    
+
     // Apply mock data AFTER reset
     gameState.addScore(DEV_CONFIG.MOCK_DATA.score);
 
@@ -152,16 +156,19 @@ export class GameManager {
         gameState.setMenuType(MenuType.GAME_OVER);
         break;
       default:
-        log.warn(
-          `Unknown DEV_MODE target state: ${DEV_CONFIG.TARGET_STATE}`
-        );
+        log.warn(`Unknown DEV_MODE target state: ${DEV_CONFIG.TARGET_STATE}`);
         gameState.setState(GameState.MENU);
         gameState.setMenuType(MenuType.START);
     }
 
     // Set multiplier LAST to override any automatic calculations
-    log.dev(`DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x with ${DEV_CONFIG.MOCK_DATA.multiplierScore} progress`);
-    gameState.setMultiplier(DEV_CONFIG.MOCK_DATA.multiplier, DEV_CONFIG.MOCK_DATA.multiplierScore);
+    log.dev(
+      `DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x with ${DEV_CONFIG.MOCK_DATA.multiplierScore} progress`
+    );
+    gameState.setMultiplier(
+      DEV_CONFIG.MOCK_DATA.multiplier,
+      DEV_CONFIG.MOCK_DATA.multiplierScore
+    );
 
     log.dev(
       `DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}, level: ${DEV_CONFIG.TARGET_LEVEL}`
@@ -191,35 +198,49 @@ export class GameManager {
 
       // Reset animation controller state when loading new level
       this.animationController.reset();
-      
+
       // Start difficulty scaling for this map
       this.scalingManager.startMap();
-      
+
       // Load parallax background for this level based on map name (non-blocking)
       this.renderManager.loadMapBackground(mapDefinition.name);
-      
+
       // Initialize monster spawn manager with map-specific spawn points
       if (mapDefinition.monsterSpawnPoints) {
-        log.info(`GameManager: Initializing MonsterSpawnManager with ${mapDefinition.monsterSpawnPoints.length} spawn points`);
-        this.monsterSpawnManager.initializeLevel(mapDefinition.monsterSpawnPoints);
+        log.info(
+          `GameManager: Initializing MonsterSpawnManager with ${mapDefinition.monsterSpawnPoints.length} spawn points`
+        );
+        this.monsterSpawnManager.initializeLevel(
+          mapDefinition.monsterSpawnPoints
+        );
       } else {
-        log.info(`GameManager: Initializing MonsterSpawnManager with no spawn points`);
+        log.info(
+          `GameManager: Initializing MonsterSpawnManager with no spawn points`
+        );
         this.monsterSpawnManager.initializeLevel([]);
       }
-      
+
       // Reset respawn manager for new level
       this.monsterRespawnManager.reset();
-      
+
       // Set up original spawn points for static monsters from the map
       if (mapDefinition.monsters) {
-        const monstersWithSpawnPoints = mapDefinition.monsters.map(monster => ({
-          ...monster,
-          originalSpawnPoint: { x: monster.x, y: monster.y }
-        }));
+        const monstersWithSpawnPoints = mapDefinition.monsters.map(
+          (monster) => ({
+            ...monster,
+            originalSpawnPoint: { x: monster.x, y: monster.y },
+          })
+        );
         gameState.updateMonsters(monstersWithSpawnPoints);
-        log.debug(`Set up original spawn points for ${monstersWithSpawnPoints.length} static monsters`);
+        log.debug(
+          `Set up original spawn points for ${monstersWithSpawnPoints.length} static monsters`
+        );
       }
-      
+
+      // Ensure coins are cleared when loading new level
+      gameState.resetCoinState();
+      log.debug("Coins reset when loading new level");
+
       // Record map start time for completion tracking
       this.mapStartTime = Date.now();
     }
@@ -377,7 +398,7 @@ export class GameManager {
     this.updatePlayer(deltaTime);
     this.updateMonsters(deltaTime);
     this.updateCoins(deltaTime);
-    
+
     // Individual scaling is now handled by ScalingManager per monster
   }
 
@@ -386,7 +407,10 @@ export class GameManager {
     let player = { ...gameState.player };
 
     // Handle pause key
-    if (this.inputManager.isKeyPressed("p") || this.inputManager.isKeyPressed("P")) {
+    if (
+      this.inputManager.isKeyPressed("p") ||
+      this.inputManager.isKeyPressed("P")
+    ) {
       if (gameState.currentState === GameState.PLAYING) {
         gameState.setState(GameState.PAUSED);
         gameState.setMenuType(MenuType.PAUSE);
@@ -487,15 +511,21 @@ export class GameManager {
     player.y += player.velocityY;
 
     // Handle boundary collisions
-    const bounds = { width: GAME_CONFIG.CANVAS_WIDTH, height: GAME_CONFIG.CANVAS_HEIGHT };
-    const boundaryResult = this.collisionManager.resolveBoundaryCollision(player, bounds);
-    
+    const bounds = {
+      width: GAME_CONFIG.CANVAS_WIDTH,
+      height: GAME_CONFIG.CANVAS_HEIGHT,
+    };
+    const boundaryResult = this.collisionManager.resolveBoundaryCollision(
+      player,
+      bounds
+    );
+
     if (boundaryResult.fellOffScreen) {
       // Player fell off screen
       gameState.loseLife();
       return;
     }
-    
+
     // Update player with boundary-resolved position
     player = boundaryResult.player;
 
@@ -509,41 +539,51 @@ export class GameManager {
     // Debug: Log that updateMonsters is being called (every 5 seconds)
     const currentTime = Date.now();
     const gameTime = (currentTime - this.mapStartTime) / 1000;
-    
-    if (Math.floor(gameTime / 5) !== Math.floor((gameTime - deltaTime / 1000) / 5)) {
-      log.debug(`GameManager.updateMonsters() called at ${gameTime.toFixed(1)}s`);
+
+    if (
+      Math.floor(gameTime / 5) !== Math.floor((gameTime - deltaTime / 1000) / 5)
+    ) {
+      log.debug(
+        `GameManager.updateMonsters() called at ${gameTime.toFixed(1)}s`
+      );
     }
-    
+
     // Update monster spawn manager (handles spawning and behavior)
     this.monsterSpawnManager.update(currentTime, deltaTime);
-    
+
     // Update respawn manager - get any monsters that should respawn
     const respawnedMonsters = this.monsterRespawnManager.update();
-    
+
     // Get fresh game state after monster spawning
     const gameState = useGameStore.getState();
-  
+
     // Add any respawned monsters back to the active monsters list
     let monsters = gameState.monsters;
     if (respawnedMonsters.length > 0) {
       monsters = [...monsters, ...respawnedMonsters];
-      log.debug(`Added ${respawnedMonsters.length} respawned monsters to active list: ${respawnedMonsters.map(m => m.type).join(', ')}`);
+      log.debug(
+        `Added ${
+          respawnedMonsters.length
+        } respawned monsters to active list: ${respawnedMonsters
+          .map((m) => m.type)
+          .join(", ")}`
+      );
     }
 
     // Debug: Log respawn status
     const deadMonsterCount = this.monsterRespawnManager.getDeadMonsterCount();
     if (deadMonsterCount > 0) {
-      log.debug(`Respawn system: ${deadMonsterCount} monsters waiting to respawn`);
+      log.debug(
+        `Respawn system: ${deadMonsterCount} monsters waiting to respawn`
+      );
     }
 
     // Update the game state with any new monsters
     gameState.updateMonsters(monsters);
-    
+
     // All monster behavior (including scaling) is now handled by MonsterBehaviorManager
     // through the OptimizedSpawnManager.update() call above
   }
-
-
 
   private updateCoins(deltaTime: number): void {
     const gameState = useGameStore.getState();
@@ -553,18 +593,20 @@ export class GameManager {
 
     if (ground && coinManager) {
       // Check spawn conditions for all coin types
-      coinManager.checkSpawnConditions(gameState as unknown as Record<string, unknown>);
-      
+      coinManager.checkSpawnConditions(
+        gameState as unknown as Record<string, unknown>
+      );
+
       // Let CoinManager handle all coin physics updates
       coinManager.update(platforms, ground, gameState);
-      
+
       // Update the store with the latest coin state
       gameState.setCoins(coinManager.getCoins());
-      
+
       // Update monster states based on power mode
       gameState.updateMonsterStates(gameState.monsters);
     }
-    
+
     // Update floating texts (remove expired ones)
     gameState.updateFloatingTexts();
   }
@@ -649,7 +691,7 @@ export class GameManager {
     if (collectedBomb) {
       this.audioManager.playSound(AudioEvent.BOMB_COLLECT);
       const result = gameState.collectBomb(collectedBomb.order);
-      
+
       // Check if this was a firebomb (correct order) to trigger coin spawning
       if (result && result.isCorrect) {
         gameState.onFirebombCollected();
@@ -663,12 +705,12 @@ export class GameManager {
     );
     if (collectedCoin) {
       this.audioManager.playSound(AudioEvent.COIN_COLLECT);
-      
+
       // Let the coin slice handle the collection (it will call coinManager.collectCoin internally)
       gameState.collectCoin(collectedCoin);
-      
+
       // If it's a power coin, play special sound
-      if (collectedCoin.type === 'POWER') {
+      if (collectedCoin.type === "POWER") {
         this.audioManager.playSound(AudioEvent.POWER_COIN_ACTIVATE);
       }
     }
@@ -684,14 +726,16 @@ export class GameManager {
         log.dev("God mode enabled - player is invincible to monsters");
         return; // Ignore monster collision entirely
       }
-      
+
       // Check if power mode is active - if so, kill the monster instead
       if (gameState.activeEffects.powerMode) {
         // Monster is killed during power mode - use progressive bonus system
-        const points = gameState.coinManager?.calculateMonsterKillPoints(gameState.multiplier) || 
-                      (GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier); // Fallback
+        const points =
+          gameState.coinManager?.calculateMonsterKillPoints(
+            gameState.multiplier
+          ) || GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier; // Fallback
         gameState.addScore(points);
-        
+
         // Show floating text for monster kill points
         if (gameState.addFloatingText) {
           const text = points.toString();
@@ -704,17 +748,17 @@ export class GameManager {
             15 // fontSize
           );
         }
-        
+
         // Notify coin manager about points earned (not bonus)
         if (gameState.coinManager) {
           gameState.coinManager.onPointsEarned(points, false);
         }
-        
+
         log.debug(`Monster killed during power mode: ${points} points`);
-        
+
         // Play monster kill sound (same as coin collect sound)
         this.audioManager.playSound(AudioEvent.COIN_COLLECT);
-        
+
         // Kill the monster and schedule it for respawn
         this.monsterRespawnManager.killMonster(hitMonster);
       } else {
@@ -727,7 +771,7 @@ export class GameManager {
 
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
-    
+
     // Check if this will be the last life before calling loseLife
     if (gameState.lives <= 1) {
       // This will be the last life - just call loseLife and let it handle game over
@@ -749,7 +793,13 @@ export class GameManager {
 
       // Reset difficulty to base values when player dies
       this.scalingManager.resetOnDeath();
-      log.debug("ScalingManager: Reset difficulty to base values after player death");
+      log.debug(
+        "ScalingManager: Reset difficulty to base values after player death"
+      );
+
+      // Reset coins when player dies
+      gameState.resetCoinState();
+      log.debug("Coins reset after player death");
 
       // Reset player position
       gameState.setPlayerPosition(
@@ -821,8 +871,10 @@ export class GameManager {
     // Clear floating texts when map is completed
     gameState.clearAllFloatingTexts();
 
-    // Reset coin effects when map is completed
+    // Reset coin effects and state when map is completed
     gameState.resetEffects();
+    gameState.resetCoinState();
+    log.debug("Coins reset when map is cleared");
 
     // Record the level result when level is completed
     if (gameState.currentMap) {
@@ -857,7 +909,7 @@ export class GameManager {
         coinsCollected: coinsCollected,
         powerModeActivations: powerModeActivations,
       };
-      
+
       sendMapCompletionData(mapCompletionData);
     }
 
@@ -867,7 +919,7 @@ export class GameManager {
       gameState.setState(GameState.BONUS);
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
       gameState.addScore(bonusPoints);
-      
+
       // Notify coin manager about bonus points (these should not trigger B-coin spawning)
       if (gameState.coinManager) {
         gameState.coinManager.onPointsEarned(bonusPoints, true);
@@ -883,9 +935,11 @@ export class GameManager {
     const nextLevel = gameState.currentLevel + 1;
 
     if (nextLevel <= mapDefinitions.length) {
-      // Reset coin effects before loading new level
+      // Reset coin effects and state before loading new level
       gameState.resetEffects();
-      
+      gameState.resetCoinState();
+      log.debug("Coins reset when proceeding to next level");
+
       gameState.nextLevel();
       this.loadCurrentLevel();
       // Always show countdown when transitioning to next level
@@ -927,7 +981,8 @@ export class GameManager {
       gameState.floatingTexts,
       gameState.coinManager,
       this.monsterSpawnManager,
-      gameState.currentMap
+      gameState.currentMap,
+      gameState
     );
   }
 

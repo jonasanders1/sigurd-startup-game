@@ -71,8 +71,8 @@ export class AmbusherMovement {
         const newX = monster.x + frameSpeed * normX;
         const newY = monster.y + frameSpeed * normY;
 
-        // Check if new position is safe (platforms and boundaries)
-        if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
+        // Check if new position is safe (platforms, boundaries, and ground)
+        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, gameState.ground)) {
           monster.x = newX;
           monster.y = newY;
         } else {
@@ -117,8 +117,8 @@ export class AmbusherMovement {
         const newX = monster.x + frameSpeed * normX;
         const newY = monster.y + frameSpeed * normY;
 
-        // Check if movement is safe (platforms and boundaries)
-        if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
+        // Check if movement is safe (platforms, boundaries, and ground)
+        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, gameState.ground)) {
           monster.x = newX;
           monster.y = newY;
         } else {
