@@ -196,6 +196,7 @@ export interface MapDefinition {
   coinSpawnPoints?: CoinSpawnPoint[];
   monsterSpawnPoints?: MonsterSpawnPoint[];
   background?: string;
+  spawnIndicatorColor?: string; // Color for spawn/respawn indicators
 
   groupSequence: number[];
   timeLimit?: number;

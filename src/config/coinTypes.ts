@@ -59,7 +59,7 @@ export const COIN_EFFECTS = {
       }
       
       // Log the actual duration being used
-      console.log(`⚡ Power mode activated for ${(duration/1000).toFixed(1)}s`);
+      // Removed console.log to avoid duplicate logging
     },
     remove: (gameState: GameStateInterface) => {
       // Unfreeze monsters (safely handle undefined monsters)
@@ -74,7 +74,7 @@ export const COIN_EFFECTS = {
       try {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.resumeFromPowerMode();
-        console.log("⚡ Power mode ended");
+        // Removed console.log to avoid duplicate logging
       } catch (error) {
         console.log("Could not resume difficulty scaling (ScalingManager not available)");
       }

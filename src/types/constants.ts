@@ -84,9 +84,9 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 1, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  TARGET_LEVEL: 2, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
-  GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)
+  GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
 
   MOCK_DATA: {
     score: 15000,

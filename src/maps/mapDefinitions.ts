@@ -78,6 +78,7 @@ export const level1Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#00ffff", // Cyan for light background
 
   groupSequence: [1, 2, 3, 4, 5],
 
@@ -183,27 +184,27 @@ export const level1Map: MapDefinition = {
 
   monsterSpawnPoints: [
     // // Test monster - spawns immediately
-    // {
-    //   spawnDelay: 4000,
-    //   createMonster: () =>
-    //     createHorizontalPatrolMonster(
-    //       430, // platformX
-    //       430, // platformWidth
-    //       200,
-    //       "left", // spawnSide
-    //       1, // walkLengths
-    //       1.0 // speed
-    //     ),
-    // },
+    {
+      spawnDelay: 4000,
+      createMonster: () =>
+        createHorizontalPatrolMonster(
+          430, // platformX
+          430, // platformWidth
+          200,
+          "left", // spawnSide
+          1, // walkLengths
+          1.0 // speed
+        ),
+    },
     // // Another test monster - spawns immediately at different location
     // {
-    //   spawnDelay: 10000, // Spawn immediately
+    //   spawnDelay: 10000, // 10 seconds
     //   createMonster: () => createFloaterMonster(50, 500, 45, 1),
     // },
-    // {
-    //   spawnDelay: 20000,
-    //   createMonster: () => createAmbusherMonster(500, 500, 1),
-    // },
+    {
+      spawnDelay: 5000,
+      createMonster: () => createAmbusherMonster(500, 500, 1),
+    },
   ],
 
   monsters: [
@@ -221,6 +222,7 @@ export const level2Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#ff6b6b", // Red-orange for dark background
 
   groupSequence: [1, 2, 3, 4, 5],
 
@@ -345,6 +347,7 @@ export const level2Map: MapDefinition = {
     createHorizontalPatrolMonster(300, 240, 200, "left", 0, 1),
     createFloaterMonster(50, 300, 45, 1),
     createFloaterMonster(750, 500, 155, 1),
+    // createAmbusherMonster(50, 500),
   ],
 };
 
@@ -355,6 +358,7 @@ export const level3Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#4ecdc4", // Teal for blue-gray background
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
@@ -454,8 +458,8 @@ export const level3Map: MapDefinition = {
         createAmbusherMonster(
           50, // startX
           550, // startY
-          1.5, // speed
-          500 // updateInterval
+          1.0, // speed (reduced from 1.5)
+          8000 // ambushInterval (increased from 500 to match new base value)
         ),
     },
   ],
@@ -468,6 +472,7 @@ export const level4Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#ffe66d", // Yellow for green background
 
   groupSequence: [1, 2, 3, 4, 5],
 
@@ -589,8 +594,8 @@ export const level4Map: MapDefinition = {
         createAmbusherMonster(
           50, // startX
           50, // startY
-          2, // speed
-          300 // updateInterval
+          1.2, // speed (reduced from 2)
+          8000 // ambushInterval (increased from 300 to match new base value)
         ),
     },
     {
@@ -599,8 +604,8 @@ export const level4Map: MapDefinition = {
         createAmbusherMonster(
           50, // startX
           50, // startY
-          2, // speed
-          300 // updateInterval
+          1.2, // speed (reduced from 2)
+          8000 // ambushInterval (increased from 300 to match new base value)
         ),
     },
     {
@@ -642,6 +647,7 @@ export const level5Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#a8e6cf", // Light green for purple background
 
   groupSequence: [1, 2, 3, 4, 5, 6],
 
@@ -1068,6 +1074,7 @@ export const level6Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#ff9ff3", // Pink for blue background
 
   groupSequence: [1, 2, 3, 4, 5, 6],
 
@@ -1493,6 +1500,7 @@ export const level7Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#feca57", // Orange for dark gray background
 
   groupSequence: [1, 2, 3, 4, 5],
 

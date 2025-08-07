@@ -27,6 +27,8 @@ export class RenderManager {
   private lastTime: number = 0;
   private backgroundManager: BackgroundManager;
   private bombSprites: Map<number, SpriteInstance> = new Map(); // Individual sprites for each bomb
+  private currentSpawnManager: any = null;
+  private currentMap: any = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -43,8 +45,13 @@ export class RenderManager {
     ground: Ground | null,
     coins: Coin[] = [],
     floatingTexts: FloatingText[] = [],
-    coinManager?: CoinManagerInterface
+    coinManager?: CoinManagerInterface,
+    spawnManager?: any,
+    currentMap?: any
   ): void {
+    // Store spawn manager and current map for use in indicator rendering
+    this.currentSpawnManager = spawnManager;
+    this.currentMap = currentMap;
     const currentTime = Date.now();
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
@@ -283,10 +290,16 @@ export class RenderManager {
 
     // Render respawn indicators for dead monsters
     this.renderRespawnIndicators(monsters);
+    
+    // Render spawn indicators for pending dynamic spawns
+    this.renderSpawnIndicators(this.currentSpawnManager);
   }
 
   private renderRespawnIndicators(monsters: Monster[]): void {
     const respawnManager = OptimizedRespawnManager.getInstance();
+    
+    // Get indicator color from current map, fallback to white
+    const indicatorColor = this.currentMap?.spawnIndicatorColor || "#ffffff";
     
     monsters.forEach((monster) => {
       if (monster.isDead && monster.originalSpawnPoint) {
@@ -295,26 +308,91 @@ export class RenderManager {
           // Draw respawn indicator at original spawn point
           const spawnPoint = monster.originalSpawnPoint;
           
-          // Draw a ghostly outline
-          this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+          // Draw a ghostly outline with map-specific color
+          this.ctx.strokeStyle = `${indicatorColor}80`; // 50% opacity
           this.ctx.lineWidth = 2;
           this.ctx.setLineDash([5, 5]);
           this.ctx.strokeRect(spawnPoint.x, spawnPoint.y, monster.width, monster.height);
           this.ctx.setLineDash([]);
           
-          // Draw respawn timer
+          // Draw respawn timer with background for better readability
           const secondsRemaining = Math.ceil(timeRemaining / 1000);
-          this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+          const text = `${secondsRemaining}s`;
+          const textX = spawnPoint.x + monster.width / 2;
+          const textY = spawnPoint.y - 10;
+          
+          // Draw text background
+          this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
           this.ctx.font = "12px Arial";
           this.ctx.textAlign = "center";
-          this.ctx.fillText(
-            `${secondsRemaining}s`, 
-            spawnPoint.x + monster.width / 2, 
-            spawnPoint.y - 10
-          );
+          const textMetrics = this.ctx.measureText(text);
+          const textWidth = textMetrics.width;
+          const textHeight = 14;
+          this.ctx.fillRect(textX - textWidth/2 - 3, textY - textHeight + 2, textWidth + 6, textHeight);
+          
+          // Draw text
+          this.ctx.fillStyle = `${indicatorColor}cc`; // 80% opacity
+          this.ctx.fillText(text, textX, textY);
         }
       }
     });
+  }
+
+  private renderSpawnIndicators(spawnManager?: any): void {
+    if (!spawnManager) {
+      return;
+    }
+    
+    // Get indicator color from current map, fallback to cyan
+    const indicatorColor = this.currentMap?.spawnIndicatorColor || "#00ffff";
+    
+    try {
+      const pendingSpawns = spawnManager.getPendingSpawns();
+      
+      pendingSpawns.forEach((spawn: any) => {
+        const timeRemaining = spawnManager.getSpawnTimeRemaining(spawn);
+        if (timeRemaining > 0 && timeRemaining <= 10000) { // Only show if within 10 seconds
+          // Create a temporary monster to get its dimensions
+          const tempMonster = spawn.spawnPoint.createMonster();
+          
+          // Draw a pulsing spawn indicator
+          const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
+          
+          // Draw background glow
+          this.ctx.fillStyle = `${indicatorColor}${Math.floor(pulseIntensity * 0.2 * 255).toString(16).padStart(2, '0')}`;
+          this.ctx.fillRect(tempMonster.x - 5, tempMonster.y - 5, tempMonster.width + 10, tempMonster.height + 10);
+          
+          // Draw outline
+          this.ctx.strokeStyle = `${indicatorColor}${Math.floor(pulseIntensity * 255).toString(16).padStart(2, '0')}`;
+          this.ctx.lineWidth = 3;
+          this.ctx.setLineDash([8, 4]);
+          this.ctx.strokeRect(tempMonster.x, tempMonster.y, tempMonster.width, tempMonster.height);
+          this.ctx.setLineDash([]);
+          
+          // Draw spawn timer with background for better readability
+          const secondsRemaining = Math.ceil(timeRemaining / 1000);
+          const text = `Spawn in ${secondsRemaining}s`;
+          const textX = tempMonster.x + tempMonster.width / 2;
+          const textY = tempMonster.y - 15;
+          
+          // Draw text background
+          this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+          this.ctx.font = "14px Arial";
+          this.ctx.textAlign = "center";
+          const textMetrics = this.ctx.measureText(text);
+          const textWidth = textMetrics.width;
+          const textHeight = 16;
+          this.ctx.fillRect(textX - textWidth/2 - 4, textY - textHeight + 2, textWidth + 8, textHeight);
+          
+          // Draw text
+          this.ctx.fillStyle = `${indicatorColor}${Math.floor(pulseIntensity * 255).toString(16).padStart(2, '0')}`;
+          this.ctx.fillText(text, textX, textY);
+        }
+      });
+    } catch (error) {
+      // Silently fail if spawn manager is not available
+      // This prevents errors when the game is not fully initialized
+    }
   }
 
   private renderFloatingTexts(

@@ -28,6 +28,14 @@ export class FloaterMovement {
       this.initializeVelocity(monster, valuesToUse.floater.speed);
     }
 
+    // Update velocity magnitude with current scaled speed (but preserve direction)
+    const currentSpeed = Math.sqrt(monster.velocityX * monster.velocityX + monster.velocityY * monster.velocityY);
+    if (currentSpeed > 0) {
+      const speedRatio = valuesToUse.floater.speed / currentSpeed;
+      monster.velocityX *= speedRatio;
+      monster.velocityY *= speedRatio;
+    }
+
     // Move in straight line based on velocity (frame-rate independent)
     const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
     const newX = monster.x + monster.velocityX * frameMultiplier;

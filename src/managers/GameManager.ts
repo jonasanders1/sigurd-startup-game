@@ -506,9 +506,15 @@ export class GameManager {
   }
 
   private updateMonsters(deltaTime: number): void {
-    // Update monster spawn manager (handles spawning and behavior)
+    // Debug: Log that updateMonsters is being called (every 5 seconds)
     const currentTime = Date.now();
+    const gameTime = (currentTime - this.mapStartTime) / 1000;
     
+    if (Math.floor(gameTime / 5) !== Math.floor((gameTime - deltaTime / 1000) / 5)) {
+      log.debug(`GameManager.updateMonsters() called at ${gameTime.toFixed(1)}s`);
+    }
+    
+    // Update monster spawn manager (handles spawning and behavior)
     this.monsterSpawnManager.update(currentTime, deltaTime);
     
     // Update respawn manager - get any monsters that should respawn
@@ -517,32 +523,8 @@ export class GameManager {
     // Get fresh game state after monster spawning
     const gameState = useGameStore.getState();
   
-    // Update existing monsters with basic movement (for static monsters from map)
-    let monsters = gameState.monsters.map((monster) => {
-      if (!monster.isActive) return monster;
-
-      // Don't move monsters if they are frozen
-      if (monster.isFrozen) return monster;
-
-      // Only apply basic patrol AI to static monsters (not dynamically spawned ones)
-      // Exclude vertical patrol monsters as they have their own movement system
-      if (!monster.spawnTime && monster.type === "HORIZONTAL_PATROL") {
-        // Simple patrol AI for static horizontal patrol monsters
-        const newX = monster.x + monster.speed * monster.direction;
-
-        // Check patrol bounds (map boundaries are handled by MonsterBehaviorManager)
-        const patrolMonster = monster as any; // We know it's HORIZONTAL_PATROL
-        if (newX <= patrolMonster.patrolStartX || newX >= patrolMonster.patrolEndX) {
-          monster.direction *= -1;
-        } else {
-          monster.x = newX;
-        }
-      }
-
-      return monster;
-    });
-
     // Add any respawned monsters back to the active monsters list
+    let monsters = gameState.monsters;
     if (respawnedMonsters.length > 0) {
       monsters = [...monsters, ...respawnedMonsters];
       log.debug(`Added ${respawnedMonsters.length} respawned monsters to active list: ${respawnedMonsters.map(m => m.type).join(', ')}`);
@@ -554,22 +536,11 @@ export class GameManager {
       log.debug(`Respawn system: ${deadMonsterCount} monsters waiting to respawn`);
     }
 
-    // Individual scaling is now handled by ScalingManager
-
-    // log.debug(`GameManager: After monster updates, total monsters: ${monsters.length}`, {
-    //   monsters: monsters.map(m => ({ 
-    //     type: m.type, 
-    //     x: m.x, 
-    //     y: m.y, 
-    //     isActive: m.isActive, 
-    //     spawnTime: m.spawnTime,
-    //     width: m.width,
-    //     height: m.height,
-    //     color: m.color
-    //   }))
-    // });
-
+    // Update the game state with any new monsters
     gameState.updateMonsters(monsters);
+    
+    // All monster behavior (including scaling) is now handled by MonsterBehaviorManager
+    // through the OptimizedSpawnManager.update() call above
   }
 
 
@@ -954,7 +925,9 @@ export class GameManager {
       gameState.ground,
       gameState.coins,
       gameState.floatingTexts,
-      gameState.coinManager
+      gameState.coinManager,
+      this.monsterSpawnManager,
+      gameState.currentMap
     );
   }
 
@@ -974,5 +947,15 @@ export class GameManager {
         isPaused: this.monsterRespawnManager.isPaused(),
       },
     };
+  }
+
+  // Debug method to check spawn status
+  public getSpawnStatus(): any {
+    return this.monsterSpawnManager.getSpawnStatus();
+  }
+
+  // Expose spawn manager for render manager
+  public getSpawnManager(): OptimizedSpawnManager {
+    return this.monsterSpawnManager;
   }
 }

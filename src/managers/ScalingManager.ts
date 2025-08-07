@@ -26,8 +26,14 @@ export class ScalingManager {
   private static instance: ScalingManager;
   private config: ScalingConfig;
   private globalPauseState: PauseState;
-  private monsterCache: Map<string, { values: MonsterScalingValues; lastUpdate: number }>;
-  private globalCache: { values: MonsterScalingValues; lastUpdate: number } | null;
+  private monsterCache: Map<
+    string,
+    { values: MonsterScalingValues; lastUpdate: number }
+  >;
+  private globalCache: {
+    values: MonsterScalingValues;
+    lastUpdate: number;
+  } | null;
   private cacheTimeout: number = 1000; // 1 second cache
 
   private constructor() {
@@ -48,22 +54,22 @@ export class ScalingManager {
   private getDefaultConfig(): ScalingConfig {
     return {
       base: {
-        ambusher: { ambushInterval: 5000, speed: 1.0 },
-        chaser: { speed: 1, directness: 0.3, updateInterval: 100 },
-        floater: { speed: 1.2, bounceAngle: 0.3 },
-        patrol: { speed: 1.0 },
+        ambusher: { ambushInterval: 5000, speed: 2 }, // Slower, less frequent ambushes
+        chaser: { speed: 1, directness: 0.3, updateInterval: 200 }, // Slower, less direct, less frequent updates
+        floater: { speed: 2, bounceAngle: 0.2 }, // Slower, less erratic
+        patrol: { speed: 1 }, // Slower patrol
       },
       scaling: {
-        ambusher: { ambushInterval: -1000, speed: 0.25 },
-        chaser: { speed: 0.2, directness: 0.05, updateInterval: -50 },
-        floater: { speed: 0.15, bounceAngle: 0.02 },
-        patrol: { speed: 1.5 },
+        ambusher: { ambushInterval: -500, speed: 0.08 }, // Increased scaling factors
+        chaser: { speed: 0.2, directness: 0.08, updateInterval: -8 }, // Increased scaling factors
+        floater: { speed: 0.5, bounceAngle: 0.008 }, // Increased scaling factors
+        patrol: { speed: 0.2 }, // Increased scaling factors
       },
       max: {
-        ambusher: { ambushInterval: 1000, speed: 3.0 },
-        chaser: { speed: 2.5, directness: 0.9, updateInterval: 50 },
-        floater: { speed: 2.0, bounceAngle: 0.8 },
-        patrol: { speed: 20.0 },
+        ambusher: { ambushInterval: 500, speed: 10 }, // Increased max values for more challenge
+        chaser: { speed: 5.0, directness: 1, updateInterval: 100 }, // Increased max values for more challenge
+        floater: { speed: 5.0, bounceAngle: 0.5 }, // Increased max values for more challenge
+        patrol: { speed: 5.0 }, // Increased max values for more challenge
       },
     };
   }
@@ -95,13 +101,18 @@ export class ScalingManager {
 
   public resume(reason: string = "default"): void {
     this.globalPauseState.pauseReasons.delete(reason);
-    
-    if (this.globalPauseState.pauseReasons.size === 0 && this.globalPauseState.isPaused) {
+
+    if (
+      this.globalPauseState.pauseReasons.size === 0 &&
+      this.globalPauseState.isPaused
+    ) {
       const pauseDuration = Date.now() - this.globalPauseState.pauseStartTime;
       this.globalPauseState.totalPausedTime += pauseDuration;
       this.globalPauseState.isPaused = false;
       this.clearCache();
-      logger.pause(`Scaling resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
+      logger.pause(
+        `Scaling resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`
+      );
     }
   }
 
@@ -143,9 +154,12 @@ export class ScalingManager {
 
   public getGlobalScaledValues(): MonsterScalingValues {
     const now = Date.now();
-    
+
     // Check cache first
-    if (this.globalCache && (now - this.globalCache.lastUpdate) < this.cacheTimeout) {
+    if (
+      this.globalCache &&
+      now - this.globalCache.lastUpdate < this.cacheTimeout
+    ) {
       return this.globalCache.values;
     }
 
@@ -178,18 +192,24 @@ export class ScalingManager {
   // ===== GLOBAL MONSTER SCALING CONTROL =====
   public pauseAllMonsterScaling(): void {
     this.pause("monster_scaling");
-    logger.pause("All monster scaling paused");
+    // Only log if this is a new pause (not already paused)
+    if (this.globalPauseState.pauseReasons.size === 1) {
+      logger.pause("All monster scaling paused");
+    }
   }
 
   public resumeAllMonsterScaling(): void {
     this.resume("monster_scaling");
-    logger.pause("All monster scaling resumed");
+    // Only log if this was the last pause reason (completely resumed)
+    if (this.globalPauseState.pauseReasons.size === 0) {
+      logger.pause("All monster scaling resumed");
+    }
   }
 
   // ===== INDIVIDUAL MONSTER SCALING =====
   public getMonsterScaledValues(monster: Monster): MonsterScalingValues {
     this.initializeMonster(monster);
-    
+
     // Check both individual and global pause states
     if (monster.individualScalingPaused || this.globalPauseState.isPaused) {
       return this.config.base;
@@ -197,14 +217,19 @@ export class ScalingManager {
 
     const cacheKey = this.getMonsterCacheKey(monster);
     const now = Date.now();
-    
+
     // Check cache first
     const cached = this.monsterCache.get(cacheKey);
-    if (cached && (now - cached.lastUpdate) < this.cacheTimeout) {
+    if (cached && now - cached.lastUpdate < this.cacheTimeout) {
       return cached.values;
     }
 
+    const oldValues = cached?.values || this.config.base;
     const values = this.calculateScaledValues(this.getMonsterAge(monster));
+
+    // Log scaling changes if values have changed significantly
+    this.logScalingChanges(monster, oldValues, values);
+
     this.monsterCache.set(cacheKey, { values, lastUpdate: now });
     return values;
   }
@@ -215,6 +240,38 @@ export class ScalingManager {
       monster.individualScalingPaused = false;
       // Store the total paused time when monster was spawned to account for future pauses
       (monster as any).spawnPauseTime = this.globalPauseState.totalPausedTime;
+
+      // Log initial scaling values
+      const baseValues = this.config.base;
+      let initialInfo = "";
+
+      switch (monster.type) {
+        case "AMBUSHER":
+          initialInfo = `ambush interval: ${
+            baseValues.ambusher.ambushInterval
+          }ms, speed: ${baseValues.ambusher.speed.toFixed(2)}`;
+          break;
+        case "CHASER":
+          initialInfo = `speed: ${baseValues.chaser.speed.toFixed(
+            2
+          )}, directness: ${baseValues.chaser.directness.toFixed(
+            3
+          )}, update interval: ${baseValues.chaser.updateInterval}ms`;
+          break;
+        case "FLOATER":
+          initialInfo = `speed: ${baseValues.floater.speed.toFixed(
+            2
+          )}, bounce angle: ${baseValues.floater.bounceAngle.toFixed(3)}`;
+          break;
+        case "HORIZONTAL_PATROL":
+        case "VERTICAL_PATROL":
+          initialInfo = `speed: ${baseValues.patrol.speed.toFixed(2)}`;
+          break;
+        default:
+          initialInfo = "base values";
+      }
+
+      logger.scaling(`${monster.type} initialized with ${initialInfo}`);
     }
   }
 
@@ -241,26 +298,152 @@ export class ScalingManager {
     const currentTime = Date.now();
     const actualElapsed = currentTime - monster.individualSpawnTime;
     // Account for pause time that occurred after this monster was spawned
-    const pauseTimeAfterSpawn = this.globalPauseState.totalPausedTime - ((monster as any).spawnPauseTime || 0);
+    const pauseTimeAfterSpawn =
+      this.globalPauseState.totalPausedTime -
+      ((monster as any).spawnPauseTime || 0);
     const adjustedElapsed = actualElapsed - pauseTimeAfterSpawn;
     const age = Math.max(0, adjustedElapsed) / 1000;
-    
+
     // Debug logging for pause system verification (only in debug mode)
     if (this.globalPauseState.isPaused && age > 0) {
-      logger.debug(`Monster age: ${monster.type} - Actual: ${(actualElapsed/1000).toFixed(1)}s, Paused: ${(pauseTimeAfterSpawn/1000).toFixed(1)}s, Adjusted: ${age.toFixed(1)}s`);
+      logger.debug(
+        `Monster age: ${monster.type} - Actual: ${(
+          actualElapsed / 1000
+        ).toFixed(1)}s, Paused: ${(pauseTimeAfterSpawn / 1000).toFixed(
+          1
+        )}s, Adjusted: ${age.toFixed(1)}s`
+      );
     }
-    
+
     return age;
   }
 
   // ===== UTILITY METHODS =====
   private getMonsterCacheKey(monster: Monster): string {
-    return `${monster.type}-${monster.individualSpawnTime || 0}`;
+    // Use monster's position and spawn time to make cache key unique per instance
+    // This ensures multiple monsters of the same type don't share the same cache
+    const position = `${Math.round(monster.x)}-${Math.round(monster.y)}`;
+    return `${monster.type}-${position}-${monster.individualSpawnTime || 0}`;
+  }
+
+  private logScalingChanges(
+    monster: Monster,
+    oldValues: MonsterScalingValues,
+    newValues: MonsterScalingValues
+  ): void {
+    const age = this.getMonsterAge(monster);
+    const intervals = Math.floor(age / 5);
+
+    // Only log if we're in a new interval (to avoid spam)
+    if (intervals > 0 && intervals % 1 === 0) {
+      const changes: string[] = [];
+
+      // Only show relevant changes for the specific monster type
+      switch (monster.type) {
+        case "AMBUSHER":
+          if (
+            Math.abs(oldValues.ambusher.speed - newValues.ambusher.speed) > 0.01
+          ) {
+            changes.push(
+              `speed: ${oldValues.ambusher.speed.toFixed(
+                2
+              )} → ${newValues.ambusher.speed.toFixed(2)}`
+            );
+          }
+          if (
+            Math.abs(
+              oldValues.ambusher.ambushInterval -
+                newValues.ambusher.ambushInterval
+            ) > 50
+          ) {
+            changes.push(
+              `ambush interval: ${oldValues.ambusher.ambushInterval}ms → ${newValues.ambusher.ambushInterval}ms`
+            );
+          }
+          break;
+
+        case "CHASER":
+          if (
+            Math.abs(oldValues.chaser.speed - newValues.chaser.speed) > 0.01
+          ) {
+            changes.push(
+              `speed: ${oldValues.chaser.speed.toFixed(
+                2
+              )} → ${newValues.chaser.speed.toFixed(2)}`
+            );
+          }
+          if (
+            Math.abs(
+              oldValues.chaser.directness - newValues.chaser.directness
+            ) > 0.01
+          ) {
+            changes.push(
+              `directness: ${oldValues.chaser.directness.toFixed(
+                3
+              )} → ${newValues.chaser.directness.toFixed(3)}`
+            );
+          }
+          if (
+            Math.abs(
+              oldValues.chaser.updateInterval - newValues.chaser.updateInterval
+            ) > 5
+          ) {
+            changes.push(
+              `update interval: ${oldValues.chaser.updateInterval}ms → ${newValues.chaser.updateInterval}ms`
+            );
+          }
+          break;
+
+        case "FLOATER":
+          if (
+            Math.abs(oldValues.floater.speed - newValues.floater.speed) > 0.01
+          ) {
+            changes.push(
+              `speed: ${oldValues.floater.speed.toFixed(
+                2
+              )} → ${newValues.floater.speed.toFixed(2)}`
+            );
+          }
+          if (
+            Math.abs(
+              oldValues.floater.bounceAngle - newValues.floater.bounceAngle
+            ) > 0.001
+          ) {
+            changes.push(
+              `bounce angle: ${oldValues.floater.bounceAngle.toFixed(
+                3
+              )} → ${newValues.floater.bounceAngle.toFixed(3)}`
+            );
+          }
+          break;
+
+        case "HORIZONTAL_PATROL":
+        case "VERTICAL_PATROL":
+          if (
+            Math.abs(oldValues.patrol.speed - newValues.patrol.speed) > 0.01
+          ) {
+            changes.push(
+              `speed: ${oldValues.patrol.speed.toFixed(
+                2
+              )} → ${newValues.patrol.speed.toFixed(2)}`
+            );
+          }
+          break;
+      }
+
+      if (changes.length > 0) {
+        logger.scaling(
+          `${monster.type} scaling (${age.toFixed(
+            1
+          )}s, interval ${intervals}): ${changes.join(", ")}`
+        );
+      }
+    }
   }
 
   private calculateScaledValues(timeElapsed: number): MonsterScalingValues {
-    const intervals = Math.floor(timeElapsed / 10);
-    
+    const intervals = Math.floor(timeElapsed / 5); // Changed from 10 to 5 seconds
+
     return {
       ambusher: {
         ambushInterval: this.calculateScaledValue(
@@ -328,7 +511,7 @@ export class ScalingManager {
     intervals: number
   ): number {
     const scaledValue = baseValue + scalingFactor * intervals;
-    return scalingFactor > 0 
+    return scalingFactor > 0
       ? Math.min(scaledValue, maxValue)
       : Math.max(scaledValue, maxValue);
   }
@@ -346,4 +529,4 @@ export class ScalingManager {
     this.clearCache();
     this.globalPauseState = this.createPauseState();
   }
-} 
+}

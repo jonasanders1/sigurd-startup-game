@@ -150,9 +150,9 @@ export const createFloaterMonster = (
 export const createChaserMonster = (
   startX: number,
   startY: number,
-  speed: number = 1,
-  directness: number = 1,
-  updateInterval: number = 500,
+  speed: number = 0.8, // Reduced from 1
+  directness: number = 0.2, // Reduced from 1
+  updateInterval: number = 200, // Reduced from 500
   spawnDelay: number = 0
 ): Monster => {
   return {
@@ -174,8 +174,8 @@ export const createChaserMonster = (
 export const createAmbusherMonster = (
   startX: number,
   startY: number,
-  speed: number = 1,
-  ambushInterval: number = 5000,
+  speed: number = 0.8, // Reduced from 1
+  ambushInterval: number = 8000, // Increased from 5000
   spawnDelay: number = 0
 ): Monster => {
   return {
@@ -225,7 +225,7 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
         y,
         speed,
         config.directness || 0.3,
-        config.updateInterval || 500
+        config.updateInterval || 200
       );
 
     case MonsterType.AMBUSHER:
@@ -233,7 +233,7 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
         x,
         y,
         speed,
-        config.ambushInterval || 5000
+        config.ambushInterval || 8000
       );
 
     default:
