@@ -183,34 +183,34 @@ export const level1Map: MapDefinition = {
 
   monsterSpawnPoints: [
     // // Test monster - spawns immediately
-    {
-      spawnDelay: 4000,
-      createMonster: () =>
-        createHorizontalPatrolMonster(
-          430, // platformX
-          430, // platformWidth
-          200,
-          "left", // spawnSide
-          1, // walkLengths
-          1.0 // speed
-        ),
-    },
-    // Another test monster - spawns immediately at different location
-    {
-      spawnDelay: 10000, // Spawn immediately
-      createMonster: () => createFloaterMonster(50, 500, 45),
-    },
-    {
-      spawnDelay: 20000,
-      createMonster: () => createAmbusherMonster(500, 500, 1),
-    },
+    // {
+    //   spawnDelay: 4000,
+    //   createMonster: () =>
+    //     createHorizontalPatrolMonster(
+    //       430, // platformX
+    //       430, // platformWidth
+    //       200,
+    //       "left", // spawnSide
+    //       1, // walkLengths
+    //       1.0 // speed
+    //     ),
+    // },
+    // // Another test monster - spawns immediately at different location
+    // {
+    //   spawnDelay: 10000, // Spawn immediately
+    //   createMonster: () => createFloaterMonster(50, 500, 45, 1),
+    // },
+    // {
+    //   spawnDelay: 20000,
+    //   createMonster: () => createAmbusherMonster(500, 500, 1),
+    // },
   ],
 
   monsters: [
-    createVerticalPatrolMonster(105, 220, 220, "right", 2, 1),
+    createVerticalPatrolMonster(105, 220, 220, "right"),
     createVerticalPatrolMonster(695, 220, 220, "right", 2, 1),
     createHorizontalPatrolMonster(170, 170, 200, "left"),
-    createChaserMonster(250, 300, 1, 0.3),
+    createChaserMonster(250, 300, 1, 0.3, 1000),
   ],
 };
 

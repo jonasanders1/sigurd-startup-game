@@ -2,20 +2,32 @@ import { Monster, isChaserMonster } from "../../types/interfaces";
 import { useGameStore } from "../../stores/gameStore";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
-import { DifficultyManager } from "../DifficultyManager";
+import { ScalingManager } from "../ScalingManager";
 
 export class ChaserMovement {
-  public update(monster: Monster, currentTime: number, gameState: any): void {
+  public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
     // Type guard to ensure this is a chaser monster
     if (!isChaserMonster(monster)) return;
+
+    // Check if game is paused
+    if (gameState.currentState !== 'PLAYING') {
+      return;
+    }
     
     // Get player position
     const player = gameState.player;
     if (!player) return;
 
-    // Get current difficulty values
-    const difficultyManager = DifficultyManager.getInstance();
-    const scaledValues = difficultyManager.getScaledValues();
+    // Get individual scaling values for this monster
+    const scalingManager = ScalingManager.getInstance();
+    const valuesToUse = scalingManager.getMonsterScaledValues(monster);
+    const baseValues = scalingManager.getBaseValues();
+    const monsterAge = scalingManager.getMonsterAge(monster);
+    
+    // Log scaling info for debugging (only in debug mode)
+    if (monsterAge < 2) {
+      logger.debug(`Chaser scaling - Age: ${monsterAge.toFixed(1)}s, Speed: ${valuesToUse.chaser.speed.toFixed(2)}`);
+    }
 
     // Initialize chaser state if not set
     if (!monster.behaviorState) {
@@ -36,13 +48,13 @@ export class ChaserMovement {
       monster.chaseTargetY = player.y + targetOffsetY;
       
       // Add random delay to prevent all chasers from updating at the same time
-      monster.lastDirectionChange = currentTime + Math.random() * scaledValues.chaser.updateInterval;
+      monster.lastDirectionChange = currentTime + Math.random() * valuesToUse.chaser.updateInterval;
     }
 
     const platforms = gameState.platforms || [];
-    // Apply individual multipliers to scaled values to preserve difficulty scaling
-    const directness = scaledValues.chaser.directness * ((monster as any).directnessMultiplier || 1);
-    const updateInterval = scaledValues.chaser.updateInterval * ((monster as any).updateIntervalMultiplier || 1);
+    // Apply individual multipliers to values to preserve difficulty scaling
+    const directness = valuesToUse.chaser.directness * ((monster as any).directnessMultiplier || 1);
+    const updateInterval = valuesToUse.chaser.updateInterval * ((monster as any).updateIntervalMultiplier || 1);
 
     // Update chase target periodically (creates "drifting" effect)
     const timeSinceLastUpdate = currentTime - (monster.lastDirectionChange || currentTime);
@@ -79,17 +91,19 @@ export class ChaserMovement {
     // Only move if we're not too close to the target (prevents jittering)
     // Increased threshold to reduce micro-movements
     if (distance > 20) {
-      // Simple direct movement - move towards target using scaled speed with individual multiplier
-      const individualSpeed = scaledValues.chaser.speed * ((monster as any).speedMultiplier || 1);
-      const moveX = Math.sign(dx) * individualSpeed;
-      const moveY = Math.sign(dy) * individualSpeed;
+      // Simple direct movement - move towards target using speed with individual multiplier (frame-rate independent)
+      const individualSpeed = valuesToUse.chaser.speed * ((monster as any).speedMultiplier || 1);
+      const frameSpeed = deltaTime ? individualSpeed * (deltaTime / 16.67) : individualSpeed; // 16.67ms = 60fps
+      const moveX = Math.sign(dx) * frameSpeed;
+      const moveY = Math.sign(dy) * frameSpeed;
       
       this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, gameState.ground);
     } else if (distance > 5) {
       // When close to target, use slower, smoother movement to prevent jittering
-      const individualSpeed = scaledValues.chaser.speed * ((monster as any).speedMultiplier || 1) * 0.5; // Half speed when close
-      const moveX = Math.sign(dx) * individualSpeed;
-      const moveY = Math.sign(dy) * individualSpeed;
+      const individualSpeed = valuesToUse.chaser.speed * ((monster as any).speedMultiplier || 1) * 0.5; // Half speed when close
+      const frameSpeed = deltaTime ? individualSpeed * (deltaTime / 16.67) : individualSpeed; // 16.67ms = 60fps
+      const moveX = Math.sign(dx) * frameSpeed;
+      const moveY = Math.sign(dy) * frameSpeed;
       
       this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, gameState.ground);
     }

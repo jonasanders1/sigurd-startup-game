@@ -13,7 +13,7 @@ import { GAME_CONFIG } from "../types/constants";
 import { CoinPhysics } from "./coinPhysics";
 import { COIN_TYPES, P_COIN_COLORS, COIN_EFFECTS } from "../config/coinTypes";
 import { log } from "../lib/logger";
-import { DifficultyManager } from "./DifficultyManager";
+import { ScalingManager } from "./ScalingManager";
 
 interface EffectData {
   endTime: number;
@@ -441,15 +441,15 @@ export class CoinManager {
           },
           difficultyManager: {
             pause: () => {
-              // Access the global difficulty manager instance
-              const difficultyManager = DifficultyManager.getInstance();
-              difficultyManager.pause();
+              // Access the global scaling manager instance
+              const scalingManager = ScalingManager.getInstance();
+              scalingManager.pause();
               log.debug("Difficulty scaling paused (power mode active)");
             },
             resume: () => {
-              // Access the global difficulty manager instance
-              const difficultyManager = DifficultyManager.getInstance();
-              difficultyManager.resume();
+              // Access the global scaling manager instance
+              const scalingManager = ScalingManager.getInstance();
+              scalingManager.resume();
               log.debug("Difficulty scaling resumed (power mode ended)");
             }
           }
@@ -467,7 +467,10 @@ export class CoinManager {
       });
     } else {
       // Legacy behavior - just use the old system for now
-      log.warn(`No coin config found for type: ${coin.type}, using legacy behavior`);
+      // Only warn if it's not a known coin type (to avoid spam)
+      if (coin.type !== CoinType.POWER && coin.type !== CoinType.BONUS_MULTIPLIER && coin.type !== CoinType.EXTRA_LIFE) {
+        log.warn(`Unknown coin type: ${coin.type}, using legacy behavior`);
+      }
       if (coin.type === CoinType.POWER) {
         this.activatePowerMode();
       }
@@ -498,13 +501,13 @@ export class CoinManager {
             },
             difficultyManager: {
               pause: () => {
-                const difficultyManager = DifficultyManager.getInstance();
-                difficultyManager.pause();
+                const scalingManager = ScalingManager.getInstance();
+                scalingManager.pause();
                 log.debug("Difficulty scaling paused (power mode active)");
               },
               resume: () => {
-                const difficultyManager = DifficultyManager.getInstance();
-                difficultyManager.resumeFromPowerMode();
+                const scalingManager = ScalingManager.getInstance();
+                scalingManager.resumeFromPowerMode();
                 log.debug("Difficulty scaling resumed (power mode ended)");
               }
             }
@@ -748,11 +751,11 @@ export class CoinManager {
     
     // Pause difficulty scaling during power mode
     try {
-      const difficultyManager = DifficultyManager.getInstance();
-      difficultyManager.pauseForPowerMode();
+      const scalingManager = ScalingManager.getInstance();
+      scalingManager.pauseForPowerMode();
       log.debug("Difficulty scaling paused (power mode active)");
     } catch (error) {
-      log.debug("Could not pause difficulty scaling (DifficultyManager not available)");
+      log.debug("Could not pause difficulty scaling (ScalingManager not available)");
     }
     
     log.debug(`Power mode activated for ${duration}ms (${duration/1000}s)`);

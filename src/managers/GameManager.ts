@@ -1,10 +1,12 @@
 import { InputManager } from "./InputManager";
 import { CollisionManager } from "./CollisionManager";
 import { RenderManager } from "./RenderManager";
-import { MonsterSpawnManager } from "./MonsterSpawnManager";
-import { DifficultyManager } from "./DifficultyManager";
+import { OptimizedSpawnManager } from "./OptimizedSpawnManager";
+import { ScalingManager } from "./ScalingManager";
+import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
+import { Monster } from "../types/interfaces";
 import { GAME_CONFIG, DEV_CONFIG } from "../types/constants";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { AudioManager } from "./AudioManager";
@@ -18,10 +20,11 @@ export class GameManager {
   private inputManager: InputManager;
   private collisionManager: CollisionManager;
   private renderManager: RenderManager;
-  private monsterSpawnManager: MonsterSpawnManager;
+  private monsterSpawnManager: OptimizedSpawnManager;
   private audioManager: AudioManager;
   private animationController: AnimationController;
-  private difficultyManager: DifficultyManager;
+  private scalingManager: ScalingManager;
+  private monsterRespawnManager: OptimizedRespawnManager;
   private animationFrameId: number | null = null;
   private lastTime = 0;
   private isBackgroundMusicPlaying = false;
@@ -37,10 +40,11 @@ export class GameManager {
     this.renderManager = new RenderManager(canvas);
     this.audioManager = new AudioManager();
     this.animationController = new AnimationController(playerSprite);
-    this.difficultyManager = DifficultyManager.getInstance();
+    this.scalingManager = ScalingManager.getInstance();
+    this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
     
     // Initialize monster spawn manager with empty array initially
-    this.monsterSpawnManager = new MonsterSpawnManager([]);
+    this.monsterSpawnManager = new OptimizedSpawnManager();
     
     // Bind the game loop once to prevent multiple instances
     this.boundGameLoop = this.gameLoop.bind(this);
@@ -189,7 +193,7 @@ export class GameManager {
       this.animationController.reset();
       
       // Start difficulty scaling for this map
-      this.difficultyManager.startMap();
+      this.scalingManager.startMap();
       
       // Load parallax background for this level based on map name (non-blocking)
       this.renderManager.loadMapBackground(mapDefinition.name);
@@ -201,6 +205,19 @@ export class GameManager {
       } else {
         log.info(`GameManager: Initializing MonsterSpawnManager with no spawn points`);
         this.monsterSpawnManager.initializeLevel([]);
+      }
+      
+      // Reset respawn manager for new level
+      this.monsterRespawnManager.reset();
+      
+      // Set up original spawn points for static monsters from the map
+      if (mapDefinition.monsters) {
+        const monstersWithSpawnPoints = mapDefinition.monsters.map(monster => ({
+          ...monster,
+          originalSpawnPoint: { x: monster.x, y: monster.y }
+        }));
+        gameState.updateMonsters(monstersWithSpawnPoints);
+        log.debug(`Set up original spawn points for ${monstersWithSpawnPoints.length} static monsters`);
       }
       
       // Record map start time for completion tracking
@@ -312,13 +329,17 @@ export class GameManager {
     // Pause difficulty scaling and monster spawning when game is not in PLAYING state
     if (currentState === GameState.PLAYING) {
       // Only resume if not paused by power mode
-      if (!this.difficultyManager.isCurrentlyPausedByPowerMode()) {
-        this.difficultyManager.resume();
+      if (!this.scalingManager.isCurrentlyPausedByPowerMode()) {
+        this.scalingManager.resume();
       }
+      this.scalingManager.resumeAllMonsterScaling();
       this.monsterSpawnManager.resume();
+      this.monsterRespawnManager.resume();
     } else {
-      this.difficultyManager.pause();
+      this.scalingManager.pause();
+      this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
+      this.monsterRespawnManager.pause();
     }
   }
 
@@ -357,8 +378,7 @@ export class GameManager {
     this.updateMonsters(deltaTime);
     this.updateCoins(deltaTime);
     
-    // Check difficulty updates regularly (this will trigger logs every 10 seconds)
-    this.difficultyManager.getScaledValues();
+    // Individual scaling is now handled by ScalingManager per monster
   }
 
   private updatePlayer(deltaTime: number): void {
@@ -489,15 +509,16 @@ export class GameManager {
     // Update monster spawn manager (handles spawning and behavior)
     const currentTime = Date.now();
     
-    // log.debug(`GameManager: Updating monsters at time ${currentTime}`);
-    this.monsterSpawnManager.update(currentTime);
+    this.monsterSpawnManager.update(currentTime, deltaTime);
+    
+    // Update respawn manager - get any monsters that should respawn
+    const respawnedMonsters = this.monsterRespawnManager.update();
     
     // Get fresh game state after monster spawning
     const gameState = useGameStore.getState();
   
-    
     // Update existing monsters with basic movement (for static monsters from map)
-    const monsters = gameState.monsters.map((monster) => {
+    let monsters = gameState.monsters.map((monster) => {
       if (!monster.isActive) return monster;
 
       // Don't move monsters if they are frozen
@@ -521,6 +542,20 @@ export class GameManager {
       return monster;
     });
 
+    // Add any respawned monsters back to the active monsters list
+    if (respawnedMonsters.length > 0) {
+      monsters = [...monsters, ...respawnedMonsters];
+      log.debug(`Added ${respawnedMonsters.length} respawned monsters to active list: ${respawnedMonsters.map(m => m.type).join(', ')}`);
+    }
+
+    // Debug: Log respawn status
+    const deadMonsterCount = this.monsterRespawnManager.getDeadMonsterCount();
+    if (deadMonsterCount > 0) {
+      log.debug(`Respawn system: ${deadMonsterCount} monsters waiting to respawn`);
+    }
+
+    // Individual scaling is now handled by ScalingManager
+
     // log.debug(`GameManager: After monster updates, total monsters: ${monsters.length}`, {
     //   monsters: monsters.map(m => ({ 
     //     type: m.type, 
@@ -536,6 +571,8 @@ export class GameManager {
 
     gameState.updateMonsters(monsters);
   }
+
+
 
   private updateCoins(deltaTime: number): void {
     const gameState = useGameStore.getState();
@@ -707,8 +744,8 @@ export class GameManager {
         // Play monster kill sound (same as coin collect sound)
         this.audioManager.playSound(AudioEvent.COIN_COLLECT);
         
-        // Remove the monster from the game using spawn manager
-        this.monsterSpawnManager.removeMonster(hitMonster);
+        // Kill the monster and schedule it for respawn
+        this.monsterRespawnManager.killMonster(hitMonster);
       } else {
         // Normal monster collision - player dies
         this.audioManager.playSound(AudioEvent.MONSTER_HIT);
@@ -740,8 +777,8 @@ export class GameManager {
       gameState.clearAllFloatingTexts();
 
       // Reset difficulty to base values when player dies
-      this.difficultyManager.resetOnDeath();
-      log.debug("DifficultyManager: Reset difficulty to base values after player death");
+      this.scalingManager.resetOnDeath();
+      log.debug("ScalingManager: Reset difficulty to base values after player death");
 
       // Reset player position
       gameState.setPlayerPosition(
@@ -925,5 +962,17 @@ export class GameManager {
     this.stop();
     this.inputManager.cleanup();
     this.audioManager.cleanup();
+  }
+
+  // Debug method to check pause status of all managers
+  public getPauseStatus(): any {
+    return {
+      gameState: useGameStore.getState().currentState,
+      scalingManager: this.scalingManager.getPauseStatus(),
+      spawnManager: this.monsterSpawnManager.getPauseStatus(),
+      respawnManager: {
+        isPaused: this.monsterRespawnManager.isPaused(),
+      },
+    };
   }
 }

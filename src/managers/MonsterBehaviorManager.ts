@@ -21,7 +21,7 @@ export class MonsterBehaviorManager {
     this.floaterMovement = new FloaterMovement();
   }
 
-  public updateMonsterBehaviors(currentTime: number, gameState: any): void {
+  public updateMonsterBehaviors(currentTime: number, gameState: any, deltaTime?: number): void {
     if (!gameState.monsters) return;
 
     gameState.monsters.forEach((monster: Monster) => {
@@ -30,16 +30,16 @@ export class MonsterBehaviorManager {
       switch (monster.type) {
         case MonsterType.HORIZONTAL_PATROL:
         case MonsterType.VERTICAL_PATROL:
-          this.patrolMovement.update(monster, currentTime);
+          this.patrolMovement.update(monster, currentTime, gameState, deltaTime);
           break;
         case MonsterType.CHASER:
-          this.chaserMovement.update(monster, currentTime, gameState);
+          this.chaserMovement.update(monster, currentTime, gameState, deltaTime);
           break;
         case MonsterType.AMBUSHER:
-          this.ambusherMovement.update(monster, currentTime, gameState);
+          this.ambusherMovement.update(monster, currentTime, gameState, deltaTime);
           break;
         case MonsterType.FLOATER:
-          this.floaterMovement.update(monster, currentTime);
+          this.floaterMovement.update(monster, currentTime, gameState, deltaTime);
           break;
       }
 

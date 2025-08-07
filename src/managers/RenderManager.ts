@@ -15,6 +15,7 @@ import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
+import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 
 interface CoinManagerInterface {
   getPcoinCurrentColor: (coin: Coin) => string;
@@ -278,6 +279,41 @@ export class RenderManager {
       this.ctx.fillStyle = "#000";
       this.ctx.fillRect(monster.x + 2, monster.y + 2, 2, 2);
       this.ctx.fillRect(monster.x + monster.width - 4, monster.y + 2, 2, 2);
+    });
+
+    // Render respawn indicators for dead monsters
+    this.renderRespawnIndicators(monsters);
+  }
+
+  private renderRespawnIndicators(monsters: Monster[]): void {
+    const respawnManager = OptimizedRespawnManager.getInstance();
+    
+    monsters.forEach((monster) => {
+      if (monster.isDead && monster.originalSpawnPoint) {
+        const timeRemaining = respawnManager.getRespawnTimeRemaining(monster);
+        if (timeRemaining > 0) {
+          // Draw respawn indicator at original spawn point
+          const spawnPoint = monster.originalSpawnPoint;
+          
+          // Draw a ghostly outline
+          this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+          this.ctx.lineWidth = 2;
+          this.ctx.setLineDash([5, 5]);
+          this.ctx.strokeRect(spawnPoint.x, spawnPoint.y, monster.width, monster.height);
+          this.ctx.setLineDash([]);
+          
+          // Draw respawn timer
+          const secondsRemaining = Math.ceil(timeRemaining / 1000);
+          this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+          this.ctx.font = "12px Arial";
+          this.ctx.textAlign = "center";
+          this.ctx.fillText(
+            `${secondsRemaining}s`, 
+            spawnPoint.x + monster.width / 2, 
+            spawnPoint.y - 10
+          );
+        }
+      }
     });
   }
 

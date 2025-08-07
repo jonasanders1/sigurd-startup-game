@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../types/constants';
 import { ASSET_PATHS } from '../config/assets';
+import { logger } from '../lib/logger';
 
 interface BackgroundImage {
   image: HTMLImageElement;
@@ -69,7 +70,7 @@ export class BackgroundManager {
       };
       
       this.isLoading = false;
-      console.log(`BackgroundManager: Loaded background for ${mapName}: ${imageFileName}`);
+      logger.flow(`Background loaded: ${mapName}`);
     } catch (error) {
       console.error('BackgroundManager: Failed to load background image:', error);
       this.isLoading = false;
@@ -178,7 +179,7 @@ export class BackgroundManager {
 
   // Preload all background images to prevent flashing
   static async preloadAllBackgrounds(): Promise<void> {
-    console.log('Starting background preloading...');
+    logger.flow('Starting background preloading...');
     const backgrounds = Object.values(MAP_NAME_TO_BACKGROUND_MAP);
     let loadedCount = 0;
     
@@ -191,13 +192,16 @@ export class BackgroundManager {
           img.src = `${ASSET_PATHS.images}/maps-bg-images/${background}`;
         });
         loadedCount++;
-        console.log(`Preloaded background: ${background} (${loadedCount}/${backgrounds.length})`);
+        // Only log every 2nd background to reduce spam
+        if (loadedCount % 2 === 0 || loadedCount === backgrounds.length) {
+          logger.flow(`Preloaded ${loadedCount}/${backgrounds.length} backgrounds`);
+        }
       } catch (error) {
-        console.warn(`Failed to preload background: ${background}`, error);
+        logger.warn(`Failed to preload background: ${background}`);
       }
     });
     
     await Promise.all(preloadPromises);
-    console.log(`Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`);
+    logger.flow(`Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`);
   }
 } 

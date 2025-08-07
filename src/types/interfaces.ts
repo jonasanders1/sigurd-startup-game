@@ -43,6 +43,15 @@ interface BaseMonster {
   walkLengths?: number; // How many times to walk across the platform before falling
   currentWalkCount?: number; // Current walk count
   originalSpawnX?: number; // Original spawn position for fall detection
+  // Respawn system properties
+  isDead?: boolean; // Whether the monster is currently dead
+  deathTime?: number; // When the monster was killed
+  respawnTime?: number; // When the monster should respawn
+  originalSpawnPoint?: { x: number; y: number }; // Original spawn position for respawning
+  
+  // Individual scaling properties
+  individualSpawnTime?: number; // When this specific monster was spawned (for individual scaling)
+  individualScalingPaused?: boolean; // Whether this monster's scaling is paused
 }
 
 // Patrol monster (horizontal and vertical)

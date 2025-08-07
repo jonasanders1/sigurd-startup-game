@@ -67,8 +67,10 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
       );
     }
     
-    // Log the score
-    log.score(formatScoreLog(scoreCalculation));
+    // Log the score (only for firebombs or high scores to reduce spam)
+    if (isFirebomb || scoreCalculation.actualPoints >= 400) {
+      log.score(formatScoreLog(scoreCalculation));
+    }
 
     // Add floating text for correct bomb collection
     if (isFirebomb && "addFloatingText" in api) {

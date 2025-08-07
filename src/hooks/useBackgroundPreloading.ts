@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BackgroundManager } from '../managers/BackgroundManager';
+import { logger } from '../lib/logger';
 
 export const useBackgroundPreloading = () => {
   const [isPreloading, setIsPreloading] = useState(true);
@@ -7,10 +8,10 @@ export const useBackgroundPreloading = () => {
   useEffect(() => {
     // Preload all background images to prevent flashing
     BackgroundManager.preloadAllBackgrounds().then(() => {
-      console.log("All background images preloaded");
+      logger.flow("All background images preloaded");
       setIsPreloading(false);
     }).catch(error => {
-      console.warn("Failed to preload some background images:", error);
+      logger.warn("Failed to preload some background images");
       setIsPreloading(false);
     });
   }, []);

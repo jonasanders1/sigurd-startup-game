@@ -9,6 +9,7 @@ import {
 } from "../types/interfaces";
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
+import { ScalingManager } from "../managers/ScalingManager";
 
 // Define coin effects
 export const COIN_EFFECTS = {
@@ -50,13 +51,15 @@ export const COIN_EFFECTS = {
       }
       
       // Pause difficulty scaling during power mode
-      if (gameState.difficultyManager) {
-        console.log("Pausing difficulty scaling (power mode active)");
-        gameState.difficultyManager.pause();
+      try {
+        const scalingManager = ScalingManager.getInstance();
+        scalingManager.pauseForPowerMode();
+      } catch (error) {
+        console.log("Could not pause difficulty scaling (ScalingManager not available)");
       }
       
       // Log the actual duration being used
-      console.log(`Power mode activated for ${duration}ms (${duration/1000}s)`);
+      console.log(`⚡ Power mode activated for ${(duration/1000).toFixed(1)}s`);
     },
     remove: (gameState: GameStateInterface) => {
       // Unfreeze monsters (safely handle undefined monsters)
@@ -68,8 +71,12 @@ export const COIN_EFFECTS = {
       gameState.activeEffects.powerMode = false;
       
       // Resume difficulty scaling when power mode ends
-      if (gameState.difficultyManager) {
-        gameState.difficultyManager.resume();
+      try {
+        const scalingManager = ScalingManager.getInstance();
+        scalingManager.resumeFromPowerMode();
+        console.log("⚡ Power mode ended");
+      } catch (error) {
+        console.log("Could not resume difficulty scaling (ScalingManager not available)");
       }
     },
   },
