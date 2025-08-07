@@ -20,27 +20,33 @@ export const COIN_EFFECTS = {
     apply: (gameState: GameStateInterface, coin?: any) => {
       // Calculate duration based on coin color if available
       let duration = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
-      
+
       if (coin && coin.spawnTime !== undefined) {
         // Get the color data for this specific coin
         const coinManager = gameState.coinManager;
-        if (coinManager && typeof coinManager.getPcoinColorForTime === 'function') {
+        if (
+          coinManager &&
+          typeof coinManager.getPcoinColorForTime === "function"
+        ) {
           try {
             const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
             duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
           } catch (error) {
-            console.warn('Failed to get P-coin color data, using default duration:', error);
+            console.warn(
+              "Failed to get P-coin color data, using default duration:",
+              error
+            );
           }
         }
       }
-      
+
       // Freeze monsters (safely handle undefined monsters)
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
         gameState.monsters.forEach((monster) => {
           monster.isFrozen = true;
         });
       }
-      
+
       // Enable monster killing
       gameState.activeEffects.powerMode = true;
       gameState.activeEffects.powerModeEndTime = Date.now() + duration;
@@ -49,15 +55,17 @@ export const COIN_EFFECTS = {
       if (gameState.coinManager) {
         gameState.coinManager.resetMonsterKillCount();
       }
-      
+
       // Pause difficulty scaling during power mode
       try {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.pauseForPowerMode();
       } catch (error) {
-        console.log("Could not pause difficulty scaling (ScalingManager not available)");
+        console.log(
+          "Could not pause difficulty scaling (ScalingManager not available)"
+        );
       }
-      
+
       // Log the actual duration being used
       // Removed console.log to avoid duplicate logging
     },
@@ -69,14 +77,16 @@ export const COIN_EFFECTS = {
         });
       }
       gameState.activeEffects.powerMode = false;
-      
+
       // Resume difficulty scaling when power mode ends
       try {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.resumeFromPowerMode();
         // Removed console.log to avoid duplicate logging
       } catch (error) {
-        console.log("Could not resume difficulty scaling (ScalingManager not available)");
+        console.log(
+          "Could not resume difficulty scaling (ScalingManager not available)"
+        );
       }
     },
   },
@@ -210,13 +220,13 @@ export const COIN_PHYSICS = {
 
 // P-coin color progression system with duration scaling
 export const P_COIN_COLORS = [
-  { color: "#0066FF", points: 100, name: "Blue", duration: 3000 }, // Blue - 3 seconds
-  { color: "#FF0000", points: 200, name: "Red", duration: 4000 }, // Red - 4 seconds
-  { color: "#800080", points: 300, name: "Purple", duration: 5000 }, // Purple - 5 seconds
-  { color: "#00FF00", points: 500, name: "Green", duration: 6000 }, // Green - 6 seconds
-  { color: "#00FFFF", points: 800, name: "Cyan", duration: 7000 }, // Cyan - 7 seconds
-  { color: "#FFFF00", points: 1200, name: "Yellow", duration: 8000 }, // Yellow - 8 seconds
-  { color: "#808080", points: 2000, name: "Gray", duration: 10000 }, // Gray - 10 seconds
+  { color: "#3c82f6", points: 100, name: "Blue", duration: 3000 }, // Blue - 3 seconds
+  { color: "#ef4444", points: 200, name: "Red", duration: 4000 }, // Red - 4 seconds
+  { color: "#a855f7", points: 300, name: "Purple", duration: 5000 }, // Purple - 5 seconds
+  { color: "#22c55d", points: 500, name: "Green", duration: 6000 }, // Green - 6 seconds
+  { color: "#07b6d4", points: 800, name: "Cyan", duration: 7000 }, // Cyan - 7 seconds
+  { color: "#ebb305", points: 1200, name: "Yellow", duration: 8000 }, // Yellow - 8 seconds
+  { color: "#6b7280", points: 2000, name: "Gray", duration: 10000 }, // Gray - 10 seconds
 ];
 
 // Define all coin types according to user specifications
@@ -236,7 +246,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
 
   [CoinType.BONUS_MULTIPLIER]: {
     type: CoinType.BONUS_MULTIPLIER,
-    color: "#800080", // Purple
+    color: "#e9b300", // Yellow-Orange
     points: GAME_CONFIG.BONUS_MULTIPLIER_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
@@ -252,14 +262,16 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
 
   [CoinType.EXTRA_LIFE]: {
     type: CoinType.EXTRA_LIFE,
-    color: "#FFFF00", // Yellow
+    color: "#ef4444", // Red
     points: GAME_CONFIG.EXTRA_LIFE_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.EXTRA_LIFE],
     spawnCondition: (gameState: GameStateInterface) => {
       // Spawn for every EXTRA_LIFE_COIN_RATIO bonus multiplier coins collected
       const bonusCount = gameState.totalBonusMultiplierCoinsCollected || 0;
-      return bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0;
+      return (
+        bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0
+      );
     },
     maxActive: 1,
   },

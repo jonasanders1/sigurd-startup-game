@@ -236,8 +236,8 @@ export class RenderManager {
         coinSymbol = "B";
         this.ctx.fillStyle = "#fff";
       } else if (coin.type === "EXTRA_LIFE") {
-        coinSymbol = "E";
-        this.ctx.fillStyle = "#000";
+        coinSymbol = "M";
+        this.ctx.fillStyle = "#fff";
       }
 
       this.ctx.fillText(

@@ -34,8 +34,8 @@ export const GAME_CONFIG = {
 
   // Coin spawning rules
   POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 9 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 5000 points
-  EXTRA_LIFE_COIN_RATIO: 10, // Extra life coin appears for every 10 bonus multiplier coins
+  BONUS_COIN_SPAWN_INTERVAL: 1000, // Bonus multiplier coin appears every 5000 points
+  EXTRA_LIFE_COIN_RATIO: 2, // Extra life coin appears for every 10 bonus multiplier coins
 
   // Coin effects
   POWER_COIN_DURATION: 7000, // Power coin effect duration in milliseconds (7 seconds)
@@ -82,11 +82,11 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 
 // Development Mode Configuration
 export const DEV_CONFIG = {
-  ENABLED: true, // Set to false to disable dev mode
+  ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
   TARGET_LEVEL: 6, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
-  GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
+  GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)
 
   MOCK_DATA: {
     score: 15000,
