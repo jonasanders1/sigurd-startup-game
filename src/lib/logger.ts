@@ -15,130 +15,150 @@ interface LogConfig {
   enableDevMode: boolean;
 }
 
-class Logger {
-  private config: LogConfig;
+export class Logger {
+  private logLevel: LogLevel = LogLevel.INFO;
+  private lastLogTime: Map<string, number> = new Map();
+  private logThrottle: Map<string, number> = new Map();
 
-  constructor() {
-    this.config = {
-      level: this.getLogLevelFromEnv(),
-      enableConsole: true,
-      enableDevMode: import.meta.env?.DEV || false,
-    };
+  constructor(level: LogLevel = LogLevel.INFO) {
+    this.logLevel = level;
   }
 
-  private getLogLevelFromEnv(): LogLevel {
-    const level = import.meta.env?.VITE_LOG_LEVEL || "INFO";
-    console.log("LOG LEVEL", level);
-    switch (level.toUpperCase()) {
-      case "ERROR":
-        return LogLevel.ERROR;
-      case "WARN":
-        return LogLevel.WARN;
-      case "INFO":
-        return LogLevel.INFO;
-      case "DEBUG":
-        return LogLevel.DEBUG;
-      case "TRACE":
-        return LogLevel.TRACE;
-      default:
-        return LogLevel.INFO;
+  setLogLevel(level: LogLevel): void {
+    this.logLevel = level;
+  }
+
+  // Throttled logging - only log once per specified interval
+  private shouldLog(key: string, throttleMs: number = 1000): boolean {
+    const now = Date.now();
+    const lastTime = this.lastLogTime.get(key) || 0;
+    
+    if (now - lastTime >= throttleMs) {
+      this.lastLogTime.set(key, now);
+      return true;
+    }
+    return false;
+  }
+
+  // Game state events (important events that should always be logged)
+  game(message: string, ...args: any[]): void {
+    console.log(`🎮 ${message}`, ...args);
+  }
+
+  // Game flow events (level start, completion, etc.)
+  flow(message: string, ...args: any[]): void {
+    console.log(`🌊 ${message}`, ...args);
+  }
+
+  // Player actions (collecting items, dying, etc.)
+  player(message: string, ...args: any[]): void {
+    console.log(`👤 ${message}`, ...args);
+  }
+
+  // Monster events (spawning, dying, behavior changes)
+  monster(message: string, ...args: any[]): void {
+    console.log(`👹 ${message}`, ...args);
+  }
+
+  // Coin events (spawning, collecting)
+  coin(message: string, ...args: any[]): void {
+    console.log(`🪙 ${message}`, ...args);
+  }
+
+  // Bomb events (collecting, completing)
+  bomb(message: string, ...args: any[]): void {
+    console.log(`💣 ${message}`, ...args);
+  }
+
+  // Power mode events
+  power(message: string, ...args: any[]): void {
+    console.log(`⚡ ${message}`, ...args);
+  }
+
+  // Pause/resume events (throttled to avoid spam)
+  pause(message: string, ...args: any[]): void {
+    const key = 'pause';
+    if (this.shouldLog(key, 500)) { // Only log pause events every 500ms
+      console.log(`⏸️ ${message}`, ...args);
     }
   }
 
-  private shouldLog(level: LogLevel): boolean {
-    return this.config.enableConsole && level <= this.config.level;
-  }
-
-  private formatMessage(
-    level: string,
-    message: string,
-    ...args: unknown[]
-  ): string {
-    const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level}]`;
-    return `${prefix} ${message}`;
-  }
-
-  error(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.ERROR)) {
-      console.error(this.formatMessage("ERROR", message), ...args);
+  // Scaling events (throttled to avoid spam)
+  scaling(message: string, ...args: any[]): void {
+    const key = 'scaling';
+    if (this.shouldLog(key, 2000)) { // Only log scaling events every 2 seconds
+      console.log(`📈 ${message}`, ...args);
     }
   }
 
-  warn(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.WARN)) {
-      console.warn(this.formatMessage("WARN", message), ...args);
-    }
-  }
-
-  info(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.INFO)) {
-      console.log(this.formatMessage("INFO", message), ...args);
-    }
-  }
-
-  debug(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.DEBUG)) {
-      console.log(this.formatMessage("DEBUG", message), ...args);
-    }
-  }
-
-  trace(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.TRACE)) {
-      console.log(this.formatMessage("TRACE", message), ...args);
-    }
-  }
-
-  // Game-specific logging methods
-  game(message: string, ...args: unknown[]): void {
-    if (this.config.enableDevMode) {
-      console.log(`🎮 ${message}`, ...args);
-    }
-  }
-
-  dev(message: string, ...args: unknown[]): void {
-    if (this.config.enableDevMode) {
+  // Debug info (only when debug level is enabled)
+  debug(message: string, ...args: any[]): void {
+    if (this.logLevel >= LogLevel.DEBUG) {
       console.log(`🔧 ${message}`, ...args);
     }
   }
 
-  audio(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.DEBUG)) {
-      console.log(`🎵 ${message}`, ...args);
+  // Audio events
+  audio(message: string, ...args: any[]): void {
+    console.log(`🎵 ${message}`, ...args);
+  }
+
+  // Error events
+  error(message: string, ...args: any[]): void {
+    console.error(`❌ ${message}`, ...args);
+  }
+
+  // Warning events
+  warn(message: string, ...args: any[]): void {
+    console.warn(`⚠️ ${message}`, ...args);
+  }
+
+  // Info events
+  info(message: string, ...args: any[]): void {
+    if (this.logLevel >= LogLevel.INFO) {
+      console.log(`ℹ️ ${message}`, ...args);
     }
   }
 
-  coin(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.DEBUG)) {
-      console.log(`🪙 ${message}`, ...args);
+  // Trace events (only when trace level is enabled)
+  trace(message: string, ...args: any[]): void {
+    if (this.logLevel >= LogLevel.TRACE) {
+      console.log(`🔍 ${message}`, ...args);
     }
   }
 
-  bomb(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.DEBUG)) {
-      console.log(`💣 ${message}`, ...args);
+  // Dev mode events (only when DEV_CONFIG.ENABLED is true)
+  dev(message: string, ...args: any[]): void {
+    // Only log dev messages when explicitly enabled
+    // This prevents spam when DEV_CONFIG.ENABLED is false
+    if (import.meta.env?.DEV && (window as any).__DEV_LOGGING_ENABLED__) {
+      console.log(`🔧 ${message}`, ...args);
     }
   }
 
-  score(message: string, ...args: unknown[]): void {
-    if (this.shouldLog(LogLevel.DEBUG)) {
-      console.log(`📊 ${message}`, ...args);
-    }
+  // Score events
+  score(message: string, ...args: any[]): void {
+    console.log(`📊 ${message}`, ...args);
+  }
+
+  // Clear throttled log timestamps
+  clearThrottle(): void {
+    this.lastLogTime.clear();
   }
 
   // Method to disable all logging
   disable(): void {
-    this.config.enableConsole = false;
+    this.logLevel = LogLevel.ERROR;
   }
 
   // Method to enable logging
   enable(): void {
-    this.config.enableConsole = true;
+    this.logLevel = LogLevel.INFO;
   }
 
   // Method to set log level
   setLevel(level: LogLevel): void {
-    this.config.level = level;
+    this.logLevel = level;
   }
 }
 

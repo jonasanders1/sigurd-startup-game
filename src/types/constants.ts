@@ -8,7 +8,7 @@ export const GAME_CONFIG = {
   BOMB_SIZE: 25,
   MONSTER_SIZE: 25,
   PLATFORM_HEIGHT: 25,
-  COIN_SIZE: 20, // Size of coins
+  COIN_SIZE: 25, // Size of coins
   USE_SPRITES: true,
   PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
 
@@ -75,23 +75,16 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   masterVolume: 80,
   musicVolume: 70,
   sfxVolume: 90,
-  masterMuted: true,
-  musicMuted: true,
-  sfxMuted: true,
+  masterMuted: false,
+  musicMuted: false,
+  sfxMuted: false,
 };
 
 // Development Mode Configuration
 export const DEV_CONFIG = {
-  ENABLED: false, // Set to false to disable dev mode
+  ENABLED: true, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 1, // Which level to load in dev mode (1-6, corresponds to mapDefinitions index + 1)
-  // Available levels:
-  // 1: Bomb Jack Level 1 (classic)
-  // 2: Bomb Jack Level 2 (advanced)
-  // 3: Bomb Jack Level 3 (maze)
-  // 4: Bomb Jack Level 4 (tower)
-  // 5: NAV (research)
-  // 6: Skatteetaten (environment)
+  TARGET_LEVEL: 6, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
 
@@ -104,6 +97,11 @@ export const DEV_CONFIG = {
     multiplierScore: 2600, // Mock points toward next multiplier (0-1800)
   },
 };
+
+// Set global dev logging flag
+if (typeof window !== "undefined") {
+  (window as any).__DEV_LOGGING_ENABLED__ = DEV_CONFIG.ENABLED;
+}
 
 export const COLORS = {
   PLAYER: "#00FF00",

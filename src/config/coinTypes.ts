@@ -9,34 +9,75 @@ import {
 } from "../types/interfaces";
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
+import { ScalingManager } from "../managers/ScalingManager";
 
 // Define coin effects
 export const COIN_EFFECTS = {
   POWER_MODE: {
     type: "POWER_MODE",
-    duration: GAME_CONFIG.POWER_COIN_DURATION,
+    duration: GAME_CONFIG.POWER_COIN_DURATION, // Default duration (will be overridden)
     points: GAME_CONFIG.POWER_COIN_POINTS,
-    apply: (gameState: GameStateInterface) => {
-      // Freeze monsters
-      gameState.monsters.forEach((monster) => {
-        monster.isFrozen = true;
-      });
+    apply: (gameState: GameStateInterface, coin?: any) => {
+      // Calculate duration based on coin color if available
+      let duration = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
+      
+      if (coin && coin.spawnTime !== undefined) {
+        // Get the color data for this specific coin
+        const coinManager = gameState.coinManager;
+        if (coinManager && typeof coinManager.getPcoinColorForTime === 'function') {
+          try {
+            const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
+            duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
+          } catch (error) {
+            console.warn('Failed to get P-coin color data, using default duration:', error);
+          }
+        }
+      }
+      
+      // Freeze monsters (safely handle undefined monsters)
+      if (gameState.monsters && Array.isArray(gameState.monsters)) {
+        gameState.monsters.forEach((monster) => {
+          monster.isFrozen = true;
+        });
+      }
+      
       // Enable monster killing
       gameState.activeEffects.powerMode = true;
-      gameState.activeEffects.powerModeEndTime =
-        Date.now() + GAME_CONFIG.POWER_COIN_DURATION;
-      
+      gameState.activeEffects.powerModeEndTime = Date.now() + duration;
+
       // Reset monster kill count for new power mode session
       if (gameState.coinManager) {
         gameState.coinManager.resetMonsterKillCount();
       }
+      
+      // Pause difficulty scaling during power mode
+      try {
+        const scalingManager = ScalingManager.getInstance();
+        scalingManager.pauseForPowerMode();
+      } catch (error) {
+        console.log("Could not pause difficulty scaling (ScalingManager not available)");
+      }
+      
+      // Log the actual duration being used
+      // Removed console.log to avoid duplicate logging
     },
     remove: (gameState: GameStateInterface) => {
-      // Unfreeze monsters
-      gameState.monsters.forEach((monster) => {
-        monster.isFrozen = false;
-      });
+      // Unfreeze monsters (safely handle undefined monsters)
+      if (gameState.monsters && Array.isArray(gameState.monsters)) {
+        gameState.monsters.forEach((monster) => {
+          monster.isFrozen = false;
+        });
+      }
       gameState.activeEffects.powerMode = false;
+      
+      // Resume difficulty scaling when power mode ends
+      try {
+        const scalingManager = ScalingManager.getInstance();
+        scalingManager.resumeFromPowerMode();
+        // Removed console.log to avoid duplicate logging
+      } catch (error) {
+        console.log("Could not resume difficulty scaling (ScalingManager not available)");
+      }
     },
   },
 
@@ -80,127 +121,102 @@ export const COIN_PHYSICS = {
   },
 
   GRAVITY_ONLY: {
-    hasGravity: true,
+    hasGravity: false, // We'll handle gravity manually
     bounces: false,
     reflects: false,
-    customUpdate: (coin: Coin, platforms: Platform[], ground: Ground) => {
-      // Only vertical gravity, no horizontal movement
-      coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
-      coin.y += coin.velocityY;
+    customUpdate: (coin, platforms, ground) => {
+      const FALL_SPEED = 2;
+      const HORIZONTAL_SPEED = 1;
+      const LANDING_TOLERANCE = 4; // For detecting when coin lands on platform
+      const EDGE_TOLERANCE = 0; // For detecting when coin should fall off platform
 
-      // Check ground collision first
+      // If falling
+      if (coin.velocityY > 0 || coin.velocityY === undefined) {
+        coin.velocityX = 0;
+        coin.velocityY = FALL_SPEED;
+      }
+
+      // Check for ground collision
       if (ground && coin.y + coin.height >= ground.y) {
         coin.y = ground.y - coin.height;
         coin.velocityY = 0;
-        coin.platformDirection = null; // Reset platform direction when on ground
-
-        // Move left/right along ground
+        // If not already moving horizontally, pick a direction
         if (!coin.groundDirection) {
-          coin.groundDirection = Math.random() < 0.5 ? -1 : 1; // Random initial direction
+          coin.groundDirection = Math.random() < 0.5 ? -1 : 1;
+          coin.velocityX = coin.groundDirection * HORIZONTAL_SPEED;
         }
-
-        const groundSpeed = 0.5; // Reduced from 1 for slower movement
-        coin.x += coin.groundDirection * groundSpeed;
-
-        // Bounce off walls
+        // Move horizontally
+        coin.x += coin.velocityX;
+        // Bounce off map boundaries
         if (coin.x <= 0) {
           coin.x = 0;
           coin.groundDirection = 1;
+          coin.velocityX = HORIZONTAL_SPEED;
         } else if (coin.x + coin.width >= GAME_CONFIG.CANVAS_WIDTH) {
           coin.x = GAME_CONFIG.CANVAS_WIDTH - coin.width;
           coin.groundDirection = -1;
+          coin.velocityX = -HORIZONTAL_SPEED;
         }
-        return; // Don't check platform collisions if on ground
+        return;
       }
 
-      // Check if coin is currently on a platform
-      let isOnPlatform = false;
-      let currentPlatform: Platform | null = null;
-
+      // Check for platform collision (landing)
+      let landedOnPlatform = false;
+      let currentPlatform = null;
       for (const platform of platforms) {
-        // Check if coin is on top of this platform with more precise detection
         const coinBottom = coin.y + coin.height;
         const platformTop = platform.y;
         const isOnTop =
-          coinBottom >= platformTop && coinBottom <= platformTop + 5; // Small range for "on top"
+          coinBottom >= platformTop &&
+          coinBottom <= platformTop + LANDING_TOLERANCE;
         const isHorizontallyAligned =
           coin.x < platform.x + platform.width &&
           coin.x + coin.width > platform.x;
-
         if (isOnTop && isHorizontallyAligned) {
-          isOnPlatform = true;
+          landedOnPlatform = true;
           currentPlatform = platform;
-          // Ensure coin is properly positioned on platform
           coin.y = platformTop - coin.height;
           coin.velocityY = 0;
+          // Pick a random horizontal direction if not already moving
+          if (!coin.platformDirection) {
+            coin.platformDirection = Math.random() < 0.5 ? -1 : 1;
+            coin.velocityX = coin.platformDirection * HORIZONTAL_SPEED;
+          }
           break;
         }
       }
 
-      // If on a platform, move horizontally
-      if (isOnPlatform && currentPlatform) {
-        // Start moving horizontally on platform if not already moving
-        if (!coin.platformDirection) {
-          coin.platformDirection = Math.random() < 0.5 ? -1 : 1; // Random initial direction
-        }
-
-        // Calculate next position
-        const platformSpeed = 0.5; // Reduced from 1 for slower movement
-        const nextX = coin.x + coin.platformDirection * platformSpeed;
-
-        // Check if coin is near or past the platform edge
-        const edgeTolerance = 1; // Small tolerance for edge detection
-
-        // Check if coin is at or past the left edge
-        if (nextX + coin.width <= currentPlatform.x + edgeTolerance) {
-          // Coin has fallen off the left edge
-          coin.platformDirection = null;
-          coin.x = currentPlatform.x - coin.width; // Position just off the platform
-        }
-        // Check if coin is at or past the right edge
-        else if (
-          nextX >=
-          currentPlatform.x + currentPlatform.width - edgeTolerance
+      if (landedOnPlatform && currentPlatform) {
+        // Move horizontally
+        coin.x += coin.velocityX;
+        // If at edge, fall off
+        if (
+          coin.x + coin.width <= currentPlatform.x + EDGE_TOLERANCE ||
+          coin.x >= currentPlatform.x + currentPlatform.width - EDGE_TOLERANCE
         ) {
-          // Coin has fallen off the right edge
           coin.platformDirection = null;
-          coin.x = currentPlatform.x + currentPlatform.width; // Position just off the platform
-        } else {
-          // Safe to move, update position
-          coin.x = nextX;
+          coin.velocityX = 0;
+          coin.velocityY = FALL_SPEED;
         }
-      } else {
-        // Not on any platform, check for new platform collisions
-        for (const platform of platforms) {
-          // Check if coin is falling and about to land on platform
-          if (
-            coin.velocityY > 0 && // Falling
-            coin.x < platform.x + platform.width &&
-            coin.x + coin.width > platform.x &&
-            coin.y < platform.y &&
-            coin.y + coin.height >= platform.y
-          ) {
-            // Land on platform
-            coin.y = platform.y - coin.height;
-            coin.velocityY = 0;
-            coin.platformDirection = null; // Will be set on next frame
-            break;
-          }
-        }
+      } else if (!landedOnPlatform) {
+        // If not on platform or ground, fall
+        coin.platformDirection = null;
+        coin.velocityX = 0;
+        coin.velocityY = FALL_SPEED;
       }
     },
   },
 };
 
-// P-coin color progression system
+// P-coin color progression system with duration scaling
 export const P_COIN_COLORS = [
-  { color: "#0066FF", points: 100, name: "Blue" },    // Blue
-  { color: "#FF0000", points: 200, name: "Red" },     // Red  
-  { color: "#800080", points: 300, name: "Purple" },  // Purple
-  { color: "#00FF00", points: 500, name: "Green" },   // Green
-  { color: "#00FFFF", points: 800, name: "Cyan" },    // Cyan
-  { color: "#FFFF00", points: 1200, name: "Yellow" }, // Yellow
-  { color: "#808080", points: 2000, name: "Gray" }    // Gray
+  { color: "#0066FF", points: 100, name: "Blue", duration: 3000 }, // Blue - 3 seconds
+  { color: "#FF0000", points: 200, name: "Red", duration: 4000 }, // Red - 4 seconds
+  { color: "#800080", points: 300, name: "Purple", duration: 5000 }, // Purple - 5 seconds
+  { color: "#00FF00", points: 500, name: "Green", duration: 6000 }, // Green - 6 seconds
+  { color: "#00FFFF", points: 800, name: "Cyan", duration: 7000 }, // Cyan - 7 seconds
+  { color: "#FFFF00", points: 1200, name: "Yellow", duration: 8000 }, // Yellow - 8 seconds
+  { color: "#808080", points: 2000, name: "Gray", duration: 10000 }, // Gray - 10 seconds
 ];
 
 // Define all coin types according to user specifications
@@ -227,7 +243,8 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     spawnCondition: (gameState: GameStateInterface) => {
       // Spawn every BONUS_COIN_SPAWN_INTERVAL points
       // Use bombAndMonsterPoints if available, otherwise fall back to total score
-      const score = (gameState as any).bombAndMonsterPoints || gameState.score || 0;
+      const score =
+        (gameState as any).bombAndMonsterPoints || gameState.score || 0;
       return score > 0 && score % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0;
     },
     maxActive: 1,
@@ -240,9 +257,9 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.EXTRA_LIFE],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn for every 10 bonus multiplier coins collected
+      // Spawn for every EXTRA_LIFE_COIN_RATIO bonus multiplier coins collected
       const bonusCount = gameState.totalBonusMultiplierCoinsCollected || 0;
-      return bonusCount > 0 && bonusCount % 10 === 0;
+      return bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0;
     },
     maxActive: 1,
   },
@@ -289,4 +306,3 @@ export const COIN_TYPES = {
   }
 };
 */
- 

@@ -167,6 +167,7 @@ const InGameMenu: React.FC = () => {
               fill={index < lives ? "#ff3143" : "none"}
             />
           ))}
+          {lives > 3 ? <p>+ {lives - 3}</p> : ""}
         </div>
       </div>
     </div>

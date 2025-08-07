@@ -15,6 +15,7 @@ export interface CoinSlice {
   totalCoinsCollected: number;
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
+  totalExtraLifeCoinsCollected: number;
   
   // Actions
   setCoins: (coins: Coin[]) => void;
@@ -38,6 +39,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
   totalCoinsCollected: 0,
   totalPowerCoinsCollected: 0,
   totalBonusMultiplierCoinsCollected: 0,
+  totalExtraLifeCoinsCollected: 0,
   
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -58,10 +60,20 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       c === coin ? { ...c, isCollected: true } : c
     );
     
-    // Update active effects
+    // Update active effects with dynamic duration for P-coins
+    let powerModeEndTime = 0;
+    if (coinManager.isPowerModeActive()) {
+      if (coin.type === 'POWER' && coin.spawnTime !== undefined) {
+        // Get duration based on coin color
+        const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
+        powerModeEndTime = Date.now() + colorData.duration;
+      }
+      // No fallback needed - if it's not a P-coin, power mode shouldn't be active
+    }
+    
     const activeEffects = {
       powerMode: coinManager.isPowerModeActive(),
-      powerModeEndTime: coinManager.isPowerModeActive() ? Date.now() + GAME_CONFIG.POWER_COIN_DURATION : 0
+      powerModeEndTime
     };
     
     // Update total collection counters
@@ -69,13 +81,15 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
     const newTotalPowerCoinsCollected = currentState.totalPowerCoinsCollected + (coin.type === 'POWER' ? 1 : 0);
     const newTotalBonusMultiplierCoinsCollected = currentState.totalBonusMultiplierCoinsCollected + (coin.type === 'BONUS_MULTIPLIER' ? 1 : 0);
+    const newTotalExtraLifeCoinsCollected = currentState.totalExtraLifeCoinsCollected + (coin.type === 'EXTRA_LIFE' ? 1 : 0);
     
     set({ 
       coins: updatedCoins,
       activeEffects,
       totalCoinsCollected: newTotalCoinsCollected,
       totalPowerCoinsCollected: newTotalPowerCoinsCollected,
-      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected
+      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
+      totalExtraLifeCoinsCollected: newTotalExtraLifeCoinsCollected
     });
     
     // Handle coin-specific effects
@@ -106,6 +120,17 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
             }
           }
         }
+      }
+    } else if (coin.type === 'EXTRA_LIFE') {
+      // Handle EXTRA_LIFE coin effects
+      if ('addScore' in api && 'multiplier' in api && 'addLife' in api) {
+        const currentMultiplier = (api as { multiplier: number }).multiplier;
+        const points = GAME_CONFIG.EXTRA_LIFE_COIN_POINTS * currentMultiplier;
+        (api as { addScore: (points: number) => void }).addScore(points);
+        
+        // Add extra life
+        (api as { addLife: () => void }).addLife();
+        log.debug(`Extra life added via coin slice!`);
       }
     }
     
@@ -138,7 +163,8 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
       firebombCount: 0,
       totalCoinsCollected: 0,
       totalPowerCoinsCollected: 0,
-      totalBonusMultiplierCoinsCollected: 0
+      totalBonusMultiplierCoinsCollected: 0,
+      totalExtraLifeCoinsCollected: 0
     });
   },
   
@@ -147,7 +173,8 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     return {
       totalCoinsCollected: state.totalCoinsCollected,
       totalPowerCoinsCollected: state.totalPowerCoinsCollected,
-      totalBonusMultiplierCoinsCollected: state.totalBonusMultiplierCoinsCollected
+      totalBonusMultiplierCoinsCollected: state.totalBonusMultiplierCoinsCollected,
+      totalExtraLifeCoinsCollected: state.totalExtraLifeCoinsCollected
     };
   },
   
@@ -170,10 +197,16 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     }
     
     // Update active effects state
+    let powerModeEndTime = 0;
+    if (isPowerModeActive && coinManager) {
+      // For ongoing power mode, get the actual end time from the effect
+      powerModeEndTime = coinManager.getPowerModeEndTime();
+    }
+    
     set({
       activeEffects: {
         powerMode: isPowerModeActive,
-        powerModeEndTime: isPowerModeActive ? Date.now() + GAME_CONFIG.POWER_COIN_DURATION : 0
+        powerModeEndTime
       }
     });
   },

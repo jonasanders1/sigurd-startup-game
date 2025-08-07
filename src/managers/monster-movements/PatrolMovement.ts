@@ -2,31 +2,45 @@ import { Monster, isPatrolMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { useGameStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
-import { DifficultyManager } from "../DifficultyManager";
+import { ScalingManager } from "../ScalingManager";
+import { logger } from "../../lib/logger";
 
 export class PatrolMovement {
-  public update(monster: Monster, currentTime: number): void {
+  public update(monster: Monster, currentTime: number, gameState?: any, deltaTime?: number): void {
+    // Check if game is paused
+    if (gameState && gameState.currentState !== 'PLAYING') {
+      return;
+    }
+
     // Determine if this is horizontal or vertical patrol based on monster type
     const isHorizontal = monster.type === "HORIZONTAL_PATROL";
     
     if (isHorizontal) {
-      this.updateHorizontalPatrol(monster, currentTime);
+      this.updateHorizontalPatrol(monster, currentTime, deltaTime);
     } else {
-      this.updateVerticalPatrol(monster, currentTime);
+      this.updateVerticalPatrol(monster, currentTime, deltaTime);
     }
   }
 
-  private updateHorizontalPatrol(monster: Monster, currentTime: number): void {
+  private updateHorizontalPatrol(monster: Monster, currentTime: number, deltaTime?: number): void {
     // Type guard to ensure this is a patrol monster
     if (!isPatrolMonster(monster)) return;
     
-    // Get scaled speed from DifficultyManager
-    const difficultyManager = DifficultyManager.getInstance();
-    const scaledValues = difficultyManager.getScaledValues();
-    const scaledSpeed = scaledValues.patrol.speed;
+    // Get individual scaling values for this monster
+    const scalingManager = ScalingManager.getInstance();
+    const valuesToUse = scalingManager.getMonsterScaledValues(monster);
+    const baseValues = scalingManager.getBaseValues();
+    const monsterAge = scalingManager.getMonsterAge(monster);
+    const speed = valuesToUse.patrol.speed;
+    
+    // Log scaling info for debugging (only in debug mode)
+    if (monsterAge < 2) {
+      logger.debug(`Patrol scaling - Age: ${monsterAge.toFixed(1)}s, Speed: ${speed.toFixed(2)}`);
+    }
 
-    // Simple back and forth movement on the platform
-    const newX = monster.x + scaledSpeed * monster.direction;
+    // Simple back and forth movement on the platform (frame-rate independent)
+    const frameSpeed = deltaTime ? speed * (deltaTime / 16.67) : speed; // 16.67ms = 60fps
+    const newX = monster.x + frameSpeed * monster.direction;
 
     // Check if we would walk off the platform
     if (
@@ -56,14 +70,16 @@ export class PatrolMovement {
     }
   }
 
-  private updateVerticalPatrol(monster: Monster, currentTime: number): void {
+  private updateVerticalPatrol(monster: Monster, currentTime: number, deltaTime?: number): void {
     // Type guard to ensure this is a patrol monster
     if (!isPatrolMonster(monster)) return;
     
-    // Get scaled speed from DifficultyManager
-    const difficultyManager = DifficultyManager.getInstance();
-    const scaledValues = difficultyManager.getScaledValues();
-    const scaledSpeed = scaledValues.patrol.speed;
+    // Get individual scaling values for this monster
+    const scalingManager = ScalingManager.getInstance();
+    const valuesToUse = scalingManager.getMonsterScaledValues(monster);
+    const baseValues = scalingManager.getBaseValues();
+    const monsterAge = scalingManager.getMonsterAge(monster);
+    const speed = valuesToUse.patrol.speed;
     
     // Initialize target X position only once
     if (!monster.originalSpawnX) {
@@ -87,8 +103,9 @@ export class PatrolMovement {
       }
     }
     
-    // Simple up and down movement within patrol bounds using scaled speed
-    const newY = monster.y + scaledSpeed * monster.direction;
+    // Simple up and down movement within patrol bounds using appropriate speed (frame-rate independent)
+    const frameSpeed = deltaTime ? speed * (deltaTime / 16.67) : speed; // 16.67ms = 60fps
+    const newY = monster.y + frameSpeed * monster.direction;
 
     // Check if we would walk off the patrol area
     if (

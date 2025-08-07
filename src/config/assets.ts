@@ -3,11 +3,11 @@
 const isDev = import.meta.env.DEV;
 
 export const ASSET_PATHS = {
-  audio: isDev ? '/audio' : '/dist/audio',
-  images: isDev ? '/assets' : '/dist/assets'
-}; 
+  audio: isDev ? "/audio" : "/dist/audio",
+  images: isDev ? "/assets" : "/dist/assets",
+};
 
-// Helper function to get background image path using the same pattern as sprites
-export const getBackgroundImagePath = (theme: string, layer: number): string => {
-  return `${ASSET_PATHS.images}/map-images/${theme}/${layer}.png`;
-}; 
+// Helper function to get background image path using the new maps-bg-images folder
+export const getBackgroundImagePath = (theme: string): string => {
+  return `${ASSET_PATHS.images}/maps-bg-images/${theme}.png`;
+};

@@ -2,22 +2,44 @@ import { Monster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { useGameStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
-import { DifficultyManager } from "../DifficultyManager";
+import { ScalingManager } from "../ScalingManager";
+import { logger } from "../../lib/logger";
 
 export class FloaterMovement {
-  public update(monster: Monster, currentTime: number): void {
-    // Get scaled values from DifficultyManager
-    const difficultyManager = DifficultyManager.getInstance();
-    const scaledValues = difficultyManager.getScaledValues();
+    public update(monster: Monster, currentTime: number, gameStateParam?: any, deltaTime?: number): void {
+    // Check if game is paused
+    if (gameStateParam && gameStateParam.currentState !== 'PLAYING') {
+      return;
+    }
+
+    // Get individual scaling values for this monster
+    const scalingManager = ScalingManager.getInstance();
+    const valuesToUse = scalingManager.getMonsterScaledValues(monster);
+    const baseValues = scalingManager.getBaseValues();
+    const monsterAge = scalingManager.getMonsterAge(monster);
+    
+    // Log scaling info for debugging (only in debug mode)
+    if (monsterAge < 2) {
+      logger.debug(`Floater scaling - Age: ${monsterAge.toFixed(1)}s, Speed: ${valuesToUse.floater.speed.toFixed(2)}`);
+    }
 
     // Initialize velocity if not set (convert angle to velocity)
     if (!monster.velocityX && !monster.velocityY) {
-      this.initializeVelocity(monster, scaledValues.floater.speed);
+      this.initializeVelocity(monster, valuesToUse.floater.speed);
     }
 
-    // Move in straight line based on velocity
-    const newX = monster.x + monster.velocityX;
-    const newY = monster.y + monster.velocityY;
+    // Update velocity magnitude with current scaled speed (but preserve direction)
+    const currentSpeed = Math.sqrt(monster.velocityX * monster.velocityX + monster.velocityY * monster.velocityY);
+    if (currentSpeed > 0) {
+      const speedRatio = valuesToUse.floater.speed / currentSpeed;
+      monster.velocityX *= speedRatio;
+      monster.velocityY *= speedRatio;
+    }
+
+    // Move in straight line based on velocity (frame-rate independent)
+    const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+    const newX = monster.x + monster.velocityX * frameMultiplier;
+    const newY = monster.y + monster.velocityY * frameMultiplier;
 
     // Check for collisions with platforms
     const gameState = useGameStore.getState();
@@ -54,8 +76,8 @@ export class FloaterMovement {
       monster.x = newX;
       monster.y = newY;
     } else {
-      // Bounce off the collision using scaled bounce angle
-      this.bounceOffCollision(monster, collisionNormal, scaledValues.floater.bounceAngle);
+      // Bounce off the collision using appropriate bounce angle
+      this.bounceOffCollision(monster, collisionNormal, valuesToUse.floater.bounceAngle);
     }
   }
 
