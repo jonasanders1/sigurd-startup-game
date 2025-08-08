@@ -1,11 +1,11 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
 import { GameState, MenuType } from "../../../types/enums";
 import { GAME_CONFIG, DEV_CONFIG } from "../../../types/constants";
 import { mapDefinitions } from "../../../maps/mapDefinitions";
+import { Button } from "@/components/ui/button";
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
-import { sendGameCompletionData } from "../../../lib/communicationUtils";
+import { sendGameCompletionData, calculateGameStats, GameCompletionData } from "../../../lib/communicationUtils";
 
 const BonusScreen: React.FC = () => {
   const {
@@ -54,26 +54,36 @@ const BonusScreen: React.FC = () => {
         setState(GameState.PLAYING);
       }, 3000);
     } else {
-      // All levels completed - send victory completion data
+      // All levels completed - send comprehensive victory completion data
       const gameStore = useGameStore.getState();
-      const levelHistory = gameStore.getLevelHistory();
+      const levelResults = gameStore.getLevelResults();
       const multiplier = gameStore.multiplier;
+      const gameStartTime = gameStore.getGameStartTime();
+      const sessionId = gameStore.getSessionId();
       
-      // Calculate total coin stats from level history
-      const totalCoinsCollected = levelHistory.reduce((total, level) => total + level.coinsCollected, 0);
-      const totalPowerModeActivations = levelHistory.reduce((total, level) => total + level.powerModeActivations, 0);
+      // Calculate comprehensive game statistics
+      const gameStats = calculateGameStats(levelResults, gameStore.score, gameStore.lives, multiplier, 'completed', gameStartTime, Date.now());
       
-      sendGameCompletionData({
+      const gameCompletionData: GameCompletionData = {
         finalScore: gameStore.score,
         totalLevels: mapDefinitions.length,
-        completedLevels: levelHistory.length,
+        completedLevels: levelResults.length,
         timestamp: Date.now(),
         lives: gameStore.lives,
         multiplier,
-        levelHistory,
-        totalCoinsCollected,
-        totalPowerModeActivations
-      });
+        levelHistory: levelResults,
+        totalCoinsCollected: gameStats.totalCoinsCollected,
+        totalPowerModeActivations: gameStats.totalPowerModeActivations,
+        totalBombs: gameStats.totalBombs,
+        totalCorrectOrders: gameStats.totalCorrectOrders,
+        averageCompletionTime: gameStats.averageCompletionTime,
+        gameEndReason: 'completed',
+        sessionId,
+        startTime: gameStartTime,
+        endTime: Date.now()
+      };
+      
+      sendGameCompletionData(gameCompletionData);
       
       setState(GameState.VICTORY);
       setMenuType(MenuType.VICTORY);

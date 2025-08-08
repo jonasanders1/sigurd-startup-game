@@ -7,6 +7,7 @@ export enum LogLevel {
   INFO = 2,
   DEBUG = 3,
   TRACE = 4,
+  DATAPASSING = 5, // New level for data passing only
 }
 
 interface LogConfig {
@@ -21,7 +22,34 @@ export class Logger {
   private logThrottle: Map<string, number> = new Map();
 
   constructor(level: LogLevel = LogLevel.INFO) {
-    this.logLevel = level;
+    // Read log level from environment variable
+    const envLogLevel = import.meta.env?.VITE_LOG_LEVEL;
+    if (envLogLevel) {
+      switch (envLogLevel.toLowerCase()) {
+        case 'error':
+          this.logLevel = LogLevel.ERROR;
+          break;
+        case 'warn':
+          this.logLevel = LogLevel.WARN;
+          break;
+        case 'info':
+          this.logLevel = LogLevel.INFO;
+          break;
+        case 'debug':
+          this.logLevel = LogLevel.DEBUG;
+          break;
+        case 'trace':
+          this.logLevel = LogLevel.TRACE;
+          break;
+        case 'datapassing':
+          this.logLevel = LogLevel.DATAPASSING;
+          break;
+        default:
+          this.logLevel = level;
+      }
+    } else {
+      this.logLevel = level;
+    }
   }
 
   setLogLevel(level: LogLevel): void {
@@ -42,87 +70,118 @@ export class Logger {
 
   // Game state events (important events that should always be logged)
   game(message: string, ...args: any[]): void {
-    console.log(`🎮 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`🎮 ${message}`, ...args);
+    }
   }
 
   // Game flow events (level start, completion, etc.)
   flow(message: string, ...args: any[]): void {
-    console.log(`🌊 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`🌊 ${message}`, ...args);
+    }
   }
 
   // Player actions (collecting items, dying, etc.)
   player(message: string, ...args: any[]): void {
-    console.log(`👤 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`👤 ${message}`, ...args);
+    }
   }
 
   // Monster events (spawning, dying, behavior changes)
   monster(message: string, ...args: any[]): void {
-    console.log(`👹 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`👹 ${message}`, ...args);
+    }
   }
 
   // Coin events (spawning, collecting)
   coin(message: string, ...args: any[]): void {
-    console.log(`🪙 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`🪙 ${message}`, ...args);
+    }
   }
 
   // Bomb events (collecting, completing)
   bomb(message: string, ...args: any[]): void {
-    console.log(`💣 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`💣 ${message}`, ...args);
+    }
   }
 
   // Power mode events
   power(message: string, ...args: any[]): void {
-    console.log(`⚡ ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`⚡ ${message}`, ...args);
+    }
+  }
+
+  // Data passing events (data sent to external website)
+  dataPassing(message: string, ...args: any[]): void {
+    if (this.logLevel === LogLevel.DATAPASSING) {
+      console.log(`📡 ${message}`, ...args);
+    }
   }
 
   // Pause/resume events (throttled to avoid spam)
   pause(message: string, ...args: any[]): void {
-    const key = 'pause';
-    if (this.shouldLog(key, 500)) { // Only log pause events every 500ms
-      console.log(`⏸️ ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      const key = 'pause';
+      if (this.shouldLog(key, 500)) { // Only log pause events every 500ms
+        console.log(`⏸️ ${message}`, ...args);
+      }
     }
   }
 
   // Scaling events (throttled to avoid spam)
   scaling(message: string, ...args: any[]): void {
-    const key = 'scaling';
-    if (this.shouldLog(key, 2000)) { // Only log scaling events every 2 seconds
-      console.log(`📈 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      const key = 'scaling';
+      if (this.shouldLog(key, 2000)) { // Only log scaling events every 2 seconds
+        console.log(`📈 ${message}`, ...args);
+      }
     }
   }
 
   // Debug info (only when debug level is enabled)
   debug(message: string, ...args: any[]): void {
-    if (this.logLevel >= LogLevel.DEBUG) {
+    if (this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
       console.log(`🔧 ${message}`, ...args);
     }
   }
 
   // Audio events
   audio(message: string, ...args: any[]): void {
-    console.log(`🎵 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`🎵 ${message}`, ...args);
+    }
   }
 
   // Error events
   error(message: string, ...args: any[]): void {
-    console.error(`❌ ${message}`, ...args);
+    if (this.logLevel >= LogLevel.ERROR) {
+      console.error(`❌ ${message}`, ...args);
+    }
   }
 
   // Warning events
   warn(message: string, ...args: any[]): void {
-    console.warn(`⚠️ ${message}`, ...args);
+    if (this.logLevel >= LogLevel.WARN) {
+      console.warn(`⚠️ ${message}`, ...args);
+    }
   }
 
   // Info events
   info(message: string, ...args: any[]): void {
-    if (this.logLevel >= LogLevel.INFO) {
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
       console.log(`ℹ️ ${message}`, ...args);
     }
   }
 
   // Trace events (only when trace level is enabled)
   trace(message: string, ...args: any[]): void {
-    if (this.logLevel >= LogLevel.TRACE) {
+    if (this.logLevel === LogLevel.TRACE) {
       console.log(`🔍 ${message}`, ...args);
     }
   }
@@ -138,7 +197,9 @@ export class Logger {
 
   // Score events
   score(message: string, ...args: any[]): void {
-    console.log(`📊 ${message}`, ...args);
+    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
+      console.log(`📊 ${message}`, ...args);
+    }
   }
 
   // Clear throttled log timestamps
@@ -183,4 +244,6 @@ export const log = {
   bomb: (message: string, ...args: unknown[]) => logger.bomb(message, ...args),
   score: (message: string, ...args: unknown[]) =>
     logger.score(message, ...args),
+  dataPassing: (message: string, ...args: unknown[]) =>
+    logger.dataPassing(message, ...args),
 };

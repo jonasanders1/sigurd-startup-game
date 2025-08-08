@@ -34,8 +34,8 @@ export const GAME_CONFIG = {
 
   // Coin spawning rules
   POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 9 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 1000, // Bonus multiplier coin appears every 5000 points
-  EXTRA_LIFE_COIN_RATIO: 2, // Extra life coin appears for every 10 bonus multiplier coins
+  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 5000 points
+  EXTRA_LIFE_COIN_RATIO: 10, // Extra life coin appears for every 10 bonus multiplier coins
 
   // Coin effects
   POWER_COIN_DURATION: 7000, // Power coin effect duration in milliseconds (7 seconds)

@@ -70,6 +70,11 @@ export class GameManager {
       // Reset game state to ensure fresh start
       const gameState = useGameStore.getState();
       gameState.resetGame();
+      
+      // Set game start time when game actually starts
+      if ("setGameStartTime" in gameState) {
+        (gameState as any).setGameStartTime(Date.now());
+      }
 
       // Initialize first level normally
       this.loadCurrentLevel();
@@ -890,6 +895,8 @@ export class GameManager {
         powerModeActivations: powerModeActivations,
         completionTime: completionTime,
         timestamp: Date.now(),
+        lives: gameState.lives,
+        multiplier: gameState.multiplier,
       };
       gameState.addLevelResult(levelResult);
 

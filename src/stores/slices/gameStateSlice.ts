@@ -7,6 +7,8 @@ import {
   sendGameStateUpdate,
   sendGameCompletionData,
   LevelHistoryEntry,
+  calculateGameStats,
+  GameCompletionData
 } from "@/lib/communicationUtils";
 import { mapDefinitions } from "@/maps/mapDefinitions";
 import { log } from "../../lib/logger";
@@ -15,6 +17,9 @@ interface StoreAPI {
   currentMap?: { name: string };
   resetMultiplier: () => void;
   getLevelHistory: () => Array<{ coinsCollected: number; powerModeActivations: number }>;
+  getLevelResults: () => LevelHistoryEntry[];
+  getGameStartTime: () => number;
+  getSessionId: () => string;
   multiplier: number;
 }
 
@@ -31,13 +36,13 @@ export interface GameStateSlice {
 
   setState: (state: GameState) => void;
   setMenuType: (menuType: MenuType) => void;
+  setBonusAnimationComplete: (complete: boolean) => void;
   loseLife: () => void;
   addLife: () => void;
   nextLevel: () => void;
   addScore: (points: number) => void;
-  resetGameState: () => void;
-  setBonusAnimationComplete: (complete: boolean) => void;
   resetLevelScores: () => void;
+  resetGameState: () => void;
 }
 
 export const createGameStateSlice: StateCreator<GameStateSlice> = (
@@ -85,31 +90,21 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       }
     },
 
-      loseLife: () => {
-        const { lives, currentState } = get();
-        
-        // Prevent losing life if already at 0 or game is already over
-        if (lives <= 0 || currentState === GameState.GAME_OVER) {
-          log.warn(`Cannot lose life: lives=${lives}, state=${currentState}`);
-          return;
-        }
-        
-        const newLives = lives - 1;
-        
-        log.info(`Losing life: ${lives} → ${newLives}`);
+    setBonusAnimationComplete: (complete: boolean) => {
+      set({ bonusAnimationComplete: complete });
+    },
 
-        // Set new lives first
-        set({ lives: newLives });
+    loseLife: () => {
+      const { lives } = get();
+      const newLives = lives - 1;
+      
+      log.info(`Losing life: ${lives} → ${newLives}`);
+      set({ lives: newLives });
 
-        // Reset only level scores and multiplier, not the entire level state
-        set({ levelScore: 0 });
-
-        // Reset multiplier directly
-        const api = get();
-        if ("resetMultiplier" in api) {
-          log.debug("Resetting multiplier on death...");
-          (api as { resetMultiplier: () => void }).resetMultiplier();
-        }
+      // Get current map for state update
+      const api = get();
+      const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
+      sendGameStateUpdate(GameState.PLAYING, currentMap?.name);
 
         // Check if game over after setting new lives
         if (newLives <= 0) {
@@ -121,25 +116,34 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
           const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
           sendGameStateUpdate(GameState.GAME_OVER, currentMap?.name);
 
-          // Send game completion data for game over
-          const levelHistory = "getLevelHistory" in api ? (api as { getLevelHistory: () => LevelHistoryEntry[] }).getLevelHistory() : [];
+          // Send comprehensive game completion data for game over
+          const levelResults = "getLevelResults" in api ? (api as { getLevelResults: () => LevelHistoryEntry[] }).getLevelResults() : [];
           const multiplier = "multiplier" in api ? (api as { multiplier: number }).multiplier : 1;
+          const gameStartTime = "getGameStartTime" in api ? (api as { getGameStartTime: () => number }).getGameStartTime() : Date.now();
+          const sessionId = "getSessionId" in api ? (api as { getSessionId: () => string }).getSessionId() : `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-          // Calculate total coin stats from level history
-          const totalCoinsCollected = levelHistory.reduce((total, level) => total + level.coinsCollected, 0);
-          const totalPowerModeActivations = levelHistory.reduce((total, level) => total + level.powerModeActivations, 0);
+          const gameStats = calculateGameStats(levelResults, get().score, newLives, multiplier, 'failed', gameStartTime, Date.now());
 
-          sendGameCompletionData({
+          const gameCompletionData: GameCompletionData = {
             finalScore: get().score,
             totalLevels: mapDefinitions.length,
-            completedLevels: levelHistory.length,
+            completedLevels: levelResults.length,
             timestamp: Date.now(),
             lives: newLives,
             multiplier,
-            levelHistory,
-            totalCoinsCollected,
-            totalPowerModeActivations
-          });
+            levelHistory: levelResults,
+            totalCoinsCollected: gameStats.totalCoinsCollected,
+            totalPowerModeActivations: gameStats.totalPowerModeActivations,
+            totalBombs: gameStats.totalBombs,
+            totalCorrectOrders: gameStats.totalCorrectOrders,
+            averageCompletionTime: gameStats.averageCompletionTime,
+            gameEndReason: 'failed',
+            sessionId,
+            startTime: gameStartTime,
+            endTime: Date.now()
+          };
+
+          sendGameCompletionData(gameCompletionData);
         }
       },
 
@@ -199,29 +203,17 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
     },
 
     resetGameState: () => {
-      log.info(
-        `Resetting game state - setting lives to ${GAME_CONFIG.STARTING_LIVES}`
-      );
       set({
         currentState: GameState.MENU,
-        showMenu: MenuType.START,
-        previousMenu: null,
         score: 0,
         levelScore: 0,
         lives: GAME_CONFIG.STARTING_LIVES,
         currentLevel: 1,
+        showMenu: MenuType.START,
+        previousMenu: null,
         isPaused: false,
         bonusAnimationComplete: false,
       });
-
-      // Send state update
-      const api = get();
-      const currentMap = "currentMap" in api ? (api as { currentMap?: { name: string } }).currentMap : undefined;
-      sendGameStateUpdate(GameState.MENU, currentMap?.name);
-    },
-
-    setBonusAnimationComplete: (complete: boolean) => {
-      set({ bonusAnimationComplete: complete });
     },
   };
 };
