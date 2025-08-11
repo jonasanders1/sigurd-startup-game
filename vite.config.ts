@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     lib: {
-      entry: "src/index.ts",
+      entry: path.resolve(__dirname, "src/index.ts"),
       name: "SigurdStartup",
       fileName: (format) => `sigurd-startup.${format}.js`,
       formats: ["es", "umd"],
