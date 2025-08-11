@@ -26,13 +26,47 @@ npm login --registry=https://npm.pkg.github.com --scope=@jonasanders1
 ### From Source
 
 ```bash
-git clone https://github.com/jonasandersen/sigurd-startup-game.git
+git clone https://github.com/jonasanders1/sigurd-startup-game.git
 cd sigurd-startup-game
 npm install
 npm run build:lib
 ```
 
 ## Usage
+
+### As a React Component (Recommended for React Apps)
+
+```tsx
+import React from 'react';
+import { SigurdGameReact } from '@jonasanders1/sigurd-startup-game';
+
+function App() {
+  const handleGameLoad = () => {
+    console.log('Game loaded successfully!');
+  };
+
+  const handleGameError = (error: Error) => {
+    console.error('Game failed to load:', error);
+  };
+
+  return (
+    <div className="App">
+      <h1>Welcome to Sigurd's Startup Journey</h1>
+      
+      <SigurdGameReact
+        className="game-container"
+        style={{ 
+          width: '100%', 
+          maxWidth: '800px',
+          margin: '20px auto'
+        }}
+        onGameLoad={handleGameLoad}
+        onGameError={handleGameError}
+      />
+    </div>
+  );
+}
+```
 
 ### As a Web Component
 
@@ -54,7 +88,7 @@ The game is available as a custom HTML element:
 </html>
 ```
 
-### As a React Component
+### As a Direct React Component
 
 ```tsx
 import React from 'react';
@@ -84,6 +118,17 @@ logVersion();
 ```
 
 ## API
+
+### SigurdGameReact (React Component)
+
+A React wrapper component that provides a better React experience.
+
+#### Props
+
+- `className?: string` - CSS class name for the container
+- `style?: React.CSSProperties` - Inline styles for the container
+- `onGameLoad?: () => void` - Callback when game loads successfully
+- `onGameError?: (error: Error) => void` - Callback when game fails to load
 
 ### GameElement
 
