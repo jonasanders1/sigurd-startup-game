@@ -1,7 +1,7 @@
 {
   "name": "@jonasanders1/sigurd-startup-game",
   "private": false,
-  "version": "2.3.0",
+  "version": "3.0.0",
   "type": "module",
   "description": "A web component game about Sigurd's startup journey",
   "main": "dist/sigurd-startup.umd.js",
