@@ -7,20 +7,20 @@ A web component game about Sigurd's startup journey, built with React and TypeSc
 ### From GitHub Packages
 
 ```bash
-npm install @jonasandersen/sigurd-startup-game
+npm install @jonasanders1/sigurd-startup-game
 ```
 
 You'll need to authenticate with GitHub Packages. Create a `.npmrc` file in your project root:
 
 ```ini
-@jonasandersen:registry=https://npm.pkg.github.com
+@jonasanders1:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
 Or authenticate via npm:
 
 ```bash
-npm login --registry=https://npm.pkg.github.com --scope=@jonasandersen
+npm login --registry=https://npm.pkg.github.com --scope=@jonasanders1
 ```
 
 ### From Source
@@ -48,7 +48,7 @@ The game is available as a custom HTML element:
     <sigurd-startup></sigurd-startup>
     
     <script type="module">
-        import '@jonasandersen/sigurd-startup-game';
+        import '@jonasanders1/sigurd-startup-game';
     </script>
 </body>
 </html>
@@ -58,7 +58,7 @@ The game is available as a custom HTML element:
 
 ```tsx
 import React from 'react';
-import { GameElement } from '@jonasandersen/sigurd-startup-game';
+import { GameElement } from '@jonasanders1/sigurd-startup-game';
 
 function App() {
   return (
@@ -73,7 +73,7 @@ function App() {
 ### Programmatic Usage
 
 ```tsx
-import { getVersion, logVersion } from '@jonasandersen/sigurd-startup-game';
+import { getVersion, logVersion } from '@jonasanders1/sigurd-startup-game';
 
 // Get version information
 const version = getVersion();
