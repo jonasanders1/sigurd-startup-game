@@ -42,7 +42,7 @@
     "build:patch": "node scripts/version.js patch && vite build",
     "build:minor": "node scripts/version.js minor && vite build",
     "build:major": "node scripts/version.js major && vite build",
-    "build:lib": "vite build",
+    "build:lib": "vite build --config vite.lib.config.ts",
     "prepublishOnly": "npm run build:lib",
     "version:build": "node scripts/version.js build",
     "version:patch": "node scripts/version.js patch",
@@ -50,6 +50,10 @@
     "version:major": "node scripts/version.js major",
     "lint": "eslint .",
     "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -90,9 +94,9 @@
     "lucide-react": "^0.462.0",
     "lucide-solid": "^0.523.0",
     "next-themes": "^0.3.0",
-    "react": "^18.3.1",
+    "react": "^19.1.1",
     "react-day-picker": "^8.10.1",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.1.1",
     "react-hook-form": "^7.53.0",
     "react-resizable-panels": "^2.1.3",
     "react-router-dom": "^6.26.2",
