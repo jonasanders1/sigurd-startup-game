@@ -1,8 +1,40 @@
 {
-  "name": "sigurd-startup-game",
-  "private": true,
-  "version": "2.2.2",
+  "name": "@jonasandersen/sigurd-startup-game",
+  "private": false,
+  "version": "2.3.0",
   "type": "module",
+  "description": "A web component game about Sigurd's startup journey",
+  "main": "dist/sigurd-startup.umd.js",
+  "module": "dist/sigurd-startup.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/sigurd-startup.es.js",
+      "require": "./dist/sigurd-startup.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/sigurd-startup.css": "./dist/sigurd-startup.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonasandersen/sigurd-startup-game.git"
+  },
+  "keywords": [
+    "game",
+    "web-component",
+    "react",
+    "startup",
+    "sigurd"
+  ],
+  "author": "Jonas Andersen",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "dev": "vite",
     "build": "node scripts/version.js build && vite build",
@@ -10,6 +42,8 @@
     "build:patch": "node scripts/version.js patch && vite build",
     "build:minor": "node scripts/version.js minor && vite build",
     "build:major": "node scripts/version.js major && vite build",
+    "build:lib": "vite build",
+    "prepublishOnly": "npm run build:lib",
     "version:build": "node scripts/version.js build",
     "version:patch": "node scripts/version.js patch",
     "version:minor": "node scripts/version.js minor",
@@ -86,6 +120,7 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4"
   }
 }

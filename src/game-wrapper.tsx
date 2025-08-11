@@ -4,12 +4,12 @@ import "./index.css";
 import css from './index.css?inline';
 import { getVersion, logVersion } from "./version";
 
-interface GameElementInterface {
+export interface GameElementInterface {
   getVersion: () => ReturnType<typeof getVersion>;
   isCompatible: (minVersion: string) => boolean;
 }
 
-class GameElement extends HTMLElement implements GameElementInterface {
+export class GameElement extends HTMLElement implements GameElementInterface {
   private root: ReactDOM.Root | null = null;
 
   connectedCallback() {

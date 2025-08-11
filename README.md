@@ -1,69 +1,143 @@
-# React + TypeScript + Vite
+# Sigurd Startup Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web component game about Sigurd's startup journey, built with React and TypeScript.
 
-Currently, two official plugins are available:
+## Installation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### From GitHub Packages
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install @jonasandersen/sigurd-startup-game
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+You'll need to authenticate with GitHub Packages. Create a `.npmrc` file in your project root:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```ini
+@jonasandersen:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
+
+Or authenticate via npm:
+
+```bash
+npm login --registry=https://npm.pkg.github.com --scope=@jonasandersen
+```
+
+### From Source
+
+```bash
+git clone https://github.com/jonasandersen/sigurd-startup-game.git
+cd sigurd-startup-game
+npm install
+npm run build:lib
+```
+
+## Usage
+
+### As a Web Component
+
+The game is available as a custom HTML element:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sigurd Startup Game</title>
+</head>
+<body>
+    <sigurd-startup></sigurd-startup>
+    
+    <script type="module">
+        import '@jonasandersen/sigurd-startup-game';
+    </script>
+</body>
+</html>
+```
+
+### As a React Component
+
+```tsx
+import React from 'react';
+import { GameElement } from '@jonasandersen/sigurd-startup-game';
+
+function App() {
+  return (
+    <div>
+      <h1>Welcome to Sigurd's Startup Journey</h1>
+      <GameElement />
+    </div>
+  );
+}
+```
+
+### Programmatic Usage
+
+```tsx
+import { getVersion, logVersion } from '@jonasandersen/sigurd-startup-game';
+
+// Get version information
+const version = getVersion();
+console.log(`Game version: ${version.version}`);
+
+// Log version info
+logVersion();
+```
+
+## API
+
+### GameElement
+
+The main web component that renders the game.
+
+#### Attributes
+
+- `data-version`: Current game version
+- `data-build`: Build number
+
+#### Methods
+
+- `getVersion()`: Returns version information
+- `isCompatible(minVersion)`: Checks if current version is compatible with minimum required version
+
+### Version Functions
+
+- `getVersion()`: Returns an object with `version` and `build` properties
+- `logVersion()`: Logs version information to console
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build library
+npm run build:lib
+
+# Build for production
+npm run build
+
+# Version management
+npm run version:patch  # 2.3.0 -> 2.3.1
+npm run version:minor  # 2.3.0 -> 2.4.0
+npm run version:major  # 2.3.0 -> 3.0.0
+```
+
+## Building
+
+The library is built using Vite and supports multiple formats:
+
+- **ES Module**: `dist/sigurd-startup.es.js`
+- **UMD**: `dist/sigurd-startup.umd.js`
+- **TypeScript Definitions**: `dist/index.d.ts`
+- **CSS**: `dist/sigurd-startup.css`
+
+## Publishing
+
+The package is automatically published to GitHub Packages when a new release is created on GitHub.
+
+## License
+
+MIT
