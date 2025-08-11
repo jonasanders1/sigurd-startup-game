@@ -2,13 +2,13 @@
 // This file is updated during the build process
 
 export const VERSION = {
-  major: 2,
-  minor: 3,
+  major: 3,
+  minor: 0,
   patch: 0,
   build: 0,
-  timestamp: 1754652380663,
-  hash: 'HG68KA',
-  full: '2.3.0'
+  timestamp: Date.now(),
+  hash: 'V3REL',
+  full: '3.0.0'
 };
 
 // Version string for easy access
