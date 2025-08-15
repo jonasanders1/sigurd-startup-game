@@ -306,10 +306,16 @@ export class AudioManager {
   private startBackgroundMusic(): void {
     if (
       !this.audioContext ||
-      this.isBackgroundMusicPlaying ||
       !this.backgroundMusicBuffer
     )
       return;
+
+    // Check if music source actually exists, not just the flag
+    // This handles cases where the source was lost during powerup melody
+    if (this.backgroundMusicSource) {
+      // Music is already playing
+      return;
+    }
 
     this.isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
@@ -449,30 +455,33 @@ export class AudioManager {
     // Start the power-up melody
     this.playPowerUpMelody(duration / 1000); // Convert to seconds
     
-    // Schedule background music to resume after power-up ends
+    // Schedule melody to stop after duration
     this.powerUpMelodyTimeout = setTimeout(() => {
       log.audio("PowerUp melody timeout reached, stopping melody");
       this.stopPowerUpMelody();
-      // stopPowerUpMelody will handle resuming background music if appropriate
+      // GameManager will handle restarting background music based on game state
     }, duration);
   }
 
   private pauseBackgroundMusic(): void {
-    if (this.backgroundMusicGain) {
-      this.backgroundMusicGain.gain.value = 0;
+    // Stop the background music completely when powerup starts
+    // This ensures clean restart when powerup ends
+    if (this.backgroundMusicSource) {
+      try {
+        this.backgroundMusicSource.stop();
+      } catch (e) {
+        // Source might already be stopped
+      }
+      this.backgroundMusicSource = null;
     }
+    // Clear the flag so GameManager knows to restart music later
+    this.isBackgroundMusicPlaying = false;
   }
 
   private resumeBackgroundMusic(): void {
-    if (this.backgroundMusicGain) {
-      // If background music should be playing but source is gone, restart it
-      if (this.isBackgroundMusicPlaying && !this.backgroundMusicSource) {
-        log.audio("Background music source lost, restarting music");
-        this.playBackgroundMusicFile();
-      }
-      // Restore volume based on current settings
-      this.updateAudioVolumes();
-    }
+    // This method is now deprecated - GameManager handles all background music control
+    // Keeping it empty to avoid breaking existing calls
+    log.audio("resumeBackgroundMusic called - GameManager will handle music restart");
   }
 
   // Public method to start power-up melody with specific duration
@@ -495,12 +504,10 @@ export class AudioManager {
       // Stop all oscillators immediately
       this.clearPowerUpOscillators();
       
-      // Check game state to see if we should resume background music
-      const gameState = useGameStore.getState();
-      if (gameState.currentState === GameState.PLAYING) {
-        // Resume background music only if game is still playing
-        this.resumeBackgroundMusic();
-      }
+      // Note: We don't resume background music here anymore
+      // The GameManager's handleBackgroundMusic will take care of starting
+      // music appropriately based on the game state
+      // This avoids issues when powerup ends during state transitions
     } else {
       log.audio("stopPowerUpMelody called but melody was not active");
     }
@@ -513,11 +520,9 @@ export class AudioManager {
 
   // Public method to check if background music is actually playing
   public isBackgroundMusicActuallyPlaying(): boolean {
-    // Music is only actually playing if we have a source and the flag is set
-    // and power-up melody is not active (which would mute the background music)
-    return this.isBackgroundMusicPlaying && 
-           this.backgroundMusicSource !== null && 
-           !this.powerUpMelodyActive;
+    // Music is only actually playing if we have an active source
+    // Power-up melody stops the background source, so this correctly returns false
+    return this.backgroundMusicSource !== null && !this.powerUpMelodyActive;
   }
 
   // Debug method to get PowerUp melody status

@@ -412,17 +412,19 @@ export class GameManager {
     // Always check if we need to start music when in PLAYING state
     // This ensures music restarts after powerup melody or after loading a new map
     if (shouldPlayMusic) {
-      // Check if music is actually playing in the AudioManager
-      // If not, start it (even if we think it's playing)
+      // Always check actual audio state, not our local flag
+      // This handles cases where powerup melody stopped the music
       if (!this.audioManager.isBackgroundMusicActuallyPlaying()) {
         log.audio("Starting/Restarting background music");
         this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
-        this.isBackgroundMusicPlaying = true;
       }
-    } else if (this.isBackgroundMusicPlaying) {
-      // Stop music if we shouldn't be playing but are
-      log.audio("Stopping background music");
-      this.audioManager.stopBackgroundMusic();
+      this.isBackgroundMusicPlaying = true;
+    } else {
+      // Stop music if we shouldn't be playing
+      if (this.isBackgroundMusicPlaying || this.audioManager.isBackgroundMusicActuallyPlaying()) {
+        log.audio("Stopping background music");
+        this.audioManager.stopBackgroundMusic();
+      }
       this.isBackgroundMusicPlaying = false;
     }
 
