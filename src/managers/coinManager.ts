@@ -14,10 +14,12 @@ import { CoinPhysics } from "./coinPhysics";
 import { COIN_TYPES, P_COIN_COLORS, COIN_EFFECTS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
+import { useGameStore } from "../stores/gameStore";
 
 interface EffectData {
   endTime: number;
   effect: CoinEffect;
+  remainingDuration?: number; // Track remaining duration when paused
 }
 
 export class CoinManager {
@@ -33,6 +35,10 @@ export class CoinManager {
   private bombAndMonsterPoints: number = 0; // Track points from bombs and monsters only (no bonus)
   private monsterKillCount: number = 0; // Track monsters killed in current power mode session
   private pCoinColorIndex: number = 0; // Track current P-coin color index
+  
+  // Pause state tracking
+  private isPaused: boolean = false;
+  private pauseStartTime: number = 0;
 
   constructor(spawnPoints: CoinSpawnPoint[] = []) {
     this.spawnPoints = spawnPoints;
@@ -506,6 +512,11 @@ export class CoinManager {
   }
 
   private checkEffectsEnd(gameState?: Record<string, unknown>): void {
+    // Don't check effects while paused
+    if (this.isPaused) {
+      return;
+    }
+    
     const currentTime = Date.now();
     const effectsToRemove: string[] = [];
 
@@ -746,6 +757,68 @@ export class CoinManager {
       monster.isFrozen = false;
       monster.isBlinking = false;
     });
+  }
+
+  // Pause and resume methods for proper effect duration handling
+  pause(): void {
+    if (this.isPaused) return;
+    
+    this.isPaused = true;
+    this.pauseStartTime = Date.now();
+    
+    // Store remaining duration for all active effects
+    this.activeEffects.forEach((effectData, effectType) => {
+      const remainingTime = effectData.endTime - Date.now();
+      if (remainingTime > 0) {
+        effectData.remainingDuration = remainingTime;
+        log.debug(`Pausing effect ${effectType} with ${remainingTime}ms remaining`);
+      }
+    });
+    
+    // Also handle legacy powerModeEndTime
+    if (this.powerModeActive && this.powerModeEndTime > Date.now()) {
+      const remainingTime = this.powerModeEndTime - Date.now();
+      log.debug(`Pausing legacy power mode with ${remainingTime}ms remaining`);
+    }
+  }
+
+  resume(): void {
+    if (!this.isPaused) return;
+    
+    this.isPaused = false;
+    const pauseDuration = Date.now() - this.pauseStartTime;
+    
+    // Restore end times for all active effects
+    this.activeEffects.forEach((effectData, effectType) => {
+      if (effectData.remainingDuration !== undefined && effectData.remainingDuration > 0) {
+        effectData.endTime = Date.now() + effectData.remainingDuration;
+        log.debug(`Resuming effect ${effectType} with ${effectData.remainingDuration}ms remaining, new endTime: ${effectData.endTime}`);
+        
+        // Restart power-up melody if it's the POWER_MODE effect
+        if (effectType === 'POWER_MODE' && effectData.remainingDuration > 0) {
+          // Get the game state to access audioManager
+          const gameState = useGameStore?.getState?.();
+          if (gameState?.audioManager && typeof gameState.audioManager.startPowerUpMelodyWithDuration === 'function') {
+            log.debug(`Restarting PowerUp melody with ${effectData.remainingDuration}ms remaining`);
+            gameState.audioManager.startPowerUpMelodyWithDuration(effectData.remainingDuration);
+          }
+        }
+        
+        effectData.remainingDuration = undefined; // Clear the remaining duration
+      }
+    });
+    
+    // Also update legacy powerModeEndTime if it was active
+    if (this.powerModeActive && this.powerModeEndTime > 0) {
+      // Only adjust if the power mode hasn't expired during pause
+      const originalRemainingTime = this.powerModeEndTime - this.pauseStartTime;
+      if (originalRemainingTime > 0) {
+        this.powerModeEndTime = Date.now() + originalRemainingTime;
+        log.debug(`Resuming legacy power mode, new endTime: ${this.powerModeEndTime}`);
+      }
+    }
+    
+    this.pauseStartTime = 0;
   }
 
   resetEffects(): void {

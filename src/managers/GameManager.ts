@@ -370,6 +370,12 @@ export class GameManager {
       this.scalingManager.resumeAllMonsterScaling();
       this.monsterSpawnManager.resume();
       this.monsterRespawnManager.resume();
+      
+      // Resume coin manager to restore powerup durations
+      const gameState = useGameStore.getState();
+      if (gameState.coinManager) {
+        gameState.coinManager.resume();
+      }
     } else {
       // Stop power-up melody when game is paused/stopped
       if (this.audioManager.isPowerUpMelodyActive()) {
@@ -381,6 +387,12 @@ export class GameManager {
       this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
       this.monsterRespawnManager.pause();
+      
+      // Pause coin manager to preserve powerup durations
+      const gameState = useGameStore.getState();
+      if (gameState.coinManager) {
+        gameState.coinManager.pause();
+      }
     }
   }
 
