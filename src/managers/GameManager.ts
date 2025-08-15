@@ -31,7 +31,6 @@ export class GameManager {
   private monsterRespawnManager: OptimizedRespawnManager;
   private animationFrameId: number | null = null;
   private lastTime = 0;
-  private isBackgroundMusicPlaying = false;
   private previousGameState: GameState | null = null;
   private devModeInitialized = false;
   private boundGameLoop: (currentTime: number) => void;
@@ -189,7 +188,6 @@ export class GameManager {
     }
     this.audioManager.stopBackgroundMusic();
     this.audioManager.stopPowerUpMelody(); // Final cleanup
-    this.isBackgroundMusicPlaying = false;
   }
 
   private loadCurrentLevel(): void {
@@ -371,12 +369,10 @@ export class GameManager {
     // Handle sound states based on current game state
     switch (currentState) {
       case GameState.PLAYING:
-        // Start/resume background music if not already playing
-        if (!this.isBackgroundMusicPlaying) {
-          log.audio("Starting background music");
-          this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
-          this.isBackgroundMusicPlaying = true;
-        }
+        // Ensure background music is playing
+        // This handles all edge cases including powerup melody conflicts
+        log.audio("PLAYING state - ensuring background music");
+        this.audioManager.ensureBackgroundMusic();
         
         // Resume powerUpMelody if it was paused
         if (stateChanged && this.audioManager.isPowerUpMelodyActive()) {
@@ -391,10 +387,9 @@ export class GameManager {
 
       case GameState.PAUSED:
         // Stop background music
-        if (this.isBackgroundMusicPlaying) {
+        if (this.audioManager.isBackgroundMusicPlaying()) {
           log.audio("Pausing - stopping background music");
           this.audioManager.stopBackgroundMusic();
-          this.isBackgroundMusicPlaying = false;
         }
         
         // Pause powerUpMelody (don't stop it, just pause)
@@ -414,10 +409,9 @@ export class GameManager {
       case GameState.VICTORY:
       case GameState.GAME_OVER:
         // Stop all ongoing sounds for these states
-        if (this.isBackgroundMusicPlaying) {
+        if (this.audioManager.isBackgroundMusicPlaying()) {
           log.audio(`${GameState[currentState]} state - stopping background music`);
           this.audioManager.stopBackgroundMusic();
-          this.isBackgroundMusicPlaying = false;
         }
         
         // Stop powerUpMelody completely for these transitions
@@ -432,10 +426,9 @@ export class GameManager {
       case GameState.COUNTDOWN:
       case GameState.MENU:
         // Stop background music
-        if (this.isBackgroundMusicPlaying) {
+        if (this.audioManager.isBackgroundMusicPlaying()) {
           log.audio(`${GameState[currentState]} state - stopping background music`);
           this.audioManager.stopBackgroundMusic();
-          this.isBackgroundMusicPlaying = false;
         }
         
         // Stop powerUpMelody for menu/countdown states
@@ -972,9 +965,10 @@ export class GameManager {
     gameState.clearAllFloatingTexts();
 
     // Reset coin effects and state when map is completed
+    // This will stop any active powerup melody
     gameState.resetEffects();
     gameState.resetCoinState();
-    log.debug("Coins reset when map is cleared");
+    log.debug("Coins and effects reset when map is cleared");
 
     // Record the level result when level is completed
     if (gameState.currentMap) {

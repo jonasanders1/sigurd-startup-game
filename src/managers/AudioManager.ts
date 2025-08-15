@@ -309,13 +309,22 @@ export class AudioManager {
   }
 
   private startBackgroundMusic(): void {
-    if (
-      !this.audioContext ||
-      this.isBackgroundMusicPlaying ||
-      !this.backgroundMusicBuffer
-    )
+    if (!this.audioContext) {
+      log.audio("Cannot start background music: no audio context");
       return;
+    }
+    
+    if (this.isBackgroundMusicPlaying) {
+      log.audio("Background music already playing, skipping start");
+      return;
+    }
+    
+    if (!this.backgroundMusicBuffer) {
+      log.audio("Cannot start background music: no music buffer loaded");
+      return;
+    }
 
+    log.audio("Starting background music now");
     this.isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
   }
@@ -477,21 +486,23 @@ export class AudioManager {
   }
 
   private pauseBackgroundMusic(): void {
-    if (this.backgroundMusicGain) {
+    if (this.backgroundMusicGain && this.isBackgroundMusicPlaying) {
       this.backgroundMusicGain.gain.value = 0;
+      // Don't set isBackgroundMusicPlaying to false here - it's just paused, not stopped
+      // This allows us to resume it later
     }
   }
 
   private resumeBackgroundMusic(): void {
-    // If background music is already playing, just restore volume
+    // If background music is already playing (just paused), restore volume
     if (this.backgroundMusicGain && this.isBackgroundMusicPlaying) {
+      log.audio("Resuming background music - restoring volume");
       this.updateAudioVolumes(); // Restore volume based on current settings
       return;
     }
     
-    // If background music should be playing based on game state, restart it
+    // If background music was stopped (not just paused), check if we should restart it
     // This handles the case where powerup melody ends after a state transition
-    // that stopped the background music
     const gameState = useGameStore.getState();
     if (gameState.currentState === GameState.PLAYING && !this.isBackgroundMusicPlaying) {
       log.audio("Resuming background music - restarting because it was stopped");
@@ -535,6 +546,25 @@ export class AudioManager {
   // Public method to check if power-up melody is active
   public isPowerUpMelodyActive(): boolean {
     return this.powerUpMelodyActive;
+  }
+
+  // Public method to check if background music is playing
+  public isBackgroundMusicPlaying(): boolean {
+    return this.isBackgroundMusicPlaying;
+  }
+
+  // Public method to ensure background music is playing (used when transitioning to PLAYING state)
+  public ensureBackgroundMusic(): void {
+    if (!this.isBackgroundMusicPlaying) {
+      log.audio("Ensuring background music is playing");
+      this.startBackgroundMusic();
+    } else if (this.backgroundMusicGain && this.backgroundMusicGain.gain.value === 0) {
+      // Music is playing but muted (paused by powerup), restore volume if no powerup is active
+      if (!this.powerUpMelodyActive) {
+        log.audio("Restoring background music volume (was paused)");
+        this.updateAudioVolumes();
+      }
+    }
   }
 
   // Public method to pause power-up melody
