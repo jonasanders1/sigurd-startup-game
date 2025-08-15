@@ -1,70 +1,63 @@
 import { SpriteInstance } from "../lib/SpriteInstance";
-import { ASSET_PATHS } from "../config/assets";
+import { loadSpriteImage } from "../config/assets";
 
-// Helper function to load images from public folder
-const loadImage = (path: string): HTMLImageElement => {
-  const img = new Image();
-  img.src = `${ASSET_PATHS.images}/${path}`;
-  return img;
-};
-
-const sigurdIdleFrames = [
-  loadImage("sigurd-idle/sigurd-idle1.png"),
-  loadImage("sigurd-idle/sigurd-idle2.png"),
-  loadImage("sigurd-idle/sigurd-idle3.png"),
-  loadImage("sigurd-idle/sigurd-idle4.png"),
+const idleFrames = [
+  loadSpriteImage("sigurd-idle/sigurd-idle1.png"),
+  loadSpriteImage("sigurd-idle/sigurd-idle2.png"),
+  loadSpriteImage("sigurd-idle/sigurd-idle3.png"),
+  loadSpriteImage("sigurd-idle/sigurd-idle4.png"),
 ];
 
-const runningFrames = [
-  loadImage("running/run1.png"),
-  loadImage("running/run2.png"),
-  loadImage("running/run3.png"),
+const runFrames = [
+  loadSpriteImage("running/run1.png"),
+  loadSpriteImage("running/run2.png"),
+  loadSpriteImage("running/run3.png"),
 ];
 
 const jumpFrames = [
-  loadImage("jumping/jump1.png"),
-  loadImage("jumping/jump2.png"),
-  loadImage("jumping/jump3.png"),
+  loadSpriteImage("jumping/jump1.png"),
+  loadSpriteImage("jumping/jump2.png"),
+  loadSpriteImage("jumping/jump3.png"),
 ];
 
 
 
 const completeFrames = [
-  loadImage("complete/complete1.png"),
-  loadImage("complete/complete2.png"),
-  loadImage("complete/complete3.png"),
-  loadImage("complete/complete4.png"),
-  loadImage("complete/complete5.png"),
+  loadSpriteImage("complete/complete1.png"),
+  loadSpriteImage("complete/complete2.png"),
+  loadSpriteImage("complete/complete3.png"),
+  loadSpriteImage("complete/complete4.png"),
+  loadSpriteImage("complete/complete5.png"),
 ];
 
-const floatStationaryFrames = [loadImage("float/float1.png")];
+const floatStationaryFrames = [loadSpriteImage("float/float1.png")];
 
-const floatDirectionalFrames = [loadImage("float-dir/float-dir1.png")];
+const floatDirectionalFrames = [loadSpriteImage("float-dir/float-dir1.png")];
 
-const landingFrames = [loadImage("landing/landing1.png")];
+const landingFrames = [loadSpriteImage("landing/landing1.png")];
 
 const playerAnimations = [
   {
     name: "walk-right",
-    frames: runningFrames,
+    frames: runFrames,
     frameDuration: 100,
     loop: true,
   },
   {
     name: "walk-left",
-    frames: runningFrames,
+    frames: runFrames,
     frameDuration: 100,
     loop: true,
   },
   {
     name: "idle-right",
-    frames: sigurdIdleFrames,
+    frames: idleFrames,
     frameDuration: 1000,
     loop: true,
   },
   {
     name: "idle-left",
-    frames: sigurdIdleFrames,
+    frames: idleFrames,
     frameDuration: 1000,
     loop: true,
   },

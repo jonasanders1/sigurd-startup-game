@@ -457,7 +457,7 @@ export const level3Map: MapDefinition = {
       createMonster: () =>
         createAmbusherMonster(
           50, // startX
-          550, // startY
+          500, // startY
           1.0, // speed (reduced from 1.5)
           8000 // ambushInterval (increased from 500 to match new base value)
         ),

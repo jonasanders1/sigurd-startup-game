@@ -1,6 +1,7 @@
-import { GAME_CONFIG } from '../types/constants';
-import { ASSET_PATHS } from '../config/assets';
-import { logger } from '../lib/logger';
+import { GAME_CONFIG } from "../types/constants";
+import { ASSET_PATHS } from "../config/assets";
+import { logger } from "../lib/logger";
+import { getBackgroundImagePath } from "../config/assets";
 
 interface BackgroundImage {
   image: HTMLImageElement;
@@ -9,15 +10,14 @@ interface BackgroundImage {
 
 // Map human-readable map names to custom background image files
 const MAP_NAME_TO_BACKGROUND_MAP: Record<string, string> = {
-  
-  'startup lab': 'startup-lab.png',
-  'nav': 'nav.png',
-  'skatteetaten': 'skatteetaten.png',
-  'innovasjon norge': 'innovasjon-norge.png',
-  'kommunehuset': 'kommunehuset.png',
-  'alltinn norge': 'alltinn-norge.png',
-  'silicone vally': 'silicone-vally.png',
-  'default': 'startup-lab.png',
+  "startup lab": "startup-lab",
+  nav: "nav",
+  skatteetaten: "skatteetaten",
+  "innovasjon norge": "innovasjon-norge",
+  kommunehuset: "kommunehuset",
+  "alltinn norge": "alltinn-norge",
+  "silicone vally": "silicone-vally",
+  default: "startup-lab",
 };
 
 export class BackgroundManager {
@@ -25,7 +25,7 @@ export class BackgroundManager {
   private isLoading: boolean = false;
   private canvasWidth: number;
   private canvasHeight: number;
-  private currentMapName: string = '';
+  private currentMapName: string = "";
 
   constructor(canvasWidth: number, canvasHeight: number) {
     this.canvasWidth = canvasWidth;
@@ -35,44 +35,51 @@ export class BackgroundManager {
   // Load background based on map name
   loadMapBackground(mapName: string): void {
     if (this.isLoading) return; // Prevent multiple simultaneous loads
-    
+
     this.currentMapName = mapName;
     this.isLoading = true;
-    
+
     // Clear existing background
     if (this.currentBackground) {
-      this.currentBackground.image.src = '';
+      this.currentBackground.image.src = "";
       this.currentBackground = null;
     }
 
     // Start loading in background - doesn't block game loop
-    this.loadBackgroundAsync(mapName).catch(error => {
-      console.error('BackgroundManager: Failed to load background:', error);
+    this.loadBackgroundAsync(mapName).catch((error) => {
+      console.error("BackgroundManager: Failed to load background:", error);
       this.isLoading = false;
     });
   }
 
   private async loadBackgroundAsync(mapName: string): Promise<void> {
     try {
-      const imageFileName = MAP_NAME_TO_BACKGROUND_MAP[mapName] || MAP_NAME_TO_BACKGROUND_MAP['default'];
+      this.isLoading = true;
       
-      if (!imageFileName) {
-        console.warn(`BackgroundManager: No background image found for map: ${mapName}, using fallback`);
+      const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
+      if (!themeName) {
+        console.warn(
+          `BackgroundManager: No background image found for map: ${mapName}, using fallback`
+        );
         this.isLoading = false;
         return;
       }
 
-      const image = await this.loadImage(`${ASSET_PATHS.images}/maps-bg-images/${imageFileName}`);
+      const imagePath = await getBackgroundImagePath(themeName);
+      const image = await this.loadImage(imagePath);
       
       this.currentBackground = {
         image: image,
-        isLoaded: true
+        isLoaded: true,
       };
       
       this.isLoading = false;
       logger.flow(`Background loaded: ${mapName}`);
     } catch (error) {
-      console.error('BackgroundManager: Failed to load background image:', error);
+      console.error(
+        "BackgroundManager: Failed to load background image:",
+        error
+      );
       this.isLoading = false;
     }
   }
@@ -104,48 +111,49 @@ export class BackgroundManager {
     }
 
     const image = this.currentBackground.image;
-    
+
     // Calculate scale to fit the canvas exactly (crop if necessary)
     const scaleX = this.canvasWidth / image.width;
     const scaleY = this.canvasHeight / image.height;
     const scale = Math.max(scaleX, scaleY); // Use max to ensure full coverage
-    
+
     const scaledWidth = image.width * scale;
     const scaledHeight = image.height * scale;
-    
+
     // Calculate offset to center the image if it's larger than canvas
     const offsetX = (scaledWidth - this.canvasWidth) / 2;
     const offsetY = (scaledHeight - this.canvasHeight) / 2;
-    
+
     // Draw the image cropped to canvas dimensions
-    ctx.drawImage(
-      image,
-      -offsetX, -offsetY, scaledWidth, scaledHeight
-    );
+    ctx.drawImage(image, -offsetX, -offsetY, scaledWidth, scaledHeight);
   }
 
   private renderLoading(ctx: CanvasRenderingContext2D): void {
     // Create a loading background that matches the game's theme
     const gradient = ctx.createLinearGradient(0, 0, 0, this.canvasHeight);
-    gradient.addColorStop(0, '#262521'); // Dark background
-    gradient.addColorStop(1, '#484744'); // Slightly lighter
-    
+    gradient.addColorStop(0, "#262521"); // Dark background
+    gradient.addColorStop(1, "#484744"); // Slightly lighter
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
-    
+
     // Add loading text
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Loading background...', this.canvasWidth / 2, this.canvasHeight / 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      "Loading background...",
+      this.canvasWidth / 2,
+      this.canvasHeight / 2
+    );
   }
 
   private renderFallback(ctx: CanvasRenderingContext2D): void {
     // Create a simple gradient background as fallback
     const gradient = ctx.createLinearGradient(0, 0, 0, this.canvasHeight);
-    gradient.addColorStop(0, '#87CEEB'); // Sky blue
-    gradient.addColorStop(1, '#4682B4'); // Steel blue
-    
+    gradient.addColorStop(0, "#87CEEB"); // Sky blue
+    gradient.addColorStop(1, "#4682B4"); // Steel blue
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
   }
@@ -179,17 +187,24 @@ export class BackgroundManager {
 
   // Preload all background images to prevent flashing
   static async preloadAllBackgrounds(): Promise<void> {
-    logger.flow('Starting background preloading...');
-    const backgrounds = Object.values(MAP_NAME_TO_BACKGROUND_MAP);
+    logger.flow("Starting background preloading...");
+    const backgrounds = Object.keys(MAP_NAME_TO_BACKGROUND_MAP);
     let loadedCount = 0;
     
-    const preloadPromises = backgrounds.map(async (background) => {
+    const preloadPromises = backgrounds.map(async (mapName) => {
       try {
+        const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
+        if (!themeName) return;
+        
+        // Use the new asset loading system
+        const imagePath = getBackgroundImagePath(themeName);
+        if (!imagePath) return;
+        
         const img = new Image();
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
-          img.src = `${ASSET_PATHS.images}/maps-bg-images/${background}`;
+          img.src = imagePath;
         });
         loadedCount++;
         // Only log every 2nd background to reduce spam
@@ -197,11 +212,13 @@ export class BackgroundManager {
           logger.flow(`Preloaded ${loadedCount}/${backgrounds.length} backgrounds`);
         }
       } catch (error) {
-        logger.warn(`Failed to preload background: ${background}`);
+        logger.warn(`Failed to preload background: ${mapName}`);
       }
     });
     
     await Promise.all(preloadPromises);
-    logger.flow(`Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`);
+    logger.flow(
+      `Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`
+    );
   }
-} 
+}

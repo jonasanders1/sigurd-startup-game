@@ -11,15 +11,13 @@ const GameOverScreen: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-b rounded-lg text-center max-w-md">
-      <h1 className="text-4xl font-bold text-red-400 mb-4 uppercase">
-        konkurs
-      </h1>
+      <h1 className="text-4xl font-bold mb-4 uppercase">konkurs</h1>
 
       <div className="text-white mb-6 space-y-3">
         <div className="text-2xl">
-          <span className="text-yellow-400">
+          <span className="">
             Total finansiering:{" "}
-            <span className="font-bold text-white">
+            <span className="font-bold text-primary">
               {score.toLocaleString()} kr
             </span>
           </span>
@@ -78,7 +76,7 @@ const GameOverScreen: React.FC = () => {
 
       <Button
         onClick={handleRestart}
-        className="bg-primary hover:bg-primary/80 text-white font-bold py-3 px-8 text-lg transition-all duration-200 transform hover:scale-105 uppercase"
+        className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 text-lg transition-all duration-200 uppercase"
       >
         prøv igjen
       </Button>

@@ -4,7 +4,6 @@ import { useGameStore } from "../../../stores/gameStore";
 import { GameState, MenuType } from "../../../types/enums";
 import { Play, Settings, Home, RotateCcw } from "lucide-react";
 
-
 const PauseMenu: React.FC = () => {
   const { setState, setMenuType, resetGame } = useGameStore();
 
@@ -12,7 +11,7 @@ const PauseMenu: React.FC = () => {
     // Show countdown before resuming
     setMenuType(MenuType.COUNTDOWN);
     setState(GameState.COUNTDOWN);
-    
+
     // After 3 seconds, start the game
     setTimeout(() => {
       setState(GameState.PLAYING);
@@ -30,29 +29,14 @@ const PauseMenu: React.FC = () => {
   };
 
   const restartGame = () => {
-    // Don't call resetGame() as it clears everything
-    // Instead, just reset the current level state and player position
-    const { resetBombState, resetPlayer, resetEffects, clearAllFloatingTexts, currentMap } = useGameStore.getState();
-    
-    // Reset level-specific state
-    resetBombState();
-    resetPlayer();
-    resetEffects();
-    clearAllFloatingTexts();
-    
-    // Re-initialize the current level if we have a map
-    if (currentMap) {
-      const { initializeLevel } = useGameStore.getState();
-      initializeLevel(currentMap);
-    }
+    // Reset everything back to level 1
+    const { resetGame } = useGameStore.getState();
+    resetGame();
 
-    // Set state to MENU with no current map to trigger level reload in GameManager
+    // Set state to MENU to trigger level reload in GameManager
     setState(GameState.MENU);
     setMenuType(MenuType.COUNTDOWN);
 
-    // Start countdown immediately, GameManager will handle the level reload
-    setState(GameState.COUNTDOWN);
-    
     // After 3 seconds, start the game
     setTimeout(() => {
       setState(GameState.PLAYING);
@@ -64,10 +48,13 @@ const PauseMenu: React.FC = () => {
       <div className="space-y-4">
         <Button
           onClick={resumeGame}
-          className="w-full bg-primary hover:bg-primary-80 text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <Play size={20} />
-          Fortsett
+          Fortsett /
+          <div className="text-xs px-2 py-1 bg-secondary rounded-sm">
+            <span>P</span>
+          </div>
         </Button>
 
         <Button
@@ -91,7 +78,7 @@ const PauseMenu: React.FC = () => {
         <Button
           onClick={quitToMenu}
           variant="default"
-          className="w-full bg-red-600 hover:bg-red-600/80 text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full bg-destructive text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <Home size={20} />
           hovedmeny

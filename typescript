@@ -1,0 +1,4067 @@
+Script started on Wed Aug 13 17:46:21 2025
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[?2004l
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[?2004l
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[?2004l
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hcclear[?2004l
+[3J[H[2J[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[?2004l
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnnpm run dev[?2004l
+
+> sigurd-startup@2.2.14 dev
+> vite
+
+[1G[0KPort 8080 is in use, trying another one...
+
+  [32m[1mVITE[22m v5.4.19[39m  [2mready in [0m[1m166[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m8081[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.0.59:[1m8081[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://169.254.7.119:[1m8081[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:51:14 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:52:06 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:52:11 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:52:13 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:52:54 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:52:55 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:52:58 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:53:01 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:53:02 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:53:03 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:53:27 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x10)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:53:27 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x11)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m5:54:57 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x12)[39m
+^C[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hcclear[?2004l
+[3J[H[2J[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[7mnode scripts/version.js patch[27m[29D[27mn[27mo[27md[27me[27m [27ms[27mc[27mr[27mi[27mp[27mt[27ms[27m/[27mv[27me[27mr[27ms[27mi[27mo[27mn[27m.[27mj[27ms[27m [27mp[27ma[27mt[27mc[27mh[?2004l
+✅ Version updated to 2.2.15 (Build 0)
+📦 Hash: 7LQ54X
+⏰ Timestamp: 2025-08-13T15:55:28.889Z
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[7mnpm run build:lib[27m[17D[27mn[27mp[27mm[27m [27mr[27mu[27mn[27m [27mb[27mu[27mi[27ml[27md[27m:[27ml[27mi[27mb[?2004l
+
+> sigurd-startup@2.2.15 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (100) [2msrc/components/GameCanvas.tsx[22m[2K[1Gtransforming (117) [2mnode_modules/react/cjs/react.production.min.js[22m[2K[1Gtransforming (120) [2msrc/index.css[22m[2K[1Gtransforming (1117) [2mnode_modules/lucide-react/dist/esm/icons/locate-off.js[22m[2K[1Gtransforming (1126) [2mnode_modules/lucide-react/dist/esm/icons/lock.js[22m[2K[1Gtransforming (1767) [2mnode_modules/scheduler/cjs/scheduler.production.min.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1789) [2msrc/maps/mapDefinitions.ts[22m[2K[1Gtransforming (1796) [2mnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 317ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.50 kB[22m[1m[22m[2m │ gzip:     4.63 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,630.18 kB[39m[22m[2m │ gzip: 9,167.56 kB[22m[2m │ map: 15,589.06 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.50 kB[22m[1m[22m[2m │ gzip:     4.63 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,214.81 kB[39m[22m[2m │ gzip: 9,117.18 kB[22m[2m │ map: 15,480.81 kB[22m
+[32m✓ built in 5.23s[39m
+[1G[0K⠙[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h[7mnpm publish[27m[11D[27mn[27mp[27mm[27m [27mp[27mu[27mb[27ml[27mi[27ms[27mh[?2004l
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.2.15 prepublishOnly
+> npm run build:package
+
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.2.15 build:package
+> npm run build:lib && npm run test:package
+
+[1G[0K
+> sigurd-startup@2.2.15 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (97) [2msrc/assets/sigurd-idle/sigurd-idle4.png[22m[2K[1Gtransforming (121) [2mnode_modules/react/index.js[22m[2K[1Gtransforming (1131) [2mnode_modules/lucide-react/dist/esm/icons/locate-off.js[22m[2K[1Gtransforming (1133) [2mnode_modules/react-dom/cjs/react-dom.production.min.js[22m[2K[1Gtransforming (1774) [2mnode_modules/react-dom/client.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1805) [2mnode_modules/zustand/esm/vanilla.mjs[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 301ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.50 kB[22m[1m[22m[2m │ gzip:     4.63 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,630.18 kB[39m[22m[2m │ gzip: 9,167.56 kB[22m[2m │ map: 15,589.06 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.50 kB[22m[1m[22m[2m │ gzip:     4.63 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,214.81 kB[39m[22m[2m │ gzip: 9,117.18 kB[22m[2m │ map: 15,480.81 kB[22m
+[32m✓ built in 5.06s[39m
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.2.15 test:package
+> node scripts/test-package.js
+
+[1G[0K🧪 Testing package build...
+
+✅ Assets folder found with 18 files
+
+📦 Package contents:
+  sigurd-startup.es.js: 13310.8 KB
+  sigurd-startup.umd.js: 12905.2 KB
+  sigurd-startup.css: 20.0 KB
+  index.d.ts: 0.0 KB
+
+✅ ES module syntax check passed
+
+🎉 Package test completed successfully!
+📤 Ready to publish with: npm publish
+[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 📦  sigurd-startup@2.2.15
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Contents[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 4.1kB README.md
+[1mnpm[22m [96mnotice[39m 1.7kB dist/assets/bomb/bomb1.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/bomb/bomb2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete4.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete5.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/float-dir/float-dir1.png
+[1mnpm[22m [96mnotice[39m 2.2kB dist/assets/float/float1.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-float/ghost-float1.png
+[1mnpm[22m [96mnotice[39m 307B dist/assets/ghost-float/ghost-float2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle1.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle3.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle4.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle5.png
+[1mnpm[22m [96mnotice[39m 293B dist/assets/ghost-Idle/ghost-idle6.png
+[1mnpm[22m [96mnotice[39m 331B dist/assets/ghost-jump/ghost-jump1.png
+[1mnpm[22m [96mnotice[39m 296B dist/assets/ghost-jump/ghost-jump2.png
+[1mnpm[22m [96mnotice[39m 326B dist/assets/ghost-jump/ghost-jump3.png
+[1mnpm[22m [96mnotice[39m 363B dist/assets/ghost-landing/ghost-landing1.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-landing/ghost-landing2.png
+[1mnpm[22m [96mnotice[39m 323B dist/assets/ghost-landing/ghost-landing3.png
+[1mnpm[22m [96mnotice[39m 325B dist/assets/ghost-map-complete/ghost-map-complete1.png
+[1mnpm[22m [96mnotice[39m 319B dist/assets/ghost-map-complete/ghost-map-complete2.png
+[1mnpm[22m [96mnotice[39m 299B dist/assets/ghost-map-complete/ghost-map-complete3.png
+[1mnpm[22m [96mnotice[39m 322B dist/assets/ghost-map-complete/ghost-map-complete4.png
+[1mnpm[22m [96mnotice[39m 329B dist/assets/ghost-walk/ghost-walk1.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk2.png
+[1mnpm[22m [96mnotice[39m 300B dist/assets/ghost-walk/ghost-walk3.png
+[1mnpm[22m [96mnotice[39m 308B dist/assets/ghost-walk/ghost-walk4.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-walk/ghost-walk5.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk6.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-walk/ghost-walk7.png
+[1mnpm[22m [96mnotice[39m 309B dist/assets/ghost-walk/ghost-walk8.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/jumping/jump3.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/landing/landing1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/future-city-2/3.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/map-images/future-city-2/4.png
+[1mnpm[22m [96mnotice[39m 3.3kB dist/assets/map-images/future-city-2/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city-2/6.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/future-city-2/7.png
+[1mnpm[22m [96mnotice[39m 7.0kB dist/assets/map-images/future-city-2/8.png
+[1mnpm[22m [96mnotice[39m 1.3kB dist/assets/map-images/future-city-2/9.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/future-city/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/3.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/4.png
+[1mnpm[22m [96mnotice[39m 1.4kB dist/assets/map-images/future-city/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/future-city/7.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/8.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/9.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/mountain/1.png
+[1mnpm[22m [96mnotice[39m 8.5kB dist/assets/map-images/mountain/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/3.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/mountain/4.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/5.png
+[1mnpm[22m [96mnotice[39m 2.6kB dist/assets/map-images/mountain/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/mountain/7.png
+[1mnpm[22m [96mnotice[39m 2.5kB dist/assets/map-images/mountain/8.png
+[1mnpm[22m [96mnotice[39m 2.7kB dist/assets/map-images/mountain/9.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/ocean/1.png
+[1mnpm[22m [96mnotice[39m 1.1kB dist/assets/map-images/ocean/2.png
+[1mnpm[22m [96mnotice[39m 10.4kB dist/assets/map-images/ocean/3.png
+[1mnpm[22m [96mnotice[39m 6.3kB dist/assets/map-images/ocean/4.png
+[1mnpm[22m [96mnotice[39m 18.4kB dist/assets/map-images/taco-street/1.png
+[1mnpm[22m [96mnotice[39m 14.6kB dist/assets/map-images/taco-street/2.png
+[1mnpm[22m [96mnotice[39m 15.2kB dist/assets/map-images/taco-street/3.png
+[1mnpm[22m [96mnotice[39m 31.3kB dist/assets/map-images/taco-street/4.png
+[1mnpm[22m [96mnotice[39m 19.5kB dist/assets/map-images/taco-street/5.png
+[1mnpm[22m [96mnotice[39m 14.9kB dist/assets/map-images/taco-street/6.png
+[1mnpm[22m [96mnotice[39m 3.1kB dist/assets/map-images/valley/1.png
+[1mnpm[22m [96mnotice[39m 3.8kB dist/assets/map-images/valley/2.png
+[1mnpm[22m [96mnotice[39m 11.9kB dist/assets/map-images/valley/3.png
+[1mnpm[22m [96mnotice[39m 28.2kB dist/assets/maps-bg-images/alltinn-norge.png
+[1mnpm[22m [96mnotice[39m 27.5kB dist/assets/maps-bg-images/innovasjon-norge.png
+[1mnpm[22m [96mnotice[39m 89.2kB dist/assets/maps-bg-images/kommunehuset.png
+[1mnpm[22m [96mnotice[39m 34.4kB dist/assets/maps-bg-images/nav.png
+[1mnpm[22m [96mnotice[39m 54.9kB dist/assets/maps-bg-images/silicone-vally.png
+[1mnpm[22m [96mnotice[39m 45.2kB dist/assets/maps-bg-images/skatteetaten.png
+[1mnpm[22m [96mnotice[39m 55.6kB dist/assets/maps-bg-images/startup-lab.png
+[1mnpm[22m [96mnotice[39m 4.1kB dist/assets/react.svg
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/running/run1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/sigurd-idle/sigurd-idle3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle4.png
+[1mnpm[22m [96mnotice[39m 8.8MB dist/audio/background-music.wav
+[1mnpm[22m [96mnotice[39m 10B dist/index.d.ts
+[1mnpm[22m [96mnotice[39m 20.5kB dist/sigurd-startup.css
+[1mnpm[22m [96mnotice[39m 13.6MB dist/sigurd-startup.es.js
+[1mnpm[22m [96mnotice[39m 15.6MB dist/sigurd-startup.es.js.map
+[1mnpm[22m [96mnotice[39m 13.2MB dist/sigurd-startup.umd.js
+[1mnpm[22m [96mnotice[39m 15.5MB dist/sigurd-startup.umd.js.map
+[1mnpm[22m [96mnotice[39m 1.5kB dist/vite.svg
+[1mnpm[22m [96mnotice[39m 4.1kB package.json
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Details[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m name: sigurd-startup
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m version: 2.2.15
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m filename: sigurd-startup-2.2.15.tgz
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m package size: 46.0 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m unpacked size: 67.3 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m shasum: bca96c93109e7b5c0fe17112ad09901e49d031c2
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m integrity: sha512-894P7t6i2QkwK[...]dEG5avFqQVkVw==
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m total files: 104
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K[1mnpm[22m [96mnotice[39m Publishing to https://registry.npmjs.org/ with tag latest and default access
+[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K+ sigurd-startup@2.2.15
+[1G[0K⠼[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnnpm run dev[?2004l
+
+> sigurd-startup@2.2.15 dev
+> vite
+
+[1G[0KPort 8080 is in use, trying another one...
+
+  [32m[1mVITE[22m v5.4.19[39m  [2mready in [0m[1m169[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m8081[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.0.59:[1m8081[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:33:19 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:33:25 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/InGameMenu.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:33:43 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:33:44 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:35:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:35:47 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:36:57 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:37:10 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:37:12 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:38:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:39:02 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:39:10 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:39:17 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:41:29 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:41:34 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:41:35 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:44:08 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:45:30 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:45:40 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:45:47 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:46:06 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:46:07 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:48:59 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:49:28 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:50:14 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:02 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:07 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x10)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:08 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x11)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:10 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x12)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:17 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x13)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x14)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:32 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x15)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:57:52 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x16)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:59:32 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x17)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:59:43 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x18)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:59:57 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/MainGame.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:00:04 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/MainGame.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:00:15 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:00:22 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:01:08 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:02:30 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:02:58 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:02:58 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:02:58 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/MainGame.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:02:58 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:03:55 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:03:59 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:04:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:04:03 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:04:14 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:04:15 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:04:39 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:05:16 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:05:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:05:54 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:06:04 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:06:04 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:06:20 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:07:26 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:08:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:08:11 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/GameCanvas.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x10)[39m
+^C[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnnpm en  run dev[?2004l
+
+> sigurd-startup@2.3.0 dev
+> vite
+
+[1G[0KPort 8080 is in use, trying another one...
+
+  [32m[1mVITE[22m v5.4.19[39m  [2mready in [0m[1m169[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m8081[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://10.58.85.17:[1m8081[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m9:37:34 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m9:38:21 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m9:43:08 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+^C[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm run devpublishrun build:lib[17Dnode scripts/version.js patch[29Dnpm run build:lib            [12D[?2004l
+
+> sigurd-startup@2.3.0 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (99) [2mnode_modules/lucide-react/dist/esm/lucide-react.js[22m[2K[1Gtransforming (116) [2msrc/components/menu/menus/PauseMenu.tsx[22m[2K[1Gtransforming (118) [2mnode_modules/react/cjs/react.production.min.js[22m[2K[1Gtransforming (1118) [2mnode_modules/react/cjs/react-jsx-runtime.production.min.js[22m[2K[1Gtransforming (1132) [2mnode_modules/lucide-react/dist/esm/icons/log-in.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1787) [2msrc/maps/mapDefinitions.ts[22m[2K[1Gtransforming (1793) [2mnode_modules/react-dom/index.js[22m[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 345ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.71 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,631.38 kB[39m[22m[2m │ gzip: 9,167.77 kB[22m[2m │ map: 15,590.90 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.71 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,215.73 kB[39m[22m[2m │ gzip: 9,117.36 kB[22m[2m │ map: 15,482.52 kB[22m
+[32m✓ built in 5.36s[39m
+[1G[0K⠙[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm run build:lib[9Ddev      publishrun build:lib[13Dpublish      run build:lib[17Dnode scripts/version.js patch[29Dclear                        [24Dnode scripts/version.js patch[?2004l
+✅ Version updated to 2.3.1 (Build 0)
+📦 Hash: TLRNA6
+⏰ Timestamp: 2025-08-14T07:44:12.084Z
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnode scripts/version.js patch[29Dnpm run build:lib            [12D[9Ddev      publish[?2004l
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.1 prepublishOnly
+> npm run build:package
+
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.1 build:package
+> npm run build:lib && npm run test:package
+
+[1G[0K
+> sigurd-startup@2.3.1 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (100) [2msrc/components/GameCanvas.tsx[22m[2K[1Gtransforming (120) [2mnode_modules/lucide-react/dist/esm/icons/alarm-clock-check.js[22m[2K[1Gtransforming (1121) [2m commonjsHelpers.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1778) [2msrc/managers/coinManager.ts[22m[2K[1Gtransforming (1809) [2mnode_modules/react-dom/client.js[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1823) [2msrc/lib/AnimationController.ts[22m[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 313ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.71 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,631.38 kB[39m[22m[2m │ gzip: 9,167.77 kB[22m[2m │ map: 15,590.90 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.71 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,215.73 kB[39m[22m[2m │ gzip: 9,117.36 kB[22m[2m │ map: 15,482.52 kB[22m
+[32m✓ built in 5.10s[39m
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.1 test:package
+> node scripts/test-package.js
+
+[1G[0K🧪 Testing package build...
+
+✅ Assets folder found with 18 files
+
+📦 Package contents:
+  sigurd-startup.es.js: 13312.0 KB
+  sigurd-startup.umd.js: 12906.1 KB
+  sigurd-startup.css: 20.2 KB
+  index.d.ts: 0.0 KB
+
+✅ ES module syntax check passed
+
+🎉 Package test completed successfully!
+📤 Ready to publish with: npm publish
+[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 📦  sigurd-startup@2.3.1
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Contents[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 4.1kB README.md
+[1mnpm[22m [96mnotice[39m 1.7kB dist/assets/bomb/bomb1.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/bomb/bomb2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete4.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete5.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/float-dir/float-dir1.png
+[1mnpm[22m [96mnotice[39m 2.2kB dist/assets/float/float1.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-float/ghost-float1.png
+[1mnpm[22m [96mnotice[39m 307B dist/assets/ghost-float/ghost-float2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle1.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle3.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle4.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle5.png
+[1mnpm[22m [96mnotice[39m 293B dist/assets/ghost-Idle/ghost-idle6.png
+[1mnpm[22m [96mnotice[39m 331B dist/assets/ghost-jump/ghost-jump1.png
+[1mnpm[22m [96mnotice[39m 296B dist/assets/ghost-jump/ghost-jump2.png
+[1mnpm[22m [96mnotice[39m 326B dist/assets/ghost-jump/ghost-jump3.png
+[1mnpm[22m [96mnotice[39m 363B dist/assets/ghost-landing/ghost-landing1.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-landing/ghost-landing2.png
+[1mnpm[22m [96mnotice[39m 323B dist/assets/ghost-landing/ghost-landing3.png
+[1mnpm[22m [96mnotice[39m 325B dist/assets/ghost-map-complete/ghost-map-complete1.png
+[1mnpm[22m [96mnotice[39m 319B dist/assets/ghost-map-complete/ghost-map-complete2.png
+[1mnpm[22m [96mnotice[39m 299B dist/assets/ghost-map-complete/ghost-map-complete3.png
+[1mnpm[22m [96mnotice[39m 322B dist/assets/ghost-map-complete/ghost-map-complete4.png
+[1mnpm[22m [96mnotice[39m 329B dist/assets/ghost-walk/ghost-walk1.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk2.png
+[1mnpm[22m [96mnotice[39m 300B dist/assets/ghost-walk/ghost-walk3.png
+[1mnpm[22m [96mnotice[39m 308B dist/assets/ghost-walk/ghost-walk4.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-walk/ghost-walk5.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk6.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-walk/ghost-walk7.png
+[1mnpm[22m [96mnotice[39m 309B dist/assets/ghost-walk/ghost-walk8.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/jumping/jump3.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/landing/landing1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/future-city-2/3.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/map-images/future-city-2/4.png
+[1mnpm[22m [96mnotice[39m 3.3kB dist/assets/map-images/future-city-2/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city-2/6.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/future-city-2/7.png
+[1mnpm[22m [96mnotice[39m 7.0kB dist/assets/map-images/future-city-2/8.png
+[1mnpm[22m [96mnotice[39m 1.3kB dist/assets/map-images/future-city-2/9.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/future-city/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/3.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/4.png
+[1mnpm[22m [96mnotice[39m 1.4kB dist/assets/map-images/future-city/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/future-city/7.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/8.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/9.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/mountain/1.png
+[1mnpm[22m [96mnotice[39m 8.5kB dist/assets/map-images/mountain/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/3.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/mountain/4.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/5.png
+[1mnpm[22m [96mnotice[39m 2.6kB dist/assets/map-images/mountain/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/mountain/7.png
+[1mnpm[22m [96mnotice[39m 2.5kB dist/assets/map-images/mountain/8.png
+[1mnpm[22m [96mnotice[39m 2.7kB dist/assets/map-images/mountain/9.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/ocean/1.png
+[1mnpm[22m [96mnotice[39m 1.1kB dist/assets/map-images/ocean/2.png
+[1mnpm[22m [96mnotice[39m 10.4kB dist/assets/map-images/ocean/3.png
+[1mnpm[22m [96mnotice[39m 6.3kB dist/assets/map-images/ocean/4.png
+[1mnpm[22m [96mnotice[39m 18.4kB dist/assets/map-images/taco-street/1.png
+[1mnpm[22m [96mnotice[39m 14.6kB dist/assets/map-images/taco-street/2.png
+[1mnpm[22m [96mnotice[39m 15.2kB dist/assets/map-images/taco-street/3.png
+[1mnpm[22m [96mnotice[39m 31.3kB dist/assets/map-images/taco-street/4.png
+[1mnpm[22m [96mnotice[39m 19.5kB dist/assets/map-images/taco-street/5.png
+[1mnpm[22m [96mnotice[39m 14.9kB dist/assets/map-images/taco-street/6.png
+[1mnpm[22m [96mnotice[39m 3.1kB dist/assets/map-images/valley/1.png
+[1mnpm[22m [96mnotice[39m 3.8kB dist/assets/map-images/valley/2.png
+[1mnpm[22m [96mnotice[39m 11.9kB dist/assets/map-images/valley/3.png
+[1mnpm[22m [96mnotice[39m 28.2kB dist/assets/maps-bg-images/alltinn-norge.png
+[1mnpm[22m [96mnotice[39m 27.5kB dist/assets/maps-bg-images/innovasjon-norge.png
+[1mnpm[22m [96mnotice[39m 89.2kB dist/assets/maps-bg-images/kommunehuset.png
+[1mnpm[22m [96mnotice[39m 34.4kB dist/assets/maps-bg-images/nav.png
+[1mnpm[22m [96mnotice[39m 54.9kB dist/assets/maps-bg-images/silicone-vally.png
+[1mnpm[22m [96mnotice[39m 45.2kB dist/assets/maps-bg-images/skatteetaten.png
+[1mnpm[22m [96mnotice[39m 55.6kB dist/assets/maps-bg-images/startup-lab.png
+[1mnpm[22m [96mnotice[39m 4.1kB dist/assets/react.svg
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/running/run1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/sigurd-idle/sigurd-idle3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle4.png
+[1mnpm[22m [96mnotice[39m 8.8MB dist/audio/background-music.wav
+[1mnpm[22m [96mnotice[39m 10B dist/index.d.ts
+[1mnpm[22m [96mnotice[39m 20.7kB dist/sigurd-startup.css
+[1mnpm[22m [96mnotice[39m 13.6MB dist/sigurd-startup.es.js
+[1mnpm[22m [96mnotice[39m 15.6MB dist/sigurd-startup.es.js.map
+[1mnpm[22m [96mnotice[39m 13.2MB dist/sigurd-startup.umd.js
+[1mnpm[22m [96mnotice[39m 15.5MB dist/sigurd-startup.umd.js.map
+[1mnpm[22m [96mnotice[39m 1.5kB dist/vite.svg
+[1mnpm[22m [96mnotice[39m 4.1kB package.json
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Details[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m name: sigurd-startup
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m version: 2.3.1
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m filename: sigurd-startup-2.3.1.tgz
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m package size: 46.0 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m unpacked size: 67.3 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m shasum: ef120a6c78e22e9e00c73152b32acaf86fb380d6
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m integrity: sha512-Gv9UEE+v/oo3c[...]0Mku3onpItkXA==
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m total files: 104
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m Publishing to https://registry.npmjs.org/ with tag latest and default access
+[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K+ sigurd-startup@2.3.1
+[1G[0K⠦[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm publish[11Dnode scripts/version.js patch[29Dnpm run build:lib            [12D[9Ddev      publishrun dev[?2004l
+
+> sigurd-startup@2.3.1 dev
+> vite
+
+[1G[0KPort 8080 is in use, trying another one...
+
+  [32m[1mVITE[22m v5.4.19[39m  [2mready in [0m[1m346[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m8081[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://10.58.85.17:[1m8081[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:00:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:02:34 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:02:45 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:03:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:04:32 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:07:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:07:31 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:09:11 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:16:40 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:16:44 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:16:48 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:16:48 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:17:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:17:13 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:17:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:17:44 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:17:53 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:18:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:18:27 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:18:30 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:22:02 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:22:11 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:23:17 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:23:25 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:25:04 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:25:29 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:25:29 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:26:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:27:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:27:38 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:27:42 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:27:52 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:28:25 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/MainGame.tsx, /src/index.css, /src/components/GameCanvas.tsx, /src/components/menu/menus/CountdownOverlay.tsx, /src/components/menu/menus/BonusScreen.tsx, /src/components/menu/menus/StartMenu.tsx, /src/components/menu/menus/PauseMenu.tsx, /src/components/menu/menus/SettingsMenu.tsx, /src/components/menu/menus/VictoryMenu.tsx, /src/components/menu/menus/GameOverScreen.tsx, /src/components/menu/menus/InGameMenu.tsx, /src/components/menu/menus/AudioSettingsMenu.tsx[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:28:37 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:30:17 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:30:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:34:04 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:34:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:34:33 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:35:22 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:35:28 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:35:38 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:35:39 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x10)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:42:29 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:42:31 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:42:35 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:45:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:45:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:45:44 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:47:34 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:48:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:49:48 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:49:59 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x10)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:50:01 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x11)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:51:28 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x12)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:51:31 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x13)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:51:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x14)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:53:21 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x15)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:57:16 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x16)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:57:16 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x17)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:57:17 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x18)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m10:57:18 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x19)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:01:49 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:01:50 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:03:31 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:03:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:04:58 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:04:59 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:05:01 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:05:05 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:05:06 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/BonusScreen.tsx, /src/index.css[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:06:42 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:06:55 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:03 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:07 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:12 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:16 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:38 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:07:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x10)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:08:09 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x11)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:08:13 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x12)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:08:25 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x13)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:08:28 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x14)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:08:34 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x15)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:08:43 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x16)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:09:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x17)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:09:14 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x18)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:09:16 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x19)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:09:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x20)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:09:22 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x21)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:09:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x22)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:10:18 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x23)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:10:40 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/menu/menus/PauseMenu.tsx, /src/index.css[22m [33m(x24)[39m
+^C[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm run devpublish[11Dnode scripts/version.js patch[29Dnpm run build:lib            [12D[17Dnode scripts/version.js patch[29Dnpm run build:lib            [12D[?2004l
+
+> sigurd-startup@2.3.1 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (100) [2msrc/components/GameCanvas.tsx[22m[2K[1Gtransforming (119) [2msrc/index.css[22m[2K[1Gtransforming (1122) [2m commonjsHelpers.js[22m[2K[1Gtransforming (1561) [2mnode_modules/lucide-react/dist/esm/icons/stethoscope.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1790) [2mnode_modules/react-dom/index.js[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1818) [2mnode_modules/class-variance-authority/dist/index.mjs[22m[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 330ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,631.75 kB[39m[22m[2m │ gzip: 9,167.94 kB[22m[2m │ map: 15,592.15 kB[22m
+^[[A[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,215.90 kB[39m[22m[2m │ gzip: 9,117.45 kB[22m[2m │ map: 15,483.71 kB[22m
+[32m✓ built in 5.17s[39m
+[1G[0K⠙[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm run build:lib[9Ddev      publish[11Dnode scripts/version.js patch[?2004l
+✅ Version updated to 2.3.2 (Build 0)
+📦 Hash: HXN04Z
+⏰ Timestamp: 2025-08-14T09:22:06.911Z
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnode scripts/version.js patch[29Dnpm run build:lib            [12D[9Ddev      publish[?2004l
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.2 prepublishOnly
+> npm run build:package
+
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.2 build:package
+> npm run build:lib && npm run test:package
+
+[1G[0K
+> sigurd-startup@2.3.2 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (98) [2msrc/assets/sigurd-idle/sigurd-idle4.png[22m[2K[1Gtransforming (120) [2mnode_modules/react/index.js[22m[2K[1Gtransforming (1131) [2mnode_modules/lucide-react/dist/esm/icons/locate.js[22m[2K[1Gtransforming (1133) [2mnode_modules/react-dom/cjs/react-dom.production.min.js[22m[2K[1Gtransforming (1774) [2mnode_modules/react-dom/client.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1806) [2mnode_modules/@radix-ui/primitive/dist/index.mjs[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 299ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,631.75 kB[39m[22m[2m │ gzip: 9,167.94 kB[22m[2m │ map: 15,592.15 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,215.90 kB[39m[22m[2m │ gzip: 9,117.45 kB[22m[2m │ map: 15,483.71 kB[22m
+[32m✓ built in 5.10s[39m
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.2 test:package
+> node scripts/test-package.js
+
+[1G[0K🧪 Testing package build...
+
+✅ Assets folder found with 18 files
+
+📦 Package contents:
+  sigurd-startup.es.js: 13312.4 KB
+  sigurd-startup.umd.js: 12906.3 KB
+  sigurd-startup.css: 20.3 KB
+  index.d.ts: 0.0 KB
+
+✅ ES module syntax check passed
+
+🎉 Package test completed successfully!
+📤 Ready to publish with: npm publish
+[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 📦  sigurd-startup@2.3.2
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Contents[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 4.1kB README.md
+[1mnpm[22m [96mnotice[39m 1.7kB dist/assets/bomb/bomb1.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/bomb/bomb2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete4.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete5.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/float-dir/float-dir1.png
+[1mnpm[22m [96mnotice[39m 2.2kB dist/assets/float/float1.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-float/ghost-float1.png
+[1mnpm[22m [96mnotice[39m 307B dist/assets/ghost-float/ghost-float2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle1.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle3.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle4.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle5.png
+[1mnpm[22m [96mnotice[39m 293B dist/assets/ghost-Idle/ghost-idle6.png
+[1mnpm[22m [96mnotice[39m 331B dist/assets/ghost-jump/ghost-jump1.png
+[1mnpm[22m [96mnotice[39m 296B dist/assets/ghost-jump/ghost-jump2.png
+[1mnpm[22m [96mnotice[39m 326B dist/assets/ghost-jump/ghost-jump3.png
+[1mnpm[22m [96mnotice[39m 363B dist/assets/ghost-landing/ghost-landing1.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-landing/ghost-landing2.png
+[1mnpm[22m [96mnotice[39m 323B dist/assets/ghost-landing/ghost-landing3.png
+[1mnpm[22m [96mnotice[39m 325B dist/assets/ghost-map-complete/ghost-map-complete1.png
+[1mnpm[22m [96mnotice[39m 319B dist/assets/ghost-map-complete/ghost-map-complete2.png
+[1mnpm[22m [96mnotice[39m 299B dist/assets/ghost-map-complete/ghost-map-complete3.png
+[1mnpm[22m [96mnotice[39m 322B dist/assets/ghost-map-complete/ghost-map-complete4.png
+[1mnpm[22m [96mnotice[39m 329B dist/assets/ghost-walk/ghost-walk1.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk2.png
+[1mnpm[22m [96mnotice[39m 300B dist/assets/ghost-walk/ghost-walk3.png
+[1mnpm[22m [96mnotice[39m 308B dist/assets/ghost-walk/ghost-walk4.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-walk/ghost-walk5.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk6.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-walk/ghost-walk7.png
+[1mnpm[22m [96mnotice[39m 309B dist/assets/ghost-walk/ghost-walk8.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/jumping/jump3.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/landing/landing1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/future-city-2/3.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/map-images/future-city-2/4.png
+[1mnpm[22m [96mnotice[39m 3.3kB dist/assets/map-images/future-city-2/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city-2/6.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/future-city-2/7.png
+[1mnpm[22m [96mnotice[39m 7.0kB dist/assets/map-images/future-city-2/8.png
+[1mnpm[22m [96mnotice[39m 1.3kB dist/assets/map-images/future-city-2/9.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/future-city/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/3.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/4.png
+[1mnpm[22m [96mnotice[39m 1.4kB dist/assets/map-images/future-city/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/future-city/7.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/8.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/9.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/mountain/1.png
+[1mnpm[22m [96mnotice[39m 8.5kB dist/assets/map-images/mountain/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/3.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/mountain/4.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/5.png
+[1mnpm[22m [96mnotice[39m 2.6kB dist/assets/map-images/mountain/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/mountain/7.png
+[1mnpm[22m [96mnotice[39m 2.5kB dist/assets/map-images/mountain/8.png
+[1mnpm[22m [96mnotice[39m 2.7kB dist/assets/map-images/mountain/9.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/ocean/1.png
+[1mnpm[22m [96mnotice[39m 1.1kB dist/assets/map-images/ocean/2.png
+[1mnpm[22m [96mnotice[39m 10.4kB dist/assets/map-images/ocean/3.png
+[1mnpm[22m [96mnotice[39m 6.3kB dist/assets/map-images/ocean/4.png
+[1mnpm[22m [96mnotice[39m 18.4kB dist/assets/map-images/taco-street/1.png
+[1mnpm[22m [96mnotice[39m 14.6kB dist/assets/map-images/taco-street/2.png
+[1mnpm[22m [96mnotice[39m 15.2kB dist/assets/map-images/taco-street/3.png
+[1mnpm[22m [96mnotice[39m 31.3kB dist/assets/map-images/taco-street/4.png
+[1mnpm[22m [96mnotice[39m 19.5kB dist/assets/map-images/taco-street/5.png
+[1mnpm[22m [96mnotice[39m 14.9kB dist/assets/map-images/taco-street/6.png
+[1mnpm[22m [96mnotice[39m 3.1kB dist/assets/map-images/valley/1.png
+[1mnpm[22m [96mnotice[39m 3.8kB dist/assets/map-images/valley/2.png
+[1mnpm[22m [96mnotice[39m 11.9kB dist/assets/map-images/valley/3.png
+[1mnpm[22m [96mnotice[39m 28.2kB dist/assets/maps-bg-images/alltinn-norge.png
+[1mnpm[22m [96mnotice[39m 27.5kB dist/assets/maps-bg-images/innovasjon-norge.png
+[1mnpm[22m [96mnotice[39m 89.2kB dist/assets/maps-bg-images/kommunehuset.png
+[1mnpm[22m [96mnotice[39m 34.4kB dist/assets/maps-bg-images/nav.png
+[1mnpm[22m [96mnotice[39m 54.9kB dist/assets/maps-bg-images/silicone-vally.png
+[1mnpm[22m [96mnotice[39m 45.2kB dist/assets/maps-bg-images/skatteetaten.png
+[1mnpm[22m [96mnotice[39m 55.6kB dist/assets/maps-bg-images/startup-lab.png
+[1mnpm[22m [96mnotice[39m 4.1kB dist/assets/react.svg
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/running/run1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/sigurd-idle/sigurd-idle3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle4.png
+[1mnpm[22m [96mnotice[39m 8.8MB dist/audio/background-music.wav
+[1mnpm[22m [96mnotice[39m 10B dist/index.d.ts
+[1mnpm[22m [96mnotice[39m 20.8kB dist/sigurd-startup.css
+[1mnpm[22m [96mnotice[39m 13.6MB dist/sigurd-startup.es.js
+[1mnpm[22m [96mnotice[39m 15.6MB dist/sigurd-startup.es.js.map
+[1mnpm[22m [96mnotice[39m 13.2MB dist/sigurd-startup.umd.js
+[1mnpm[22m [96mnotice[39m 15.5MB dist/sigurd-startup.umd.js.map
+[1mnpm[22m [96mnotice[39m 1.5kB dist/vite.svg
+[1mnpm[22m [96mnotice[39m 4.1kB package.json
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Details[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m name: sigurd-startup
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m version: 2.3.2
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m filename: sigurd-startup-2.3.2.tgz
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m package size: 46.0 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m unpacked size: 67.3 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m shasum: ef35bde1b061e8498f8dca5ef8461f4dde1f2d1a
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m integrity: sha512-l6ekpcRZtTYn0[...]4w5mUtWHZJzPg==
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m total files: 104
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K[1mnpm[22m [96mnotice[39m Publishing to https://registry.npmjs.org/ with tag latest and default access
+[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K+ sigurd-startup@2.3.2
+[1G[0K⠙[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnnpm run dev[?2004l
+
+> sigurd-startup@2.3.2 dev
+> vite
+
+[1G[0K
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J
+  [32m[1mVITE[22m v5.4.19[39m  [2mready in [0m[1m168[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m8080[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://10.58.85.17:[1m8080[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+o
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:29:28 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:29:29 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:30:30 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x3)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:30:33 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x4)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:31:30 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x5)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:33:09 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x6)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:33:23 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x7)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:52:36 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x8)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:52:38 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x9)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:55:50 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x10)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:55:50 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x11)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:26 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x12)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:32 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x13)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:40 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x14)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:56:47 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x15)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:00:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x16)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m12:01:11 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/GameCanvas.tsx[22m [33m(x17)[39m
+^C[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm run devpublish[11Dnode scripts/version.js patch[29Dnpm run build:lib            [12D[?2004l
+
+> sigurd-startup@2.3.2 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (99) [2mnode_modules/lucide-react/dist/esm/lucide-react.js[22m[2K[1Gtransforming (117) [2mnode_modules/react/cjs/react.production.min.js[22m[2K[1Gtransforming (122) [2mnode_modules/lucide-react/dist/esm/icons/index.js[22m[2K[1Gtransforming (1126) [2mnode_modules/lucide-react/dist/esm/icons/lock-keyhole.js[22m[2K[1Gtransforming (1768) [2mnode_modules/scheduler/cjs/scheduler.production.min.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1791) [2msrc/assets/audio/background-music.wav[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1841) [2mnode_modules/clsx/dist/clsx.mjs[22m[2K[1G[32m✓[39m 1856 modules transformed.
+^[[A[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 336ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,632.80 kB[39m[22m[2m │ gzip: 9,168.13 kB[22m[2m │ map: 15,595.09 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,216.75 kB[39m[22m[2m │ gzip: 9,117.62 kB[22m[2m │ map: 15,486.58 kB[22m
+[32m✓ built in 5.47s[39m
+[1G[0K⠙[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnpm run build:lib[9Ddev      build:lib[9Ddev      publish[11Dnode scripts/version.js patch[?2004l
+✅ Version updated to 2.3.3 (Build 0)
+📦 Hash: 5PJ0QF
+⏰ Timestamp: 2025-08-14T10:01:27.394Z
+[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004hnode scripts/version.js patch[29Dnpm run build:lib            [12D[9Ddev      publish[?2004l
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.3 prepublishOnly
+> npm run build:package
+
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.3 build:package
+> npm run build:lib && npm run test:package
+
+[1G[0K
+> sigurd-startup@2.3.3 build:lib
+> vite build --config vite.lib.config.ts
+
+[1G[0K[36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[2K[1Gtransforming (1) [2msrc/index.ts[22m[2K[1Gtransforming (99) [2mnode_modules/lucide-react/dist/esm/lucide-react.js[22m[2K[1Gtransforming (121) [2mnode_modules/react/index.js[22m[2K[1Gtransforming (1133) [2mnode_modules/react-dom/cjs/react-dom.production.min.js[22m[2K[1Gtransforming (1622) [2mnode_modules/lucide-react/dist/esm/icons/thermometer-sun.js[22m[2K[1Gnode_modules/@radix-ui/react-tooltip/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-tooltip/dist/index.mjs" was ignored.
+[2K[1Gtransforming (1797) [2msrc/components/ui/button.tsx[22m[2K[1Gnode_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+[2K[1Gnode_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+[2K[1G[32m✓[39m 1856 modules transformed.
+[2K[1Grendering chunks (1)...[2K[1G[32m
+[36m[vite:dts][32m Start generate declaration files...[39m
+[2K[1Gcomputing gzip size (0)...[2K[1Gcomputing gzip size (1)...[32m[36m[vite:dts][32m Declaration files built in 305ms.
+[39m
+[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css    [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.es.js  [39m[1m[33m13,632.80 kB[39m[22m[2m │ gzip: 9,168.13 kB[22m[2m │ map: 15,595.09 kB[22m
+[2K[1Grendering chunks (1)...[2K[1G[2K[1Gcomputing gzip size (1)...[2K[1Gcomputing gzip size (2)...[2K[1G[2mdist/[22m[35msigurd-startup.css     [39m[1m[2m    20.76 kB[22m[1m[22m[2m │ gzip:     4.65 kB[22m
+[2mdist/[22m[36msigurd-startup.umd.js  [39m[1m[33m13,216.75 kB[39m[22m[2m │ gzip: 9,117.63 kB[22m[2m │ map: 15,486.58 kB[22m
+[32m✓ built in 5.18s[39m
+[1G[0K⠙[1G[0K
+> sigurd-startup@2.3.3 test:package
+> node scripts/test-package.js
+
+[1G[0K🧪 Testing package build...
+
+✅ Assets folder found with 18 files
+
+📦 Package contents:
+  sigurd-startup.es.js: 13313.4 KB
+  sigurd-startup.umd.js: 12907.1 KB
+  sigurd-startup.css: 20.3 KB
+  index.d.ts: 0.0 KB
+
+✅ ES module syntax check passed
+
+🎉 Package test completed successfully!
+📤 Ready to publish with: npm publish
+[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 📦  sigurd-startup@2.3.3
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Contents[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m 4.1kB README.md
+[1mnpm[22m [96mnotice[39m 1.7kB dist/assets/bomb/bomb1.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/bomb/bomb2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete2.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete4.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/complete/complete5.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/float-dir/float-dir1.png
+[1mnpm[22m [96mnotice[39m 2.2kB dist/assets/float/float1.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-float/ghost-float1.png
+[1mnpm[22m [96mnotice[39m 307B dist/assets/ghost-float/ghost-float2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle1.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle2.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle3.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle4.png
+[1mnpm[22m [96mnotice[39m 317B dist/assets/ghost-Idle/ghost-idle5.png
+[1mnpm[22m [96mnotice[39m 293B dist/assets/ghost-Idle/ghost-idle6.png
+[1mnpm[22m [96mnotice[39m 331B dist/assets/ghost-jump/ghost-jump1.png
+[1mnpm[22m [96mnotice[39m 296B dist/assets/ghost-jump/ghost-jump2.png
+[1mnpm[22m [96mnotice[39m 326B dist/assets/ghost-jump/ghost-jump3.png
+[1mnpm[22m [96mnotice[39m 363B dist/assets/ghost-landing/ghost-landing1.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-landing/ghost-landing2.png
+[1mnpm[22m [96mnotice[39m 323B dist/assets/ghost-landing/ghost-landing3.png
+[1mnpm[22m [96mnotice[39m 325B dist/assets/ghost-map-complete/ghost-map-complete1.png
+[1mnpm[22m [96mnotice[39m 319B dist/assets/ghost-map-complete/ghost-map-complete2.png
+[1mnpm[22m [96mnotice[39m 299B dist/assets/ghost-map-complete/ghost-map-complete3.png
+[1mnpm[22m [96mnotice[39m 322B dist/assets/ghost-map-complete/ghost-map-complete4.png
+[1mnpm[22m [96mnotice[39m 329B dist/assets/ghost-walk/ghost-walk1.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk2.png
+[1mnpm[22m [96mnotice[39m 300B dist/assets/ghost-walk/ghost-walk3.png
+[1mnpm[22m [96mnotice[39m 308B dist/assets/ghost-walk/ghost-walk4.png
+[1mnpm[22m [96mnotice[39m 337B dist/assets/ghost-walk/ghost-walk5.png
+[1mnpm[22m [96mnotice[39m 304B dist/assets/ghost-walk/ghost-walk6.png
+[1mnpm[22m [96mnotice[39m 298B dist/assets/ghost-walk/ghost-walk7.png
+[1mnpm[22m [96mnotice[39m 309B dist/assets/ghost-walk/ghost-walk8.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/jumping/jump2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/jumping/jump3.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/landing/landing1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/1.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city-2/2.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/future-city-2/3.png
+[1mnpm[22m [96mnotice[39m 1.6kB dist/assets/map-images/future-city-2/4.png
+[1mnpm[22m [96mnotice[39m 3.3kB dist/assets/map-images/future-city-2/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city-2/6.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/future-city-2/7.png
+[1mnpm[22m [96mnotice[39m 7.0kB dist/assets/map-images/future-city-2/8.png
+[1mnpm[22m [96mnotice[39m 1.3kB dist/assets/map-images/future-city-2/9.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/future-city/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/3.png
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/map-images/future-city/4.png
+[1mnpm[22m [96mnotice[39m 1.4kB dist/assets/map-images/future-city/5.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/future-city/7.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/map-images/future-city/8.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/future-city/9.png
+[1mnpm[22m [96mnotice[39m 2.3kB dist/assets/map-images/mountain/1.png
+[1mnpm[22m [96mnotice[39m 8.5kB dist/assets/map-images/mountain/2.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/3.png
+[1mnpm[22m [96mnotice[39m 1.2kB dist/assets/map-images/mountain/4.png
+[1mnpm[22m [96mnotice[39m 2.1kB dist/assets/map-images/mountain/5.png
+[1mnpm[22m [96mnotice[39m 2.6kB dist/assets/map-images/mountain/6.png
+[1mnpm[22m [96mnotice[39m 4.9kB dist/assets/map-images/mountain/7.png
+[1mnpm[22m [96mnotice[39m 2.5kB dist/assets/map-images/mountain/8.png
+[1mnpm[22m [96mnotice[39m 2.7kB dist/assets/map-images/mountain/9.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/map-images/ocean/1.png
+[1mnpm[22m [96mnotice[39m 1.1kB dist/assets/map-images/ocean/2.png
+[1mnpm[22m [96mnotice[39m 10.4kB dist/assets/map-images/ocean/3.png
+[1mnpm[22m [96mnotice[39m 6.3kB dist/assets/map-images/ocean/4.png
+[1mnpm[22m [96mnotice[39m 18.4kB dist/assets/map-images/taco-street/1.png
+[1mnpm[22m [96mnotice[39m 14.6kB dist/assets/map-images/taco-street/2.png
+[1mnpm[22m [96mnotice[39m 15.2kB dist/assets/map-images/taco-street/3.png
+[1mnpm[22m [96mnotice[39m 31.3kB dist/assets/map-images/taco-street/4.png
+[1mnpm[22m [96mnotice[39m 19.5kB dist/assets/map-images/taco-street/5.png
+[1mnpm[22m [96mnotice[39m 14.9kB dist/assets/map-images/taco-street/6.png
+[1mnpm[22m [96mnotice[39m 3.1kB dist/assets/map-images/valley/1.png
+[1mnpm[22m [96mnotice[39m 3.8kB dist/assets/map-images/valley/2.png
+[1mnpm[22m [96mnotice[39m 11.9kB dist/assets/map-images/valley/3.png
+[1mnpm[22m [96mnotice[39m 28.2kB dist/assets/maps-bg-images/alltinn-norge.png
+[1mnpm[22m [96mnotice[39m 27.5kB dist/assets/maps-bg-images/innovasjon-norge.png
+[1mnpm[22m [96mnotice[39m 89.2kB dist/assets/maps-bg-images/kommunehuset.png
+[1mnpm[22m [96mnotice[39m 34.4kB dist/assets/maps-bg-images/nav.png
+[1mnpm[22m [96mnotice[39m 54.9kB dist/assets/maps-bg-images/silicone-vally.png
+[1mnpm[22m [96mnotice[39m 45.2kB dist/assets/maps-bg-images/skatteetaten.png
+[1mnpm[22m [96mnotice[39m 55.6kB dist/assets/maps-bg-images/startup-lab.png
+[1mnpm[22m [96mnotice[39m 4.1kB dist/assets/react.svg
+[1mnpm[22m [96mnotice[39m 1.5kB dist/assets/running/run1.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/running/run3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle1.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle2.png
+[1mnpm[22m [96mnotice[39m 2.0kB dist/assets/sigurd-idle/sigurd-idle3.png
+[1mnpm[22m [96mnotice[39m 1.9kB dist/assets/sigurd-idle/sigurd-idle4.png
+[1mnpm[22m [96mnotice[39m 8.8MB dist/audio/background-music.wav
+[1mnpm[22m [96mnotice[39m 10B dist/index.d.ts
+[1mnpm[22m [96mnotice[39m 20.8kB dist/sigurd-startup.css
+[1mnpm[22m [96mnotice[39m 13.6MB dist/sigurd-startup.es.js
+[1mnpm[22m [96mnotice[39m 15.6MB dist/sigurd-startup.es.js.map
+[1mnpm[22m [96mnotice[39m 13.2MB dist/sigurd-startup.umd.js
+[1mnpm[22m [96mnotice[39m 15.5MB dist/sigurd-startup.umd.js.map
+[1mnpm[22m [96mnotice[39m 1.5kB dist/vite.svg
+[1mnpm[22m [96mnotice[39m 4.1kB package.json
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m [94mTarball Details[39m
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m name: sigurd-startup
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m version: 2.3.3
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m filename: sigurd-startup-2.3.3.tgz
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m package size: 46.0 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m unpacked size: 67.3 MB
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m shasum: 1c8e4b1612383866a595d3b39d7a6b6d9647c91b
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m integrity: sha512-WoWODUyEFTG/H[...]MExM2CVhFZKrA==
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m total files: 104
+[1G[0K⠇[1G[0K[1mnpm[22m [96mnotice[39m
+[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K[1mnpm[22m [96mnotice[39m Publishing to https://registry.npmjs.org/ with tag latest and default access
+[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K⠙[1G[0K⠹[1G[0K⠸[1G[0K⠼[1G[0K⠴[1G[0K⠦[1G[0K⠧[1G[0K⠇[1G[0K⠏[1G[0K⠋[1G[0K+ sigurd-startup@2.3.3
+[1G[0K⠋[1G[0K[1m[7m%[27m[1m[0m                                                                                                                                                      [0m[27m[24m[Jjonasandersen@Jonass-MacBook-Air sigurd-startup-game % [K[?2004h

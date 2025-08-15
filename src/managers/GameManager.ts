@@ -70,7 +70,7 @@ export class GameManager {
       // Reset game state to ensure fresh start
       const gameState = useGameStore.getState();
       gameState.resetGame();
-      
+
       // Set game start time when game actually starts
       if ("setGameStartTime" in gameState) {
         (gameState as any).setGameStartTime(Date.now());
@@ -182,6 +182,11 @@ export class GameManager {
   }
 
   stop(): void {
+    // Stop power-up melody if active
+    if (this.audioManager.isPowerUpMelodyActive()) {
+      this.audioManager.stopPowerUpMelody();
+    }
+
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -276,6 +281,10 @@ export class GameManager {
 
     // Check if we need to reload the level after a reset
     if (gameState.currentState === GameState.MENU && !gameState.currentMap) {
+      // Stop power-up melody if active (game reset/restart)
+      if (this.audioManager.isPowerUpMelodyActive()) {
+        this.audioManager.stopPowerUpMelody();
+      }
       this.loadCurrentLevel();
     }
 
@@ -362,6 +371,12 @@ export class GameManager {
       this.monsterSpawnManager.resume();
       this.monsterRespawnManager.resume();
     } else {
+      // Stop power-up melody when game is paused/stopped
+      if (this.audioManager.isPowerUpMelodyActive()) {
+        log.audio("Game paused/stopped, stopping PowerUp melody");
+        this.audioManager.stopPowerUpMelody();
+      }
+
       this.scalingManager.pause();
       this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
@@ -411,18 +426,6 @@ export class GameManager {
     const gameState = useGameStore.getState();
     let player = { ...gameState.player };
 
-    // Handle pause key
-    if (
-      this.inputManager.isKeyPressed("p") ||
-      this.inputManager.isKeyPressed("P")
-    ) {
-      if (gameState.currentState === GameState.PLAYING) {
-        gameState.setState(GameState.PAUSED);
-        gameState.setMenuType(MenuType.PAUSE);
-      }
-      return; // Don't process other input while paused
-    }
-
     // Handle input
     let moveX = 0;
     if (this.inputManager.isKeyPressed("ArrowLeft")) {
@@ -442,6 +445,7 @@ export class GameManager {
 
     // Variable height jumping mechanics
     const isUpPressed = this.inputManager.isKeyPressed("ArrowUp");
+    const isDownPressed = this.inputManager.isKeyPressed("ArrowDown");
     const isShiftPressed = this.inputManager.isShiftPressed();
     const isSpacePressed =
       this.inputManager.isKeyPressed(" ") ||
@@ -475,7 +479,7 @@ export class GameManager {
           : GAME_CONFIG.JUMP_POWER;
         const targetVelocity = -baseJumpPower * (0.6 + 0.4 * holdRatio); // Scale from 60% to 100%
 
-        // Gradually increase jump power
+        // Gradually increase jump power with frame-rate compensation
         if (player.velocityY > targetVelocity) {
           player.velocityY = targetVelocity;
         }
@@ -491,6 +495,18 @@ export class GameManager {
       player.isJumping = false;
     }
 
+    // Fast fall mechanic - Arrow Down kills upward momentum and speeds up fall
+    if (isDownPressed && !player.isGrounded) {
+      // Kill any upward momentum immediately
+      if (player.velocityY < 0) {
+        player.velocityY = 0;
+      }
+      // Set fast fall state
+      player.isFastFalling = true;
+    } else {
+      player.isFastFalling = false;
+    }
+
     // Floating mechanism - works anytime the player is in the air
     if (isSpacePressed && !player.isGrounded) {
       // Only kill momentum if we're just starting to float (not already floating)
@@ -503,17 +519,23 @@ export class GameManager {
       player.isFloating = false;
     }
 
-    // Apply movement
+    // Apply movement with frame-rate compensation
     player.velocityX = moveX;
-    player.x += player.velocityX;
+    player.x += player.velocityX * (deltaTime / 16.67); // 16.67ms = 60fps for consistent speed
 
-    // Apply gravity - only use float gravity when floating and falling (velocityY >= 0)
-    const gravity =
-      player.isFloating && player.velocityY >= 0
-        ? player.floatGravity
-        : player.gravity;
-    player.velocityY += gravity;
-    player.y += player.velocityY;
+    // Apply gravity - handle different gravity states
+    let gravity = player.gravity; // Default gravity
+
+    if (player.isFloating && player.velocityY >= 0) {
+      // Use float gravity when floating and falling
+      gravity = player.floatGravity;
+    } else if (player.isFastFalling) {
+      // Use fast fall gravity multiplier when fast falling
+      gravity = player.gravity * GAME_CONFIG.FAST_FALL_GRAVITY_MULTIPLIER;
+    }
+
+    player.velocityY += gravity * (deltaTime / 16.67); // Frame-rate compensation for gravity
+    player.y += player.velocityY * (deltaTime / 16.67); // Frame-rate compensation for vertical movement
 
     // Handle boundary collisions
     const bounds = {
@@ -777,6 +799,12 @@ export class GameManager {
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
 
+    // Stop power-up melody if active (player died during power mode)
+    if (this.audioManager.isPowerUpMelodyActive()) {
+      log.audio("Player died during power mode, stopping PowerUp melody");
+      this.audioManager.stopPowerUpMelody();
+    }
+
     // Check if this will be the last life before calling loseLife
     if (gameState.lives <= 1) {
       // This will be the last life - just call loseLife and let it handle game over
@@ -791,6 +819,12 @@ export class GameManager {
   private respawnPlayer(): void {
     const gameState = useGameStore.getState();
     const currentMap = gameState.currentMap;
+
+    // Stop power-up melody if active (player respawning)
+    if (this.audioManager.isPowerUpMelodyActive()) {
+      log.audio("Player respawning, stopping PowerUp melody");
+      this.audioManager.stopPowerUpMelody();
+    }
 
     if (currentMap) {
       // Clear floating texts when respawning
@@ -860,9 +894,21 @@ export class GameManager {
 
   private proceedAfterMapCleared(): void {
     const gameState = useGameStore.getState();
+
+    // Stop power-up melody if active (map completed during power mode)
+    if (this.audioManager.isPowerUpMelodyActive()) {
+      log.audio("Map completed during power mode, stopping PowerUp melody");
+      this.audioManager.stopPowerUpMelody();
+    }
+
+    // Calculate effective bomb count by subtracting lives lost
+    // Each life lost is equivalent to missing one bomb
+    const livesLost = GAME_CONFIG.STARTING_LIVES - gameState.lives;
+    const effectiveCount = Math.max(0, gameState.correctOrderCount - livesLost);
+
     const bonusPoints =
       GAME_CONFIG.BONUS_POINTS[
-        gameState.correctOrderCount as keyof typeof GAME_CONFIG.BONUS_POINTS
+        effectiveCount as keyof typeof GAME_CONFIG.BONUS_POINTS
       ] || 0;
 
     // Calculate completion time
@@ -887,6 +933,7 @@ export class GameManager {
         level: gameState.currentLevel,
         mapName: gameState.currentMap.name,
         correctOrderCount: gameState.correctOrderCount,
+        effectiveCount: effectiveCount, // Add effective count for transparency
         totalBombs: GAME_CONFIG.TOTAL_BOMBS,
         score: gameState.score,
         bonus: bonusPoints,
@@ -941,6 +988,12 @@ export class GameManager {
     const gameState = useGameStore.getState();
     const nextLevel = gameState.currentLevel + 1;
 
+    // Stop power-up melody if active (level transition)
+    if (this.audioManager.isPowerUpMelodyActive()) {
+      log.audio("Level transition, stopping PowerUp melody");
+      this.audioManager.stopPowerUpMelody();
+    }
+
     if (nextLevel <= mapDefinitions.length) {
       // Reset coin effects and state before loading new level
       gameState.resetEffects();
@@ -968,10 +1021,14 @@ export class GameManager {
     this.proceedToNextLevel();
   }
 
-  private calculateBonus(correctCount: number): number {
+  private calculateBonus(correctCount: number, livesLost: number): number {
+    // Calculate effective bomb count by subtracting lives lost
+    // Each life lost is equivalent to missing one bomb
+    const effectiveCount = Math.max(0, correctCount - livesLost);
+
     return (
       GAME_CONFIG.BONUS_POINTS[
-        correctCount as keyof typeof GAME_CONFIG.BONUS_POINTS
+        effectiveCount as keyof typeof GAME_CONFIG.BONUS_POINTS
       ] || 0
     );
   }
@@ -1014,6 +1071,23 @@ export class GameManager {
   // Debug method to check spawn status
   public getSpawnStatus(): any {
     return this.monsterSpawnManager.getSpawnStatus();
+  }
+
+  // Debug method to check PowerUp melody and power mode synchronization
+  public getPowerUpStatus(): any {
+    const gameState = useGameStore.getState();
+    return {
+      powerUpMelody: this.audioManager.getPowerUpMelodyStatus(),
+      powerMode: {
+        isActive: gameState.activeEffects.powerMode,
+        endTime: gameState.activeEffects.powerModeEndTime,
+        timeLeft: gameState.activeEffects.powerModeEndTime > 0 ? gameState.activeEffects.powerModeEndTime - Date.now() : 0
+      },
+      coinManager: gameState.coinManager ? {
+        powerModeActive: gameState.coinManager.isPowerModeActive(),
+        powerModeEndTime: gameState.coinManager.getPowerModeEndTime()
+      } : null
+    };
   }
 
   // Expose spawn manager for render manager

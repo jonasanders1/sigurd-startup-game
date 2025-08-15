@@ -85,7 +85,7 @@ const StartMenu: React.FC = () => {
       <div className="space-y-4 w-[70%]">
         <Button
           onClick={startGame}
-          className="w-full bg-primary hover:bg-primary-80 text-white font-bold py-3 text-lg transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 text-lg transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <Play size={20} />
           Start

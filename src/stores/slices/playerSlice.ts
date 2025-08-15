@@ -20,6 +20,7 @@ const createInitialPlayer = (): Player => ({
   isGrounded: false,
   isFloating: false,
   isJumping: false,
+  isFastFalling: false,
   jumpStartTime: 0,
   moveSpeed: GAME_CONFIG.MOVE_SPEED,
   jumpPower: GAME_CONFIG.JUMP_POWER,
@@ -49,6 +50,7 @@ export const createPlayerSlice: StateCreator<PlayerSlice> = (set, get) => ({
         isGrounded: false,
         isFloating: false,
         isJumping: false,
+        isFastFalling: false,
         jumpStartTime: 0
       } 
     });

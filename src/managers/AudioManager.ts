@@ -1,6 +1,7 @@
 import { AudioEvent, GameState } from "../types/enums";
-import { ASSET_PATHS } from "../config/assets";
+import { getAudioPath } from "../config/assets";
 import { useGameStore } from "../stores/gameStore";
+import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 
 // Type definition for webkit AudioContext
@@ -14,6 +15,10 @@ export class AudioManager {
   private isBackgroundMusicPlaying = false;
   private backgroundMusicBuffer: AudioBuffer | null = null;
   private backgroundMusicSource: AudioBufferSourceNode | null = null;
+  
+  // Power-up melody management
+  private powerUpMelodyActive = false;
+  private powerUpMelodyTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
     this.initializeAudioContext();
@@ -36,12 +41,13 @@ export class AudioManager {
     if (!this.audioContext) return;
 
     try {
-      const response = await fetch(`${ASSET_PATHS.audio}/background-music.wav`);
+      // Use the new asset import system
+      const audioPath = getAudioPath("background-music");
+      const response = await fetch(audioPath);
       const arrayBuffer = await response.arrayBuffer();
       this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(
         arrayBuffer
       );
-      
     } catch (error) {
       log.warn("Failed to load background music:", error);
     }
@@ -75,6 +81,8 @@ export class AudioManager {
         break;
       case AudioEvent.POWER_COIN_ACTIVATE:
         this.playPowerCoinActivateSound();
+        // Note: PowerUp melody is now started by the coin effect system with proper duration
+        // No need to start it here as it will be started by startPowerUpMelodyWithDuration
         break;
       case AudioEvent.BACKGROUND_MUSIC:
         // Only start background music if game state is PLAYING
@@ -88,7 +96,6 @@ export class AudioManager {
   }
 
   stopBackgroundMusic(): void {
-    
     this.isBackgroundMusicPlaying = false;
 
     // Stop the current audio source if playing
@@ -119,7 +126,10 @@ export class AudioManager {
     );
 
     const sfxVolume = this.getSFXVolume();
-    gainNode.gain.setValueAtTime(0.3 * sfxVolume, this.audioContext.currentTime);
+    gainNode.gain.setValueAtTime(
+      0.3 * sfxVolume,
+      this.audioContext.currentTime
+    );
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       this.audioContext.currentTime + 0.2
@@ -146,7 +156,10 @@ export class AudioManager {
     );
 
     const sfxVolume = this.getSFXVolume();
-    gainNode.gain.setValueAtTime(0.4 * sfxVolume, this.audioContext.currentTime);
+    gainNode.gain.setValueAtTime(
+      0.4 * sfxVolume,
+      this.audioContext.currentTime
+    );
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       this.audioContext.currentTime + 0.3
@@ -187,29 +200,36 @@ export class AudioManager {
   private playBonusSound(): void {
     if (!this.audioContext) return;
 
-    // Play a short celebratory melody
-    const melody = [659.25, 783.99, 1046.5, 783.99, 1046.5]; // E5, G5, C6, G5, C6
+    // Alternating pitches to mimic rapid point counting
+    const melody = [880.0, 987.77]; // A5 and B5 (repeats)
+    const noteDuration = 0.07; // each note ~70ms
+    const gap = 0.03; // small gap for distinct ticks
+    const totalTime = 6; // total duration in seconds
+
     let time = this.audioContext.currentTime;
     const sfxVolume = this.getSFXVolume();
 
-    melody.forEach((frequency, index) => {
-      const oscillator = this.audioContext!.createOscillator();
-      const gainNode = this.audioContext!.createGain();
+    // Keep playing until we fill ~6 seconds
+    while (time < this.audioContext.currentTime + totalTime) {
+      melody.forEach((frequency) => {
+        const oscillator = this.audioContext!.createOscillator();
+        const gainNode = this.audioContext!.createGain();
 
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext!.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext!.destination);
 
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, time);
+        oscillator.type = "square"; // punchy arcade beep
+        oscillator.frequency.setValueAtTime(frequency, time);
 
-      gainNode.gain.setValueAtTime(0.2 * sfxVolume, time);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
+        gainNode.gain.setValueAtTime(0.4 * sfxVolume, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + noteDuration);
 
-      oscillator.start(time);
-      oscillator.stop(time + 0.4);
+        oscillator.start(time);
+        oscillator.stop(time + noteDuration);
 
-      time += 0.2;
-    });
+        time += noteDuration + gap;
+      });
+    }
   }
 
   private playCoinCollectSound(): void {
@@ -229,7 +249,10 @@ export class AudioManager {
     );
 
     const sfxVolume = this.getSFXVolume();
-    gainNode.gain.setValueAtTime(0.3 * sfxVolume, this.audioContext.currentTime);
+    gainNode.gain.setValueAtTime(
+      0.3 * sfxVolume,
+      this.audioContext.currentTime
+    );
     gainNode.gain.exponentialRampToValueAtTime(
       0.01,
       this.audioContext.currentTime + 0.15
@@ -287,7 +310,6 @@ export class AudioManager {
     )
       return;
 
-    
     this.isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
   }
@@ -322,38 +344,147 @@ export class AudioManager {
       };
 
       this.backgroundMusicSource.start();
-      
     } catch (error) {
       log.warn("Failed to play background music file:", error);
     }
   }
 
+  private playPowerUpMelody(duration: number): void {
+    if (!this.audioContext) return;
+
+    const sfxVolume = this.getSFXVolume();
+    const startTime = this.audioContext.currentTime;
+
+    // Fast repeating “stressing” motif (like Pac-Man power-up)
+    const motif = [880.0, 1046.5, 987.77, 1174.66]; // A5, C6, B5, D6
+    const noteDuration = 0.15; // short and urgent
+
+    let time = startTime;
+    while (time < startTime + duration) {
+      motif.forEach((freq) => {
+        const osc = this.audioContext!.createOscillator();
+        const gain = this.audioContext!.createGain();
+
+        osc.type = "square"; // arcade feel
+        osc.frequency.setValueAtTime(freq, time);
+
+        gain.gain.setValueAtTime(0.3 * sfxVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + noteDuration);
+
+        osc.connect(gain);
+        gain.connect(this.audioContext!.destination);
+
+        osc.start(time);
+        osc.stop(time + noteDuration);
+
+        time += noteDuration;
+      });
+    }
+  }
+
   cleanup(): void {
     this.stopBackgroundMusic();
+    this.stopPowerUpMelody();
     if (this.audioContext) {
       this.audioContext.close();
     }
   }
-  
+
   private updateAudioVolumes(): void {
     const audioSettings = useGameStore.getState().audioSettings;
     if (this.backgroundMusicGain) {
-      const musicVolume = audioSettings.masterMuted || audioSettings.musicMuted 
-        ? 0 
-        : (audioSettings.masterVolume / 100) * (audioSettings.musicVolume / 100);
+      const musicVolume =
+        audioSettings.masterMuted || audioSettings.musicMuted
+          ? 0
+          : (audioSettings.masterVolume / 100) *
+            (audioSettings.musicVolume / 100);
       this.backgroundMusicGain.gain.value = musicVolume;
     }
   }
-  
+
   private getSFXVolume(): number {
     const audioSettings = useGameStore.getState().audioSettings;
-    return audioSettings.masterMuted || audioSettings.sfxMuted 
-      ? 0 
+    return audioSettings.masterMuted || audioSettings.sfxMuted
+      ? 0
       : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);
   }
 
   // Public method to update audio volumes when settings change
   public updateVolumes(): void {
     this.updateAudioVolumes();
+  }
+
+    private startPowerUpMelody(duration: number): void {
+    // Stop any existing power-up melody
+    this.stopPowerUpMelody();
+    
+    log.audio(`Starting PowerUp melody for ${duration}ms (${duration/1000}s)`);
+    
+    // Pause background music during power-up
+    this.pauseBackgroundMusic();
+    
+    // Mark melody as active
+    this.powerUpMelodyActive = true;
+    
+    // Start the power-up melody
+    this.playPowerUpMelody(duration / 1000); // Convert to seconds
+    
+    // Schedule background music to resume after power-up ends
+    this.powerUpMelodyTimeout = setTimeout(() => {
+      log.audio("PowerUp melody timeout reached, stopping melody and resuming background music");
+      this.stopPowerUpMelody();
+      this.resumeBackgroundMusic();
+    }, duration);
+  }
+
+  private pauseBackgroundMusic(): void {
+    if (this.backgroundMusicGain) {
+      this.backgroundMusicGain.gain.value = 0;
+    }
+  }
+
+  private resumeBackgroundMusic(): void {
+    if (this.backgroundMusicGain && this.isBackgroundMusicPlaying) {
+      this.updateAudioVolumes(); // Restore volume based on current settings
+    }
+  }
+
+  // Public method to start power-up melody with specific duration
+  public startPowerUpMelodyWithDuration(duration: number): void {
+    this.startPowerUpMelody(duration);
+  }
+
+  // Public method to stop power-up melody (called when power-up ends early)
+  public stopPowerUpMelody(): void {
+    if (this.powerUpMelodyActive) {
+      log.audio("Stopping PowerUp melody");
+      this.powerUpMelodyActive = false;
+      
+      // Clear the timeout
+      if (this.powerUpMelodyTimeout) {
+        clearTimeout(this.powerUpMelodyTimeout);
+        this.powerUpMelodyTimeout = null;
+      }
+      
+      // Resume background music
+      this.resumeBackgroundMusic();
+    } else {
+      log.audio("stopPowerUpMelody called but melody was not active");
+    }
+  }
+
+  // Public method to check if power-up melody is active
+  public isPowerUpMelodyActive(): boolean {
+    return this.powerUpMelodyActive;
+  }
+
+  // Debug method to get PowerUp melody status
+  public getPowerUpMelodyStatus(): any {
+    return {
+      isActive: this.powerUpMelodyActive,
+      hasTimeout: this.powerUpMelodyTimeout !== null,
+      timeoutId: this.powerUpMelodyTimeout,
+      backgroundMusicPlaying: this.isBackgroundMusicPlaying
+    };
   }
 }

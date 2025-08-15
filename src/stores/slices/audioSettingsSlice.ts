@@ -12,6 +12,9 @@ export interface AudioSettings {
 
 interface AudioManagerInterface {
   updateVolumes: () => void;
+  startPowerUpMelodyWithDuration: (duration: number) => void;
+  stopPowerUpMelody: () => void;
+  isPowerUpMelodyActive: () => boolean;
 }
 
 export interface AudioSettingsSlice {

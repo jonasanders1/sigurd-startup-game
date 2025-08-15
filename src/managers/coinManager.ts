@@ -386,6 +386,8 @@ export class CoinManager {
     
     const coinConfig = COIN_TYPES[coin.type];
     if (coinConfig && gameState) {
+      log.debug(`Processing ${coin.type} coin with ${coinConfig.effects.length} effects`);
+      
       // Calculate points earned from this coin
       let pointsEarned = coinConfig.points;
 
@@ -452,13 +454,39 @@ export class CoinManager {
               scalingManager.resume();
               log.debug("Difficulty scaling resumed (power mode ended)");
             }
-          }
+          },
+          // Ensure audioManager is included from the original gameState
+          audioManager: (gameState as any).audioManager
         };
         
+        log.debug(`GameStateWithManager created, audioManager:`, (gameStateWithManager as any).audioManager);
+        log.debug(`GameStateWithManager keys:`, Object.keys(gameStateWithManager));
+        // Apply the effect first
+        log.debug(`Applying effect: ${effect.type}`);
         effect.apply(gameStateWithManager, coin);
+        log.debug(`Effect ${effect.type} applied successfully`);
 
-        // Track timed effects
-        if (effect.duration) {
+        // Track timed effects - for POWER_MODE, get the duration from the activeEffects
+        if (effect.type === "POWER_MODE") {
+          // POWER_MODE effect calculates its own duration, so get it from the updated gameState
+          const powerModeEndTime = (gameStateWithManager as any).activeEffects.powerModeEndTime;
+          if (powerModeEndTime > 0) {
+            this.activeEffects.set(effect.type, {
+              endTime: powerModeEndTime,
+              effect,
+            });
+            
+            // Also update the coin manager's internal power mode state
+            this.powerModeActive = true;
+            this.powerModeEndTime = powerModeEndTime;
+            
+            log.debug(`POWER_MODE effect tracked with endTime: ${powerModeEndTime}, internal state updated`);
+            log.debug(`Current time: ${Date.now()}, Effect will end at: ${powerModeEndTime}, Duration: ${powerModeEndTime - Date.now()}ms`);
+          } else {
+            log.warn("POWER_MODE effect applied but no endTime found");
+          }
+        } else if (effect.duration) {
+          // For other effects with static durations
           this.activeEffects.set(effect.type, {
             endTime: Date.now() + effect.duration,
             effect,
@@ -481,11 +509,23 @@ export class CoinManager {
     const currentTime = Date.now();
     const effectsToRemove: string[] = [];
 
+    log.debug(`checkEffectsEnd called at ${currentTime}, checking ${this.activeEffects.size} active effects`);
+
     this.activeEffects.forEach((effectData, effectType) => {
-      log.debug(`Checking effect: ${effectType}, endTime: ${effectData.endTime}, currentTime: ${currentTime}, shouldEnd: ${currentTime >= effectData.endTime}`);
-      if (currentTime >= effectData.endTime) {
+      const timeLeft = effectData.endTime - currentTime;
+      log.debug(`Checking effect: ${effectType}, endTime: ${effectData.endTime}, currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${timeLeft <= 0}`);
+      
+      // Add a minimum duration safeguard to prevent effects from being removed too quickly
+      const minimumDuration = 100; // 100ms minimum
+      const shouldEnd = timeLeft <= -minimumDuration; // Allow some buffer time
+      
+      if (shouldEnd) {
         effectsToRemove.push(effectType);
+        log.debug(`Effect ${effectType} marked for removal`);
+        
         if (effectData.effect.remove && gameState) {
+          log.debug(`Removing effect: ${effectType}`);
+          
           // Create a proper GameStateInterface for the remove function
           const gameStateWithManager: GameStateInterface = {
             ...gameState as any,
@@ -512,10 +552,20 @@ export class CoinManager {
               }
             }
           };
-          effectData.effect.remove(gameStateWithManager);
+          
+          try {
+            effectData.effect.remove(gameStateWithManager);
+            log.debug(`Effect ${effectType} removed successfully`);
+          } catch (error) {
+            log.error(`Error removing effect ${effectType}:`, error);
+          }
         }
       }
     });
+
+    if (effectsToRemove.length > 0) {
+      log.debug(`Removing ${effectsToRemove.length} effects: ${effectsToRemove.join(', ')}`);
+    }
 
     effectsToRemove.forEach((effectType) => {
       this.activeEffects.delete(effectType);
@@ -523,7 +573,8 @@ export class CoinManager {
       // Handle legacy power mode state when POWER_MODE effect is removed
       if (effectType === "POWER_MODE") {
         this.powerModeActive = false;
-        log.debug("Power mode deactivated");
+        this.powerModeEndTime = 0;
+        log.debug("Power mode deactivated, internal state updated");
         // Note: Difficulty scaling resume is handled by the effect's remove function
       }
     });
@@ -698,6 +749,11 @@ export class CoinManager {
   }
 
   resetEffects(): void {
+    // Stop power-up melody if active when resetting effects
+    if (this.powerModeActive) {
+      log.debug("Resetting effects while power mode is active, this should stop PowerUp melody");
+    }
+    
     this.powerModeActive = false;
     this.powerModeEndTime = 0;
     this.firebombCount = 0;
@@ -706,6 +762,25 @@ export class CoinManager {
     this.bombAndMonsterPoints = 0;
     this.monsterKillCount = 0;
     log.debug("Coin effects reset");
+  }
+
+  // Method to force stop power mode and melody (for game state changes)
+  forceStopPowerMode(): void {
+    if (this.powerModeActive) {
+      log.debug("Force stopping power mode");
+      this.powerModeActive = false;
+      this.powerModeEndTime = 0;
+      this.activeEffects.delete("POWER_MODE");
+      
+      // Resume difficulty scaling
+      try {
+        const scalingManager = ScalingManager.getInstance();
+        scalingManager.resumeFromPowerMode();
+        log.debug("Difficulty scaling resumed after force stop");
+      } catch (error) {
+        log.debug("Could not resume difficulty scaling (ScalingManager not available)");
+      }
+    }
   }
 
   // New method to get coin configuration

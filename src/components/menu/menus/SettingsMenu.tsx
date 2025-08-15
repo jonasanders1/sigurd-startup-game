@@ -45,7 +45,7 @@ const SettingsMenu: React.FC = () => {
         <Button
           onClick={goBack}
           variant="default"
-          className="bg-primary hover:bg-primary/80 text-white w-10 h-10"
+          className="bg-primary hover:bg-primary-dark text-white w-10 h-10"
         >
           <ArrowLeft size={25} />
         </Button>
@@ -63,7 +63,7 @@ const SettingsMenu: React.FC = () => {
               onClick={() => updateAudioSettings({ masterMuted: !masterMuted })}
               className={`px-3 py-1 rounded text-sm font-mono ${
                 masterMuted
-                  ? "bg-red-600 text-white"
+                  ? "bg-destructive text-white"
                   : "bg-secondary text-white"
               }`}
             >
@@ -90,7 +90,9 @@ const SettingsMenu: React.FC = () => {
             <button
               onClick={() => updateAudioSettings({ musicMuted: !musicMuted })}
               className={`px-3 py-1 rounded text-sm font-mono ${
-                musicMuted ? "bg-red-600 text-white" : "bg-secondary text-white"
+                musicMuted
+                  ? "bg-destructive text-white"
+                  : "bg-secondary text-white"
               }`}
             >
               {musicMuted ? "Muted" : `${musicVolume}%`}
@@ -116,7 +118,9 @@ const SettingsMenu: React.FC = () => {
             <button
               onClick={() => updateAudioSettings({ sfxMuted: !sfxMuted })}
               className={`px-3 py-1 rounded text-sm font-mono ${
-                sfxMuted ? "bg-red-600 text-white" : "bg-secondary text-white"
+                sfxMuted
+                  ? "bg-destructive text-white"
+                  : "bg-secondary text-white"
               }`}
             >
               {sfxMuted ? "Muted" : `${sfxVolume}%`}

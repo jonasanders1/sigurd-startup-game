@@ -53,10 +53,18 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     const { coinManager } = get();
     if (!coinManager) return;
     
-    coinManager.collectCoin(coin);
+    log.debug(`Coin slice: Collecting ${coin.type} coin`);
+    
+    // Get the current game state to pass to coinManager.collectCoin
+    const currentState = get();
+    
+    // Pass the game state to coinManager so effects can be applied
+    coinManager.collectCoin(coin, currentState as unknown as Record<string, unknown>);
+    
+    log.debug(`Coin slice: Coin manager collectCoin completed`);
     
     // Update coins list
-    const updatedCoins = get().coins.map(c => 
+    const updatedCoins = currentState.coins.map(c => 
       c === coin ? { ...c, isCollected: true } : c
     );
     
@@ -77,7 +85,6 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     };
     
     // Update total collection counters
-    const currentState = get();
     const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
     const newTotalPowerCoinsCollected = currentState.totalPowerCoinsCollected + (coin.type === 'POWER' ? 1 : 0);
     const newTotalBonusMultiplierCoinsCollected = currentState.totalBonusMultiplierCoinsCollected + (coin.type === 'BONUS_MULTIPLIER' ? 1 : 0);
@@ -214,6 +221,8 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
   resetEffects: () => {
     const { coinManager } = get();
     if (coinManager) {
+      // Force stop power mode and melody before resetting
+      coinManager.forceStopPowerMode();
       coinManager.resetEffects();
     }
     

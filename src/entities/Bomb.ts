@@ -1,19 +1,12 @@
 import { SpriteInstance } from "../lib/SpriteInstance";
-import { ASSET_PATHS } from "../config/assets";
+import { loadSpriteImage } from "../config/assets";
 import { GAME_CONFIG } from "../types/constants";
 
-// Helper function to load images from public folder
-const loadImage = (path: string): HTMLImageElement => {
-  const img = new Image();
-  img.src = `${ASSET_PATHS.images}/${path}`;
-  return img;
-};
-
-const unlitBombFrame2 = [loadImage("bomb/bomb1.png")];
+const unlitBombFrame2 = [loadSpriteImage("bomb/bomb1.png")];
 
 const litBombFrame2 = [
-  loadImage("bomb/bomb1.png"),
-  loadImage("bomb/bomb2.png"),
+  loadSpriteImage("bomb/bomb1.png"),
+  loadSpriteImage("bomb/bomb2.png"),
 ];
 
 const bombAnimations = [

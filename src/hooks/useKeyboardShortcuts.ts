@@ -8,7 +8,7 @@ interface WebkitDocument extends Document {
 }
 
 export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
-  const { currentState, setState, setMenuType, isPaused } = useGameStore();
+  const { currentState, setState, setMenuType, isPaused, updateAudioSettings, audioSettings } = useGameStore();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -21,8 +21,8 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
       }
 
       switch (event.key) {
-        case "F11":
         case "f":
+        case "F":
           event.preventDefault();
           onFullscreenToggle?.();
           break;
@@ -36,44 +36,33 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
             event.preventDefault();
             onFullscreenToggle?.();
           }
-          // Pause/unpause game if playing
-          else if (currentState === GameState.PLAYING) {
-            event.preventDefault();
-            if (isPaused) {
-              setState(GameState.PLAYING);
-            } else {
-              setState(GameState.PAUSED);
-              setMenuType(MenuType.PAUSE);
-            }
-          }
           break;
 
         case "p":
         case "P":
-          // Pause/unpause game if playing
+          // Pause/unpause game if playing, or resume if paused
           if (currentState === GameState.PLAYING) {
             event.preventDefault();
-            if (isPaused) {
-              setState(GameState.PLAYING);
-            } else {
-              setState(GameState.PAUSED);
-              setMenuType(MenuType.PAUSE);
-            }
-          }
-          break;
-
-        case " ":
-          if (currentState === GameState.PAUSED) {
+            setState(GameState.PAUSED);
+            setMenuType(MenuType.PAUSE);
+          } else if (isPaused) {
             event.preventDefault();
-            // Show countdown before resuming
+            // Use the same resume logic as the pause menu button
             setMenuType(MenuType.COUNTDOWN);
             setState(GameState.COUNTDOWN);
             
             // After 3 seconds, start the game
             setTimeout(() => {
-              setState(GameState.PLAYING);
+            setState(GameState.PLAYING);
             }, 3000);
           }
+          break;
+
+        case "m":
+        case "M":
+          // Toggle audio mute
+          event.preventDefault();
+          updateAudioSettings({ masterMuted: !audioSettings.masterMuted });
           break;
       }
     };
@@ -83,5 +72,5 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentState, isPaused, setState, setMenuType, onFullscreenToggle]);
+  }, [currentState, isPaused, setState, setMenuType, onFullscreenToggle, updateAudioSettings, audioSettings.masterMuted]);
 };

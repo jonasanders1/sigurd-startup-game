@@ -118,7 +118,7 @@ const InGameMenu: React.FC = () => {
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{"Pause Spill (P)"}</TooltipContent>
+            <TooltipContent>{"Pause/Resume Spill (P)"}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -144,9 +144,7 @@ const InGameMenu: React.FC = () => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {isFullscreen
-                ? "Avslutt fullskjerm (F11 eller F)"
-                : "Fullskjerm (F11 eller F)"}
+              {isFullscreen ? "Avslutt fullskjerm (F)" : "Fullskjerm (F)"}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

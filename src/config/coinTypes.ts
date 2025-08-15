@@ -66,10 +66,27 @@ export const COIN_EFFECTS = {
         );
       }
 
-      // Log the actual duration being used
-      // Removed console.log to avoid duplicate logging
+      // Start power-up melody with the correct duration
+      if (gameState.audioManager && typeof gameState.audioManager.startPowerUpMelodyWithDuration === 'function') {
+        console.log(`Starting PowerUp melody from coin effect for ${duration}ms`);
+        console.log(`AudioManager available:`, gameState.audioManager);
+        gameState.audioManager.startPowerUpMelodyWithDuration(duration);
+      } else {
+        console.warn("AudioManager not available for PowerUp melody");
+        console.log(`GameState audioManager:`, gameState.audioManager);
+        console.log(`GameState keys:`, Object.keys(gameState));
+      }
     },
     remove: (gameState: GameStateInterface) => {
+      console.log("Removing POWER_MODE effect, stopping PowerUp melody");
+      
+      // Stop power-up melody when effect ends
+      if (gameState.audioManager && typeof gameState.audioManager.stopPowerUpMelody === 'function') {
+        gameState.audioManager.stopPowerUpMelody();
+      } else {
+        console.warn("AudioManager not available to stop PowerUp melody");
+      }
+      
       // Unfreeze monsters (safely handle undefined monsters)
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
         gameState.monsters.forEach((monster) => {
@@ -82,7 +99,6 @@ export const COIN_EFFECTS = {
       try {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.resumeFromPowerMode();
-        // Removed console.log to avoid duplicate logging
       } catch (error) {
         console.log(
           "Could not resume difficulty scaling (ScalingManager not available)"

@@ -33,7 +33,7 @@ const VictoryMenu: React.FC = () => {
       <div className="flex items-center justify-center gap-2">
         <button
           onClick={handleRestart}
-          className="bg-primary text-white font-bold hover:bg-primary/80 rounded-lg py-1 px-3 text-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2"
+          className="bg-primary text-white font-bold hover:bg-primary-dark rounded-lg py-1 px-3 text-lg transition-all duration-200 flex items-center justify-center gap-2"
         >
           <Home className="w-7 h-7" strokeWidth={2} />
         </button>

@@ -3,6 +3,7 @@ import MainGame from "./components/MainGame"; // your root game component
 import "./index.css";
 import css from './index.css?inline';
 import { getVersion, logVersion } from "./version";
+import { debugAssetPaths } from "./config/assets";
 
 interface GameElementInterface {
   getVersion: () => ReturnType<typeof getVersion>;
@@ -13,6 +14,9 @@ class GameElement extends HTMLElement implements GameElementInterface {
   private root: ReactDOM.Root | null = null;
 
   connectedCallback() {
+    // Debug asset paths
+    debugAssetPaths();
+    
     const shadow = this.attachShadow({ mode: "open" });
     const rootElement = document.createElement("div");
     shadow.appendChild(rootElement);

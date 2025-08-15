@@ -9,6 +9,7 @@ export interface Player {
   isGrounded: boolean;
   isFloating: boolean;
   isJumping: boolean;
+  isFastFalling: boolean;
   jumpStartTime: number;
   moveSpeed: number;
   jumpPower: number;
@@ -278,6 +279,10 @@ export interface GameStateInterface {
   difficultyManager?: {
     pause: () => void;
     resume: () => void;
+  };
+  audioManager?: {
+    startPowerUpMelodyWithDuration: (duration: number) => void;
+    stopPowerUpMelody: () => void;
   };
 
   // Methods

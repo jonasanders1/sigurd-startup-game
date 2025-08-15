@@ -13,10 +13,11 @@ export const GAME_CONFIG = {
   PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
 
   // Physics - Reduced for moon-like gravity
-  GRAVITY: 0.3,
+  GRAVITY: 0.2,
   FLOAT_GRAVITY: 0.005, // Reduced from 0.1 for much slower floating fall
+  FAST_FALL_GRAVITY_MULTIPLIER: 2, // Multiplier for gravity when fast falling
   MOVE_SPEED: 4,
-  JUMP_POWER: 8,
+  JUMP_POWER: 7,
   SUPER_JUMP_POWER: 12,
 
   // Coin physics
@@ -72,9 +73,9 @@ export const GAME_CONFIG = {
 };
 
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
-  masterVolume: 80,
-  musicVolume: 70,
-  sfxVolume: 90,
+  masterVolume: 50,
+  musicVolume: 80,
+  sfxVolume: 10,
   masterMuted: false,
   musicMuted: false,
   sfxMuted: false,
@@ -83,15 +84,15 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 // Development Mode Configuration
 export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
-  TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 6, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  TARGET_STATE: "VICTORY", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
+  TARGET_LEVEL: 1, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)
 
   MOCK_DATA: {
     score: 15000,
     lives: 2,
-    currentLevel: 2,
+    currentLevel: 1,
     correctOrderCount: 18,
     multiplier: 2, // Mock multiplier level (1-5)
     multiplierScore: 2600, // Mock points toward next multiplier (0-1800)
