@@ -527,10 +527,9 @@ export class CoinManager {
     log.debug(`checkEffectsEnd called at ${currentTime}, checking ${this.activeEffects.size} active effects`);
 
     this.activeEffects.forEach((effectData, effectType) => {
-      // Adjust end time for total paused time
-      const adjustedEndTime = effectData.endTime + this.totalPausedTime;
-      const timeLeft = adjustedEndTime - currentTime;
-      log.debug(`Checking effect: ${effectType}, endTime: ${adjustedEndTime} (adjusted for ${this.totalPausedTime}ms pause), currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${timeLeft <= 0}`);
+      // No need to adjust for paused time anymore - endTime is already adjusted in resumeEffects
+      const timeLeft = effectData.endTime - currentTime;
+      log.debug(`Checking effect: ${effectType}, endTime: ${effectData.endTime}, currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${timeLeft <= 0}`);
       
       // Add a minimum duration safeguard to prevent effects from being removed too quickly
       const minimumDuration = 100; // 100ms minimum
@@ -778,6 +777,12 @@ export class CoinManager {
     this.activeEffects.clear();
     this.bombAndMonsterPoints = 0;
     this.monsterKillCount = 0;
+    
+    // Reset pause state
+    this.effectsPaused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
+    
     log.debug("Coin effects reset");
   }
 
@@ -812,8 +817,8 @@ export class CoinManager {
 
   // Get power mode end time
   getPowerModeEndTime(): number {
-    // Adjust for paused time
-    return this.powerModeEndTime + this.totalPausedTime;
+    // Return the actual end time (already adjusted for pauses in resumeEffects)
+    return this.powerModeEndTime;
   }
 
   // Legacy method with dynamic duration
@@ -868,6 +873,12 @@ export class CoinManager {
       const pauseDuration = Date.now() - this.pauseStartTime;
       this.totalPausedTime += pauseDuration;
       this.effectsPaused = false;
+      
+      // Update ALL active effects' endTimes by the pause duration
+      this.activeEffects.forEach((effectData, effectType) => {
+        effectData.endTime += pauseDuration;
+        log.debug(`Effect ${effectType} end time extended by ${pauseDuration}ms`);
+      });
       
       // Update powerModeEndTime if power mode is active
       if (this.powerModeActive && this.powerModeEndTime > 0) {

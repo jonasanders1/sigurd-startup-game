@@ -371,10 +371,14 @@ export class GameManager {
     // Handle sound states based on current game state
     switch (currentState) {
       case GameState.PLAYING:
-        // Start/resume background music if not already playing
-        if (!this.isBackgroundMusicPlaying) {
-          log.audio("Starting background music");
+        // Always try to start background music when entering PLAYING state
+        // Check the actual playing state, not just our tracking variable
+        if (!this.audioManager.isBackgroundMusicPlaying()) {
+          log.audio("Starting background music (entering PLAYING state)");
           this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
+          this.isBackgroundMusicPlaying = true;
+        } else if (!this.isBackgroundMusicPlaying) {
+          // Sync our tracking variable with actual state
           this.isBackgroundMusicPlaying = true;
         }
         
@@ -424,6 +428,8 @@ export class GameManager {
         if (this.audioManager.isPowerUpMelodyActive()) {
           log.audio(`${GameState[currentState]} state - stopping PowerUp melody`);
           this.audioManager.stopPowerUpMelody();
+          // Reset background music state so it can restart properly
+          this.isBackgroundMusicPlaying = false;
         }
         
         // No need to pause effects - they should end naturally or be reset
@@ -442,6 +448,8 @@ export class GameManager {
         if (this.audioManager.isPowerUpMelodyActive()) {
           log.audio(`${GameState[currentState]} state - stopping PowerUp melody`);
           this.audioManager.stopPowerUpMelody();
+          // Reset background music state so it can restart properly
+          this.isBackgroundMusicPlaying = false;
         }
         
         // Resume effects if paused (for countdown after pause)

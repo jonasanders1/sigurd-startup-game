@@ -115,6 +115,11 @@ export class AudioManager {
     }
   }
 
+  // Public method to check if background music is playing
+  public isBackgroundMusicPlaying(): boolean {
+    return this.isBackgroundMusicPlaying;
+  }
+
   private playBombCollectSound(): void {
     if (!this.audioContext) return;
 
