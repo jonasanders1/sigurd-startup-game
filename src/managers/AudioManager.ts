@@ -61,6 +61,7 @@ export class AudioManager {
   }
 
   playSound(event: AudioEvent, gameState?: GameState): void {
+    log.audio(`playSound called: ${event}, gameState: ${gameState}`);
     this.ensureAudioContext();
 
     switch (event) {
@@ -304,31 +305,52 @@ export class AudioManager {
   }
 
   private startBackgroundMusic(): void {
+    log.audio(`startBackgroundMusic called - audioContext: ${!!this.audioContext}, buffer: ${!!this.backgroundMusicBuffer}, source: ${!!this.backgroundMusicSource}`);
+    
     if (
       !this.audioContext ||
       !this.backgroundMusicBuffer
     )
       return;
 
+    // Ensure audio context is resumed (it might be suspended)
+    if (this.audioContext.state === 'suspended') {
+      log.audio('AudioContext is suspended, resuming...');
+      this.audioContext.resume();
+    }
+
     // Check if music source actually exists, not just the flag
     // This handles cases where the source was lost during powerup melody
     if (this.backgroundMusicSource) {
-      // Music is already playing
+      log.audio("Background music source already exists, not starting");
       return;
     }
 
+    // Ensure the gain node has the correct volume before starting
+    this.updateAudioVolumes();
+    
+    log.audio("Setting isBackgroundMusicPlaying to true and calling playBackgroundMusicFile");
     this.isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
   }
 
   private playBackgroundMusicFile(): void {
+    log.audio(`playBackgroundMusicFile called - context: ${!!this.audioContext}, gain: ${!!this.backgroundMusicGain}, buffer: ${!!this.backgroundMusicBuffer}, isPlaying: ${this.isBackgroundMusicPlaying}`);
+    
     if (
       !this.audioContext ||
-      !this.backgroundMusicGain ||
       !this.backgroundMusicBuffer ||
       !this.isBackgroundMusicPlaying
     )
       return;
+
+    // Ensure we have a gain node and it's connected
+    if (!this.backgroundMusicGain) {
+      log.audio("Creating new background music gain node");
+      this.backgroundMusicGain = this.audioContext.createGain();
+      this.backgroundMusicGain.connect(this.audioContext.destination);
+      this.updateAudioVolumes();
+    }
 
     try {
       this.backgroundMusicSource = this.audioContext.createBufferSource();
@@ -491,8 +513,9 @@ export class AudioManager {
 
   // Public method to stop power-up melody (called when power-up ends early)
   public stopPowerUpMelody(): void {
+    log.audio(`stopPowerUpMelody called - active: ${this.powerUpMelodyActive}`);
     if (this.powerUpMelodyActive) {
-      log.audio("Stopping PowerUp melody");
+      log.audio("Stopping PowerUp melody - clearing flag and oscillators");
       this.powerUpMelodyActive = false;
       
       // Clear the timeout
@@ -504,6 +527,7 @@ export class AudioManager {
       // Stop all oscillators immediately
       this.clearPowerUpOscillators();
       
+      log.audio(`PowerUp melody stopped - powerUpMelodyActive is now: ${this.powerUpMelodyActive}`);
       // Note: We don't resume background music here anymore
       // The GameManager's handleBackgroundMusic will take care of starting
       // music appropriately based on the game state
@@ -522,7 +546,9 @@ export class AudioManager {
   public isBackgroundMusicActuallyPlaying(): boolean {
     // Music is only actually playing if we have an active source
     // Power-up melody stops the background source, so this correctly returns false
-    return this.backgroundMusicSource !== null && !this.powerUpMelodyActive;
+    const result = this.backgroundMusicSource !== null && !this.powerUpMelodyActive;
+    log.audio(`isBackgroundMusicActuallyPlaying: ${result} (source: ${!!this.backgroundMusicSource}, powerUpActive: ${this.powerUpMelodyActive})`);
+    return result;
   }
 
   // Debug method to get PowerUp melody status

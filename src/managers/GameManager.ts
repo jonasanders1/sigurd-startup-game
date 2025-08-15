@@ -415,17 +415,17 @@ export class GameManager {
       // Always check actual audio state, not our local flag
       // This handles cases where powerup melody stopped the music
       if (!this.audioManager.isBackgroundMusicActuallyPlaying()) {
-        log.audio("Starting/Restarting background music");
+        log.audio(`Starting/Restarting background music (local flag: ${this.isBackgroundMusicPlaying})`);
         this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
+        this.isBackgroundMusicPlaying = true;
       }
-      this.isBackgroundMusicPlaying = true;
     } else {
       // Stop music if we shouldn't be playing
       if (this.isBackgroundMusicPlaying || this.audioManager.isBackgroundMusicActuallyPlaying()) {
-        log.audio("Stopping background music");
+        log.audio(`Stopping background music (local flag: ${this.isBackgroundMusicPlaying})`);
         this.audioManager.stopBackgroundMusic();
+        this.isBackgroundMusicPlaying = false;
       }
-      this.isBackgroundMusicPlaying = false;
     }
 
     this.previousGameState = currentState;
