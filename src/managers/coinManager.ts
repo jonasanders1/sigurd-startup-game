@@ -14,6 +14,7 @@ import { CoinPhysics } from "./coinPhysics";
 import { COIN_TYPES, P_COIN_COLORS, COIN_EFFECTS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
+import { useGameStore } from "../stores/gameStore";
 
 interface EffectData {
   endTime: number;
@@ -788,6 +789,13 @@ export class CoinManager {
       this.powerModeActive = false;
       this.powerModeEndTime = 0;
       this.activeEffects.delete("POWER_MODE");
+      
+      // Stop the powerup melody when force stopping power mode
+      const gameState = useGameStore.getState();
+      if (gameState.audioManager && typeof gameState.audioManager.stopPowerUpMelody === 'function') {
+        log.debug("Force stopping PowerUp melody");
+        gameState.audioManager.stopPowerUpMelody();
+      }
       
       // Resume difficulty scaling
       try {

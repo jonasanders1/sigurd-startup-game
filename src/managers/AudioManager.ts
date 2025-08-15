@@ -466,7 +466,13 @@ export class AudioManager {
         "PowerUp melody timeout reached, stopping melody and resuming background music"
       );
       this.stopPowerUpMelody();
-      this.resumeBackgroundMusic();
+      
+      // Only resume background music if we're in PLAYING state
+      // This prevents issues when the timeout fires during state transitions
+      const gameState = useGameStore.getState();
+      if (gameState.currentState === GameState.PLAYING) {
+        this.resumeBackgroundMusic();
+      }
     }, duration);
   }
 
@@ -477,8 +483,19 @@ export class AudioManager {
   }
 
   private resumeBackgroundMusic(): void {
+    // If background music is already playing, just restore volume
     if (this.backgroundMusicGain && this.isBackgroundMusicPlaying) {
       this.updateAudioVolumes(); // Restore volume based on current settings
+      return;
+    }
+    
+    // If background music should be playing based on game state, restart it
+    // This handles the case where powerup melody ends after a state transition
+    // that stopped the background music
+    const gameState = useGameStore.getState();
+    if (gameState.currentState === GameState.PLAYING && !this.isBackgroundMusicPlaying) {
+      log.audio("Resuming background music - restarting because it was stopped");
+      this.startBackgroundMusic();
     }
   }
 
@@ -504,8 +521,12 @@ export class AudioManager {
         this.powerUpMelodyTimeout = null;
       }
 
-      // Resume background music
-      this.resumeBackgroundMusic();
+      // Only resume background music if we're in PLAYING state
+      // This prevents issues when stopPowerUpMelody is called during state transitions
+      const gameState = useGameStore.getState();
+      if (gameState.currentState === GameState.PLAYING) {
+        this.resumeBackgroundMusic();
+      }
     } else {
       log.audio("stopPowerUpMelody called but melody was not active");
     }
@@ -565,7 +586,12 @@ export class AudioManager {
       this.powerUpMelodyTimeout = setTimeout(() => {
         log.audio("PowerUp melody completed after resume");
         this.stopPowerUpMelody();
-        this.resumeBackgroundMusic();
+        
+        // Only resume background music if we're in PLAYING state
+        const gameState = useGameStore.getState();
+        if (gameState.currentState === GameState.PLAYING) {
+          this.resumeBackgroundMusic();
+        }
       }, this.powerUpMelodyRemainingTime);
     }
   }
