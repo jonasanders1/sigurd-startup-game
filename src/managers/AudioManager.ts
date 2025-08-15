@@ -19,6 +19,7 @@ export class AudioManager {
   // Power-up melody management
   private powerUpMelodyActive = false;
   private powerUpMelodyTimeout: NodeJS.Timeout | null = null;
+  private powerUpMelodyOscillators: AudioScheduledSourceNode[] = [];
 
   constructor() {
     this.initializeAudioContext();
@@ -352,10 +353,13 @@ export class AudioManager {
   private playPowerUpMelody(duration: number): void {
     if (!this.audioContext) return;
 
+    // Clear any existing oscillators first
+    this.clearPowerUpOscillators();
+
     const sfxVolume = this.getSFXVolume();
     const startTime = this.audioContext.currentTime;
 
-    // Fast repeating “stressing” motif (like Pac-Man power-up)
+    // Fast repeating "stressing" motif (like Pac-Man power-up)
     const motif = [880.0, 1046.5, 987.77, 1174.66]; // A5, C6, B5, D6
     const noteDuration = 0.15; // short and urgent
 
@@ -376,10 +380,26 @@ export class AudioManager {
 
         osc.start(time);
         osc.stop(time + noteDuration);
+        
+        // Store oscillator reference for immediate stopping if needed
+        this.powerUpMelodyOscillators.push(osc);
 
         time += noteDuration;
       });
     }
+  }
+
+  private clearPowerUpOscillators(): void {
+    // Stop all oscillators immediately
+    this.powerUpMelodyOscillators.forEach(osc => {
+      try {
+        osc.stop(0); // Stop immediately (at time 0)
+        osc.disconnect(); // Disconnect from audio graph
+      } catch (e) {
+        // Oscillator might have already stopped, ignore error
+      }
+    });
+    this.powerUpMelodyOscillators = [];
   }
 
   cleanup(): void {
@@ -431,9 +451,9 @@ export class AudioManager {
     
     // Schedule background music to resume after power-up ends
     this.powerUpMelodyTimeout = setTimeout(() => {
-      log.audio("PowerUp melody timeout reached, stopping melody and resuming background music");
+      log.audio("PowerUp melody timeout reached, stopping melody");
       this.stopPowerUpMelody();
-      this.resumeBackgroundMusic();
+      // stopPowerUpMelody will handle resuming background music if appropriate
     }, duration);
   }
 
@@ -444,8 +464,14 @@ export class AudioManager {
   }
 
   private resumeBackgroundMusic(): void {
-    if (this.backgroundMusicGain && this.isBackgroundMusicPlaying) {
-      this.updateAudioVolumes(); // Restore volume based on current settings
+    if (this.backgroundMusicGain) {
+      // If background music should be playing but source is gone, restart it
+      if (this.isBackgroundMusicPlaying && !this.backgroundMusicSource) {
+        log.audio("Background music source lost, restarting music");
+        this.playBackgroundMusicFile();
+      }
+      // Restore volume based on current settings
+      this.updateAudioVolumes();
     }
   }
 
@@ -466,8 +492,15 @@ export class AudioManager {
         this.powerUpMelodyTimeout = null;
       }
       
-      // Resume background music
-      this.resumeBackgroundMusic();
+      // Stop all oscillators immediately
+      this.clearPowerUpOscillators();
+      
+      // Check game state to see if we should resume background music
+      const gameState = useGameStore.getState();
+      if (gameState.currentState === GameState.PLAYING) {
+        // Resume background music only if game is still playing
+        this.resumeBackgroundMusic();
+      }
     } else {
       log.audio("stopPowerUpMelody called but melody was not active");
     }
@@ -476,6 +509,15 @@ export class AudioManager {
   // Public method to check if power-up melody is active
   public isPowerUpMelodyActive(): boolean {
     return this.powerUpMelodyActive;
+  }
+
+  // Public method to check if background music is actually playing
+  public isBackgroundMusicActuallyPlaying(): boolean {
+    // Music is only actually playing if we have a source and the flag is set
+    // and power-up melody is not active (which would mute the background music)
+    return this.isBackgroundMusicPlaying && 
+           this.backgroundMusicSource !== null && 
+           !this.powerUpMelodyActive;
   }
 
   // Debug method to get PowerUp melody status

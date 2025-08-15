@@ -370,6 +370,12 @@ export class GameManager {
       this.scalingManager.resumeAllMonsterScaling();
       this.monsterSpawnManager.resume();
       this.monsterRespawnManager.resume();
+      
+      // Resume coin manager to restore powerup durations
+      const gameState = useGameStore.getState();
+      if (gameState.coinManager) {
+        gameState.coinManager.resume();
+      }
     } else {
       // Stop power-up melody when game is paused/stopped
       if (this.audioManager.isPowerUpMelodyActive()) {
@@ -381,6 +387,12 @@ export class GameManager {
       this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
       this.monsterRespawnManager.pause();
+      
+      // Pause coin manager to preserve powerup durations
+      const gameState = useGameStore.getState();
+      if (gameState.coinManager) {
+        gameState.coinManager.pause();
+      }
     }
   }
 
@@ -397,15 +409,18 @@ export class GameManager {
       );
     }
 
-    // Start music if we should be playing and aren't already
-    if (shouldPlayMusic && !this.isBackgroundMusicPlaying) {
-      log.audio("Starting background music");
-      this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
-      this.isBackgroundMusicPlaying = true;
-    }
-
-    // Stop music if we shouldn't be playing but are
-    if (!shouldPlayMusic && this.isBackgroundMusicPlaying) {
+    // Always check if we need to start music when in PLAYING state
+    // This ensures music restarts after powerup melody or after loading a new map
+    if (shouldPlayMusic) {
+      // Check if music is actually playing in the AudioManager
+      // If not, start it (even if we think it's playing)
+      if (!this.audioManager.isBackgroundMusicActuallyPlaying()) {
+        log.audio("Starting/Restarting background music");
+        this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
+        this.isBackgroundMusicPlaying = true;
+      }
+    } else if (this.isBackgroundMusicPlaying) {
+      // Stop music if we shouldn't be playing but are
       log.audio("Stopping background music");
       this.audioManager.stopBackgroundMusic();
       this.isBackgroundMusicPlaying = false;
