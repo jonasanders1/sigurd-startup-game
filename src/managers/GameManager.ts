@@ -185,6 +185,10 @@ export class GameManager {
     // Stop power-up melody if active
     if (this.audioManager.isPowerUpMelodyActive()) {
       this.audioManager.stopPowerUpMelody();
+      
+      // Reset background music flag since power-up melody ended
+      this.isBackgroundMusicPlaying = false;
+      log.audio("Reset background music flag after stop (power-up melody ended)");
     }
 
     if (this.animationFrameId) {
@@ -284,6 +288,10 @@ export class GameManager {
       // Stop power-up melody if active (game reset/restart)
       if (this.audioManager.isPowerUpMelodyActive()) {
         this.audioManager.stopPowerUpMelody();
+        
+        // Reset background music flag since power-up melody ended
+        this.isBackgroundMusicPlaying = false;
+        log.audio("Reset background music flag after game reset (power-up melody ended)");
       }
       this.loadCurrentLevel();
     }
@@ -381,6 +389,10 @@ export class GameManager {
       if (this.audioManager.isPowerUpMelodyActive()) {
         log.audio("Game paused/stopped, stopping PowerUp melody");
         this.audioManager.stopPowerUpMelody();
+        
+        // Reset background music flag since power-up melody ended
+        this.isBackgroundMusicPlaying = false;
+        log.audio("Reset background music flag after pause (power-up melody ended)");
       }
 
       this.scalingManager.pause();
@@ -816,6 +828,10 @@ export class GameManager {
       log.audio("Player died during power mode, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
+    
+    // Reset background music flag since power-up melody might have ended
+    this.isBackgroundMusicPlaying = false;
+    log.audio("Reset background music flag after player death (power-up melody ended)");
 
     // Check if this will be the last life before calling loseLife
     if (gameState.lives <= 1) {
@@ -837,6 +853,10 @@ export class GameManager {
       log.audio("Player respawning, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
+    
+    // Reset background music flag since power-up melody might have ended
+    this.isBackgroundMusicPlaying = false;
+    log.audio("Reset background music flag after player respawn (power-up melody ended)");
 
     if (currentMap) {
       // Clear floating texts when respawning
@@ -912,6 +932,10 @@ export class GameManager {
       log.audio("Map completed during power mode, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
+    
+    // Reset background music flag since power-up melody might have ended
+    this.isBackgroundMusicPlaying = false;
+    log.audio("Reset background music flag after map cleared (power-up melody ended)");
 
     // Calculate effective bomb count by subtracting lives lost
     // Each life lost is equivalent to missing one bomb
@@ -1014,6 +1038,11 @@ export class GameManager {
 
       gameState.nextLevel();
       this.loadCurrentLevel();
+      
+      // Reset background music flag for new level
+      this.isBackgroundMusicPlaying = false;
+      log.audio("Reset background music flag for new level");
+      
       // Always show countdown when transitioning to next level
       gameState.setMenuType(MenuType.COUNTDOWN);
       gameState.setState(GameState.COUNTDOWN);
@@ -1030,6 +1059,9 @@ export class GameManager {
 
   // Method to be called from BonusScreen to continue to next level
   public continueToNextLevel(): void {
+    // Reset background music flag before proceeding to next level
+    this.isBackgroundMusicPlaying = false;
+    log.audio("Reset background music flag before continuing to next level");
     this.proceedToNextLevel();
   }
 
