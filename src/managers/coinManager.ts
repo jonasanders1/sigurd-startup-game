@@ -33,6 +33,11 @@ export class CoinManager {
   private bombAndMonsterPoints: number = 0; // Track points from bombs and monsters only (no bonus)
   private monsterKillCount: number = 0; // Track monsters killed in current power mode session
   private pCoinColorIndex: number = 0; // Track current P-coin color index
+  
+  // Pause management for effects
+  private effectsPaused: boolean = false;
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
 
   constructor(spawnPoints: CoinSpawnPoint[] = []) {
     this.spawnPoints = spawnPoints;
@@ -51,6 +56,11 @@ export class CoinManager {
     this.bombAndMonsterPoints = 0;
     this.monsterKillCount = 0;
     // Don't reset pCoinColorIndex - let it persist across sessions
+    
+    // Reset pause state
+    this.effectsPaused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
   }
 
   update(platforms: Platform[], ground: Ground, gameState?: GameStateInterface): void {
@@ -506,14 +516,21 @@ export class CoinManager {
   }
 
   private checkEffectsEnd(gameState?: Record<string, unknown>): void {
+    // Don't check effects if paused
+    if (this.effectsPaused) {
+      return;
+    }
+    
     const currentTime = Date.now();
     const effectsToRemove: string[] = [];
 
     log.debug(`checkEffectsEnd called at ${currentTime}, checking ${this.activeEffects.size} active effects`);
 
     this.activeEffects.forEach((effectData, effectType) => {
-      const timeLeft = effectData.endTime - currentTime;
-      log.debug(`Checking effect: ${effectType}, endTime: ${effectData.endTime}, currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${timeLeft <= 0}`);
+      // Adjust end time for total paused time
+      const adjustedEndTime = effectData.endTime + this.totalPausedTime;
+      const timeLeft = adjustedEndTime - currentTime;
+      log.debug(`Checking effect: ${effectType}, endTime: ${adjustedEndTime} (adjusted for ${this.totalPausedTime}ms pause), currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${timeLeft <= 0}`);
       
       // Add a minimum duration safeguard to prevent effects from being removed too quickly
       const minimumDuration = 100; // 100ms minimum
@@ -795,8 +812,8 @@ export class CoinManager {
 
   // Get power mode end time
   getPowerModeEndTime(): number {
-    const powerModeEffect = this.activeEffects.get("POWER_MODE");
-    return powerModeEffect ? powerModeEffect.endTime : 0;
+    // Adjust for paused time
+    return this.powerModeEndTime + this.totalPausedTime;
   }
 
   // Legacy method with dynamic duration
@@ -834,5 +851,36 @@ export class CoinManager {
     }
     
     log.debug(`Power mode activated for ${duration}ms (${duration/1000}s)`);
+  }
+
+  // Pause all active effects
+  pauseEffects(): void {
+    if (!this.effectsPaused) {
+      this.effectsPaused = true;
+      this.pauseStartTime = Date.now();
+      log.debug("CoinManager: Effects paused");
+    }
+  }
+
+  // Resume all active effects
+  resumeEffects(): void {
+    if (this.effectsPaused) {
+      const pauseDuration = Date.now() - this.pauseStartTime;
+      this.totalPausedTime += pauseDuration;
+      this.effectsPaused = false;
+      
+      // Update powerModeEndTime if power mode is active
+      if (this.powerModeActive && this.powerModeEndTime > 0) {
+        this.powerModeEndTime += pauseDuration;
+        log.debug(`CoinManager: Power mode end time adjusted by ${pauseDuration}ms`);
+      }
+      
+      log.debug(`CoinManager: Effects resumed after ${pauseDuration}ms pause`);
+    }
+  }
+
+  // Check if effects are currently paused
+  isEffectsPaused(): boolean {
+    return this.effectsPaused;
   }
 }

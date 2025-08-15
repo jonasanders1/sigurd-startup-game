@@ -15,10 +15,16 @@ export class AudioManager {
   private isBackgroundMusicPlaying = false;
   private backgroundMusicBuffer: AudioBuffer | null = null;
   private backgroundMusicSource: AudioBufferSourceNode | null = null;
-  
+
   // Power-up melody management
   private powerUpMelodyActive = false;
   private powerUpMelodyTimeout: NodeJS.Timeout | null = null;
+  private powerUpMelodyPaused = false;
+  private powerUpMelodyPauseTime = 0;
+  private powerUpMelodyStartTime = 0;
+  private powerUpMelodyDuration = 0;
+  private powerUpMelodyRemainingTime = 0;
+  private powerUpMelodyOscillators: OscillatorNode[] = [];
 
   constructor() {
     this.initializeAudioContext();
@@ -352,10 +358,13 @@ export class AudioManager {
   private playPowerUpMelody(duration: number): void {
     if (!this.audioContext) return;
 
+    // Clear any existing oscillators
+    this.stopPowerUpMelodyOscillators();
+
     const sfxVolume = this.getSFXVolume();
     const startTime = this.audioContext.currentTime;
 
-    // Fast repeating “stressing” motif (like Pac-Man power-up)
+    // Fast repeating "stressing" motif (like Pac-Man power-up)
     const motif = [880.0, 1046.5, 987.77, 1174.66]; // A5, C6, B5, D6
     const noteDuration = 0.15; // short and urgent
 
@@ -377,9 +386,25 @@ export class AudioManager {
         osc.start(time);
         osc.stop(time + noteDuration);
 
+        // Track oscillators for cleanup
+        this.powerUpMelodyOscillators.push(osc);
+
         time += noteDuration;
       });
     }
+  }
+
+  private stopPowerUpMelodyOscillators(): void {
+    // Stop all tracked oscillators
+    this.powerUpMelodyOscillators.forEach((osc) => {
+      try {
+        osc.stop();
+        osc.disconnect();
+      } catch (e) {
+        // Oscillator might already be stopped, ignore
+      }
+    });
+    this.powerUpMelodyOscillators = [];
   }
 
   cleanup(): void {
@@ -414,24 +439,32 @@ export class AudioManager {
     this.updateAudioVolumes();
   }
 
-    private startPowerUpMelody(duration: number): void {
+  private startPowerUpMelody(duration: number): void {
     // Stop any existing power-up melody
     this.stopPowerUpMelody();
-    
-    log.audio(`Starting PowerUp melody for ${duration}ms (${duration/1000}s)`);
-    
+
+    log.audio(
+      `Starting PowerUp melody for ${duration}ms (${duration / 1000}s)`
+    );
+
     // Pause background music during power-up
     this.pauseBackgroundMusic();
-    
-    // Mark melody as active
+
+    // Mark melody as active and store duration
     this.powerUpMelodyActive = true;
-    
+    this.powerUpMelodyPaused = false;
+    this.powerUpMelodyStartTime = Date.now();
+    this.powerUpMelodyDuration = duration;
+    this.powerUpMelodyRemainingTime = duration;
+
     // Start the power-up melody
     this.playPowerUpMelody(duration / 1000); // Convert to seconds
-    
+
     // Schedule background music to resume after power-up ends
     this.powerUpMelodyTimeout = setTimeout(() => {
-      log.audio("PowerUp melody timeout reached, stopping melody and resuming background music");
+      log.audio(
+        "PowerUp melody timeout reached, stopping melody and resuming background music"
+      );
       this.stopPowerUpMelody();
       this.resumeBackgroundMusic();
     }, duration);
@@ -459,13 +492,18 @@ export class AudioManager {
     if (this.powerUpMelodyActive) {
       log.audio("Stopping PowerUp melody");
       this.powerUpMelodyActive = false;
-      
+      this.powerUpMelodyPaused = false;
+      this.powerUpMelodyRemainingTime = 0;
+
+      // Stop all oscillators
+      this.stopPowerUpMelodyOscillators();
+
       // Clear the timeout
       if (this.powerUpMelodyTimeout) {
         clearTimeout(this.powerUpMelodyTimeout);
         this.powerUpMelodyTimeout = null;
       }
-      
+
       // Resume background music
       this.resumeBackgroundMusic();
     } else {
@@ -478,13 +516,69 @@ export class AudioManager {
     return this.powerUpMelodyActive;
   }
 
+  // Public method to pause power-up melody
+  public pausePowerUpMelody(): void {
+    if (this.powerUpMelodyActive && !this.powerUpMelodyPaused) {
+      log.audio("Pausing PowerUp melody");
+      this.powerUpMelodyPaused = true;
+      this.powerUpMelodyPauseTime = Date.now();
+
+      // Calculate remaining time
+      const elapsed = this.powerUpMelodyPauseTime - this.powerUpMelodyStartTime;
+      this.powerUpMelodyRemainingTime = Math.max(
+        0,
+        this.powerUpMelodyDuration - elapsed
+      );
+
+      // Stop oscillators
+      this.stopPowerUpMelodyOscillators();
+
+      // Clear the timeout
+      if (this.powerUpMelodyTimeout) {
+        clearTimeout(this.powerUpMelodyTimeout);
+        this.powerUpMelodyTimeout = null;
+      }
+
+      log.audio(
+        `PowerUp melody paused with ${this.powerUpMelodyRemainingTime}ms remaining`
+      );
+    }
+  }
+
+  // Public method to resume power-up melody
+  public resumePowerUpMelody(): void {
+    if (
+      this.powerUpMelodyActive &&
+      this.powerUpMelodyPaused &&
+      this.powerUpMelodyRemainingTime > 0
+    ) {
+      log.audio(
+        `Resuming PowerUp melody with ${this.powerUpMelodyRemainingTime}ms remaining`
+      );
+      this.powerUpMelodyPaused = false;
+      this.powerUpMelodyStartTime = Date.now(); // Reset start time for remaining duration
+
+      // Restart the melody with remaining time
+      this.playPowerUpMelody(this.powerUpMelodyRemainingTime / 1000);
+
+      // Reschedule the timeout for remaining time
+      this.powerUpMelodyTimeout = setTimeout(() => {
+        log.audio("PowerUp melody completed after resume");
+        this.stopPowerUpMelody();
+        this.resumeBackgroundMusic();
+      }, this.powerUpMelodyRemainingTime);
+    }
+  }
+
   // Debug method to get PowerUp melody status
   public getPowerUpMelodyStatus(): any {
     return {
       isActive: this.powerUpMelodyActive,
+      isPaused: this.powerUpMelodyPaused,
+      remainingTime: this.powerUpMelodyRemainingTime,
       hasTimeout: this.powerUpMelodyTimeout !== null,
       timeoutId: this.powerUpMelodyTimeout,
-      backgroundMusicPlaying: this.isBackgroundMusicPlaying
+      backgroundMusicPlaying: this.isBackgroundMusicPlaying,
     };
   }
 }

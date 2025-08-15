@@ -182,16 +182,13 @@ export class GameManager {
   }
 
   stop(): void {
-    // Stop power-up melody if active
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      this.audioManager.stopPowerUpMelody();
-    }
-
+    // Sound stopping is now handled by handleSoundState
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
     this.audioManager.stopBackgroundMusic();
+    this.audioManager.stopPowerUpMelody(); // Final cleanup
     this.isBackgroundMusicPlaying = false;
   }
 
@@ -262,9 +259,8 @@ export class GameManager {
 
     const gameState = useGameStore.getState();
 
-    // Handle background music - only play during PLAYING state
-    // This must be called before dev mode checks to ensure music stops when paused
-    this.handleBackgroundMusic(gameState.currentState);
+    // Centralized sound state management - must be called first
+    this.handleSoundState(gameState.currentState);
 
     // Handle difficulty manager pause/resume based on game state
     this.handleDifficultyPause(gameState.currentState);
@@ -281,10 +277,7 @@ export class GameManager {
 
     // Check if we need to reload the level after a reset
     if (gameState.currentState === GameState.MENU && !gameState.currentMap) {
-      // Stop power-up melody if active (game reset/restart)
-      if (this.audioManager.isPowerUpMelodyActive()) {
-        this.audioManager.stopPowerUpMelody();
-      }
+      // Sound management is handled by handleSoundState
       this.loadCurrentLevel();
     }
 
@@ -360,6 +353,107 @@ export class GameManager {
     this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
   }
 
+  /**
+   * Centralized sound state management
+   * Handles all sound transitions based on game state changes
+   */
+  private handleSoundState(currentState: GameState): void {
+    // Detect state changes
+    const stateChanged = this.previousGameState !== currentState;
+
+    if (stateChanged) {
+      log.audio(`Game state changed: ${this.previousGameState} -> ${currentState}`);
+    }
+
+    const gameState = useGameStore.getState();
+    const coinManager = gameState.coinManager;
+
+    // Handle sound states based on current game state
+    switch (currentState) {
+      case GameState.PLAYING:
+        // Start/resume background music if not already playing
+        if (!this.isBackgroundMusicPlaying) {
+          log.audio("Starting background music");
+          this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
+          this.isBackgroundMusicPlaying = true;
+        }
+        
+        // Resume powerUpMelody if it was paused
+        if (stateChanged && this.audioManager.isPowerUpMelodyActive()) {
+          this.audioManager.resumePowerUpMelody();
+        }
+        
+        // Resume P-coin effects
+        if (coinManager && stateChanged) {
+          coinManager.resumeEffects();
+        }
+        break;
+
+      case GameState.PAUSED:
+        // Stop background music
+        if (this.isBackgroundMusicPlaying) {
+          log.audio("Pausing - stopping background music");
+          this.audioManager.stopBackgroundMusic();
+          this.isBackgroundMusicPlaying = false;
+        }
+        
+        // Pause powerUpMelody (don't stop it, just pause)
+        if (this.audioManager.isPowerUpMelodyActive()) {
+          log.audio("Pausing - pausing PowerUp melody");
+          this.audioManager.pausePowerUpMelody();
+        }
+        
+        // Pause P-coin effects
+        if (coinManager) {
+          coinManager.pauseEffects();
+        }
+        break;
+
+      case GameState.MAP_CLEARED:
+      case GameState.BONUS:
+      case GameState.VICTORY:
+      case GameState.GAME_OVER:
+        // Stop all ongoing sounds for these states
+        if (this.isBackgroundMusicPlaying) {
+          log.audio(`${GameState[currentState]} state - stopping background music`);
+          this.audioManager.stopBackgroundMusic();
+          this.isBackgroundMusicPlaying = false;
+        }
+        
+        // Stop powerUpMelody completely for these transitions
+        if (this.audioManager.isPowerUpMelodyActive()) {
+          log.audio(`${GameState[currentState]} state - stopping PowerUp melody`);
+          this.audioManager.stopPowerUpMelody();
+        }
+        
+        // No need to pause effects - they should end naturally or be reset
+        break;
+
+      case GameState.COUNTDOWN:
+      case GameState.MENU:
+        // Stop background music
+        if (this.isBackgroundMusicPlaying) {
+          log.audio(`${GameState[currentState]} state - stopping background music`);
+          this.audioManager.stopBackgroundMusic();
+          this.isBackgroundMusicPlaying = false;
+        }
+        
+        // Stop powerUpMelody for menu/countdown states
+        if (this.audioManager.isPowerUpMelodyActive()) {
+          log.audio(`${GameState[currentState]} state - stopping PowerUp melody`);
+          this.audioManager.stopPowerUpMelody();
+        }
+        
+        // Resume effects if paused (for countdown after pause)
+        if (coinManager && currentState === GameState.COUNTDOWN && coinManager.isEffectsPaused()) {
+          coinManager.resumeEffects();
+        }
+        break;
+    }
+
+    this.previousGameState = currentState;
+  }
+
   private handleDifficultyPause(currentState: GameState): void {
     // Pause difficulty scaling and monster spawning when game is not in PLAYING state
     if (currentState === GameState.PLAYING) {
@@ -371,12 +465,6 @@ export class GameManager {
       this.monsterSpawnManager.resume();
       this.monsterRespawnManager.resume();
     } else {
-      // Stop power-up melody when game is paused/stopped
-      if (this.audioManager.isPowerUpMelodyActive()) {
-        log.audio("Game paused/stopped, stopping PowerUp melody");
-        this.audioManager.stopPowerUpMelody();
-      }
-
       this.scalingManager.pause();
       this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
@@ -385,33 +473,9 @@ export class GameManager {
   }
 
   private handleBackgroundMusic(currentState: GameState): void {
-    // Only play music during PLAYING state - stop in all other states
-    const shouldPlayMusic = currentState === GameState.PLAYING;
-
-    // Detect state changes
-    const stateChanged = this.previousGameState !== currentState;
-
-    if (stateChanged) {
-      log.audio(
-        `Game state changed: ${this.previousGameState} -> ${currentState}`
-      );
-    }
-
-    // Start music if we should be playing and aren't already
-    if (shouldPlayMusic && !this.isBackgroundMusicPlaying) {
-      log.audio("Starting background music");
-      this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
-      this.isBackgroundMusicPlaying = true;
-    }
-
-    // Stop music if we shouldn't be playing but are
-    if (!shouldPlayMusic && this.isBackgroundMusicPlaying) {
-      log.audio("Stopping background music");
-      this.audioManager.stopBackgroundMusic();
-      this.isBackgroundMusicPlaying = false;
-    }
-
-    this.previousGameState = currentState;
+    // This method is now deprecated - functionality moved to handleSoundState
+    // Keeping for backwards compatibility but will be removed
+    log.warn("handleBackgroundMusic is deprecated, use handleSoundState instead");
   }
 
   private update(deltaTime: number): void {
@@ -799,12 +863,7 @@ export class GameManager {
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
 
-    // Stop power-up melody if active (player died during power mode)
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Player died during power mode, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-
+    // Sound management is now handled by handleSoundState
     // Check if this will be the last life before calling loseLife
     if (gameState.lives <= 1) {
       // This will be the last life - just call loseLife and let it handle game over
@@ -820,12 +879,7 @@ export class GameManager {
     const gameState = useGameStore.getState();
     const currentMap = gameState.currentMap;
 
-    // Stop power-up melody if active (player respawning)
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Player respawning, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-
+    // Sound management is now handled by handleSoundState
     if (currentMap) {
       // Clear floating texts when respawning
       gameState.clearAllFloatingTexts();
@@ -895,12 +949,7 @@ export class GameManager {
   private proceedAfterMapCleared(): void {
     const gameState = useGameStore.getState();
 
-    // Stop power-up melody if active (map completed during power mode)
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Map completed during power mode, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-
+    // Sound management is now handled by handleSoundState
     // Calculate effective bomb count by subtracting lives lost
     // Each life lost is equivalent to missing one bomb
     const livesLost = GAME_CONFIG.STARTING_LIVES - gameState.lives;
@@ -988,12 +1037,7 @@ export class GameManager {
     const gameState = useGameStore.getState();
     const nextLevel = gameState.currentLevel + 1;
 
-    // Stop power-up melody if active (level transition)
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Level transition, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-
+    // Sound management is now handled by handleSoundState
     if (nextLevel <= mapDefinitions.length) {
       // Reset coin effects and state before loading new level
       gameState.resetEffects();
