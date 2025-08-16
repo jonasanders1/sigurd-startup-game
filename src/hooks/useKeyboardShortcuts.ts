@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
+import { sendAudioSettingsUpdate } from "../lib/communicationUtils";
 
 // Type definition for webkit fullscreen element
 interface WebkitDocument extends Document {
@@ -62,7 +63,14 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
         case "M":
           // Toggle audio mute
           event.preventDefault();
-          updateAudioSettings({ masterMuted: !audioSettings.masterMuted });
+          const newMuteState = !audioSettings.masterMuted;
+          updateAudioSettings({ masterMuted: newMuteState });
+          
+          // Send audio settings update to host
+          sendAudioSettingsUpdate({
+            ...audioSettings,
+            masterMuted: newMuteState,
+          });
           break;
       }
     };

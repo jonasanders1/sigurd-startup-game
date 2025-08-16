@@ -83,6 +83,12 @@ export class GameManager {
     // Send game ready signal to host
     sendGameReady();
 
+    // Send current settings to host
+    const gameState = useGameStore.getState();
+    if (gameState.sendCurrentSettings) {
+      gameState.sendCurrentSettings();
+    }
+
     this.gameLoop(0);
   }
 

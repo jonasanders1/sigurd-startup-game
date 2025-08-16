@@ -1,5 +1,9 @@
 import { StateCreator } from "zustand";
 import { DEFAULT_AUDIO_SETTINGS } from "../../types/constants";
+import {
+  sendAudioSettingsUpdate,
+  sendGameSettingsUpdate,
+} from "../../lib/communicationUtils";
 
 export interface AudioSettings {
   masterVolume: number;
@@ -14,7 +18,6 @@ interface AudioManagerInterface {
   updateVolumes: () => void;
   startPowerUpMelodyWithDuration: (duration: number) => void;
   stopPowerUpMelody: () => void;
-  isPowerUpMelodyActive: () => boolean;
 }
 
 export interface AudioSettingsSlice {
@@ -33,9 +36,13 @@ export const createAudioSettingsSlice: StateCreator<AudioSettingsSlice> = (
   audioManager: null,
 
   updateAudioSettings: (newSettings: Partial<AudioSettings>) => {
+    const updatedSettings = { ...get().audioSettings, ...newSettings };
     set({
-      audioSettings: { ...get().audioSettings, ...newSettings },
+      audioSettings: updatedSettings,
     });
+
+    // Send audio settings update to host
+    sendAudioSettingsUpdate(updatedSettings);
 
     // Update AudioManager if available
     const audioManager = get().audioManager;
@@ -46,6 +53,9 @@ export const createAudioSettingsSlice: StateCreator<AudioSettingsSlice> = (
 
   resetAudioSettings: () => {
     set({ audioSettings: DEFAULT_AUDIO_SETTINGS });
+
+    // Send reset audio settings update to host
+    sendAudioSettingsUpdate(DEFAULT_AUDIO_SETTINGS);
 
     // Update AudioManager if available
     const audioManager = get().audioManager;

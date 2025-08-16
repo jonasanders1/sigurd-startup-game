@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import MainGame from "./components/MainGame"; // your root game component
 import "./index.css";
-import css from './index.css?inline';
+import css from "./index.css?inline";
 import { getVersion, logVersion } from "./version";
 import { debugAssetPaths } from "./config/assets";
 
@@ -16,12 +16,12 @@ class GameElement extends HTMLElement implements GameElementInterface {
   connectedCallback() {
     // Debug asset paths
     debugAssetPaths();
-    
+
     const shadow = this.attachShadow({ mode: "open" });
     const rootElement = document.createElement("div");
     shadow.appendChild(rootElement);
-    
-    const style = document.createElement('style');
+
+    const style = document.createElement("style");
     style.textContent = css;
     shadow.appendChild(style);
 
@@ -32,8 +32,8 @@ class GameElement extends HTMLElement implements GameElementInterface {
     logVersion();
 
     // Expose version to external sites
-    this.setAttribute('data-version', getVersion().version);
-    this.setAttribute('data-build', getVersion().build.toString());
+    this.setAttribute("data-version", getVersion().version);
+    this.setAttribute("data-build", getVersion().build.toString());
   }
 
   disconnectedCallback() {
@@ -49,9 +49,9 @@ class GameElement extends HTMLElement implements GameElementInterface {
 
   isCompatible(minVersion: string) {
     const current = getVersion();
-    const [major, minor, patch] = current.version.split('.').map(Number);
-    const [minMajor, minMinor, minPatch] = minVersion.split('.').map(Number);
-    
+    const [major, minor, patch] = current.version.split(".").map(Number);
+    const [minMajor, minMinor, minPatch] = minVersion.split(".").map(Number);
+
     if (major > minMajor) return true;
     if (major < minMajor) return false;
     if (minor > minMinor) return true;
