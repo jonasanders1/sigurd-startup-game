@@ -139,10 +139,10 @@ export class BackgroundManager {
 
     // Add loading text
     ctx.fillStyle = "#ffffff";
-    ctx.font = "16px Arial";
+    ctx.font = "16px JetBrains Mono";
     ctx.textAlign = "center";
     ctx.fillText(
-      "Loading background...",
+      "Laster bakgrunn...",
       this.canvasWidth / 2,
       this.canvasHeight / 2
     );

@@ -25,7 +25,7 @@ const MainGame: React.FC = () => {
   const { toggleFullscreen } = useFullscreen();
   const { isFullscreen } = useFullscreen();
   const { isPreloading } = useBackgroundPreloading();
-  
+
   const handleFullscreenToggle = () => {
     const gameElement = gameContainerRef.current?.closest(
       "sigurd-startup"
@@ -48,9 +48,9 @@ const MainGame: React.FC = () => {
       {isPreloading && (
         <Menu>
           <div className="text-white text-center">
-            <div className="text-lg font-bold mb-2">Loading Backgrounds...</div>
+            <div className="text-lg font-bold mb-2">Laster bakgrunn...</div>
             <div className="text-sm text-gray-300">
-              Please wait while we prepare your game
+              Vennligst vent mens Sigurd forbereder spillet
             </div>
           </div>
         </Menu>

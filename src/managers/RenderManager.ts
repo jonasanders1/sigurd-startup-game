@@ -185,7 +185,7 @@ export class RenderManager {
 
         // Draw bomb number
         this.ctx.fillStyle = "#000000";
-        this.ctx.font = "12px Arial";
+        this.ctx.font = "12px JetBrains Mono";
         this.ctx.textAlign = "center";
         this.ctx.fillText(
           bomb.order.toString(),
@@ -224,7 +224,7 @@ export class RenderManager {
 
       // Add coin type indicator
       this.ctx.fillStyle = "#fff";
-      this.ctx.font = "14px Arial";
+      this.ctx.font = "14px JetBrains Mono";
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
 
@@ -332,7 +332,7 @@ export class RenderManager {
 
           // Draw text using monster's color
           this.ctx.fillStyle = "#ffffff"; // White text for contrast
-          this.ctx.font = "16px Arial";
+          this.ctx.font = "16px JetBrains Mono";
           this.ctx.textAlign = "center";
           this.ctx.textBaseline = "middle";
           this.ctx.fillText(text, textX, textY);
@@ -386,7 +386,7 @@ export class RenderManager {
           
           // Draw text using white for contrast
           this.ctx.fillStyle = "#ffffff"; // White text for contrast
-          this.ctx.font = "16px Arial";
+          this.ctx.font = "16px JetBrains Mono";
           this.ctx.textAlign = "center";
           this.ctx.textBaseline = "middle";
           this.ctx.fillText(text, textX, textY);
@@ -418,7 +418,7 @@ export class RenderManager {
       this.ctx.globalAlpha = opacity;
 
       this.ctx.fillStyle = text.color;
-      this.ctx.font = `${text.fontSize}px Arial`;
+      this.ctx.font = `${text.fontSize}px JetBrains Mono`;
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
       this.ctx.fillText(text.text, text.x, animatedY);
