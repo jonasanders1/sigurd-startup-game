@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFullscreen } from "../../../hooks/useFullscreen";
+import ShortcutControls from "@/components/ShortcutControls";
 
 const StartMenu: React.FC = () => {
   const { setState, setMenuType } = useGameStore();
@@ -100,6 +101,7 @@ const StartMenu: React.FC = () => {
           Innstillinger
         </Button>
       </div>
+      <ShortcutControls />  
     </div>
   );
 };
