@@ -1,7 +1,7 @@
 {
   "name": "sigurd-startup",
   "private": false,
-  "version": "2.3.3",
+  "version": "2.3.4",
   "type": "module",
   "description": "A web component game about Sigurd's startup journey",
   "main": "dist/sigurd-startup.umd.js",
