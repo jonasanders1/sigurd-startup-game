@@ -18,7 +18,6 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
 import { useBackgroundPreloading } from "../hooks/useBackgroundPreloading";
 import { VERSION_STRING, getVersion } from "../version";
-import { useExternalSettingsListener } from "../hooks/useExternalSettingsListener";
 
 const MainGame: React.FC = () => {
   const { currentState, showMenu } = useGameStore();
@@ -27,9 +26,6 @@ const MainGame: React.FC = () => {
   const { isFullscreen } = useFullscreen();
   const { isPreloading } = useBackgroundPreloading();
   
-  // Initialize external settings listener
-  useExternalSettingsListener();
-
   const handleFullscreenToggle = () => {
     const gameElement = gameContainerRef.current?.closest(
       "sigurd-startup"
