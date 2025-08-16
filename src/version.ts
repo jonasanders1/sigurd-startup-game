@@ -2,13 +2,13 @@
 // This file is updated during the build process
 
 export const VERSION = {
-  major: 2,
-  minor: 3,
-  patch: 3,
-  build: 2,
-  timestamp: 1755340125324,
-  hash: '1TAX9M',
-  full: '2.3.3'
+  major: 3,
+  minor: 0,
+  patch: 1,
+  build: 1,
+  timestamp: 1755355678671,
+  hash: 'E92B3N',
+  full: '3.0.1'
 };
 
 // Version string for easy access
@@ -27,7 +27,7 @@ export const getVersion = () => ({
 
 // Version info for console logging
 export const logVersion = () => {
-  console.log(`🎮 Sigurd Startup Game v${VERSION_STRING} (Build ${VERSION.build})`);
-  console.log(`📦 Hash: ${VERSION.hash}`);
-  console.log(`⏰ Built: ${new Date(VERSION.timestamp).toISOString()}`);
+  console.log('🎮 Sigurd Startup Game v' + VERSION_STRING + ' (Build ' + VERSION.build + ')');
+  console.log('📦 Hash: ' + VERSION.hash);
+  console.log('⏰ Built: ' + new Date(VERSION.timestamp).toISOString());
 };
