@@ -2,7 +2,7 @@ import { Maximize, Pause, Volume2 } from "lucide-react";
 
 const ShortcutControls = () => {
   return (
-    <div className="mt-10 absolute bottom-0 left-0 w-full bg-secondary p-2">
+    <div className="mt-10 absolute bottom-0 left-0 w-full bg-card p-2">
       <div className="flex items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
           <span className="bg-primary font-bold border border-primary-dark text-white rounded-md px-2 w-8 h-8 flex items-center justify-center">

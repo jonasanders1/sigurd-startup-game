@@ -77,7 +77,7 @@ const StartMenu: React.FC = () => {
         </Tooltip>
       </TooltipProvider>
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Sigurd Startup</h1>
+        <h1 className="text-4xl font-bold text-white mb-2 font-pixel">Sigurd Startup</h1>
         <p className="text-muted-foreground">
           Samle så mye finansiering som mulig!
         </p>

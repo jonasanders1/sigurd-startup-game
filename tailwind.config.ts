@@ -20,7 +20,9 @@ export default {
     },
     extend: {
       fontFamily: {
+        sans: ["JetBrains Mono", "monospace"],
         mono: ["JetBrains Mono", "monospace"],
+        pixel: ["Pixelify Sans", "cursive"],
       },
       colors: {
         border: "var(--border)",
