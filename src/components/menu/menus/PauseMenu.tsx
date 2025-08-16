@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
 import { GameState, MenuType } from "../../../types/enums";
 import { Play, Settings, Home, RotateCcw } from "lucide-react";
+import ShortcutControls from "@/components/ShortcutControls";
 
 const PauseMenu: React.FC = () => {
   const { setState, setMenuType, resetGame } = useGameStore();
@@ -51,10 +52,7 @@ const PauseMenu: React.FC = () => {
           className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
         >
           <Play size={20} />
-          Fortsett /
-          <div className="text-xs px-2 py-1 bg-secondary rounded-sm">
-            <span>P</span>
-          </div>
+          Fortsett
         </Button>
 
         <Button
@@ -84,6 +82,7 @@ const PauseMenu: React.FC = () => {
           hovedmeny
         </Button>
       </div>
+      <ShortcutControls />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
 import { MenuType } from "../../../types/enums";
 import { ArrowLeft } from "lucide-react";
+import ShortcutControls from "@/components/ShortcutControls";
 
 const SettingsMenu: React.FC = () => {
   const { setMenuType, previousMenu } = useGameStore();
@@ -142,6 +143,7 @@ const SettingsMenu: React.FC = () => {
           <p>(Trykk på tallene for å mute lyd)</p>
         </div>
       </div>
+      <ShortcutControls />
     </div>
   );
 };
