@@ -83,7 +83,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
 
 // Development Mode Configuration
 export const DEV_CONFIG = {
-  ENABLED: true, // Set to false to disable dev mode
+  ENABLED: false, // Set to false to disable dev mode
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
   TARGET_LEVEL: 1, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
