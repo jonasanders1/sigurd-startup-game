@@ -107,8 +107,14 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       log.info(`Losing life: ${lives} → ${newLives}`);
       set({ lives: newLives });
 
-      // Get current map for state update
+      // Reset multiplier when player dies
       const api = get();
+      if ("resetMultiplier" in api) {
+        (api as { resetMultiplier: () => void }).resetMultiplier();
+        log.info("Multiplier reset to 1x after player death");
+      }
+
+      // Get current map for state update
       const currentMap =
         "currentMap" in api
           ? (api as { currentMap?: { name: string } }).currentMap
