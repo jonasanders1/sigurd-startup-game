@@ -10,16 +10,17 @@ export enum GameState {
   }
   
   export enum MenuType {
-    START = 'START',
-    COUNTDOWN = 'COUNTDOWN',
-    IN_GAME = 'IN_GAME',
-    PAUSE = 'PAUSE',
-    SETTINGS = 'SETTINGS',
-    BONUS = 'BONUS',
-    VICTORY = 'VICTORY',
-    GAME_OVER = 'GAME_OVER',
-    AUDIO_SETTINGS = 'AUDIO_SETTINGS'
-  }
+  START = 'START',
+  COUNTDOWN = 'COUNTDOWN',
+  IN_GAME = 'IN_GAME',
+  PAUSE = 'PAUSE',
+  SETTINGS = 'SETTINGS',
+  BONUS = 'BONUS',
+  VICTORY = 'VICTORY',
+  GAME_OVER = 'GAME_OVER',
+  AUDIO_SETTINGS = 'AUDIO_SETTINGS',
+  MAP_CLEARED = 'MAP_CLEARED'
+}
   
   export enum MonsterType {
   HORIZONTAL_PATROL = 'HORIZONTAL_PATROL',

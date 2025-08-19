@@ -4,6 +4,9 @@ import { RenderManager } from "./RenderManager";
 import { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import { ScalingManager } from "./ScalingManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
+import { PlayerPhysicsManager } from "./PlayerPhysicsManager";
+import { GameplayCollisionManager } from "./GameplayCollisionManager";
+import { GameStateManager } from "./GameStateManager";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import { Monster } from "../types/interfaces";
@@ -29,6 +32,9 @@ export class GameManager {
   private animationController: AnimationController;
   private scalingManager: ScalingManager;
   private monsterRespawnManager: OptimizedRespawnManager;
+  private playerPhysicsManager: PlayerPhysicsManager;
+  private gameplayCollisionManager: GameplayCollisionManager;
+  private gameStateManager: GameStateManager;
   private animationFrameId: number | null = null;
   private lastTime = 0;
   private isBackgroundMusicPlaying = false;
@@ -46,6 +52,17 @@ export class GameManager {
     this.animationController = new AnimationController(playerSprite);
     this.scalingManager = ScalingManager.getInstance();
     this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
+
+    // Initialize new managers
+    this.playerPhysicsManager = new PlayerPhysicsManager(
+      this.inputManager,
+      this.animationController
+    );
+    this.gameplayCollisionManager = new GameplayCollisionManager(
+      this.collisionManager,
+      this.audioManager
+    );
+    this.gameStateManager = new GameStateManager(this.audioManager);
 
     // Initialize monster spawn manager with empty array initially
     this.monsterSpawnManager = new OptimizedSpawnManager();
@@ -266,25 +283,85 @@ export class GameManager {
 
     const gameState = useGameStore.getState();
 
+    // Handle background music and difficulty systems
+    this.handleSystemUpdates(gameState.currentState);
+
+    // Handle dev mode special logic
+    if (this.handleDevModeLogic(gameState.currentState)) {
+      this.render();
+      this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
+      return;
+    }
+
+    // Handle state-specific logic
+    this.handleStateSpecificLogic(gameState, deltaTime);
+
+    // Render frame and schedule next
+    this.render();
+    this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
+  }
+
+  /**
+   * Handles system updates that need to happen every frame
+   * @private
+   */
+  private handleSystemUpdates(currentState: GameState): void {
     // Handle background music - only play during PLAYING state
-    // This must be called before dev mode checks to ensure music stops when paused
-    this.handleBackgroundMusic(gameState.currentState);
+    this.handleBackgroundMusic(currentState);
 
     // Handle difficulty manager pause/resume based on game state
-    this.handleDifficultyPause(gameState.currentState);
+    this.handleDifficultyPause(currentState);
+  }
 
+  /**
+   * Handles special dev mode logic
+   * @returns true if dev mode handled the frame and normal logic should be skipped
+   * @private
+   */
+  private handleDevModeLogic(currentState: GameState): boolean {
     // DEV_MODE: Skip normal game logic if we're in dev mode and not in PLAYING state
     if (DEV_CONFIG.ENABLED && this.devModeInitialized) {
       // Only run normal game logic if we're in PLAYING state in dev mode
-      if (gameState.currentState !== GameState.PLAYING) {
-        this.render();
-        this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
-        return;
+      if (currentState !== GameState.PLAYING) {
+        return true; // Skip normal logic
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Handles logic specific to the current game state
+   * @private
+   */
+  private handleStateSpecificLogic(gameState: any, deltaTime: number): void {
+    switch (gameState.currentState) {
+      case GameState.MENU:
+        this.handleMenuState(gameState);
+        break;
+        
+      case GameState.BONUS:
+        this.handleBonusState(gameState);
+        break;
+        
+      case GameState.PLAYING:
+        this.handlePlayingState(gameState, deltaTime);
+        break;
+        
+      case GameState.MAP_CLEARED:
+        this.handleMapClearedState(gameState, deltaTime);
+        break;
+        
+      // Other states don't need special handling
       }
     }
 
+  /**
+   * Handles logic for MENU state
+   * @private
+   */
+  private handleMenuState(gameState: any): void {
     // Check if we need to reload the level after a reset
-    if (gameState.currentState === GameState.MENU && !gameState.currentMap) {
+    if (!gameState.currentMap) {
       // Stop power-up melody if active (game reset/restart)
       if (this.audioManager.isPowerUpMelodyActive()) {
         this.audioManager.stopPowerUpMelody();
@@ -295,13 +372,15 @@ export class GameManager {
       }
       this.loadCurrentLevel();
     }
+    }
 
+  /**
+   * Handles logic for BONUS state
+   * @private
+   */
+  private handleBonusState(gameState: any): void {
     // Check for bonus animation completion and auto-continue
-    if (
-      gameState.currentState === GameState.BONUS &&
-      gameState.bonusAnimationComplete &&
-      !DEV_CONFIG.ENABLED
-    ) {
+    if (gameState.bonusAnimationComplete && !DEV_CONFIG.ENABLED) {
       // Animation is complete, proceed to next level after a brief delay
       setTimeout(() => {
         this.proceedToNextLevel();
@@ -309,13 +388,24 @@ export class GameManager {
       // Reset the flag to prevent multiple calls
       gameState.setBonusAnimationComplete(false);
     }
+  }
 
-    if (gameState.currentState === GameState.PLAYING) {
+  /**
+   * Handles logic for PLAYING state
+   * @private
+   */
+  private handlePlayingState(gameState: any, deltaTime: number): void {
       this.update(deltaTime);
       playerSprite.update(deltaTime);
       this.handleCollisions();
       this.checkWinCondition();
-    } else if (gameState.currentState === GameState.MAP_CLEARED) {
+  }
+
+  /**
+   * Handles logic for MAP_CLEARED state
+   * @private
+   */
+  private handleMapClearedState(gameState: any, deltaTime: number): void {
       // Update sprite animation for map cleared state
       playerSprite.update(deltaTime);
 
@@ -324,16 +414,34 @@ export class GameManager {
 
       // Only apply gravity if player wasn't already grounded when map was cleared
       if (!this.wasGroundedWhenMapCleared) {
+      this.applyMapClearedPhysics(gameState);
+    }
+
+    // Update animation controller with actual player state
+    this.animationController.update(
+      player.isGrounded,
+      0,
+      false,
+      gameState.currentState
+    );
+  }
+
+  /**
+   * Applies physics during MAP_CLEARED state (player falling to ground)
+   * @private
+   */
+  private applyMapClearedPhysics(gameState: any): void {
+    const player = gameState.player;
+    const ground = gameState.ground;
+    
         // Apply gravity to make player fall
         const updatedPlayer = { ...player };
         updatedPlayer.velocityY += player.gravity;
         updatedPlayer.y += updatedPlayer.velocityY;
 
         // Check for ground collision during fall
-        const ground = gameState.ground;
         if (ground) {
-          const groundCollision =
-            this.collisionManager.checkPlayerGroundCollision(
+      const groundCollision = this.collisionManager.checkPlayerGroundCollision(
               updatedPlayer,
               ground
             );
@@ -353,19 +461,6 @@ export class GameManager {
 
         // Update player state
         gameState.updatePlayer(updatedPlayer);
-      }
-
-      // Update animation controller with actual player state
-      this.animationController.update(
-        player.isGrounded,
-        0,
-        false,
-        gameState.currentState
-      );
-    }
-
-    this.render();
-    this.animationFrameId = requestAnimationFrame(this.boundGameLoop);
   }
 
   private handleDifficultyPause(currentState: GameState): void {
@@ -450,116 +545,12 @@ export class GameManager {
     const gameState = useGameStore.getState();
     let player = { ...gameState.player };
 
-    // Handle input
-    let moveX = 0;
-    if (this.inputManager.isKeyPressed("ArrowLeft")) {
-      moveX = -player.moveSpeed;
-    }
-    if (this.inputManager.isKeyPressed("ArrowRight")) {
-      moveX = player.moveSpeed;
-    }
-
-    // Update animation state
-    this.animationController.update(
-      player.isGrounded,
-      moveX,
-      player.isFloating,
+    // Use PlayerPhysicsManager to handle all physics and movement
+    player = this.playerPhysicsManager.update(
+      player,
+      deltaTime,
       gameState.currentState
     );
-
-    // Variable height jumping mechanics
-    const isUpPressed = this.inputManager.isKeyPressed("ArrowUp");
-    const isDownPressed = this.inputManager.isKeyPressed("ArrowDown");
-    const isShiftPressed = this.inputManager.isShiftPressed();
-    const isSpacePressed =
-      this.inputManager.isKeyPressed(" ") ||
-      this.inputManager.isKeyPressed("Space");
-
-    if (isUpPressed && player.isGrounded && !player.isJumping) {
-      // Start jump
-      player.isJumping = true;
-      player.jumpStartTime = Date.now();
-      player.isGrounded = false;
-
-      // Initial jump velocity (minimum jump)
-      const baseJumpPower = isShiftPressed
-        ? GAME_CONFIG.SUPER_JUMP_POWER
-        : GAME_CONFIG.JUMP_POWER;
-      player.velocityY = -baseJumpPower * 0.6; // Start with 60% of jump power
-    }
-
-    // Continue jump if key is held and we're still in jump phase
-    if (isUpPressed && player.isJumping && player.velocityY < 0) {
-      const jumpDuration = Date.now() - player.jumpStartTime;
-
-      if (jumpDuration <= GAME_CONFIG.MAX_JUMP_DURATION) {
-        // Calculate additional jump power based on hold duration
-        const holdRatio = Math.min(
-          jumpDuration / GAME_CONFIG.MAX_JUMP_DURATION,
-          1
-        );
-        const baseJumpPower = isShiftPressed
-          ? GAME_CONFIG.SUPER_JUMP_POWER
-          : GAME_CONFIG.JUMP_POWER;
-        const targetVelocity = -baseJumpPower * (0.6 + 0.4 * holdRatio); // Scale from 60% to 100%
-
-        // Gradually increase jump power with frame-rate compensation
-        if (player.velocityY > targetVelocity) {
-          player.velocityY = targetVelocity;
-        }
-      }
-    }
-
-    // End jump when key is released or max duration reached
-    if (
-      (!isUpPressed ||
-        Date.now() - player.jumpStartTime > GAME_CONFIG.MAX_JUMP_DURATION) &&
-      player.isJumping
-    ) {
-      player.isJumping = false;
-    }
-
-    // Fast fall mechanic - Arrow Down kills upward momentum and speeds up fall
-    if (isDownPressed && !player.isGrounded) {
-      // Kill any upward momentum immediately
-      if (player.velocityY < 0) {
-        player.velocityY = 0;
-      }
-      // Set fast fall state
-      player.isFastFalling = true;
-    } else {
-      player.isFastFalling = false;
-    }
-
-    // Floating mechanism - works anytime the player is in the air
-    if (isSpacePressed && !player.isGrounded) {
-      // Only kill momentum if we're just starting to float (not already floating)
-      if (!player.isFloating) {
-        player.velocityY = 0;
-      }
-      // Set floating state for slower fall
-      player.isFloating = true;
-    } else {
-      player.isFloating = false;
-    }
-
-    // Apply movement with frame-rate compensation
-    player.velocityX = moveX;
-    player.x += player.velocityX * (deltaTime / 16.67); // 16.67ms = 60fps for consistent speed
-
-    // Apply gravity - handle different gravity states
-    let gravity = player.gravity; // Default gravity
-
-    if (player.isFloating && player.velocityY >= 0) {
-      // Use float gravity when floating and falling
-      gravity = player.floatGravity;
-    } else if (player.isFastFalling) {
-      // Use fast fall gravity multiplier when fast falling
-      gravity = player.gravity * GAME_CONFIG.FAST_FALL_GRAVITY_MULTIPLIER;
-    }
-
-    player.velocityY += gravity * (deltaTime / 16.67); // Frame-rate compensation for gravity
-    player.y += player.velocityY * (deltaTime / 16.67); // Frame-rate compensation for vertical movement
 
     // Handle boundary collisions
     const bounds = {
@@ -579,9 +570,6 @@ export class GameManager {
 
     // Update player with boundary-resolved position
     player = boundaryResult.player;
-
-    // Reset grounded state
-    player.isGrounded = false;
 
     gameState.updatePlayer(player);
   }
@@ -666,157 +654,67 @@ export class GameManager {
     const gameState = useGameStore.getState();
     const { player, platforms, bombs, monsters, ground, coins } = gameState;
 
-    // Platform collisions - handle all directions
-    const platformCollision =
-      this.collisionManager.checkPlayerPlatformCollision(player, platforms);
-    if (
-      platformCollision.hasCollision &&
-      platformCollision.normal &&
-      platformCollision.penetration
-    ) {
-      const updatedPlayer = { ...player };
-
-      if (platformCollision.normal.y === -1) {
-        // Landing on top of platform
-        updatedPlayer.y = updatedPlayer.y - platformCollision.penetration;
-        updatedPlayer.velocityY = 0;
-        updatedPlayer.isGrounded = true;
-      } else if (platformCollision.normal.y === 1) {
-        // Hitting platform from below
-        updatedPlayer.y = updatedPlayer.y + platformCollision.penetration;
-        updatedPlayer.velocityY = 0;
-      } else if (platformCollision.normal.x === 1) {
-        // Hitting platform from the right
-        updatedPlayer.x = updatedPlayer.x + platformCollision.penetration;
-        updatedPlayer.velocityX = 0;
-      } else if (platformCollision.normal.x === -1) {
-        // Hitting platform from the left
-        updatedPlayer.x = updatedPlayer.x - platformCollision.penetration;
-        updatedPlayer.velocityX = 0;
-      }
-
-      gameState.updatePlayer(updatedPlayer);
-    }
-
-    // Ground collision - handle all directions
-    if (ground) {
-      const groundCollision = this.collisionManager.checkPlayerGroundCollision(
+    // Use GameplayCollisionManager to handle all collisions
+    const collisionResults = this.gameplayCollisionManager.handleAllCollisions(
         player,
-        ground
-      );
-      if (
-        groundCollision.hasCollision &&
-        groundCollision.normal &&
-        groundCollision.penetration
-      ) {
-        const updatedPlayer = { ...player };
-
-        if (groundCollision.normal.y === -1) {
-          // Landing on top of ground
-          updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
-          updatedPlayer.velocityY = 0;
-          updatedPlayer.isGrounded = true;
-        } else if (groundCollision.normal.y === 1) {
-          // Hitting ground from below (shouldn't normally happen but just in case)
-          updatedPlayer.y = updatedPlayer.y + groundCollision.penetration;
-          updatedPlayer.velocityY = 0;
-        } else if (groundCollision.normal.x === 1) {
-          // Hitting ground from the right
-          updatedPlayer.x = updatedPlayer.x + groundCollision.penetration;
-          updatedPlayer.velocityX = 0;
-        } else if (groundCollision.normal.x === -1) {
-          // Hitting ground from the left
-          updatedPlayer.x = updatedPlayer.x - groundCollision.penetration;
-          updatedPlayer.velocityX = 0;
-        }
-
-        gameState.updatePlayer(updatedPlayer);
-      }
-    }
-
-    // Bomb collisions
-    const collectedBomb = this.collisionManager.checkPlayerBombCollision(
-      player,
-      bombs
+      platforms,
+      ground,
+      bombs,
+      coins,
+      monsters,
+      gameState.activeEffects.powerMode
     );
-    if (collectedBomb) {
-      this.audioManager.playSound(AudioEvent.BOMB_COLLECT);
-      const result = gameState.collectBomb(collectedBomb.order);
 
+    // Apply collision results to game state
+    if (collisionResults.playerUpdate) {
+      gameState.updatePlayer(collisionResults.playerUpdate);
+      }
+
+    if (collisionResults.collectedBomb) {
+      const result = gameState.collectBomb(collisionResults.collectedBomb.order);
       // Check if this was a firebomb (correct order) to trigger coin spawning
       if (result && result.isCorrect) {
         gameState.onFirebombCollected();
       }
     }
 
-    // Coin collisions
-    const collectedCoin = this.collisionManager.checkPlayerCoinCollision(
-      player,
-      coins
-    );
-    if (collectedCoin) {
-      this.audioManager.playSound(AudioEvent.COIN_COLLECT);
-
-      // Let the coin slice handle the collection (it will call coinManager.collectCoin internally)
-      gameState.collectCoin(collectedCoin);
-
-      // If it's a power coin, play special sound
-      if (collectedCoin.type === "POWER") {
-        this.audioManager.playSound(AudioEvent.POWER_COIN_ACTIVATE);
-      }
-    }
-
-    // Monster collisions
-    const hitMonster = this.collisionManager.checkPlayerMonsterCollision(
-      player,
-      monsters
-    );
-    if (hitMonster) {
-      // Check if god mode is enabled in dev config
-      if (DEV_CONFIG.GOD_MODE) {
-        log.dev("God mode enabled - player is invincible to monsters");
-        return; // Ignore monster collision entirely
+    if (collisionResults.collectedCoin) {
+      // Let the coin slice handle the collection
+      gameState.collectCoin(collisionResults.collectedCoin);
       }
 
-      // Check if power mode is active - if so, kill the monster instead
-      if (gameState.activeEffects.powerMode) {
-        // Monster is killed during power mode - use progressive bonus system
-        const points =
-          gameState.coinManager?.calculateMonsterKillPoints(
-            gameState.multiplier
-          ) || GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier; // Fallback
+    if (collisionResults.killedMonster) {
+      // Handle monster kill during power mode
+      const points = collisionResults.monsterKillPoints ||
+        (gameState.coinManager?.calculateMonsterKillPoints(gameState.multiplier) || 
+         GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier);
+      
         gameState.addScore(points);
 
         // Show floating text for monster kill points
         if (gameState.addFloatingText) {
-          const text = points.toString();
+        const monster = collisionResults.killedMonster;
           gameState.addFloatingText(
-            text,
-            hitMonster.x + hitMonster.width / 2,
-            hitMonster.y + hitMonster.height / 2,
+          points.toString(),
+          monster.x + monster.width / 2,
+          monster.y + monster.height / 2,
             1000, // duration
             "#fff", // White color
             15 // fontSize
           );
         }
 
-        // Notify coin manager about points earned (not bonus)
+      // Notify coin manager about points earned
         if (gameState.coinManager) {
           gameState.coinManager.onPointsEarned(points, false);
         }
 
-        log.debug(`Monster killed during power mode: ${points} points`);
-
-        // Play monster kill sound (same as coin collect sound)
-        this.audioManager.playSound(AudioEvent.COIN_COLLECT);
-
         // Kill the monster and schedule it for respawn
-        this.monsterRespawnManager.killMonster(hitMonster);
-      } else {
-        // Normal monster collision - player dies
-        this.audioManager.playSound(AudioEvent.MONSTER_HIT);
+      this.monsterRespawnManager.killMonster(collisionResults.killedMonster);
+    }
+
+    if (collisionResults.playerDied) {
         this.handlePlayerDeath();
-      }
     }
   }
 
@@ -886,8 +784,8 @@ export class GameManager {
       }));
       gameState.updateMonsters(resetMonsters);
 
-      // Reset animation controller state
-      this.animationController.reset();
+      // Reset player physics manager state
+      this.playerPhysicsManager.reset();
 
       // Reload parallax background for the current level
       this.renderManager.loadMapBackground(currentMap.name);
@@ -904,23 +802,10 @@ export class GameManager {
 
   private checkWinCondition(): void {
     const gameState = useGameStore.getState();
-    if (gameState.collectedBombs.length === GAME_CONFIG.TOTAL_BOMBS) {
-      // Level completed - this will trigger a state change which will stop the music
-      log.game("Level completed - proceeding to next phase");
-
-      // Record if player was grounded when map was cleared
-      this.wasGroundedWhenMapCleared = gameState.player.isGrounded;
-
-      // Play map cleared sound
-      this.audioManager.playSound(AudioEvent.MAP_CLEARED);
-
-      // Set game state to MAP_CLEARED to trigger the animation
-      gameState.setState(GameState.MAP_CLEARED);
-
-      // Pause the game briefly, then proceed
-      setTimeout(() => {
-        this.proceedAfterMapCleared();
-      }, 3000); // Brief pause to hear the sound and see the animation
+    
+    // Use GameStateManager to check and handle win condition
+    if (this.gameStateManager.checkWinCondition(gameState.collectedBombs.length)) {
+      this.gameStateManager.handleWinCondition(gameState);
     }
   }
 
@@ -937,6 +822,7 @@ export class GameManager {
     this.isBackgroundMusicPlaying = false;
     log.audio("Reset background music flag after map cleared (power-up melody ended)");
 
+    // Let GameStateManager handle the rest of the completion logic
     // Calculate effective bomb count by subtracting lives lost
     // Each life lost is equivalent to missing one bomb
     const livesLost = GAME_CONFIG.STARTING_LIVES - gameState.lives;
