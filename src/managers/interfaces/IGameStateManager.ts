@@ -60,4 +60,16 @@ export interface IGameStateManager {
    * @returns Previous game state or null
    */
   getPreviousState(): GameState | null;
+
+  /**
+   * Gets whether the player was grounded when map was cleared
+   * @returns True if player was grounded
+   */
+  getWasGroundedWhenMapCleared(): boolean;
+
+  /**
+   * Sets the map start time
+   * @param time - Time in milliseconds
+   */
+  setMapStartTime(time: number): void;
 }

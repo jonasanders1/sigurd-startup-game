@@ -274,6 +274,7 @@ export class GameManager {
 
       // Record map start time for completion tracking
       this.mapStartTime = Date.now();
+      this.gameStateManager.setMapStartTime(this.mapStartTime);
     }
   }
 
@@ -803,9 +804,18 @@ export class GameManager {
   private checkWinCondition(): void {
     const gameState = useGameStore.getState();
     
-    // Use GameStateManager to check and handle win condition
+    // Check if win condition is met
     if (this.gameStateManager.checkWinCondition(gameState.collectedBombs.length)) {
+      // Let GameStateManager handle the state transition
       this.gameStateManager.handleWinCondition(gameState);
+      
+      // Store whether player was grounded (GameStateManager now stores this)
+      this.wasGroundedWhenMapCleared = this.gameStateManager.getWasGroundedWhenMapCleared();
+      
+      // Schedule the bonus screen logic after the MAP_CLEARED animation
+      setTimeout(() => {
+        this.proceedAfterMapCleared();
+      }, 3000); // Brief pause for animation
     }
   }
 
@@ -822,7 +832,6 @@ export class GameManager {
     this.isBackgroundMusicPlaying = false;
     log.audio("Reset background music flag after map cleared (power-up melody ended)");
 
-    // Let GameStateManager handle the rest of the completion logic
     // Calculate effective bomb count by subtracting lives lost
     // Each life lost is equivalent to missing one bomb
     const livesLost = GAME_CONFIG.STARTING_LIVES - gameState.lives;

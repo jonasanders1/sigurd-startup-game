@@ -6,8 +6,7 @@ import { AudioEvent } from '../types/enums';
 import { IGameStateManager } from './interfaces/IGameStateManager';
 import { log } from '../lib/logger';
 import { 
-  sendGameStateUpdate, 
-  sendMapCompletionData 
+  sendGameStateUpdate
 } from '../lib/communicationUtils';
 
 /**
@@ -154,74 +153,37 @@ export class GameStateManager implements IGameStateManager {
 
   /**
    * Handles the win condition being met
+   * This only handles the initial state transition to MAP_CLEARED
+   * The actual bonus/progression logic should be handled by GameManager
    */
   handleWinCondition(gameStore: any): void {
     log.game("Level completed - all bombs collected");
     
+    // Record if player was grounded when map was cleared
+    this.wasGroundedWhenMapCleared = gameStore.player.isGrounded;
+    
     // Transition to MAP_CLEARED state
     this.transitionToState(gameStore.currentState, GameState.MAP_CLEARED, gameStore);
     
-    // Schedule transition to bonus screen
-    setTimeout(() => {
-      this.proceedAfterMapCleared(gameStore);
-    }, 3000); // Brief pause for animation
+    // Don't schedule proceedAfterMapCleared here - let GameManager handle it
+    // The GameManager knows when to call proceedAfterMapCleared
   }
 
   /**
-   * Proceeds after map cleared animation
-   * @private
+   * Gets whether the player was grounded when map was cleared
    */
-  private proceedAfterMapCleared(gameStore: any): void {
-    // Stop power-up melody if active
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Map completed during power mode, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-
-    // Calculate bonus and completion data
-    const completionData = this.calculateCompletionData(gameStore);
-    
-    // Send completion data to external systems
-    sendMapCompletionData(completionData);
-    
-    // Determine next state based on completion
-    if (completionData.isLastLevel) {
-      this.transitionToState(GameState.MAP_CLEARED, GameState.VICTORY, gameStore);
-    } else {
-      // Show bonus screen
-      gameStore.setBonusData(completionData);
-      this.transitionToState(GameState.MAP_CLEARED, GameState.BONUS, gameStore);
-    }
+  getWasGroundedWhenMapCleared(): boolean {
+    return this.wasGroundedWhenMapCleared;
   }
 
   /**
-   * Calculates level completion data including bonuses
-   * @private
+   * Sets the map start time (called when a map starts)
    */
-  private calculateCompletionData(gameStore: any): CompletionData {
-    const livesLost = GAME_CONFIG.STARTING_LIVES - gameStore.lives;
-    const effectiveCount = Math.max(0, gameStore.correctOrderCount - livesLost);
-    
-    const bonusPoints = 
-      GAME_CONFIG.BONUS_POINTS[
-        effectiveCount as keyof typeof GAME_CONFIG.BONUS_POINTS
-      ] || 0;
-
-    const completionTime = Date.now() - this.mapStartTime;
-    const currentLevel = gameStore.currentLevel;
-    const isLastLevel = currentLevel >= mapDefinitions.length;
-
-    return {
-      level: currentLevel,
-      correctCount: gameStore.correctOrderCount,
-      effectiveCount,
-      bonusPoints,
-      completionTime,
-      livesLost,
-      isLastLevel,
-      wasGrounded: this.wasGroundedWhenMapCleared,
-    };
+  setMapStartTime(time: number): void {
+    this.mapStartTime = time;
   }
+
+
 
   /**
    * Handles level progression
@@ -293,16 +255,3 @@ export class GameStateManager implements IGameStateManager {
   }
 }
 
-/**
- * Data about level completion
- */
-interface CompletionData {
-  level: number;
-  correctCount: number;
-  effectiveCount: number;
-  bonusPoints: number;
-  completionTime: number;
-  livesLost: number;
-  isLastLevel: boolean;
-  wasGrounded: boolean;
-}
