@@ -1,9 +1,8 @@
 import { InputManager } from "./InputManager";
 import { CollisionManager } from "./CollisionManager";
 import { RenderManager } from "./RenderManager";
-import { OptimizedSpawnManager } from "./OptimizedSpawnManager";
-import { ScalingManager } from "./ScalingManager";
-import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
+import { MonsterManager } from "./MonsterManager";
+import { AudioSystemManager } from "./AudioSystemManager";
 import { PlayerPhysicsManager } from "./PlayerPhysicsManager";
 import { GameplayCollisionManager } from "./GameplayCollisionManager";
 import { GameStateManager } from "./GameStateManager";
@@ -12,7 +11,6 @@ import { GameState, MenuType } from "../types/enums";
 import { Monster } from "../types/interfaces";
 import { GAME_CONFIG, DEV_CONFIG } from "../types/constants";
 import { mapDefinitions } from "../maps/mapDefinitions";
-import { AudioManager } from "./AudioManager";
 import { AudioEvent } from "../types/enums";
 import { playerSprite } from "../entities/Player";
 import { AnimationController } from "../lib/AnimationController";
@@ -27,11 +25,9 @@ export class GameManager {
   private inputManager: InputManager;
   private collisionManager: CollisionManager;
   private renderManager: RenderManager;
-  private monsterSpawnManager: OptimizedSpawnManager;
-  private audioManager: AudioManager;
+  private monsterManager: MonsterManager;
+  private audioSystemManager: AudioSystemManager;
   private animationController: AnimationController;
-  private scalingManager: ScalingManager;
-  private monsterRespawnManager: OptimizedRespawnManager;
   private playerPhysicsManager: PlayerPhysicsManager;
   private gameplayCollisionManager: GameplayCollisionManager;
   private gameStateManager: GameStateManager;
@@ -48,10 +44,9 @@ export class GameManager {
     this.inputManager = new InputManager();
     this.collisionManager = new CollisionManager();
     this.renderManager = new RenderManager(canvas);
-    this.audioManager = new AudioManager();
+    this.audioSystemManager = new AudioSystemManager();
     this.animationController = new AnimationController(playerSprite);
-    this.scalingManager = ScalingManager.getInstance();
-    this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
+    this.monsterManager = new MonsterManager();
 
     // Initialize new managers
     this.playerPhysicsManager = new PlayerPhysicsManager(
@@ -60,12 +55,9 @@ export class GameManager {
     );
     this.gameplayCollisionManager = new GameplayCollisionManager(
       this.collisionManager,
-      this.audioManager
+      this.audioSystemManager.getAudioManager()
     );
-    this.gameStateManager = new GameStateManager(this.audioManager);
-
-    // Initialize monster spawn manager with empty array initially
-    this.monsterSpawnManager = new OptimizedSpawnManager();
+    this.gameStateManager = new GameStateManager(this.audioSystemManager.getAudioManager());
 
     // Bind the game loop once to prevent multiple instances
     this.boundGameLoop = this.gameLoop.bind(this);
@@ -73,7 +65,7 @@ export class GameManager {
     // Set AudioManager reference in store for settings updates
     const gameState = useGameStore.getState();
     if ("setAudioManager" in gameState) {
-      gameState.setAudioManager(this.audioManager);
+      gameState.setAudioManager(this.audioSystemManager.getAudioManager());
     }
   }
 
