@@ -5,11 +5,7 @@ import { AudioManager } from "./AudioManager";
 import { AudioEvent } from "../types/enums";
 import { IGameStateManager } from "./interfaces/IGameStateManager";
 import { log } from "../lib/logger";
-import {
-  sendGameStateUpdate,
-  sendMapCompletionData,
-  MapCompletionData,
-} from "../lib/communicationUtils";
+import { sendGameStateUpdate } from "../lib/communicationUtils";
 
 /**
  * Manages game state transitions and win conditions.
@@ -42,8 +38,6 @@ export class GameStateManager implements IGameStateManager {
     newState: GameState,
     gameStore: any
   ): void {
-    log.game(`Attempting state transition: ${currentState} -> ${newState}`);
-
     // Validate state transition
     if (!this.isValidTransition(currentState, newState)) {
       log.game(`Invalid state transition from ${currentState} to ${newState}`);
@@ -56,7 +50,6 @@ export class GameStateManager implements IGameStateManager {
     this.handleStateExit(currentState, gameStore);
 
     // Perform transition
-    log.game(`Setting state to: ${newState}`);
     gameStore.setState(newState);
 
     // Handle entry actions for new state
@@ -65,7 +58,7 @@ export class GameStateManager implements IGameStateManager {
     // Send state update to external systems
     sendGameStateUpdate(newState);
 
-    log.game(`State transition completed: ${currentState} -> ${newState}`);
+    log.game(`State transition: ${currentState} -> ${newState}`);
   }
 
   /**
@@ -108,8 +101,8 @@ export class GameStateManager implements IGameStateManager {
         break;
 
       case GameState.MAP_CLEARED:
-        // Stop map cleared sound if still playing - AudioManager doesn't have stopSound method
-        // The sound will naturally fade out or we can implement a proper stop mechanism later
+        // Stop map cleared sound if still playing
+        this.audioManager.stopSound(AudioEvent.MAP_CLEARED);
         break;
     }
   }
@@ -130,7 +123,6 @@ export class GameStateManager implements IGameStateManager {
         this.audioManager.playSound(AudioEvent.MAP_CLEARED);
         // Record if player was grounded
         this.wasGroundedWhenMapCleared = gameStore.player.isGrounded;
-        // Don't set menu type - this is a transient processing state
         break;
 
       case GameState.COUNTDOWN:
@@ -138,9 +130,14 @@ export class GameStateManager implements IGameStateManager {
         gameStore.setMenuType(MenuType.COUNTDOWN);
         break;
 
+      case GameState.BONUS:
+        // Set bonus menu type to show bonus screen
+        gameStore.setMenuType(MenuType.BONUS);
+        break;
+
       case GameState.GAME_OVER:
-        // Stop background music and play game over sound
-        this.audioManager.stopBackgroundMusic();
+        // Stop all sounds and play game over sound
+        this.audioManager.stopAllSounds();
         this.audioManager.playSound(AudioEvent.GAME_OVER);
         break;
     }
@@ -155,12 +152,14 @@ export class GameStateManager implements IGameStateManager {
 
   /**
    * Handles the win condition being met
+   * This only handles the initial state transition to MAP_CLEARED
+   * The actual bonus/progression logic should be handled by GameManager
    */
   handleWinCondition(gameStore: any): void {
     log.game("Level completed - all bombs collected");
-    log.game(
-      `Current state: ${gameStore.currentState}, transitioning to MAP_CLEARED`
-    );
+
+    // Record if player was grounded when map was cleared
+    this.wasGroundedWhenMapCleared = gameStore.player.isGrounded;
 
     // Transition to MAP_CLEARED state
     this.transitionToState(
@@ -169,86 +168,21 @@ export class GameStateManager implements IGameStateManager {
       gameStore
     );
 
-    log.game(
-      `State transition completed. New state: ${gameStore.currentState}`
-    );
-
-    // Schedule transition to bonus screen
-    setTimeout(() => {
-      log.game("Proceeding to bonus screen after map cleared animation");
-      this.proceedAfterMapCleared(gameStore);
-    }, 3000); // Brief pause for animation
+    
   }
 
   /**
-   * Proceeds after map cleared animation
-   * @private
+   * Gets whether the player was grounded when map was cleared
    */
-  private proceedAfterMapCleared(gameStore: any): void {
-    // Stop power-up melody if active
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Map completed during power mode, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-
-    // Calculate bonus and completion data
-    const completionData = this.calculateCompletionData(gameStore);
-
-    // Send completion data to external systems
-    sendMapCompletionData(completionData);
-
-    // Determine next state based on completion
-    const isLastLevel = gameStore.currentLevel >= mapDefinitions.length;
-    if (isLastLevel) {
-      this.transitionToState(
-        GameState.MAP_CLEARED,
-        GameState.VICTORY,
-        gameStore
-      );
-    } else {
-      // Show bonus screen - the bonus screen gets data from existing store properties
-      this.transitionToState(GameState.MAP_CLEARED, GameState.BONUS, gameStore);
-    }
+  getWasGroundedWhenMapCleared(): boolean {
+    return this.wasGroundedWhenMapCleared;
   }
 
   /**
-   * Calculates level completion data including bonuses
-   * @private
+   * Sets the map start time (called when a map starts)
    */
-  private calculateCompletionData(gameStore: any): MapCompletionData {
-    const livesLost = GAME_CONFIG.STARTING_LIVES - gameStore.lives;
-    const effectiveCount = Math.max(0, gameStore.correctOrderCount - livesLost);
-
-    const bonusPoints =
-      GAME_CONFIG.BONUS_POINTS[
-        effectiveCount as keyof typeof GAME_CONFIG.BONUS_POINTS
-      ] || 0;
-
-    const completionTime = Date.now() - this.mapStartTime;
-    const currentLevel = gameStore.currentLevel;
-    const isLastLevel = currentLevel >= mapDefinitions.length;
-
-    // Get current map definition for mapName
-    const currentMapDef = mapDefinitions[currentLevel - 1];
-    const mapName = currentMapDef
-      ? currentMapDef.name
-      : `Level ${currentLevel}`;
-
-    return {
-      mapName,
-      level: currentLevel,
-      correctOrderCount: gameStore.correctOrderCount,
-      totalBombs: GAME_CONFIG.TOTAL_BOMBS,
-      score: gameStore.score,
-      bonus: bonusPoints,
-      hasBonus: bonusPoints > 0,
-      timestamp: Date.now(),
-      lives: gameStore.lives,
-      multiplier: gameStore.multiplier || 1,
-      completionTime,
-      coinsCollected: gameStore.coinsCollected || 0,
-      powerModeActivations: gameStore.powerModeActivations || 0,
-    };
+  setMapStartTime(time: number): void {
+    this.mapStartTime = time;
   }
 
   /**
@@ -292,8 +226,8 @@ export class GameStateManager implements IGameStateManager {
   handleGameOver(gameStore: any): void {
     log.game("Game over - no lives remaining");
 
-    // Stop background music
-    this.audioManager.stopBackgroundMusic();
+    // Stop all active sounds
+    this.audioManager.stopAllSounds();
 
     // Transition to game over state
     this.transitionToState(

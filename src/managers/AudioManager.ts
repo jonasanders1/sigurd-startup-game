@@ -472,12 +472,18 @@ export class AudioManager {
         log.audio("Background music source lost, restarting music");
         this.playBackgroundMusicFile();
       }
-      
+
       // Restore volume based on current settings
       this.updateAudioVolumes();
-      
+
       // Log the resume attempt for debugging
-      log.audio(`resumeBackgroundMusic: isPlaying=${this.isBackgroundMusicPlaying}, hasSource=${this.backgroundMusicSource !== null}, gainValue=${this.backgroundMusicGain.gain.value}`);
+      log.audio(
+        `resumeBackgroundMusic: isPlaying=${
+          this.isBackgroundMusicPlaying
+        }, hasSource=${this.backgroundMusicSource !== null}, gainValue=${
+          this.backgroundMusicGain.gain.value
+        }`
+      );
     }
   }
 
@@ -504,7 +510,7 @@ export class AudioManager {
       // Always try to resume background music when power-up melody ends
       // The GameManager will handle whether it should actually be playing
       this.resumeBackgroundMusic();
-      
+
       log.audio("PowerUp melody stopped, background music resume attempted");
     } else {
       log.audio("stopPowerUpMelody called but melody was not active");
@@ -535,5 +541,18 @@ export class AudioManager {
       timeoutId: this.powerUpMelodyTimeout,
       backgroundMusicPlaying: this.isBackgroundMusicPlaying,
     };
+  }
+
+  // Stop a specific sound (placeholder for future implementation)
+  public stopSound(event: AudioEvent): void {
+    log.audio(`stopSound called for ${event} - not yet implemented`);
+    // TODO: Implement sound stopping for specific events
+  }
+
+  // Stop all sounds (stops background music and power-up melody)
+  public stopAllSounds(): void {
+    log.audio("Stopping all sounds");
+    this.stopBackgroundMusic();
+    this.stopPowerUpMelody();
   }
 }

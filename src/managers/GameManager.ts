@@ -202,10 +202,12 @@ export class GameManager {
     // Stop power-up melody if active
     if (this.audioManager.isPowerUpMelodyActive()) {
       this.audioManager.stopPowerUpMelody();
-      
+
       // Reset background music flag since power-up melody ended
       this.isBackgroundMusicPlaying = false;
-      log.audio("Reset background music flag after stop (power-up melody ended)");
+      log.audio(
+        "Reset background music flag after stop (power-up melody ended)"
+      );
     }
 
     if (this.animationFrameId) {
@@ -338,22 +340,22 @@ export class GameManager {
       case GameState.MENU:
         this.handleMenuState(gameState);
         break;
-        
+
       case GameState.BONUS:
         this.handleBonusState(gameState);
         break;
-        
+
       case GameState.PLAYING:
         this.handlePlayingState(gameState, deltaTime);
         break;
-        
+
       case GameState.MAP_CLEARED:
         this.handleMapClearedState(gameState, deltaTime);
         break;
-        
+
       // Other states don't need special handling
-      }
     }
+  }
 
   /**
    * Handles logic for MENU state
@@ -365,14 +367,16 @@ export class GameManager {
       // Stop power-up melody if active (game reset/restart)
       if (this.audioManager.isPowerUpMelodyActive()) {
         this.audioManager.stopPowerUpMelody();
-        
+
         // Reset background music flag since power-up melody ended
         this.isBackgroundMusicPlaying = false;
-        log.audio("Reset background music flag after game reset (power-up melody ended)");
+        log.audio(
+          "Reset background music flag after game reset (power-up melody ended)"
+        );
       }
       this.loadCurrentLevel();
     }
-    }
+  }
 
   /**
    * Handles logic for BONUS state
@@ -395,10 +399,10 @@ export class GameManager {
    * @private
    */
   private handlePlayingState(gameState: any, deltaTime: number): void {
-      this.update(deltaTime);
-      playerSprite.update(deltaTime);
-      this.handleCollisions();
-      this.checkWinCondition();
+    this.update(deltaTime);
+    playerSprite.update(deltaTime);
+    this.handleCollisions();
+    this.checkWinCondition();
   }
 
   /**
@@ -406,14 +410,14 @@ export class GameManager {
    * @private
    */
   private handleMapClearedState(gameState: any, deltaTime: number): void {
-      // Update sprite animation for map cleared state
-      playerSprite.update(deltaTime);
+    // Update sprite animation for map cleared state
+    playerSprite.update(deltaTime);
 
-      // Get current player state for falling
-      const player = gameState.player;
+    // Get current player state for falling
+    const player = gameState.player;
 
-      // Only apply gravity if player wasn't already grounded when map was cleared
-      if (!this.wasGroundedWhenMapCleared) {
+    // Only apply gravity if player wasn't already grounded when map was cleared
+    if (!this.wasGroundedWhenMapCleared) {
       this.applyMapClearedPhysics(gameState);
     }
 
@@ -433,34 +437,34 @@ export class GameManager {
   private applyMapClearedPhysics(gameState: any): void {
     const player = gameState.player;
     const ground = gameState.ground;
-    
-        // Apply gravity to make player fall
-        const updatedPlayer = { ...player };
-        updatedPlayer.velocityY += player.gravity;
-        updatedPlayer.y += updatedPlayer.velocityY;
 
-        // Check for ground collision during fall
-        if (ground) {
+    // Apply gravity to make player fall
+    const updatedPlayer = { ...player };
+    updatedPlayer.velocityY += player.gravity;
+    updatedPlayer.y += updatedPlayer.velocityY;
+
+    // Check for ground collision during fall
+    if (ground) {
       const groundCollision = this.collisionManager.checkPlayerGroundCollision(
-              updatedPlayer,
-              ground
-            );
-          if (
-            groundCollision.hasCollision &&
-            groundCollision.normal &&
-            groundCollision.penetration
-          ) {
-            if (groundCollision.normal.y === -1) {
-              // Landing on ground
-              updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
-              updatedPlayer.velocityY = 0;
-              updatedPlayer.isGrounded = true;
-            }
-          }
+        updatedPlayer,
+        ground
+      );
+      if (
+        groundCollision.hasCollision &&
+        groundCollision.normal &&
+        groundCollision.penetration
+      ) {
+        if (groundCollision.normal.y === -1) {
+          // Landing on ground
+          updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
+          updatedPlayer.velocityY = 0;
+          updatedPlayer.isGrounded = true;
         }
+      }
+    }
 
-        // Update player state
-        gameState.updatePlayer(updatedPlayer);
+    // Update player state
+    gameState.updatePlayer(updatedPlayer);
   }
 
   private handleDifficultyPause(currentState: GameState): void {
@@ -473,7 +477,7 @@ export class GameManager {
       this.scalingManager.resumeAllMonsterScaling();
       this.monsterSpawnManager.resume();
       this.monsterRespawnManager.resume();
-      
+
       // Resume coin manager to restore powerup durations
       const gameState = useGameStore.getState();
       if (gameState.coinManager) {
@@ -484,17 +488,19 @@ export class GameManager {
       if (this.audioManager.isPowerUpMelodyActive()) {
         log.audio("Game paused/stopped, stopping PowerUp melody");
         this.audioManager.stopPowerUpMelody();
-        
+
         // Reset background music flag since power-up melody ended
         this.isBackgroundMusicPlaying = false;
-        log.audio("Reset background music flag after pause (power-up melody ended)");
+        log.audio(
+          "Reset background music flag after pause (power-up melody ended)"
+        );
       }
 
       this.scalingManager.pause();
       this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
       this.monsterRespawnManager.pause();
-      
+
       // Pause coin manager to preserve powerup durations
       const gameState = useGameStore.getState();
       if (gameState.coinManager) {
@@ -656,7 +662,7 @@ export class GameManager {
 
     // Use GameplayCollisionManager to handle all collisions
     const collisionResults = this.gameplayCollisionManager.handleAllCollisions(
-        player,
+      player,
       platforms,
       ground,
       bombs,
@@ -668,10 +674,12 @@ export class GameManager {
     // Apply collision results to game state
     if (collisionResults.playerUpdate) {
       gameState.updatePlayer(collisionResults.playerUpdate);
-      }
+    }
 
     if (collisionResults.collectedBomb) {
-      const result = gameState.collectBomb(collisionResults.collectedBomb.order);
+      const result = gameState.collectBomb(
+        collisionResults.collectedBomb.order
+      );
       // Check if this was a firebomb (correct order) to trigger coin spawning
       if (result && result.isCorrect) {
         gameState.onFirebombCollected();
@@ -681,40 +689,43 @@ export class GameManager {
     if (collisionResults.collectedCoin) {
       // Let the coin slice handle the collection
       gameState.collectCoin(collisionResults.collectedCoin);
-      }
+    }
 
     if (collisionResults.killedMonster) {
       // Handle monster kill during power mode
-      const points = collisionResults.monsterKillPoints ||
-        (gameState.coinManager?.calculateMonsterKillPoints(gameState.multiplier) || 
-         GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier);
-      
-        gameState.addScore(points);
+      const points =
+        collisionResults.monsterKillPoints ||
+        gameState.coinManager?.calculateMonsterKillPoints(
+          gameState.multiplier
+        ) ||
+        GAME_CONFIG.MONSTER_KILL_POINTS * gameState.multiplier;
 
-        // Show floating text for monster kill points
-        if (gameState.addFloatingText) {
+      gameState.addScore(points);
+
+      // Show floating text for monster kill points
+      if (gameState.addFloatingText) {
         const monster = collisionResults.killedMonster;
-          gameState.addFloatingText(
+        gameState.addFloatingText(
           points.toString(),
           monster.x + monster.width / 2,
           monster.y + monster.height / 2,
-            1000, // duration
-            "#fff", // White color
-            15 // fontSize
-          );
-        }
+          1000, // duration
+          "#fff", // White color
+          15 // fontSize
+        );
+      }
 
       // Notify coin manager about points earned
-        if (gameState.coinManager) {
-          gameState.coinManager.onPointsEarned(points, false);
-        }
+      if (gameState.coinManager) {
+        gameState.coinManager.onPointsEarned(points, false);
+      }
 
-        // Kill the monster and schedule it for respawn
+      // Kill the monster and schedule it for respawn
       this.monsterRespawnManager.killMonster(collisionResults.killedMonster);
     }
 
     if (collisionResults.playerDied) {
-        this.handlePlayerDeath();
+      this.handlePlayerDeath();
     }
   }
 
@@ -726,10 +737,12 @@ export class GameManager {
       log.audio("Player died during power mode, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
-    
+
     // Reset background music flag since power-up melody might have ended
     this.isBackgroundMusicPlaying = false;
-    log.audio("Reset background music flag after player death (power-up melody ended)");
+    log.audio(
+      "Reset background music flag after player death (power-up melody ended)"
+    );
 
     // Check if this will be the last life before calling loseLife
     if (gameState.lives <= 1) {
@@ -751,10 +764,12 @@ export class GameManager {
       log.audio("Player respawning, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
-    
+
     // Reset background music flag since power-up melody might have ended
     this.isBackgroundMusicPlaying = false;
-    log.audio("Reset background music flag after player respawn (power-up melody ended)");
+    log.audio(
+      "Reset background music flag after player respawn (power-up melody ended)"
+    );
 
     if (currentMap) {
       // Clear floating texts when respawning
@@ -802,10 +817,15 @@ export class GameManager {
 
   private checkWinCondition(): void {
     const gameState = useGameStore.getState();
-    
+
     // Use GameStateManager to check and handle win condition
-    if (this.gameStateManager.checkWinCondition(gameState.collectedBombs.length)) {
+    if (
+      this.gameStateManager.checkWinCondition(gameState.collectedBombs.length)
+    ) {
       this.gameStateManager.handleWinCondition(gameState);
+      setTimeout(() => {
+        this.proceedAfterMapCleared();
+      }, 3000);
     }
   }
 
@@ -817,10 +837,12 @@ export class GameManager {
       log.audio("Map completed during power mode, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
-    
+
     // Reset background music flag since power-up melody might have ended
     this.isBackgroundMusicPlaying = false;
-    log.audio("Reset background music flag after map cleared (power-up melody ended)");
+    log.audio(
+      "Reset background music flag after map cleared (power-up melody ended)"
+    );
 
     // Let GameStateManager handle the rest of the completion logic
     // Calculate effective bomb count by subtracting lives lost
@@ -924,11 +946,11 @@ export class GameManager {
 
       gameState.nextLevel();
       this.loadCurrentLevel();
-      
+
       // Reset background music flag for new level
       this.isBackgroundMusicPlaying = false;
       log.audio("Reset background music flag for new level");
-      
+
       // Always show countdown when transitioning to next level
       gameState.setMenuType(MenuType.COUNTDOWN);
       gameState.setState(GameState.COUNTDOWN);
@@ -1011,12 +1033,17 @@ export class GameManager {
       powerMode: {
         isActive: gameState.activeEffects.powerMode,
         endTime: gameState.activeEffects.powerModeEndTime,
-        timeLeft: gameState.activeEffects.powerModeEndTime > 0 ? gameState.activeEffects.powerModeEndTime - Date.now() : 0
+        timeLeft:
+          gameState.activeEffects.powerModeEndTime > 0
+            ? gameState.activeEffects.powerModeEndTime - Date.now()
+            : 0,
       },
-      coinManager: gameState.coinManager ? {
-        powerModeActive: gameState.coinManager.isPowerModeActive(),
-        powerModeEndTime: gameState.coinManager.getPowerModeEndTime()
-      } : null
+      coinManager: gameState.coinManager
+        ? {
+            powerModeActive: gameState.coinManager.isPowerModeActive(),
+            powerModeEndTime: gameState.coinManager.getPowerModeEndTime(),
+          }
+        : null,
     };
   }
 
