@@ -1,5 +1,3 @@
-import { Maximize, Pause, Volume2 } from "lucide-react";
-
 const ShortcutControls = () => {
   return (
     <div className="absolute bottom-2 left-30 right-30 p-2">

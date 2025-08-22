@@ -55,7 +55,7 @@ export class BackgroundManager {
   private async loadBackgroundAsync(mapName: string): Promise<void> {
     try {
       this.isLoading = true;
-      
+
       const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
       if (!themeName) {
         console.warn(
@@ -67,12 +67,12 @@ export class BackgroundManager {
 
       const imagePath = await getBackgroundImagePath(themeName);
       const image = await this.loadImage(imagePath);
-      
+
       this.currentBackground = {
         image: image,
         isLoaded: true,
       };
-      
+
       this.isLoading = false;
       logger.flow(`Background loaded: ${mapName}`);
     } catch (error) {
@@ -190,16 +190,16 @@ export class BackgroundManager {
     logger.flow("Starting background preloading...");
     const backgrounds = Object.keys(MAP_NAME_TO_BACKGROUND_MAP);
     let loadedCount = 0;
-    
+
     const preloadPromises = backgrounds.map(async (mapName) => {
       try {
         const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
         if (!themeName) return;
-        
+
         // Use the new asset loading system
         const imagePath = getBackgroundImagePath(themeName);
         if (!imagePath) return;
-        
+
         const img = new Image();
         await new Promise((resolve, reject) => {
           img.onload = resolve;
@@ -209,13 +209,15 @@ export class BackgroundManager {
         loadedCount++;
         // Only log every 2nd background to reduce spam
         if (loadedCount % 2 === 0 || loadedCount === backgrounds.length) {
-          logger.flow(`Preloaded ${loadedCount}/${backgrounds.length} backgrounds`);
+          logger.flow(
+            `Preloaded ${loadedCount}/${backgrounds.length} backgrounds`
+          );
         }
       } catch (error) {
         logger.warn(`Failed to preload background: ${mapName}`);
       }
     });
-    
+
     await Promise.all(preloadPromises);
     logger.flow(
       `Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`

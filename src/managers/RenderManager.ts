@@ -341,19 +341,22 @@ export class RenderManager {
     });
   }
 
-    private renderSpawnIndicators(spawnManager?: any): void {
+  private renderSpawnIndicators(spawnManager?: any): void {
     if (!spawnManager) {
       return;
     }
-    
+
     // Only show spawn indicators when game is in PLAYING state
-    if (!this.currentGameState || this.currentGameState.currentState !== "PLAYING") {
+    if (
+      !this.currentGameState ||
+      this.currentGameState.currentState !== "PLAYING"
+    ) {
       return;
     }
-    
+
     try {
       const pendingSpawns = spawnManager.getPendingSpawns();
-      
+
       pendingSpawns.forEach((spawn: any) => {
         const timeRemaining = spawnManager.getSpawnTimeRemaining(spawn);
         const secondsRemaining = Math.ceil(timeRemaining / 1000);
@@ -361,11 +364,11 @@ export class RenderManager {
           // Only show in final 3 seconds
           // Create a temporary monster to get its dimensions and color
           const tempMonster = spawn.spawnPoint.createMonster();
-          
+
           // Use monster's actual color with pulsating effect
           const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
           const monsterColor = tempMonster.color || "#ffffff";
-          
+
           // Draw a pulsating filled rectangle using monster's color
           this.ctx.fillStyle = `${monsterColor}${Math.floor(
             pulseIntensity * 1 * 255
@@ -378,12 +381,12 @@ export class RenderManager {
             tempMonster.width,
             tempMonster.height
           );
-          
+
           // Draw spawn timer inside the rectangle
           const text = `${secondsRemaining}`;
           const textX = tempMonster.x + tempMonster.width / 2;
           const textY = tempMonster.y + tempMonster.height / 2;
-          
+
           // Draw text using white for contrast
           this.ctx.fillStyle = "#ffffff"; // White text for contrast
           this.ctx.font = "16px JetBrains Mono";
