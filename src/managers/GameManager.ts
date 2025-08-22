@@ -42,17 +42,22 @@ export class GameManager {
   private playerManager: PlayerManager;
 
   constructor(canvas: HTMLCanvasElement) {
-    // Initialize supporting managers
-    this.collisionManager = new CollisionManager();
-    this.renderManager = new RenderManager(canvas);
-    this.audioManager = new AudioManager();
+    // Create managers
     this.animationController = new AnimationController(playerSprite);
+    this.renderManager = new RenderManager(canvas);
+    this.collisionManager = new CollisionManager();
+    this.audioManager = new AudioManager();
+    this.inputManager = new InputManager();
+    this.levelManager = new LevelManager();
     this.scalingManager = ScalingManager.getInstance();
     this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
     this.playerManager = new PlayerManager(this.animationController);
     this.monsterSpawnManager = new OptimizedSpawnManager();
 
-    // Initialize specialized managers
+    // Set up player death callback
+    this.playerManager.setDeathCallback(() => this.handlePlayerDeath());
+
+    // Create higher-level managers that depend on the above
     this.gameStateManager = new GameStateManager(
       this.audioManager,
       this.scalingManager,
@@ -253,7 +258,11 @@ export class GameManager {
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
     
+    // Stop any power-up effects
     this.powerUpManager.handlePlayerDeath();
+    
+    // Stop background music immediately when player dies
+    this.audioManager.stopBackgroundMusic();
     this.gameStateManager.resetBackgroundMusicFlag();
 
     if (gameState.lives <= 1) {

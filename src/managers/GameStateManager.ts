@@ -146,7 +146,13 @@ export class GameStateManager {
   }
 
   public handleBackgroundMusic(currentState: GameState): void {
-    const shouldPlayMusic = currentState === GameState.PLAYING;
+    // Check if we should play music:
+    // 1. State must be PLAYING
+    // 2. PowerUp melody must NOT be active
+    const shouldPlayMusic = 
+      currentState === GameState.PLAYING && 
+      !this.audioManager.isPowerUpMelodyActive();
+    
     const stateChanged = this.previousGameState !== currentState;
 
     if (stateChanged) {
@@ -163,8 +169,9 @@ export class GameStateManager {
     }
 
     // Stop music if we shouldn't be playing but are
+    // This includes: non-PLAYING states OR PowerUp melody is active
     if (!shouldPlayMusic && this.isBackgroundMusicPlaying) {
-      log.audio("Stopping background music");
+      log.audio(`Stopping background music (state: ${currentState}, powerUp: ${this.audioManager.isPowerUpMelodyActive()})`);
       this.audioManager.stopBackgroundMusic();
       this.isBackgroundMusicPlaying = false;
     }
