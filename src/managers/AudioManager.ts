@@ -459,13 +459,14 @@ export class AudioManager {
     }, duration);
   }
 
-  private pauseBackgroundMusic(): void {
+  // Add this public method
+  public pauseBackgroundMusic(): void {
     if (this.backgroundMusicGain) {
       this.backgroundMusicGain.gain.value = 0;
     }
   }
 
-  private resumeBackgroundMusic(): void {
+  public resumeBackgroundMusic(): void {
     if (this.backgroundMusicGain) {
       // If background music should be playing but source is gone, restart it
       if (this.isBackgroundMusicPlaying && !this.backgroundMusicSource) {

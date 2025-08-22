@@ -183,7 +183,6 @@ export const level1Map: MapDefinition = {
   ],
 
   monsterSpawnPoints: [
-    // // Test monster - spawns immediately
     {
       spawnDelay: 4000,
       createMonster: () =>
@@ -196,11 +195,19 @@ export const level1Map: MapDefinition = {
           1.0 // speed
         ),
     },
-    // // Another test monster - spawns immediately at different location
-    // {
-    //   spawnDelay: 10000, // 10 seconds
-    //   createMonster: () => createFloaterMonster(50, 500, 45, 1),
-    // },
+    {
+      spawnDelay: 4000,
+      createMonster: () =>
+        createHorizontalPatrolMonster(
+          430, // platformX
+          430, // platformWidth
+          200,
+          "left", // spawnSide
+          1, // walkLengths
+          1.0 // speed
+        ),
+    },
+
     {
       spawnDelay: 5000,
       createMonster: () => createAmbusherMonster(500, 500, 1),

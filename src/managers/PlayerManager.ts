@@ -9,6 +9,7 @@ export class PlayerManager {
   private collisionManager: CollisionManager;
   private animationController: AnimationController;
   private bounds: { width: number; height: number };
+  private onPlayerDeath?: () => void;
 
   constructor(animationController: AnimationController) {
     this.collisionManager = new CollisionManager();
@@ -17,6 +18,10 @@ export class PlayerManager {
       width: GAME_CONFIG.CANVAS_WIDTH,
       height: GAME_CONFIG.CANVAS_HEIGHT,
     };
+  }
+
+  public setDeathCallback(callback: () => void): void {
+    this.onPlayerDeath = callback;
   }
 
   update(deltaTime: number): void {
@@ -53,8 +58,13 @@ export class PlayerManager {
     );
 
     if (boundaryResult.fellOffScreen) {
-      // Player fell off screen
-      gameState.loseLife();
+      // Player fell off screen - use death callback if available
+      if (this.onPlayerDeath) {
+        this.onPlayerDeath();
+      } else {
+        // Fallback to direct loseLife if no callback set
+        gameState.loseLife();
+      }
       return;
     }
 

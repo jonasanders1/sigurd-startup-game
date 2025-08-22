@@ -1,4 +1,4 @@
-import { inputManager } from "./InputManager";
+import { InputManager } from "./InputManager";
 import { CollisionManager } from "./CollisionManager";
 import { RenderManager } from "./RenderManager";
 import { OptimizedSpawnManager } from "./OptimizedSpawnManager";
@@ -19,6 +19,7 @@ import { playerSprite } from "../entities/Player";
 import { sendGameReady } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 
+
 /**
  * GameManager - Main orchestrator for the game
  * Coordinates between all specialized managers
@@ -30,9 +31,11 @@ export class GameManager {
   private levelManager: LevelManager;
   private scoreManager: ScoreManager;
   private powerUpManager: PowerUpManager;
-  
+  private inputManager: InputManager;
+
   // Supporting managers
   private collisionManager: CollisionManager;
+
   private renderManager: RenderManager;
   private monsterSpawnManager: OptimizedSpawnManager;
   private audioManager: AudioManager;
@@ -42,17 +45,21 @@ export class GameManager {
   private playerManager: PlayerManager;
 
   constructor(canvas: HTMLCanvasElement) {
-    // Initialize supporting managers
-    this.collisionManager = new CollisionManager();
-    this.renderManager = new RenderManager(canvas);
-    this.audioManager = new AudioManager();
+    // Create managers
     this.animationController = new AnimationController(playerSprite);
+    this.renderManager = new RenderManager(canvas);
+    this.collisionManager = new CollisionManager();
+    this.audioManager = new AudioManager();
+    this.inputManager = new InputManager();
     this.scalingManager = ScalingManager.getInstance();
     this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
     this.playerManager = new PlayerManager(this.animationController);
     this.monsterSpawnManager = new OptimizedSpawnManager();
 
-    // Initialize specialized managers
+    // Set up player death callback
+    this.playerManager.setDeathCallback(() => this.handlePlayerDeath());
+
+    // Create higher-level managers that depend on the above
     this.gameStateManager = new GameStateManager(
       this.audioManager,
       this.scalingManager,
@@ -108,7 +115,7 @@ export class GameManager {
    */
   public start(): void {
     // Initialize input
-    inputManager.initialize();
+    this.inputManager.initialize();
 
     // Handle dev mode if enabled
     if (DEV_CONFIG.ENABLED) {
@@ -253,7 +260,11 @@ export class GameManager {
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
     
+    // Stop any power-up effects
     this.powerUpManager.handlePlayerDeath();
+    
+    // Stop background music immediately when player dies
+    this.audioManager.stopBackgroundMusic();
     this.gameStateManager.resetBackgroundMusicFlag();
 
     if (gameState.lives <= 1) {
@@ -295,7 +306,7 @@ export class GameManager {
    */
   public cleanup(): void {
     this.stop();
-    inputManager.destroy();
+    this.inputManager.destroy();
     this.audioManager.cleanup();
   }
 

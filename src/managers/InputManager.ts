@@ -1,7 +1,7 @@
 import { useGameStore } from "../stores/gameStore";
 import { InputKey, GameState } from "../types/enums";
 
-class InputManager {
+export class InputManager {
   private keysPressed: Set<string> = new Set();
   private store = useGameStore.getState();
   private initialized = false;
@@ -142,5 +142,4 @@ class InputManager {
   }
 }
 
-// Export singleton instance
-export const inputManager = new InputManager();
+
