@@ -26,20 +26,20 @@ export const getBackgroundImagePath = (theme: string): string => {
   const cacheKey = `bg-${theme}`;
   if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
-  console.log(`🔍 Looking for background theme: ${theme}`);
-  console.log(`🔍 Available background paths:`, Object.keys(backgrounds));
+  // console.log(`🔍 Looking for background theme: ${theme}`);
+  // console.log(`🔍 Available background paths:`, Object.keys(backgrounds));
 
   // Find by filename (works after Vite build)
   const match = Object.entries(backgrounds).find(([path]) =>
     path.endsWith(`${theme}.png`)
   );
 
-  console.log(`🔍 Match found:`, match);
+  // console.log(`🔍 Match found:`, match);
 
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    console.log(`✅ Background image loaded for ${theme}:`, url);
+    // console.log(`✅ Background image loaded for ${theme}:`, url);
     return url;
   }
 
@@ -52,8 +52,8 @@ export const getAudioPath = (name: string): string => {
   const cacheKey = `audio-${name}`;
   if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
-  console.log(`🔍 Looking for audio file: ${name}`);
-  console.log(`🔍 Available audio paths:`, Object.keys(audioFiles));
+  // console.log(`🔍 Looking for audio file: ${name}`);
+  // console.log(`🔍 Available audio paths:`, Object.keys(audioFiles));
 
   // Find by filename with or without extension
   const match = Object.entries(audioFiles).find(([path]) => {
@@ -61,12 +61,12 @@ export const getAudioPath = (name: string): string => {
     return filename === name || filename === `${name}.wav` || filename.startsWith(name);
   });
 
-  console.log(`🔍 Audio match found:`, match);
+  // console.log(`🔍 Audio match found:`, match);
 
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    console.log(`✅ Audio file loaded for ${name}:`, url);
+    // console.log(`✅ Audio file loaded for ${name}:`, url);
     return url;
   }
 
@@ -84,20 +84,20 @@ export const loadSpriteImage = (path: string): HTMLImageElement => {
     return img;
   }
 
-  console.log(`🔍 Looking for sprite: ${path}`);
-  console.log(`🔍 Available sprite paths:`, Object.keys(spriteImages));
+  // console.log(`🔍 Looking for sprite: ${path}`);
+  // console.log(`🔍 Available sprite paths:`, Object.keys(spriteImages));
 
   // Find by path (e.g., "bomb/bomb1.png")
   const match = Object.entries(spriteImages).find(([filePath]) =>
     filePath.endsWith(path)
   );
 
-  console.log(`🔍 Sprite match found:`, match);
+  // console.log(`🔍 Sprite match found:`, match);
 
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    console.log(`✅ Sprite loaded for ${path}:`, url);
+    // console.log(`✅ Sprite loaded for ${path}:`, url);
     
     const img = new Image();
     img.src = url;
