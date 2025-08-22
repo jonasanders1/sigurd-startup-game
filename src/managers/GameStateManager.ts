@@ -180,6 +180,16 @@ export class GameStateManager {
       this.isBackgroundMusicPlaying = false;
     }
 
+    // Explicitly handle PAUSED state to ensure music stops
+    if (currentState === GameState.PAUSED) {
+      // Force stop background music when paused
+      if (this.audioManager.isBackgroundMusicPlaying) {
+        log.audio("Game paused, forcing background music stop");
+        this.audioManager.stopBackgroundMusic();
+        this.isBackgroundMusicPlaying = false;
+      }
+    }
+
     this.previousGameState = currentState;
   }
 

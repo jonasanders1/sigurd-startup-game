@@ -12,7 +12,7 @@ interface WebkitWindow extends Window {
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private backgroundMusicGain: GainNode | null = null;
-  private isBackgroundMusicPlaying = false;
+  private _isBackgroundMusicPlaying = false;
   private backgroundMusicBuffer: AudioBuffer | null = null;
   private backgroundMusicSource: AudioBufferSourceNode | null = null;
 
@@ -97,7 +97,7 @@ export class AudioManager {
   }
 
   stopBackgroundMusic(): void {
-    this.isBackgroundMusicPlaying = false;
+    this._isBackgroundMusicPlaying = false;
 
     // Stop the current audio source if playing
     if (this.backgroundMusicSource) {
@@ -108,6 +108,11 @@ export class AudioManager {
       }
       this.backgroundMusicSource = null;
     }
+  }
+
+  // Public getter for background music playing status
+  public get isBackgroundMusicPlaying(): boolean {
+    return this._isBackgroundMusicPlaying;
   }
 
   private playBombCollectSound(): void {
@@ -306,12 +311,12 @@ export class AudioManager {
   private startBackgroundMusic(): void {
     if (
       !this.audioContext ||
-      this.isBackgroundMusicPlaying ||
+      this._isBackgroundMusicPlaying ||
       !this.backgroundMusicBuffer
     )
       return;
 
-    this.isBackgroundMusicPlaying = true;
+    this._isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
   }
 
@@ -320,7 +325,7 @@ export class AudioManager {
       !this.audioContext ||
       !this.backgroundMusicGain ||
       !this.backgroundMusicBuffer ||
-      !this.isBackgroundMusicPlaying
+      !this._isBackgroundMusicPlaying
     )
       return;
 
@@ -334,10 +339,10 @@ export class AudioManager {
 
       // Handle when the audio ends (for non-looping or if loop is disabled)
       this.backgroundMusicSource.onended = () => {
-        if (this.isBackgroundMusicPlaying) {
+        if (this._isBackgroundMusicPlaying) {
           // Restart the music if it should still be playing
           setTimeout(() => {
-            if (this.isBackgroundMusicPlaying) {
+            if (this._isBackgroundMusicPlaying) {
               this.playBackgroundMusicFile();
             }
           }, 100);
@@ -469,7 +474,7 @@ export class AudioManager {
   public resumeBackgroundMusic(): void {
     if (this.backgroundMusicGain) {
       // If background music should be playing but source is gone, restart it
-      if (this.isBackgroundMusicPlaying && !this.backgroundMusicSource) {
+      if (this._isBackgroundMusicPlaying && !this.backgroundMusicSource) {
         log.audio("Background music source lost, restarting music");
         this.playBackgroundMusicFile();
       }
@@ -478,7 +483,7 @@ export class AudioManager {
       this.updateAudioVolumes();
       
       // Log the resume attempt for debugging
-      log.audio(`resumeBackgroundMusic: isPlaying=${this.isBackgroundMusicPlaying}, hasSource=${this.backgroundMusicSource !== null}, gainValue=${this.backgroundMusicGain.gain.value}`);
+      log.audio(`resumeBackgroundMusic: isPlaying=${this._isBackgroundMusicPlaying}, hasSource=${this.backgroundMusicSource !== null}, gainValue=${this.backgroundMusicGain.gain.value}`);
     }
   }
 
@@ -522,7 +527,7 @@ export class AudioManager {
     // Music is only actually playing if we have a source and the flag is set
     // and power-up melody is not active (which would mute the background music)
     return (
-      this.isBackgroundMusicPlaying &&
+      this._isBackgroundMusicPlaying &&
       this.backgroundMusicSource !== null &&
       !this.powerUpMelodyActive
     );
@@ -534,7 +539,7 @@ export class AudioManager {
       isActive: this.powerUpMelodyActive,
       hasTimeout: this.powerUpMelodyTimeout !== null,
       timeoutId: this.powerUpMelodyTimeout,
-      backgroundMusicPlaying: this.isBackgroundMusicPlaying,
+      backgroundMusicPlaying: this._isBackgroundMusicPlaying,
     };
   }
 }

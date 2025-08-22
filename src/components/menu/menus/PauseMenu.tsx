@@ -23,19 +23,21 @@ const PauseMenu: React.FC = () => {
   };
 
   const quitToMenu = () => {
+    // Reset the game (this now also loads the first level)
     resetGame();
+    // Set to menu state with start menu
     setState(GameState.MENU);
     setMenuType(MenuType.START);
   };
 
   const restartGame = () => {
-    // Reset everything back to level 1
+    // Reset everything back to level 1 (this now also loads the first level)
     const { resetGame } = useGameStore.getState();
     resetGame();
 
-    // Set state to MENU to trigger level reload in GameManager
-    setState(GameState.MENU);
+    // Show countdown before starting
     setMenuType(MenuType.COUNTDOWN);
+    setState(GameState.COUNTDOWN);
 
     // After 3 seconds, start the game
     setTimeout(() => {
