@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
 import { GameState, MenuType } from "../../../types/enums";
 import { Play, Settings, Home, RotateCcw } from "lucide-react";
-import ShortcutControls from "@/components/ShortcutControls";
 
 const PauseMenu: React.FC = () => {
   const { setState, setMenuType, resetGame } = useGameStore();
@@ -82,7 +81,6 @@ const PauseMenu: React.FC = () => {
           hovedmeny
         </Button>
       </div>
-      <ShortcutControls />
     </div>
   );
 };

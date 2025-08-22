@@ -10,7 +10,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFullscreen } from "../../../hooks/useFullscreen";
-import ShortcutControls from "@/components/ShortcutControls";
 
 const StartMenu: React.FC = () => {
   const { setState, setMenuType } = useGameStore();
@@ -77,7 +76,9 @@ const StartMenu: React.FC = () => {
         </Tooltip>
       </TooltipProvider>
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2 font-pixel">Sigurd Startup</h1>
+        <h1 className="text-4xl font-bold text-white mb-2 font-pixel">
+          Sigurd Startup
+        </h1>
         <p className="text-muted-foreground">
           Samle så mye finansiering som mulig!
         </p>
@@ -101,7 +102,6 @@ const StartMenu: React.FC = () => {
           Innstillinger
         </Button>
       </div>
-      <ShortcutControls />  
     </div>
   );
 };

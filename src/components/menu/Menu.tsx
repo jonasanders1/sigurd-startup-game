@@ -1,4 +1,7 @@
 import React from "react";
+import ShortcutControls from "../ShortcutControls";
+import { useGameStore } from "../../stores/gameStore";
+import { GameState } from "@/types/enums";
 
 const Menu = ({
   children,
@@ -7,6 +10,8 @@ const Menu = ({
   children: React.ReactNode;
   transparent?: boolean;
 }) => {
+  const { currentState } = useGameStore();
+
   return (
     <div
       className={`absolute inset-0 flex items-center justify-center z-50 rounded-lg ${
@@ -14,6 +19,7 @@ const Menu = ({
       }`}
     >
       {children}
+      {currentState !== GameState.PLAYING && <ShortcutControls />}
     </div>
   );
 };
