@@ -57,4 +57,16 @@ export enum GameState {
     BOUNDARY = 'BOUNDARY',
     COIN = 'COIN'
   }
+
+export enum InputKey {
+  LEFT = 'ArrowLeft',
+  RIGHT = 'ArrowRight',
+  UP = 'ArrowUp',
+  DOWN = 'ArrowDown',
+  SPACE = ' ',
+  ENTER = 'Enter',
+  ESCAPE = 'Escape',
+  P = 'p',
+  R = 'r'
+}
   

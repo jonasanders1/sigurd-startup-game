@@ -1,4 +1,4 @@
-import { InputManager } from "./InputManager";
+import { inputManager } from "./InputManager";
 import { CollisionManager } from "./CollisionManager";
 import { RenderManager } from "./RenderManager";
 import { OptimizedSpawnManager } from "./OptimizedSpawnManager";
@@ -21,7 +21,6 @@ import {
 import { log } from "../lib/logger";
 
 export class GameManager {
-  private inputManager: InputManager;
   private collisionManager: CollisionManager;
   private renderManager: RenderManager;
   private monsterSpawnManager: OptimizedSpawnManager;
@@ -39,7 +38,6 @@ export class GameManager {
   private mapStartTime: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.inputManager = new InputManager();
     this.collisionManager = new CollisionManager();
     this.renderManager = new RenderManager(canvas);
     this.audioManager = new AudioManager();
@@ -61,6 +59,9 @@ export class GameManager {
   }
 
   start(): void {
+    // Initialize input manager
+    inputManager.initialize();
+    
     // Check if DEV_MODE is enabled
     if (DEV_CONFIG.ENABLED) {
       log.dev("DEV_MODE is ENABLED");
@@ -450,12 +451,12 @@ export class GameManager {
     const gameState = useGameStore.getState();
     let player = { ...gameState.player };
 
-    // Handle input
+    // Handle input from store
     let moveX = 0;
-    if (this.inputManager.isKeyPressed("ArrowLeft")) {
+    if (gameState.input.left) {
       moveX = -player.moveSpeed;
     }
-    if (this.inputManager.isKeyPressed("ArrowRight")) {
+    if (gameState.input.right) {
       moveX = player.moveSpeed;
     }
 
@@ -468,12 +469,10 @@ export class GameManager {
     );
 
     // Variable height jumping mechanics
-    const isUpPressed = this.inputManager.isKeyPressed("ArrowUp");
-    const isDownPressed = this.inputManager.isKeyPressed("ArrowDown");
-    const isShiftPressed = this.inputManager.isShiftPressed();
-    const isSpacePressed =
-      this.inputManager.isKeyPressed(" ") ||
-      this.inputManager.isKeyPressed("Space");
+    const isUpPressed = gameState.input.jump;
+    const isDownPressed = gameState.input.fastFall;
+    const isShiftPressed = gameState.input.superJump;
+    const isSpacePressed = gameState.input.float;
 
     if (isUpPressed && player.isGrounded && !player.isJumping) {
       // Start jump
@@ -1096,7 +1095,7 @@ export class GameManager {
 
   cleanup(): void {
     this.stop();
-    this.inputManager.cleanup();
+    inputManager.destroy();
     this.audioManager.cleanup();
   }
 
