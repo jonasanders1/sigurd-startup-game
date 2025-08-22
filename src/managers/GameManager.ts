@@ -4,6 +4,7 @@ import { RenderManager } from "./RenderManager";
 import { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import { ScalingManager } from "./ScalingManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
+import { PlayerManager } from "./PlayerManager";
 import { useGameStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import { Monster } from "../types/interfaces";
@@ -28,6 +29,7 @@ export class GameManager {
   private animationController: AnimationController;
   private scalingManager: ScalingManager;
   private monsterRespawnManager: OptimizedRespawnManager;
+  private playerManager: PlayerManager;
   private animationFrameId: number | null = null;
   private lastTime = 0;
   private isBackgroundMusicPlaying = false;
@@ -44,6 +46,7 @@ export class GameManager {
     this.animationController = new AnimationController(playerSprite);
     this.scalingManager = ScalingManager.getInstance();
     this.monsterRespawnManager = OptimizedRespawnManager.getInstance();
+    this.playerManager = new PlayerManager(this.animationController);
 
     // Initialize monster spawn manager with empty array initially
     this.monsterSpawnManager = new OptimizedSpawnManager();
@@ -61,7 +64,7 @@ export class GameManager {
   start(): void {
     // Initialize input manager
     inputManager.initialize();
-    
+
     // Check if DEV_MODE is enabled
     if (DEV_CONFIG.ENABLED) {
       log.dev("DEV_MODE is ENABLED");
@@ -186,10 +189,12 @@ export class GameManager {
     // Stop power-up melody if active
     if (this.audioManager.isPowerUpMelodyActive()) {
       this.audioManager.stopPowerUpMelody();
-      
+
       // Reset background music flag since power-up melody ended
       this.isBackgroundMusicPlaying = false;
-      log.audio("Reset background music flag after stop (power-up melody ended)");
+      log.audio(
+        "Reset background music flag after stop (power-up melody ended)"
+      );
     }
 
     if (this.animationFrameId) {
@@ -289,10 +294,12 @@ export class GameManager {
       // Stop power-up melody if active (game reset/restart)
       if (this.audioManager.isPowerUpMelodyActive()) {
         this.audioManager.stopPowerUpMelody();
-        
+
         // Reset background music flag since power-up melody ended
         this.isBackgroundMusicPlaying = false;
-        log.audio("Reset background music flag after game reset (power-up melody ended)");
+        log.audio(
+          "Reset background music flag after game reset (power-up melody ended)"
+        );
       }
       this.loadCurrentLevel();
     }
@@ -330,30 +337,18 @@ export class GameManager {
         updatedPlayer.velocityY += player.gravity;
         updatedPlayer.y += updatedPlayer.velocityY;
 
-        // Check for ground collision during fall
+        // Check for ground collision during fall using PlayerManager
         const ground = gameState.ground;
         if (ground) {
-          const groundCollision =
-            this.collisionManager.checkPlayerGroundCollision(
-              updatedPlayer,
-              ground
-            );
-          if (
-            groundCollision.hasCollision &&
-            groundCollision.normal &&
-            groundCollision.penetration
-          ) {
-            if (groundCollision.normal.y === -1) {
-              // Landing on ground
-              updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
-              updatedPlayer.velocityY = 0;
-              updatedPlayer.isGrounded = true;
-            }
-          }
+          const finalPlayer = this.playerManager.handlePlatformCollision(
+            updatedPlayer,
+            [],
+            ground
+          );
+          gameState.updatePlayer(finalPlayer);
+        } else {
+          gameState.updatePlayer(updatedPlayer);
         }
-
-        // Update player state
-        gameState.updatePlayer(updatedPlayer);
       }
 
       // Update animation controller with actual player state
@@ -379,7 +374,7 @@ export class GameManager {
       this.scalingManager.resumeAllMonsterScaling();
       this.monsterSpawnManager.resume();
       this.monsterRespawnManager.resume();
-      
+
       // Resume coin manager to restore powerup durations
       const gameState = useGameStore.getState();
       if (gameState.coinManager) {
@@ -390,17 +385,19 @@ export class GameManager {
       if (this.audioManager.isPowerUpMelodyActive()) {
         log.audio("Game paused/stopped, stopping PowerUp melody");
         this.audioManager.stopPowerUpMelody();
-        
+
         // Reset background music flag since power-up melody ended
         this.isBackgroundMusicPlaying = false;
-        log.audio("Reset background music flag after pause (power-up melody ended)");
+        log.audio(
+          "Reset background music flag after pause (power-up melody ended)"
+        );
       }
 
       this.scalingManager.pause();
       this.scalingManager.pauseAllMonsterScaling();
       this.monsterSpawnManager.pause();
       this.monsterRespawnManager.pause();
-      
+
       // Pause coin manager to preserve powerup durations
       const gameState = useGameStore.getState();
       if (gameState.coinManager) {
@@ -448,155 +445,13 @@ export class GameManager {
   }
 
   private updatePlayer(deltaTime: number): void {
-    const gameState = useGameStore.getState();
-    let player = { ...gameState.player };
-
-    // Handle input from store
-    let moveX = 0;
-    if (gameState.input.left) {
-      moveX = -player.moveSpeed;
-    }
-    if (gameState.input.right) {
-      moveX = player.moveSpeed;
-    }
-
-    // Update animation state
-    this.animationController.update(
-      player.isGrounded,
-      moveX,
-      player.isFloating,
-      gameState.currentState
-    );
-
-    // Variable height jumping mechanics
-    const isUpPressed = gameState.input.jump;
-    const isDownPressed = gameState.input.fastFall;
-    const isShiftPressed = gameState.input.superJump;
-    const isSpacePressed = gameState.input.float;
-
-    if (isUpPressed && player.isGrounded && !player.isJumping) {
-      // Start jump
-      player.isJumping = true;
-      player.jumpStartTime = Date.now();
-      player.isGrounded = false;
-
-      // Initial jump velocity (minimum jump)
-      const baseJumpPower = isShiftPressed
-        ? GAME_CONFIG.SUPER_JUMP_POWER
-        : GAME_CONFIG.JUMP_POWER;
-      player.velocityY = -baseJumpPower * 0.6; // Start with 60% of jump power
-    }
-
-    // Continue jump if key is held and we're still in jump phase
-    if (isUpPressed && player.isJumping && player.velocityY < 0) {
-      const jumpDuration = Date.now() - player.jumpStartTime;
-
-      if (jumpDuration <= GAME_CONFIG.MAX_JUMP_DURATION) {
-        // Calculate additional jump power based on hold duration
-        const holdRatio = Math.min(
-          jumpDuration / GAME_CONFIG.MAX_JUMP_DURATION,
-          1
-        );
-        const baseJumpPower = isShiftPressed
-          ? GAME_CONFIG.SUPER_JUMP_POWER
-          : GAME_CONFIG.JUMP_POWER;
-        const targetVelocity = -baseJumpPower * (0.6 + 0.4 * holdRatio); // Scale from 60% to 100%
-
-        // Gradually increase jump power with frame-rate compensation
-        if (player.velocityY > targetVelocity) {
-          player.velocityY = targetVelocity;
-        }
-      }
-    }
-
-    // End jump when key is released or max duration reached
-    if (
-      (!isUpPressed ||
-        Date.now() - player.jumpStartTime > GAME_CONFIG.MAX_JUMP_DURATION) &&
-      player.isJumping
-    ) {
-      player.isJumping = false;
-    }
-
-    // Fast fall mechanic - Arrow Down kills upward momentum and speeds up fall
-    if (isDownPressed && !player.isGrounded) {
-      // Kill any upward momentum immediately
-      if (player.velocityY < 0) {
-        player.velocityY = 0;
-      }
-      // Set fast fall state
-      player.isFastFalling = true;
-    } else {
-      player.isFastFalling = false;
-    }
-
-    // Floating mechanism - works anytime the player is in the air
-    if (isSpacePressed && !player.isGrounded) {
-      // Only kill momentum if we're just starting to float (not already floating)
-      if (!player.isFloating) {
-        player.velocityY = 0;
-      }
-      // Set floating state for slower fall
-      player.isFloating = true;
-    } else {
-      player.isFloating = false;
-    }
-
-    // Apply movement with frame-rate compensation
-    player.velocityX = moveX;
-    player.x += player.velocityX * (deltaTime / 16.67); // 16.67ms = 60fps for consistent speed
-
-    // Apply gravity - handle different gravity states
-    let gravity = player.gravity; // Default gravity
-
-    if (player.isFloating && player.velocityY >= 0) {
-      // Use float gravity when floating and falling
-      gravity = player.floatGravity;
-    } else if (player.isFastFalling) {
-      // Use fast fall gravity multiplier when fast falling
-      gravity = player.gravity * GAME_CONFIG.FAST_FALL_GRAVITY_MULTIPLIER;
-    }
-
-    player.velocityY += gravity * (deltaTime / 16.67); // Frame-rate compensation for gravity
-    player.y += player.velocityY * (deltaTime / 16.67); // Frame-rate compensation for vertical movement
-
-    // Handle boundary collisions
-    const bounds = {
-      width: GAME_CONFIG.CANVAS_WIDTH,
-      height: GAME_CONFIG.CANVAS_HEIGHT,
-    };
-    const boundaryResult = this.collisionManager.resolveBoundaryCollision(
-      player,
-      bounds
-    );
-
-    if (boundaryResult.fellOffScreen) {
-      // Player fell off screen
-      gameState.loseLife();
-      return;
-    }
-
-    // Update player with boundary-resolved position
-    player = boundaryResult.player;
-
-    // Reset grounded state
-    player.isGrounded = false;
-
-    gameState.updatePlayer(player);
+    // Delegate all player update logic to PlayerManager
+    this.playerManager.update(deltaTime);
   }
 
   private updateMonsters(deltaTime: number): void {
     // Debug: Log that updateMonsters is being called (every 5 seconds)
     const currentTime = Date.now();
-    const gameTime = (currentTime - this.mapStartTime) / 1000;
-
-    if (
-      Math.floor(gameTime / 5) !== Math.floor((gameTime - deltaTime / 1000) / 5)
-    ) {
-      log.debug(
-        `GameManager.updateMonsters() called at ${gameTime.toFixed(1)}s`
-      );
-    }
 
     // Update monster spawn manager (handles spawning and behavior)
     this.monsterSpawnManager.update(currentTime, deltaTime);
@@ -620,19 +475,8 @@ export class GameManager {
       );
     }
 
-    // Debug: Log respawn status
-    const deadMonsterCount = this.monsterRespawnManager.getDeadMonsterCount();
-    if (deadMonsterCount > 0) {
-      log.debug(
-        `Respawn system: ${deadMonsterCount} monsters waiting to respawn`
-      );
-    }
-
     // Update the game state with any new monsters
     gameState.updateMonsters(monsters);
-
-    // All monster behavior (including scaling) is now handled by MonsterBehaviorManager
-    // through the OptimizedSpawnManager.update() call above
   }
 
   private updateCoins(deltaTime: number): void {
@@ -665,72 +509,14 @@ export class GameManager {
     const gameState = useGameStore.getState();
     const { player, platforms, bombs, monsters, ground, coins } = gameState;
 
-    // Platform collisions - handle all directions
-    const platformCollision =
-      this.collisionManager.checkPlayerPlatformCollision(player, platforms);
-    if (
-      platformCollision.hasCollision &&
-      platformCollision.normal &&
-      platformCollision.penetration
-    ) {
-      const updatedPlayer = { ...player };
-
-      if (platformCollision.normal.y === -1) {
-        // Landing on top of platform
-        updatedPlayer.y = updatedPlayer.y - platformCollision.penetration;
-        updatedPlayer.velocityY = 0;
-        updatedPlayer.isGrounded = true;
-      } else if (platformCollision.normal.y === 1) {
-        // Hitting platform from below
-        updatedPlayer.y = updatedPlayer.y + platformCollision.penetration;
-        updatedPlayer.velocityY = 0;
-      } else if (platformCollision.normal.x === 1) {
-        // Hitting platform from the right
-        updatedPlayer.x = updatedPlayer.x + platformCollision.penetration;
-        updatedPlayer.velocityX = 0;
-      } else if (platformCollision.normal.x === -1) {
-        // Hitting platform from the left
-        updatedPlayer.x = updatedPlayer.x - platformCollision.penetration;
-        updatedPlayer.velocityX = 0;
-      }
-
+    // Platform and ground collisions - delegate to PlayerManager
+    const updatedPlayer = this.playerManager.handlePlatformCollision(
+      player,
+      platforms,
+      ground
+    );
+    if (updatedPlayer !== player) {
       gameState.updatePlayer(updatedPlayer);
-    }
-
-    // Ground collision - handle all directions
-    if (ground) {
-      const groundCollision = this.collisionManager.checkPlayerGroundCollision(
-        player,
-        ground
-      );
-      if (
-        groundCollision.hasCollision &&
-        groundCollision.normal &&
-        groundCollision.penetration
-      ) {
-        const updatedPlayer = { ...player };
-
-        if (groundCollision.normal.y === -1) {
-          // Landing on top of ground
-          updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
-          updatedPlayer.velocityY = 0;
-          updatedPlayer.isGrounded = true;
-        } else if (groundCollision.normal.y === 1) {
-          // Hitting ground from below (shouldn't normally happen but just in case)
-          updatedPlayer.y = updatedPlayer.y + groundCollision.penetration;
-          updatedPlayer.velocityY = 0;
-        } else if (groundCollision.normal.x === 1) {
-          // Hitting ground from the right
-          updatedPlayer.x = updatedPlayer.x + groundCollision.penetration;
-          updatedPlayer.velocityX = 0;
-        } else if (groundCollision.normal.x === -1) {
-          // Hitting ground from the left
-          updatedPlayer.x = updatedPlayer.x - groundCollision.penetration;
-          updatedPlayer.velocityX = 0;
-        }
-
-        gameState.updatePlayer(updatedPlayer);
-      }
     }
 
     // Bomb collisions
@@ -827,10 +613,12 @@ export class GameManager {
       log.audio("Player died during power mode, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
-    
+
     // Reset background music flag since power-up melody might have ended
     this.isBackgroundMusicPlaying = false;
-    log.audio("Reset background music flag after player death (power-up melody ended)");
+    log.audio(
+      "Reset background music flag after player death (power-up melody ended)"
+    );
 
     // Check if this will be the last life before calling loseLife
     if (gameState.lives <= 1) {
@@ -852,10 +640,12 @@ export class GameManager {
       log.audio("Player respawning, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
-    
+
     // Reset background music flag since power-up melody might have ended
     this.isBackgroundMusicPlaying = false;
-    log.audio("Reset background music flag after player respawn (power-up melody ended)");
+    log.audio(
+      "Reset background music flag after player respawn (power-up melody ended)"
+    );
 
     if (currentMap) {
       // Clear floating texts when respawning
@@ -871,8 +661,8 @@ export class GameManager {
       gameState.resetCoinState();
       log.debug("Coins reset after player death");
 
-      // Reset player position
-      gameState.setPlayerPosition(
+      // Reset player position using PlayerManager
+      this.playerManager.resetPlayer(
         currentMap.playerStart.x,
         currentMap.playerStart.y
       );
@@ -884,9 +674,6 @@ export class GameManager {
         direction: 1, // Reset to initial direction
       }));
       gameState.updateMonsters(resetMonsters);
-
-      // Reset animation controller state
-      this.animationController.reset();
 
       // Reload parallax background for the current level
       this.renderManager.loadMapBackground(currentMap.name);
@@ -931,10 +718,12 @@ export class GameManager {
       log.audio("Map completed during power mode, stopping PowerUp melody");
       this.audioManager.stopPowerUpMelody();
     }
-    
+
     // Reset background music flag since power-up melody might have ended
     this.isBackgroundMusicPlaying = false;
-    log.audio("Reset background music flag after map cleared (power-up melody ended)");
+    log.audio(
+      "Reset background music flag after map cleared (power-up melody ended)"
+    );
 
     // Calculate effective bomb count by subtracting lives lost
     // Each life lost is equivalent to missing one bomb
@@ -1037,11 +826,11 @@ export class GameManager {
 
       gameState.nextLevel();
       this.loadCurrentLevel();
-      
+
       // Reset background music flag for new level
       this.isBackgroundMusicPlaying = false;
       log.audio("Reset background music flag for new level");
-      
+
       // Always show countdown when transitioning to next level
       gameState.setMenuType(MenuType.COUNTDOWN);
       gameState.setState(GameState.COUNTDOWN);
@@ -1124,12 +913,17 @@ export class GameManager {
       powerMode: {
         isActive: gameState.activeEffects.powerMode,
         endTime: gameState.activeEffects.powerModeEndTime,
-        timeLeft: gameState.activeEffects.powerModeEndTime > 0 ? gameState.activeEffects.powerModeEndTime - Date.now() : 0
+        timeLeft:
+          gameState.activeEffects.powerModeEndTime > 0
+            ? gameState.activeEffects.powerModeEndTime - Date.now()
+            : 0,
       },
-      coinManager: gameState.coinManager ? {
-        powerModeActive: gameState.coinManager.isPowerModeActive(),
-        powerModeEndTime: gameState.coinManager.getPowerModeEndTime()
-      } : null
+      coinManager: gameState.coinManager
+        ? {
+            powerModeActive: gameState.coinManager.isPowerModeActive(),
+            powerModeEndTime: gameState.coinManager.getPowerModeEndTime(),
+          }
+        : null,
     };
   }
 

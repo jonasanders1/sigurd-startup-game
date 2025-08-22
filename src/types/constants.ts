@@ -10,6 +10,7 @@ export const GAME_CONFIG = {
   PLATFORM_HEIGHT: 25,
   COIN_SIZE: 25, // Size of coins
   USE_SPRITES: true,
+  USE_BOMB_SPRITES: true,
   PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
 
   // Physics - Reduced for moon-like gravity

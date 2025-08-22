@@ -93,11 +93,6 @@ export class BackgroundManager {
     });
   }
 
-  update(playerX: number, playerY: number): void {
-    // No parallax movement needed for static backgrounds
-    // This method is kept for compatibility but doesn't do anything
-  }
-
   render(ctx: CanvasRenderingContext2D): void {
     if (!this.currentBackground || !this.currentBackground.isLoaded) {
       // Show loading state

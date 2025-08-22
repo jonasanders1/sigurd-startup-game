@@ -16,6 +16,7 @@ import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
+import { MonsterType } from "@/types/enums";
 
 interface CoinManagerInterface {
   getPcoinCurrentColor: (coin: Coin) => string;
@@ -57,16 +58,11 @@ export class RenderManager {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
-    // Update background based on player position
-    this.backgroundManager.update(player.x, player.y);
-
     // Render background first
     this.renderBackground();
 
     // Render game elements on top
-    if (ground) {
-      this.renderGround(ground);
-    }
+    this.renderGround(ground);
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
     this.renderCoins(coins, coinManager);
@@ -75,19 +71,8 @@ export class RenderManager {
     this.renderFloatingTexts(floatingTexts, deltaTime);
   }
 
-  private clearCanvas(): void {
-    this.ctx.fillStyle = COLORS.BACKGROUND;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
   private renderBackground(): void {
-    if (GAME_CONFIG.USE_SPRITES && GAME_CONFIG.PARALLAX_ENABLED) {
-      // Use background when sprites and parallax are enabled
-      this.backgroundManager.render(this.ctx);
-    } else {
-      // Fallback to solid background when sprites or parallax are disabled
-      this.clearCanvas();
-    }
+    this.backgroundManager.render(this.ctx);
   }
 
   private renderGround(ground: Ground): void {
@@ -147,7 +132,7 @@ export class RenderManager {
         return;
       }
 
-      if (bombSprite && GAME_CONFIG.USE_SPRITES) {
+      if (bombSprite && GAME_CONFIG.USE_BOMB_SPRITES) {
         // Get or create individual sprite for this bomb
         let individualSprite = this.bombSprites.get(bomb.order);
         if (!individualSprite) {
@@ -221,24 +206,59 @@ export class RenderManager {
         2 * Math.PI
       );
       this.ctx.fill();
+      this.ctx.restore();
 
+      this.ctx.save();
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2 + 1,
+        coin.y + coin.height / 2 + 1,
+        coin.width / 2,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+      this.ctx.restore();
+
+      // Coin body with pulsing effect
+      const pulse = Math.sin(Date.now() / 200) * 0.1 + 1;
+      this.ctx.fillStyle = color;
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2,
+        (coin.width / 2) * pulse,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+
+      // Inner circle
+      this.ctx.fillStyle = "rgba(2, 2, 2, 0.3)";
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2,
+        coin.width / 2.5,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+
+      let coinSymbol = "C";
+      if (coin.type === "POWER") {
+        coinSymbol = "P";
+      } else if (coin.type === "BONUS_MULTIPLIER") {
+        coinSymbol = "B";
+      } else if (coin.type === "EXTRA_LIFE") {
+        coinSymbol = "M";
+      }
       // Add coin type indicator
       this.ctx.fillStyle = "#fff";
       this.ctx.font = "14px JetBrains Mono";
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
-
-      let coinSymbol = "C";
-      if (coin.type === "POWER") {
-        coinSymbol = "P";
-        this.ctx.fillStyle = "#000";
-      } else if (coin.type === "BONUS_MULTIPLIER") {
-        coinSymbol = "B";
-        this.ctx.fillStyle = "#fff";
-      } else if (coin.type === "EXTRA_LIFE") {
-        coinSymbol = "M";
-        this.ctx.fillStyle = "#fff";
-      }
 
       this.ctx.fillText(
         coinSymbol,
@@ -253,19 +273,8 @@ export class RenderManager {
 
     monsters.forEach((monster, index) => {
       if (!monster.isActive) {
-        log.debug(`Monster ${index} is not active, skipping`);
         return; // Don't render inactive monsters
       }
-
-      // log.debug(`Rendering monster ${index}:`, {
-      //   type: monster.type,
-      //   x: monster.x,
-      //   y: monster.y,
-      //   color: monster.color,
-      //   isActive: monster.isActive,
-      //   isFrozen: monster.isFrozen,
-      //   isBlinking: monster.isBlinking,
-      // });
 
       // Handle blinking effect for monsters about to unfreeze
       let monsterColor = monster.color;
@@ -284,9 +293,39 @@ export class RenderManager {
       this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
 
       // Draw monster eyes
-      this.ctx.fillStyle = "#000";
-      this.ctx.fillRect(monster.x + 2, monster.y + 2, 2, 2);
-      this.ctx.fillRect(monster.x + monster.width - 4, monster.y + 2, 2, 2);
+      this.ctx.fillStyle = "#333";
+      const eyeY = monster.y + 8;
+      this.ctx.fillRect(monster.x + 6, eyeY, 4, 4);
+      this.ctx.fillRect(monster.x + monster.width - 10, eyeY, 4, 4);
+
+      // Monster mouth - based on type
+      this.ctx.fillStyle = "#333";
+      this.ctx.font = "12px JetBrains Mono";
+      this.ctx.textAlign = "center";
+      this.ctx.textBaseline = "middle";
+      let typeSymbol = "";
+      switch (monster.type) {
+        case MonsterType.HORIZONTAL_PATROL:
+          typeSymbol = "↔";
+          break;
+        case MonsterType.VERTICAL_PATROL:
+          typeSymbol = "↕";
+          break;
+        case MonsterType.FLOATER:
+          typeSymbol = "⟳";
+          break;
+        case MonsterType.CHASER:
+          typeSymbol = "!";
+          break;
+        case MonsterType.AMBUSHER:
+          typeSymbol = "?";
+          break;
+      }
+      this.ctx.fillText(
+        typeSymbol,
+        monster.x + monster.width / 2,
+        monster.y + monster.height - 5
+      );
     });
 
     // Render respawn indicators for dead monsters

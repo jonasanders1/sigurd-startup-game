@@ -1,72 +1,71 @@
 export enum GameState {
-    MENU = 'MENU',
-    COUNTDOWN = 'COUNTDOWN',
-    PLAYING = 'PLAYING',
-    PAUSED = 'PAUSED',
-    BONUS = 'BONUS',
-    VICTORY = 'VICTORY',
-    GAME_OVER = 'GAME_OVER',
-    MAP_CLEARED = 'MAP_CLEARED'
-  }
-  
-  export enum MenuType {
-    START = 'START',
-    COUNTDOWN = 'COUNTDOWN',
-    IN_GAME = 'IN_GAME',
-    PAUSE = 'PAUSE',
-    SETTINGS = 'SETTINGS',
-    BONUS = 'BONUS',
-    VICTORY = 'VICTORY',
-    GAME_OVER = 'GAME_OVER',
-    AUDIO_SETTINGS = 'AUDIO_SETTINGS'
-  }
-  
-  export enum MonsterType {
-  HORIZONTAL_PATROL = 'HORIZONTAL_PATROL',
-  VERTICAL_PATROL = 'VERTICAL_PATROL',
-  CHASER = 'CHASER',
-  AMBUSHER = 'AMBUSHER',
-  FLOATER = 'FLOATER'
+  MENU = "MENU",
+  COUNTDOWN = "COUNTDOWN",
+  PLAYING = "PLAYING",
+  PAUSED = "PAUSED",
+  BONUS = "BONUS",
+  VICTORY = "VICTORY",
+  GAME_OVER = "GAME_OVER",
+  MAP_CLEARED = "MAP_CLEARED",
 }
-  
-  export enum CoinType {
-    POWER = 'POWER',
-    BONUS_MULTIPLIER = 'BONUS_MULTIPLIER',
-    EXTRA_LIFE = 'EXTRA_LIFE',
-    MONSTER_FREEZE = 'MONSTER_FREEZE'
-  }
-  
-  export enum AudioEvent {
-    GAME_START = 'GAME_START',
-    LEVEL_COMPLETE = 'LEVEL_COMPLETE',
-    PLAYER_DEATH = 'PLAYER_DEATH',
-    GAME_OVER = 'GAME_OVER',
-    BONUS_SCREEN = 'BONUS_SCREEN',
-    BOMB_COLLECT = 'BOMB_COLLECT',
-    MAP_CLEARED = 'MAP_CLEARED',
-    BACKGROUND_MUSIC = 'BACKGROUND_MUSIC',
-    MONSTER_HIT = 'MONSTER_HIT',
-    COIN_COLLECT = 'COIN_COLLECT',
-    POWER_COIN_ACTIVATE = 'POWER_COIN_ACTIVATE'
-  }
-  
-  export enum CollisionType {
-    PLATFORM = 'PLATFORM',
-    BOMB = 'BOMB',
-    MONSTER = 'MONSTER',
-    BOUNDARY = 'BOUNDARY',
-    COIN = 'COIN'
-  }
+
+export enum MenuType {
+  START = "START",
+  COUNTDOWN = "COUNTDOWN",
+  IN_GAME = "IN_GAME",
+  PAUSE = "PAUSE",
+  SETTINGS = "SETTINGS",
+  BONUS = "BONUS",
+  VICTORY = "VICTORY",
+  GAME_OVER = "GAME_OVER",
+  AUDIO_SETTINGS = "AUDIO_SETTINGS",
+}
+
+export enum MonsterType {
+  HORIZONTAL_PATROL = "HORIZONTAL_PATROL",
+  VERTICAL_PATROL = "VERTICAL_PATROL",
+  CHASER = "CHASER",
+  AMBUSHER = "AMBUSHER",
+  FLOATER = "FLOATER",
+}
+
+export enum CoinType {
+  POWER = "POWER",
+  BONUS_MULTIPLIER = "BONUS_MULTIPLIER",
+  EXTRA_LIFE = "EXTRA_LIFE",
+  MONSTER_FREEZE = "MONSTER_FREEZE",
+}
+
+export enum AudioEvent {
+  GAME_START = "GAME_START",
+  LEVEL_COMPLETE = "LEVEL_COMPLETE",
+  PLAYER_DEATH = "PLAYER_DEATH",
+  GAME_OVER = "GAME_OVER",
+  BONUS_SCREEN = "BONUS_SCREEN",
+  BOMB_COLLECT = "BOMB_COLLECT",
+  MAP_CLEARED = "MAP_CLEARED",
+  BACKGROUND_MUSIC = "BACKGROUND_MUSIC",
+  MONSTER_HIT = "MONSTER_HIT",
+  COIN_COLLECT = "COIN_COLLECT",
+  POWER_COIN_ACTIVATE = "POWER_COIN_ACTIVATE",
+}
+
+export enum CollisionType {
+  PLATFORM = "PLATFORM",
+  BOMB = "BOMB",
+  MONSTER = "MONSTER",
+  BOUNDARY = "BOUNDARY",
+  COIN = "COIN",
+}
 
 export enum InputKey {
-  LEFT = 'ArrowLeft',
-  RIGHT = 'ArrowRight',
-  UP = 'ArrowUp',
-  DOWN = 'ArrowDown',
-  SPACE = ' ',
-  ENTER = 'Enter',
-  ESCAPE = 'Escape',
-  P = 'p',
-  R = 'r'
+  LEFT = "ArrowLeft",
+  RIGHT = "ArrowRight",
+  UP = "ArrowUp",
+  DOWN = "ArrowDown",
+  SPACE = " ",
+  ENTER = "Enter",
+  ESCAPE = "Escape",
+  P = "p",
+  R = "r",
 }
-  

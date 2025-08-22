@@ -6,7 +6,7 @@ class InputManager {
   private store = useGameStore.getState();
   private initialized = false;
 
-  initialize() {
+  public initialize() {
     if (this.initialized) return;
 
     // Add keyboard event listeners
@@ -55,6 +55,7 @@ class InputManager {
 
   private updateInputState(key: string, pressed: boolean) {
     this.store = useGameStore.getState();
+    console.log("updateInputState", key, pressed);
 
     switch (key) {
       // Left movement - A or Arrow Left
@@ -92,30 +93,7 @@ class InputManager {
 
       // Float - Space or Z
       case InputKey.SPACE:
-      case "z":
-      case "Z":
         this.store.setInput("float", pressed);
-        break;
-
-      case InputKey.ENTER:
-      case "x":
-      case "X":
-        this.store.setInput("float", pressed);
-        break;
-
-      // case InputKey.ESCAPE:
-      // case InputKey.P:
-      // case 'p':
-      //   if (pressed) {
-      //     this.handlePause();
-      //   }
-      //   break;
-
-      case InputKey.R:
-      case "r":
-        if (pressed) {
-          this.store.setInput("restart", pressed);
-        }
         break;
     }
   }
@@ -148,14 +126,7 @@ class InputManager {
       "W",
       "s",
       "S",
-      "z",
-      "Z",
-      "x",
-      "X",
-      "r",
-      "R",
       "Shift",
-      "p",
     ];
 
     return gameKeys.includes(key);
