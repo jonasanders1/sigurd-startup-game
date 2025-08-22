@@ -1,133 +1,155 @@
-export class InputManager {
-  private keys: Set<string> = new Set();
-  private keyPressTimes: Map<string, number> = new Map();
-  private touchControls = {
-    left: false,
-    right: false,
-    up: false,
-    float: false,
-  };
+import { useGameStore } from '../stores/gameStore';
+import { InputKey, GameState } from '../types/enums';
 
-  // Store bound event handlers for proper cleanup
-  private boundKeyDownHandler: (event: KeyboardEvent) => void;
-  private boundKeyUpHandler: (event: KeyboardEvent) => void;
-  private boundPreventDefaultHandler: (event: KeyboardEvent) => void;
-  private boundWindowBlurHandler: () => void;
-  private boundWindowFocusHandler: () => void;
-
-  constructor() {
-    // Bind event handlers once and store them
-    this.boundKeyDownHandler = this.handleKeyDown.bind(this);
-    this.boundKeyUpHandler = this.handleKeyUp.bind(this);
-    this.boundPreventDefaultHandler = (e: KeyboardEvent) => {
-      if (
-        [
-          "ArrowLeft",
-          "ArrowRight",
-          "ArrowUp",
-          "ArrowDown",
-          "Space",
-          " ",
-          "p",
-          "P",
-        ].includes(e.key)
-      ) {
-        e.preventDefault();
-      }
-    };
-    this.boundWindowBlurHandler = this.handleWindowBlur.bind(this);
-    this.boundWindowFocusHandler = this.handleWindowFocus.bind(this);
-
-    this.bindEvents();
+class InputManager {
+  private keysPressed: Set<string> = new Set();
+  private store = useGameStore.getState();
+  private initialized = false;
+  
+  initialize() {
+    if (this.initialized) return;
+    
+    // Add keyboard event listeners
+    window.addEventListener('keydown', this.handleKeyDown.bind(this));
+    window.addEventListener('keyup', this.handleKeyUp.bind(this));
+    window.addEventListener('blur', this.handleBlur.bind(this));
+    
+    this.initialized = true;
   }
-
-  private bindEvents() {
-    document.addEventListener("keydown", this.boundKeyDownHandler);
-    document.addEventListener("keyup", this.boundKeyUpHandler);
-    document.addEventListener("keydown", this.boundPreventDefaultHandler);
-    window.addEventListener("blur", this.boundWindowBlurHandler);
-    window.addEventListener("focus", this.boundWindowFocusHandler);
+  
+  destroy() {
+    window.removeEventListener('keydown', this.handleKeyDown.bind(this));
+    window.removeEventListener('keyup', this.handleKeyUp.bind(this));
+    window.removeEventListener('blur', this.handleBlur.bind(this));
+    
+    this.keysPressed.clear();
+    this.initialized = false;
   }
-
-  private handleWindowBlur(): void {
-    // Clear all keys when window loses focus to prevent stuck keys
-    this.keys.clear();
-    this.keyPressTimes.clear();
-  }
-
-  private handleWindowFocus(): void {
-    // Reset touch controls when window regains focus
-    this.touchControls = {
-      left: false,
-      right: false,
-      up: false,
-      float: false,
-    };
-  }
-
-  isKeyPressed(key: string): boolean {
-    return this.keys.has(key) || this.getTouchControl(key);
-  }
-
-  isShiftPressed(): boolean {
-    return this.keys.has("Shift");
-  }
-
-  getKeyPressDuration(key: string): number {
-    const startTime = this.keyPressTimes.get(key);
-    if (startTime && this.keys.has(key)) {
-      return Date.now() - startTime;
+  
+  private handleKeyDown(event: KeyboardEvent) {
+    // Prevent default for game keys
+    if (this.isGameKey(event.key)) {
+      event.preventDefault();
     }
-    return 0;
+    
+    // Track key state
+    this.keysPressed.add(event.key);
+    
+    // Update store based on key
+    this.updateInputState(event.key, true);
   }
-
-  // Method to reset stuck keys (call this when game state changes)
-  resetStuckKeys(): void {
-    this.keys.clear();
-    this.keyPressTimes.clear();
+  
+  private handleKeyUp(event: KeyboardEvent) {
+    // Remove from pressed keys
+    this.keysPressed.delete(event.key);
+    
+    // Update store based on key
+    this.updateInputState(event.key, false);
   }
-
-  private getTouchControl(key: string): boolean {
+  
+  private handleBlur() {
+    // Clear all keys when window loses focus
+    this.keysPressed.clear();
+    this.store.clearInput();
+  }
+  
+  private updateInputState(key: string, pressed: boolean) {
+    this.store = useGameStore.getState();
+    
     switch (key) {
-      case "ArrowLeft":
-        return this.touchControls.left;
-      case "ArrowRight":
-        return this.touchControls.right;
-      case "ArrowUp":
-        return this.touchControls.up;
-      case " ":
-      case "Space":
-        return this.touchControls.float;
-      default:
-        return false;
+      // Left movement - A or Arrow Left
+      case 'a':
+      case 'A':
+      case InputKey.LEFT:
+        this.store.setInput('left', pressed);
+        break;
+        
+      // Right movement - D or Arrow Right  
+      case 'd':
+      case 'D':
+      case InputKey.RIGHT:
+        this.store.setInput('right', pressed);
+        break;
+        
+      // Jump - W or Arrow Up
+      case 'w':
+      case 'W':
+      case InputKey.UP:
+        this.store.setInput('jump', pressed);
+        break;
+        
+      // Fast Fall - S or Arrow Down
+      case 's':
+      case 'S':
+      case InputKey.DOWN:
+        this.store.setInput('fastFall', pressed);
+        break;
+        
+      // Super Jump - Shift
+      case 'Shift':
+        this.store.setInput('superJump', pressed);
+        break;
+        
+      // Float - Space or Z
+      case InputKey.SPACE:
+      case 'z':
+      case 'Z':
+        this.store.setInput('float', pressed);
+        break;
+        
+      case InputKey.ENTER:
+      case 'x':
+      case 'X':
+        this.store.setInput('float', pressed);
+        break;
+        
+      case InputKey.ESCAPE:
+      case InputKey.P:
+      case 'p':
+        if (pressed) {
+          this.handlePause();
+        }
+        break;
+        
+      case InputKey.R:
+      case 'r':
+        if (pressed) {
+          this.store.setInput('restart', pressed);
+        }
+        break;
     }
   }
-
-  private handleKeyDown(event: KeyboardEvent): void {
-    if (!this.keys.has(event.key)) {
-      this.keyPressTimes.set(event.key, Date.now());
+  
+  private handlePause() {
+    const { currentState, setState } = useGameStore.getState();
+    
+    if (currentState === GameState.PLAYING) {
+      setState(GameState.PAUSED);
+    } else if (currentState === GameState.PAUSED) {
+      setState(GameState.PLAYING);
     }
-    this.keys.add(event.key);
   }
-
-  private handleKeyUp(event: KeyboardEvent): void {
-    this.keys.delete(event.key);
-    this.keyPressTimes.delete(event.key);
+  
+  private isGameKey(key: string): boolean {
+    const gameKeys = [
+      InputKey.LEFT, InputKey.RIGHT, InputKey.UP, InputKey.DOWN,
+      InputKey.SPACE, InputKey.ENTER, InputKey.ESCAPE, InputKey.P,
+      'a', 'A', 'd', 'D', 'w', 'W', 's', 'S', 'z', 'Z', 'x', 'X', 'r', 'R',
+      'Shift', 'p'
+    ];
+    
+    return gameKeys.includes(key);
   }
-
-  // Touch controls for mobile
-  setTouchControl(
-    control: keyof typeof this.touchControls,
-    pressed: boolean
-  ): void {
-    this.touchControls[control] = pressed;
+  
+  isKeyPressed(key: string): boolean {
+    return this.keysPressed.has(key);
   }
-
-  cleanup(): void {
-    document.removeEventListener("keydown", this.boundKeyDownHandler);
-    document.removeEventListener("keyup", this.boundKeyUpHandler);
-    document.removeEventListener("keydown", this.boundPreventDefaultHandler);
-    window.removeEventListener("blur", this.boundWindowBlurHandler);
-    window.removeEventListener("focus", this.boundWindowFocusHandler);
+  
+  clearKeys() {
+    this.keysPressed.clear();
+    this.store.clearInput();
   }
 }
+
+// Export singleton instance
+export const inputManager = new InputManager();

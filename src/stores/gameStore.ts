@@ -20,6 +20,7 @@ import {
   FloatingTextSlice,
   createFloatingTextSlice,
 } from "./slices/floatingTextSlice";
+import { InputSlice, createInputSlice } from "./slices/inputSlice";
 import { MapDefinition } from "../types/interfaces";
 import { CoinManager } from "../managers/coinManager";
 
@@ -32,7 +33,8 @@ interface GameStore
     MultiplierSlice,
     AudioSettingsSlice,
     CoinSlice,
-    FloatingTextSlice {
+    FloatingTextSlice,
+    InputSlice {
   resetGame: () => void;
   initializeLevel: (mapData: MapDefinition) => {
     bombManager: any;
@@ -54,6 +56,7 @@ export const useGameStore = create<GameStore>((set, get, api) => {
   const audioSettingsSlice = createAudioSettingsSlice(set, get, api);
   const coinSlice = createCoinSlice(set, get, api);
   const floatingTextSlice = createFloatingTextSlice(set, get, api);
+  const inputSlice = createInputSlice(set, get, api);
 
   return {
     ...playerSlice,
@@ -65,6 +68,7 @@ export const useGameStore = create<GameStore>((set, get, api) => {
     ...audioSettingsSlice,
     ...coinSlice,
     ...floatingTextSlice,
+    ...inputSlice,
 
     resetGame: () => {
       get().resetGameState();
@@ -77,6 +81,7 @@ export const useGameStore = create<GameStore>((set, get, api) => {
       get().resetCoinState();
       get().resetEffects();
       get().clearAllFloatingTexts();
+      get().resetInput();
     },
 
     // Override initializeLevel to handle the full game initialization
