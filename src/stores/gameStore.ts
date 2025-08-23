@@ -23,6 +23,7 @@ import {
 import { InputSlice, createInputSlice } from "./slices/inputSlice";
 import { MapDefinition } from "../types/interfaces";
 import { CoinManager } from "../managers/coinManager";
+import { mapDefinitions } from "../maps/mapDefinitions";
 
 interface GameStore
   extends PlayerSlice,
@@ -71,6 +72,7 @@ export const useGameStore = create<GameStore>((set, get, api) => {
     ...inputSlice,
 
     resetGame: () => {
+      // Reset all state slices
       get().resetGameState();
       get().resetPlayer();
       get().resetBombState();
@@ -82,6 +84,13 @@ export const useGameStore = create<GameStore>((set, get, api) => {
       get().resetEffects();
       get().clearAllFloatingTexts();
       get().resetInput();
+      
+      // After resetting everything, load the first level
+      // This ensures the game is in a playable state with the first map loaded
+      const firstMap = mapDefinitions[0];
+      if (firstMap) {
+        get().initializeLevel(firstMap);
+      }
     },
 
     // Override initializeLevel to handle the full game initialization

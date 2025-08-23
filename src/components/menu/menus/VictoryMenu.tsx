@@ -1,14 +1,20 @@
 import React from "react";
 
 import { useGameStore } from "../../../stores/gameStore";
+import { GameState, MenuType } from "../../../types/enums";
 
 import { Home, RotateCcw, Trophy } from "lucide-react";
 
 const VictoryMenu: React.FC = () => {
-  const { score, resetGame } = useGameStore();
+  const { score, resetGame, setState, setMenuType } = useGameStore();
 
   const handleRestart = () => {
+    // Reset the game (this now also loads the first level)
     resetGame();
+    
+    // Return to the start menu
+    setState(GameState.MENU);
+    setMenuType(MenuType.START);
   };
 
   return (
