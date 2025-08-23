@@ -215,10 +215,10 @@ export class GameStateManager {
       case GameState.PLAYING:
         // Resume all managers when playing
         if (!this.scalingManager.isCurrentlyPausedByPowerMode()) {
-          this.scalingManager.resume();
+          this.scalingManager.resume("game_paused");
         }
         this.scalingManager.resumeAllMonsterScaling();
-        this.monsterSpawnManager.resume();
+        this.monsterSpawnManager.resume("game_paused");
         this.monsterRespawnManager.resume();
 
         // Resume coin manager
@@ -226,29 +226,28 @@ export class GameStateManager {
           gameState.coinManager.resume();
         }
         
-        log.audio("Game playing, all managers resumed");
+        // Resume all audio
+        this.audioManager.resumeAll();
+        
+        log.audio("Game playing, all managers and audio resumed");
         break;
 
       case GameState.PAUSED:
         // Pause all managers when paused
-        this.scalingManager.pause();
+        this.scalingManager.pause("game_paused");
         this.scalingManager.pauseAllMonsterScaling();
-        this.monsterSpawnManager.pause();
+        this.monsterSpawnManager.pause("game_paused");
         this.monsterRespawnManager.pause();
 
-        // Pause coin manager
+        // Pause coin manager (this handles power-up pause correctly)
         if (gameState.coinManager) {
           gameState.coinManager.pause();
         }
 
-        // Stop power-up melody when paused
-        if (this.audioManager.isPowerUpMelodyActive()) {
-          log.audio("Game paused, stopping PowerUp melody");
-          this.audioManager.stopPowerUpMelody();
-          this.isBackgroundMusicPlaying = false;
-        }
+        // Pause all audio (including background music and power-up melodies)
+        this.audioManager.pauseAll();
         
-        log.audio("Game paused, all managers paused");
+        log.audio("Game paused, all managers and audio paused");
         break;
 
       case GameState.COUNTDOWN:

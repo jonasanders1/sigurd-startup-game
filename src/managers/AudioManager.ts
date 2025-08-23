@@ -20,6 +20,11 @@ export class AudioManager {
   private powerUpMelodyActive = false;
   private powerUpMelodyTimeout: NodeJS.Timeout | null = null;
   private powerUpMelodyOscillators: AudioScheduledSourceNode[] = [];
+  
+  // Pause state tracking
+  private pausedAt: number = 0;
+  private backgroundMusicPosition: number = 0;
+  private wasPlayingBeforePause: boolean = false;
 
   constructor() {
     this.initializeAudioContext();
@@ -541,5 +546,44 @@ export class AudioManager {
       timeoutId: this.powerUpMelodyTimeout,
       backgroundMusicPlaying: this._isBackgroundMusicPlaying,
     };
+  }
+
+  // Add public method to pause all audio
+  public pauseAll(): void {
+    if (!this.audioContext) return;
+    
+    // Suspend the audio context to pause all audio
+    if (this.audioContext.state === 'running') {
+      this.pausedAt = this.audioContext.currentTime;
+      
+      // Track background music position if playing
+      if (this._isBackgroundMusicPlaying && this.backgroundMusicSource) {
+        this.backgroundMusicPosition = (this.audioContext.currentTime % (this.backgroundMusicBuffer?.duration || 0));
+        this.wasPlayingBeforePause = true;
+      }
+      
+      this.audioContext.suspend();
+      log.audio("All audio paused (context suspended)");
+    }
+  }
+  
+  // Add public method to resume all audio
+  public resumeAll(): void {
+    if (!this.audioContext) return;
+    
+    // Resume the audio context
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume().then(() => {
+        log.audio("All audio resumed (context running)");
+        
+        // If background music was playing before pause and should still be playing, restart it from position
+        if (this.wasPlayingBeforePause && this._isBackgroundMusicPlaying && !this.powerUpMelodyActive) {
+          // The background music will continue automatically since we're just resuming the context
+          log.audio("Background music resumed from pause");
+        }
+        
+        this.wasPlayingBeforePause = false;
+      });
+    }
   }
 }
