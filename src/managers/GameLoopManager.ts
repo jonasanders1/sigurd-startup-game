@@ -90,6 +90,11 @@ export class GameLoopManager {
       this.updatePlaying(deltaTime);
     } else if (gameState.currentState === GameState.MAP_CLEARED) {
       this.updateMapCleared(deltaTime);
+    } else if (gameState.currentState === GameState.BONUS) {
+      // Call the update callback during BONUS state to allow checking for bonus animation completion
+      if (this.onUpdate) {
+        this.onUpdate(deltaTime);
+      }
     }
 
     this.render();
