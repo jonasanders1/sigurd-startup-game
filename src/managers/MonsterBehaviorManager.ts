@@ -1,11 +1,11 @@
-import { Monster } from "../types/interfaces";
-import { MonsterType } from "../types/enums";
-import { 
-  PatrolMovement,
-  ChaserMovement,
-  AmbusherMovement,
-  FloaterMovement
-} from "./monster-movements";
+import { Monster, MonsterType } from "../types/interfaces";
+import { PatrolMovement } from "./monster-movements/PatrolMovement";
+import { ChaserMovement } from "./monster-movements/ChaserMovement";
+import { FloaterMovement } from "./monster-movements/FloaterMovement";
+import { VerticalPatrolMovement } from "./monster-movements/VerticalPatrolMovement";
+import { HorizontalPatrolMovement } from "./monster-movements/HorizontalPatrolMovement";
+import { AmbusherMovement } from "./monster-movements/AmbusherMovement";
+import { useMonsterStore } from "../stores/entities/monsterStore";
 import { MovementUtils } from "./monster-movements/MovementUtils";
 
 export class MonsterBehaviorManager {
@@ -22,9 +22,10 @@ export class MonsterBehaviorManager {
   }
 
   public updateMonsterBehaviors(currentTime: number, gameState: any, deltaTime?: number): void {
-    if (!gameState.monsters) return;
+    const monsterStore = useMonsterStore.getState();
+    if (!monsterStore.monsters) return;
 
-    gameState.monsters.forEach((monster: Monster) => {
+    monsterStore.monsters.forEach((monster: Monster) => {
       if (!monster.isActive || monster.isFrozen) return;
 
       switch (monster.type) {

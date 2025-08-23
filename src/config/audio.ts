@@ -1,15 +1,23 @@
 /**
- * Audio configuration
- * Contains default audio settings and volume configurations
+ * Audio Configuration
+ * Centralized configuration for all audio settings including volumes and mute states
  */
 
-import { AudioSettings } from "@/stores/slices/audioSettingsSlice";
+// Define AudioSettings interface locally
+export interface AudioSettings {
+  masterVolume: number;
+  masterMuted: boolean;
+  musicVolume: number;
+  musicMuted: boolean;
+  sfxVolume: number;
+  sfxMuted: boolean;
+}
 
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   masterVolume: 50,
-  musicVolume: 80,
-  sfxVolume: 10,
   masterMuted: false,
+  musicVolume: 30,
   musicMuted: false,
+  sfxVolume: 70,
   sfxMuted: false,
 };

@@ -10,6 +10,14 @@ import {
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { ScalingManager } from "../managers/ScalingManager";
+import { log } from "../lib/logger";
+import { useMonsterStore } from "../stores/entities/monsterStore";
+import { usePlayerStore } from "../stores/entities/playerStore";
+
+// Define the GameStateInterface for backward compatibility
+interface GameStateInterface {
+  [key: string]: any;
+}
 
 // Define coin effects
 export const COIN_EFFECTS = {
@@ -18,7 +26,7 @@ export const COIN_EFFECTS = {
     duration: GAME_CONFIG.POWER_COIN_DURATION as number, // Default duration (will be overridden)
     points: GAME_CONFIG.POWER_COIN_POINTS,
     apply: (gameState: GameStateInterface, coin?: any) => {
-      // Calculate duration based on coin color if available
+      // Dynamic duration based on coin spawn time if available
       let duration: number = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
 
       if (coin && coin.spawnTime !== undefined) {
@@ -41,8 +49,9 @@ export const COIN_EFFECTS = {
       }
 
       // Freeze monsters (safely handle undefined monsters)
-      if (gameState.monsters && Array.isArray(gameState.monsters)) {
-        gameState.monsters.forEach((monster) => {
+      const monsterStore = useMonsterStore.getState();
+      if (monsterStore.monsters && Array.isArray(monsterStore.monsters)) {
+        monsterStore.monsters.forEach((monster) => {
           monster.isFrozen = true;
         });
       }
@@ -88,8 +97,9 @@ export const COIN_EFFECTS = {
       }
       
       // Unfreeze monsters (safely handle undefined monsters)
-      if (gameState.monsters && Array.isArray(gameState.monsters)) {
-        gameState.monsters.forEach((monster) => {
+      const monsterStore = useMonsterStore.getState();
+      if (monsterStore.monsters && Array.isArray(monsterStore.monsters)) {
+        monsterStore.monsters.forEach((monster) => {
           monster.isFrozen = false;
         });
       }
@@ -307,10 +317,16 @@ export const COIN_TYPES = {
       type: 'SPEED_BOOST',
       duration: 3000,
       apply: (gameState: GameStateInterface) => {
-        gameState.player.moveSpeed *= 1.5;
+        const playerStore = usePlayerStore.getState();
+        const updatedPlayer = { ...playerStore.player };
+        updatedPlayer.moveSpeed *= 1.5;
+        playerStore.updatePlayer(updatedPlayer);
       },
       remove: (gameState: GameStateInterface) => {
-        gameState.player.moveSpeed /= 1.5;
+        const playerStore = usePlayerStore.getState();
+        const updatedPlayer = { ...playerStore.player };
+        updatedPlayer.moveSpeed /= 1.5;
+        playerStore.updatePlayer(updatedPlayer);
       }
     }],
     spawnCondition: (gameState: GameStateInterface) => gameState.score % 3000 === 0

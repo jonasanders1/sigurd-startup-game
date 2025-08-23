@@ -224,8 +224,8 @@ export class LevelManager {
       scoreStore.addScore(bonusPoints);
 
       // Notify coin manager about bonus points
-      if (gameState.coinManager) {
-        gameState.coinManager.onPointsEarned(bonusPoints, true);
+      if (coinStore.coinManager) {
+        coinStore.coinManager.onPointsEarned(bonusPoints, true);
       }
     } else {
       // No bonus, go directly to next level

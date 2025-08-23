@@ -1,9 +1,11 @@
 import { Monster, isChaserMonster } from "../../types/interfaces";
 import { useGameStore } from "../../stores/gameStore";
 import { usePlayerStore } from "../../stores/entities/playerStore";
+import { useLevelStore } from "../../stores/game/levelStore";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
+import { DEV_CONFIG, GAME_CONFIG } from "../../types/constants";
 
 export class ChaserMovement {
   public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
@@ -52,7 +54,9 @@ export class ChaserMovement {
       monster.lastDirectionChange = currentTime + Math.random() * valuesToUse.chaser.updateInterval;
     }
 
-    const platforms = gameState.platforms || [];
+    const levelStore = useLevelStore.getState();
+    const platforms = levelStore.currentMap?.platforms || [];
+    const ground = levelStore.currentMap?.ground;
     // Apply individual multipliers to values to preserve difficulty scaling
     const directness = valuesToUse.chaser.directness * ((monster as any).directnessMultiplier || 1);
     const updateInterval = valuesToUse.chaser.updateInterval * ((monster as any).updateIntervalMultiplier || 1);
@@ -98,7 +102,7 @@ export class ChaserMovement {
       const moveX = Math.sign(dx) * frameSpeed;
       const moveY = Math.sign(dy) * frameSpeed;
       
-      this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, gameState.ground);
+      this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, ground);
     } else if (distance > 5) {
       // When close to target, use slower, smoother movement to prevent jittering
       const individualSpeed = valuesToUse.chaser.speed * ((monster as any).speedMultiplier || 1) * 0.5; // Half speed when close
@@ -106,7 +110,7 @@ export class ChaserMovement {
       const moveX = Math.sign(dx) * frameSpeed;
       const moveY = Math.sign(dy) * frameSpeed;
       
-      this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, gameState.ground);
+      this.applyMovement(monster, moveX, moveY, targetX, targetY, platforms, ground);
     }
     // If distance <= 5, don't move at all to prevent jittering
   }

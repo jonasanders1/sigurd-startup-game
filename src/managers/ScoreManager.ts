@@ -30,10 +30,10 @@ export class ScoreManager {
   }
 
   public calculateMonsterKillPoints(multiplier: number): number {
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
-    if (gameState.coinManager) {
-      return gameState.coinManager.calculateMonsterKillPoints(multiplier);
+    if (coinStore.coinManager) {
+      return coinStore.coinManager.calculateMonsterKillPoints(multiplier);
     }
     
     // Fallback if coin manager not available
@@ -77,7 +77,7 @@ export class ScoreManager {
 
   public handleMonsterKill(monster: any): void {
     const scoreStore = useScoreStore.getState();
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
     // Calculate points using progressive bonus system
     const points = this.calculateMonsterKillPoints(scoreStore.multiplier);
@@ -91,21 +91,21 @@ export class ScoreManager {
     );
 
     // Notify coin manager about points earned
-    if (gameState.coinManager) {
-      gameState.coinManager.onPointsEarned(points, false);
+    if (coinStore.coinManager) {
+      coinStore.coinManager.onPointsEarned(points, false);
     }
 
     log.debug(`Monster killed during power mode: ${points} points`);
   }
 
   public handleBonusPoints(bonusPoints: number): void {
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
     this.addScore(bonusPoints);
     
     // Notify coin manager about bonus points (should not trigger B-coin spawning)
-    if (gameState.coinManager) {
-      gameState.coinManager.onPointsEarned(bonusPoints, true);
+    if (coinStore.coinManager) {
+      coinStore.coinManager.onPointsEarned(bonusPoints, true);
     }
   }
 

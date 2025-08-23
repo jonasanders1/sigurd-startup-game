@@ -74,14 +74,15 @@ export class OptimizedSpawnManager {
   }
 
   // ===== UPDATE LOOP =====
-  public update(currentTime: number, deltaTime?: number): void {
-    // Don't update if paused
-    if (this.pauseState.isPaused) {
-      return;
-    }
-
-    const gameState = useGameStore.getState();
+  public update(deltaTime: number): Monster[] {
+    const monsterStore = useMonsterStore.getState();
     const adjustedTime = this.getAdjustedTime();
+    
+    // Only spawn if we're not paused and haven't reached max active monsters
+    const activeCount = this.activeMonsters.size;
+    if (this.isPaused || activeCount >= this.maxActiveMonsters) {
+      return [];
+    }
     
     // Debug: Log that update is being called (every 5 seconds)
     if (Math.floor(adjustedTime / 5000) !== Math.floor((adjustedTime - 16) / 5000)) {
@@ -89,15 +90,17 @@ export class OptimizedSpawnManager {
     }
     
     // Process spawns every frame (no throttling for spawn timing)
-    this.processSpawns(currentTime, gameState);
+    const newMonsters = this.processSpawns();
     
     // Update behaviors every frame for smooth movement (only if there are active monsters)
-    if (gameState.monsters.some(m => m.isActive)) {
-      this.behaviorManager.updateMonsterBehaviors(currentTime, gameState, deltaTime);
+    if (monsterStore.monsters.some(m => m.isActive)) {
+      this.behaviorManager.updateMonsterBehaviors(Date.now(), monsterStore, deltaTime);
     }
+    
+    return newMonsters;
   }
 
-  private processSpawns(currentTime: number, gameState: any): void {
+  private processSpawns(): Monster[] {
     const adjustedTime = this.getAdjustedTime();
     const adjustedAbsoluteTime = this.getAdjustedAbsoluteTime();
     const spawnsToExecute: ScheduledSpawn[] = [];
@@ -128,11 +131,12 @@ export class OptimizedSpawnManager {
     // Execute spawns in batch
     if (spawnsToExecute.length > 0) {
       logger.info(`Executing ${spawnsToExecute.length} spawns at ${(adjustedTime / 1000).toFixed(1)}s`);
-      this.executeSpawns(spawnsToExecute, currentTime, gameState);
+      return this.executeSpawns(spawnsToExecute);
     }
+    return [];
   }
 
-  private executeSpawns(spawns: ScheduledSpawn[], currentTime: number, gameState: any): void {
+  private executeSpawns(spawns: ScheduledSpawn[]): Monster[] {
     const spawnedMonsters: Monster[] = [];
 
     for (const spawn of spawns) {
@@ -149,9 +153,10 @@ export class OptimizedSpawnManager {
 
     // Batch update game state
     if (spawnedMonsters.length > 0) {
-      this.addMonstersToGameState(spawnedMonsters, gameState);
+      this.addMonstersToGameState(spawnedMonsters);
       logger.debug(`Added ${spawnedMonsters.length} monsters to game state`);
     }
+    return spawnedMonsters;
   }
 
   private createMonster(spawnPoint: MonsterSpawnPoint): Monster {
@@ -169,13 +174,14 @@ export class OptimizedSpawnManager {
     return monster;
   }
 
-  private addMonstersToGameState(monsters: Monster[], gameState: any): void {
-    if (gameState.updateMonsters) {
-      const currentMonsters = gameState.monsters || [];
+  private addMonstersToGameState(monsters: Monster[]): void {
+    const monsterStore = useMonsterStore.getState();
+    if (monsterStore.updateMonsters) {
+      const currentMonsters = monsterStore.monsters || [];
       const updatedMonsters = [...currentMonsters, ...monsters];
-      gameState.updateMonsters(updatedMonsters);
+      monsterStore.updateMonsters(updatedMonsters);
     } else {
-      logger.warn("Game state updateMonsters method is not available");
+      logger.warn("updateMonsters not available in monster store");
     }
   }
 

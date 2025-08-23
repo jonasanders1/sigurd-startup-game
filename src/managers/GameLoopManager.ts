@@ -20,6 +20,8 @@ import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 import type { CollisionManager } from "./CollisionManager";
 import type { AnimationController } from "../lib/AnimationController";
 import { playerSprite } from "../entities/Player";
+import { useScoreStore } from "../stores/game/scoreStore";
+import { useRenderStore } from "../stores/game/renderStore";
 
 export class GameLoopManager {
   private animationFrameId: number | null = null;
@@ -199,13 +201,25 @@ export class GameLoopManager {
   }
 
   private updateCoins(deltaTime: number): void {
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     const levelStore = useLevelStore.getState();
+    const scoreStore = useScoreStore.getState();
+    const stateStore = useStateStore.getState();
+    const renderStore = useRenderStore.getState();
     const platforms = levelStore.currentMap?.platforms || [];
     const ground = levelStore.currentMap?.ground;
 
-    if (gameState.coinManager) {
-      gameState.coinManager.update(deltaTime, platforms, ground);
+    if (coinStore.coinManager) {
+      // Create a gameState object for backward compatibility with coinManager
+      const gameState = {
+        multiplier: scoreStore.multiplier,
+        totalBonusMultiplierCoinsCollected: coinStore.totalBonusMultiplierCoinsCollected,
+        addFloatingText: renderStore.addFloatingText,
+        audioManager: stateStore.audioManager || null,
+        activeEffects: coinStore.activeEffects
+      };
+      
+      coinStore.coinManager.update(deltaTime, platforms, ground, gameState);
     }
   }
 
@@ -214,13 +228,13 @@ export class GameLoopManager {
     const monsterStore = useMonsterStore.getState();
     const stateStore = useStateStore.getState();
     const levelStore = useLevelStore.getState();
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
     this.renderManager.render(
       playerStore.player,
       monsterStore.monsters,
       stateStore.bombs,
-      gameState.coins || [],
+      coinStore.coins || [],
       levelStore.currentMap
     );
   }

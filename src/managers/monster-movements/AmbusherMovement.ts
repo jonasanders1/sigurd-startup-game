@@ -3,6 +3,7 @@ import { GAME_CONFIG } from "../../types/constants";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
+import { useLevelStore } from "../../stores/game/levelStore";
 
 export class AmbusherMovement {
   public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
@@ -35,7 +36,9 @@ export class AmbusherMovement {
       monster.ambushCooldown = 2000; // Start with 2 second delay
     }
 
-    const platforms = gameState.platforms || [];
+    const levelStore = useLevelStore.getState();
+    const platforms = levelStore.currentMap?.platforms || [];
+    const ground = levelStore.currentMap?.ground;
 
     if (monster.behaviorState === "wandering") {
       // Initialize current wandering direction if not set
@@ -72,7 +75,7 @@ export class AmbusherMovement {
         const newY = monster.y + frameSpeed * normY;
 
         // Check if new position is safe (platforms, boundaries, and ground)
-        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, gameState.ground)) {
+        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, ground)) {
           monster.x = newX;
           monster.y = newY;
         } else {
@@ -118,7 +121,7 @@ export class AmbusherMovement {
         const newY = monster.y + frameSpeed * normY;
 
         // Check if movement is safe (platforms, boundaries, and ground)
-        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, gameState.ground)) {
+        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, ground)) {
           monster.x = newX;
           monster.y = newY;
         } else {

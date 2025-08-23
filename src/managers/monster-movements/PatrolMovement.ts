@@ -67,7 +67,8 @@ export class PatrolMovement {
       monster.isGrounded = true;
     } else {
       // Check ground collision if not on platform
-      this.handleGroundCollision(monster, gameState.ground);
+      const levelStore = useLevelStore.getState();
+      this.handleGroundCollision(monster, levelStore.currentMap?.ground);
     }
   }
 
