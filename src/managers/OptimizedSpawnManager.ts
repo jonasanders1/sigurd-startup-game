@@ -1,6 +1,7 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
 import { logger } from "../lib/logger";
 import { useGameStore } from "../stores/gameStore";
+import { useMonsterStore } from "../stores/entities/monsterStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
 
 interface ScheduledSpawn {
@@ -227,11 +228,12 @@ export class OptimizedSpawnManager {
   public removeMonster(monster: Monster): void {
     monster.isActive = false;
 
-    const gameState = useGameStore.getState();
-    if (gameState.updateMonsters) {
-      const currentMonsters = gameState.monsters || [];
-      const updatedMonsters = currentMonsters.filter((m) => m !== monster);
-      gameState.updateMonsters(updatedMonsters);
+    const monsterStore = useMonsterStore.getState();
+    if (monsterStore.updateMonsters) {
+      const currentMonsters = monsterStore.monsters || [];
+      monsterStore.updateMonsters(
+        currentMonsters.filter((m) => m.id !== monster.id)
+      );
     }
   }
 

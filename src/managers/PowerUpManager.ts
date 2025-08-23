@@ -1,114 +1,118 @@
 import { useGameStore } from "../stores/gameStore";
+import { useCoinStore } from "../stores/entities/coinStore";
+import { useMonsterStore } from "../stores/entities/monsterStore";
+import { useAudioStore } from "../stores/systems/audioStore";
 import { AudioEvent } from "../types/enums";
 import { DEV_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 import type { AudioManager } from "./AudioManager";
-import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 import type { ScoreManager } from "./ScoreManager";
 
 export class PowerUpManager {
   private audioManager: AudioManager;
-  private monsterRespawnManager: OptimizedRespawnManager;
   private scoreManager: ScoreManager;
 
-  constructor(
-    audioManager: AudioManager,
-    monsterRespawnManager: OptimizedRespawnManager,
-    scoreManager: ScoreManager
-  ) {
+  constructor(audioManager: AudioManager, scoreManager: ScoreManager) {
     this.audioManager = audioManager;
-    this.monsterRespawnManager = monsterRespawnManager;
     this.scoreManager = scoreManager;
   }
 
+  public stopPowerUpMelodyIfActive(): void {
+    this.audioManager.stopAudio(AudioEvent.POWERUP_MELODY);
+  }
+
   public handlePowerCoinCollection(coin: any): void {
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
     // Activate power mode
-    if (coin.type === "POWER") {
-      this.audioManager.playSound(AudioEvent.POWER_COIN_ACTIVATE);
-    }
+    coinStore.activatePowerMode();
+    this.audioManager.playSound(AudioEvent.POWERUP_MELODY);
+    log.game("Power mode activated!");
   }
 
   public handleMonsterCollisionDuringPowerMode(monster: any): void {
-    const gameState = useGameStore.getState();
+    const monsterStore = useMonsterStore.getState();
     
     // Monster is killed during power mode
+    monsterStore.removeMonster(monster.id);
+    
+    // Score is handled by ScoreManager
     this.scoreManager.handleMonsterKill(monster);
     
-    // Play monster kill sound
-    this.audioManager.playSound(AudioEvent.COIN_COLLECT);
+    // Play kill sound
+    this.audioManager.playSound(AudioEvent.MONSTER_KILL);
     
-    // Kill the monster and schedule for respawn
-    this.monsterRespawnManager.killMonster(monster);
+    log.debug(`Monster ${monster.id} killed during power mode`);
   }
 
-  public isGodModeEnabled(): boolean {
-    return DEV_CONFIG.GOD_MODE;
+  public handlePowerModeExpiration(): void {
+    this.audioManager.stopAudio(AudioEvent.POWERUP_MELODY);
+    log.game("Power mode expired");
   }
 
   public isPowerModeActive(): boolean {
-    const gameState = useGameStore.getState();
-    return gameState.activeEffects.powerMode;
+    const coinStore = useCoinStore.getState();
+    return coinStore.activeEffects.powerMode;
   }
 
   public getPowerModeEndTime(): number {
-    const gameState = useGameStore.getState();
-    return gameState.activeEffects.powerModeEndTime;
+    const coinStore = useCoinStore.getState();
+    return coinStore.activeEffects.powerModeEndTime;
   }
 
-  public getPowerModeTimeLeft(): number {
+  public updatePowerModeState(currentTime: number): void {
+    // Check if power mode should expire
+    if (this.isPowerModeActive()) {
+      const endTime = this.getPowerModeEndTime();
+      
+      if (currentTime >= endTime) {
+        this.handlePowerModeExpiration();
+        // The coin store will handle deactivating power mode
+      }
+      
+      // Log remaining time in dev mode
+      if (DEV_CONFIG.LOG_POWERUP_STATUS) {
+        const remaining = Math.max(0, endTime - currentTime);
+        log.debug(`Power mode remaining: ${(remaining / 1000).toFixed(1)}s`);
+      }
+    }
+  }
+
+  public canCollectCoinDuringPowerMode(): boolean {
+    // Power coins can be collected during power mode
+    // This extends the power mode duration
+    return true;
+  }
+
+  public getTimeUntilPowerModeEnds(): number {
+    if (!this.isPowerModeActive()) {
+      return 0;
+    }
+    
     const endTime = this.getPowerModeEndTime();
-    if (endTime > 0) {
-      return Math.max(0, endTime - Date.now());
-    }
-    return 0;
-  }
-
-  public stopPowerUpMelody(): void {
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-  }
-
-  public handlePlayerDeath(): void {
-    // Stop power-up melody if active when player dies
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Player died during power mode, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
-  }
-
-  public handleLevelTransition(): void {
-    // Stop power-up melody on level transition
-    if (this.audioManager.isPowerUpMelodyActive()) {
-      log.audio("Level transition, stopping PowerUp melody");
-      this.audioManager.stopPowerUpMelody();
-    }
+    const remaining = Math.max(0, endTime - Date.now());
+    return remaining;
   }
 
   public resetEffects(): void {
-    const gameState = useGameStore.getState();
-    gameState.resetEffects();
+    const coinStore = useCoinStore.getState();
+    coinStore.resetEffects();
   }
 
   public getPowerUpStatus(): any {
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
     return {
-      powerUpMelody: this.audioManager.getPowerUpMelodyStatus(),
-      powerMode: {
-        isActive: this.isPowerModeActive(),
-        endTime: this.getPowerModeEndTime(),
-        timeLeft: this.getPowerModeTimeLeft(),
-      },
-      coinManager: gameState.coinManager
-        ? {
-            powerModeActive: gameState.coinManager.isPowerModeActive(),
-            powerModeEndTime: gameState.coinManager.getPowerModeEndTime(),
-          }
-        : null,
+      powerMode: coinStore.activeEffects.powerMode,
+      powerModeEndTime: coinStore.activeEffects.powerModeEndTime,
+      timeRemaining: this.getTimeUntilPowerModeEnds(),
     };
+  }
+
+  public debugLogStatus(): void {
+    if (DEV_CONFIG.LOG_POWERUP_STATUS) {
+      const status = this.getPowerUpStatus();
+      log.debug("Power-up Status:", status);
+    }
   }
 }

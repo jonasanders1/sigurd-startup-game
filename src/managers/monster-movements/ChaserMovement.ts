@@ -1,5 +1,6 @@
 import { Monster, isChaserMonster } from "../../types/interfaces";
 import { useGameStore } from "../../stores/gameStore";
+import { usePlayerStore } from "../../stores/entities/playerStore";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
@@ -14,8 +15,8 @@ export class ChaserMovement {
       return;
     }
     
-    // Get player position
-    const player = gameState.player;
+    const playerStore = usePlayerStore.getState();
+    const player = playerStore.player;
     if (!player) return;
 
     // Get individual scaling values for this monster

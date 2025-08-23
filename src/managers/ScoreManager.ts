@@ -1,11 +1,15 @@
 import { useGameStore } from "../stores/gameStore";
+import { useScoreStore } from "../stores/game/scoreStore";
+import { useStateStore } from "../stores/game/stateStore";
+import { useCoinStore } from "../stores/entities/coinStore";
+import { useRenderStore } from "../stores/systems/renderStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 
 export class ScoreManager {
   public addScore(points: number): void {
-    const gameState = useGameStore.getState();
-    gameState.addScore(points);
+    const scoreStore = useScoreStore.getState();
+    scoreStore.addScore(points);
   }
 
   public calculateBonus(correctCount: number, livesLost: number): number {
@@ -44,37 +48,39 @@ export class ScoreManager {
     color: string = "#fff",
     fontSize: number = 15
   ): void {
-    const gameState = useGameStore.getState();
+    const renderStore = useRenderStore.getState();
     
-    if (gameState.addFloatingText) {
-      gameState.addFloatingText(text, x, y, duration, color, fontSize);
+    if (renderStore.addFloatingText) {
+      renderStore.addFloatingText(text, x, y, duration, color, fontSize);
     }
   }
 
   public handleCoinCollection(coin: any): void {
-    const gameState = useGameStore.getState();
+    const coinStore = useCoinStore.getState();
     
     // Let the coin slice handle the collection
-    gameState.collectCoin(coin);
+    coinStore.collectCoin(coin);
   }
 
   public handleBombCollection(bomb: any): any {
-    const gameState = useGameStore.getState();
-    const result = gameState.collectBomb(bomb.order);
+    const stateStore = useStateStore.getState();
+    const result = stateStore.collectBomb(bomb.order);
     
     // Check if this was a firebomb (correct order)
     if (result && result.isCorrect) {
-      gameState.onFirebombCollected();
+      const scoreStore = useScoreStore.getState();
+      scoreStore.onFirebombCollected();
     }
     
     return result;
   }
 
   public handleMonsterKill(monster: any): void {
+    const scoreStore = useScoreStore.getState();
     const gameState = useGameStore.getState();
     
     // Calculate points using progressive bonus system
-    const points = this.calculateMonsterKillPoints(gameState.multiplier);
+    const points = this.calculateMonsterKillPoints(scoreStore.multiplier);
     this.addScore(points);
 
     // Show floating text for monster kill points
@@ -104,19 +110,21 @@ export class ScoreManager {
   }
 
   public getScore(): number {
-    return useGameStore.getState().score;
+    return useScoreStore.getState().score;
   }
 
   public getMultiplier(): number {
-    return useGameStore.getState().multiplier;
+    return useScoreStore.getState().multiplier;
   }
 
   public getMultiplierProgress(): number {
-    return useGameStore.getState().multiplierScore;
+    return useScoreStore.getState().multiplierScore;
   }
 
   public resetScore(): void {
-    const gameState = useGameStore.getState();
-    gameState.resetGameState();
+    const stateStore = useStateStore.getState();
+    const scoreStore = useScoreStore.getState();
+    stateStore.resetGameState();
+    scoreStore.resetScore();
   }
 }

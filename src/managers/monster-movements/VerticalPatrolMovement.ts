@@ -1,6 +1,7 @@
 import { Monster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { useGameStore } from "../../stores/gameStore";
+import { useLevelStore } from "../../stores/game/levelStore";
 import { MovementUtils } from "./MovementUtils";
 
 export class VerticalPatrolMovement {
@@ -9,8 +10,8 @@ export class VerticalPatrolMovement {
     const newY = monster.y + monster.speed * monster.direction;
 
     // Check platform collision
-    const gameState = useGameStore.getState();
-    const platforms = gameState.platforms || [];
+    const levelStore = useLevelStore.getState();
+    const platforms = levelStore.currentMap?.platforms || [];
     let canMove = true;
 
     for (const platform of platforms) {

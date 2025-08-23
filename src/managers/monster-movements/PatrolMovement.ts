@@ -1,6 +1,7 @@
 import { Monster, isPatrolMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { useGameStore } from "../../stores/gameStore";
+import { useLevelStore } from "../../stores/game/levelStore";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
 import { logger } from "../../lib/logger";
@@ -56,8 +57,8 @@ export class PatrolMovement {
     }
 
     // Keep monster on platform
-    const gameState = useGameStore.getState();
-    const platforms = gameState.platforms || [];
+    const levelStore = useLevelStore.getState();
+    const platforms = levelStore.currentMap?.platforms || [];
     const currentPlatform = MovementUtils.findCurrentPlatform(monster, platforms);
     
     if (currentPlatform) {
@@ -83,8 +84,8 @@ export class PatrolMovement {
     
     // Initialize target X position only once
     if (!monster.originalSpawnX) {
-      const gameState = useGameStore.getState();
-      const platforms = gameState.platforms || [];
+      const levelStore = useLevelStore.getState();
+      const platforms = levelStore.currentMap?.platforms || [];
       const patrolSide = (monster as any).patrolSide || "left";
       const targetPlatformX = (monster as any).targetPlatformX;
       

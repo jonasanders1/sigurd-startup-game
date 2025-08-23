@@ -1,6 +1,7 @@
 import { Monster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { useGameStore } from "../../stores/gameStore";
+import { useLevelStore } from "../../stores/game/levelStore";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
 import { logger } from "../../lib/logger";
@@ -42,8 +43,8 @@ export class FloaterMovement {
     const newY = monster.y + monster.velocityY * frameMultiplier;
 
     // Check for collisions with platforms
-    const gameState = useGameStore.getState();
-    const platforms = gameState.platforms || [];
+    const levelStore = useLevelStore.getState();
+    const platforms = levelStore.currentMap?.platforms || [];
     let canMove = true;
     let collisionNormal = { x: 0, y: 0 };
 
@@ -64,10 +65,10 @@ export class FloaterMovement {
     }
     
     // Check ground collision
-    if (gameState.ground) {
-      if (MovementUtils.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, gameState.ground)) {
+    if (levelStore.currentMap?.ground) {
+      if (MovementUtils.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, levelStore.currentMap.ground)) {
         canMove = false;
-        collisionNormal = this.calculateCollisionNormal(monster, gameState.ground);
+        collisionNormal = this.calculateCollisionNormal(monster, levelStore.currentMap.ground);
       }
     }
 

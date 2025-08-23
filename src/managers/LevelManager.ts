@@ -1,4 +1,11 @@
 import { useGameStore } from "../stores/gameStore";
+import { useStateStore } from "../stores/game/stateStore";
+import { useLevelStore } from "../stores/game/levelStore";
+import { useScoreStore } from "../stores/game/scoreStore";
+import { usePlayerStore } from "../stores/entities/playerStore";
+import { useCoinStore } from "../stores/entities/coinStore";
+import { useMonsterStore } from "../stores/entities/monsterStore";
+import { useRenderStore } from "../stores/systems/renderStore";
 import { GameState, MenuType, AudioEvent } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { mapDefinitions } from "../maps/mapDefinitions";
@@ -49,14 +56,18 @@ export class LevelManager {
 
   public loadCurrentLevel(): void {
     const gameState = useGameStore.getState();
-    const currentLevel = gameState.currentLevel;
+    const levelStore = useLevelStore.getState();
+    const renderStore = useRenderStore.getState();
+    const monsterStore = useMonsterStore.getState();
+    const coinStore = useCoinStore.getState();
+    const currentLevel = levelStore.currentLevel;
 
     if (currentLevel <= mapDefinitions.length) {
       const mapDefinition = mapDefinitions[currentLevel - 1];
       gameState.initializeLevel(mapDefinition);
 
       // Clear floating texts when loading new level
-      gameState.clearAllFloatingTexts();
+      renderStore.clearAllFloatingTexts();
 
       // Reset animation controller state
       this.animationController.reset();
@@ -91,14 +102,14 @@ export class LevelManager {
             originalSpawnPoint: { x: monster.x, y: monster.y },
           })
         );
-        gameState.updateMonsters(monstersWithSpawnPoints);
+        monsterStore.updateMonsters(monstersWithSpawnPoints);
         log.debug(
           `Set up spawn points for ${monstersWithSpawnPoints.length} static monsters`
         );
       }
 
       // Reset coins
-      gameState.resetCoinState();
+      coinStore.resetCoinState();
       log.debug("Coins reset when loading new level");
 
       // Record map start time
@@ -107,13 +118,14 @@ export class LevelManager {
   }
 
   public checkWinCondition(): void {
-    const gameState = useGameStore.getState();
+    const stateStore = useStateStore.getState();
+    const playerStore = usePlayerStore.getState();
     
-    if (gameState.collectedBombs.length === GAME_CONFIG.TOTAL_BOMBS) {
+    if (stateStore.collectedBombs.length === GAME_CONFIG.TOTAL_BOMBS) {
       log.game("Level completed - proceeding to next phase");
 
       // Record if player was grounded when map was cleared
-      this.wasGroundedWhenMapCleared = gameState.player.isGrounded;
+      this.wasGroundedWhenMapCleared = playerStore.player.isGrounded;
 
       // Play map cleared sound
       this.audioManager.playSound(AudioEvent.MAP_CLEARED);
@@ -130,13 +142,18 @@ export class LevelManager {
 
   private proceedAfterMapCleared(): void {
     const gameState = useGameStore.getState();
+    const stateStore = useStateStore.getState();
+    const levelStore = useLevelStore.getState();
+    const scoreStore = useScoreStore.getState();
+    const coinStore = useCoinStore.getState();
+    const renderStore = useRenderStore.getState();
 
     // Stop power-up melody if active
     this.gameStateManager.stopPowerUpMelodyIfActive();
 
     // Calculate effective bomb count
-    const livesLost = GAME_CONFIG.STARTING_LIVES - gameState.lives;
-    const effectiveCount = Math.max(0, gameState.correctOrderCount - livesLost);
+    const livesLost = GAME_CONFIG.STARTING_LIVES - stateStore.lives;
+    const effectiveCount = Math.max(0, stateStore.correctOrderCount - livesLost);
 
     const bonusPoints =
       GAME_CONFIG.BONUS_POINTS[
@@ -147,50 +164,50 @@ export class LevelManager {
     const completionTime = Date.now() - this.mapStartTime;
 
     // Capture coin stats BEFORE resetting
-    const coinStats = gameState.getCoinStats();
+    const coinStats = coinStore.getCoinStats();
     const coinsCollected = coinStats.totalCoinsCollected;
     const powerModeActivations = coinStats.totalPowerCoinsCollected;
 
     // Clear floating texts
-    gameState.clearAllFloatingTexts();
+    renderStore.clearAllFloatingTexts();
 
     // Reset coin effects and state
-    gameState.resetEffects();
-    gameState.resetCoinState();
+    coinStore.resetEffects();
+    coinStore.resetCoinState();
     log.debug("Coins reset when map is cleared");
 
     // Record the level result
-    if (gameState.currentMap) {
+    if (levelStore.currentMap) {
       const levelResult = {
-        level: gameState.currentLevel,
-        mapName: gameState.currentMap.name,
-        correctOrderCount: gameState.correctOrderCount,
+        level: levelStore.currentLevel,
+        mapName: levelStore.currentMap.name,
+        correctOrderCount: stateStore.correctOrderCount,
         effectiveCount: effectiveCount,
         totalBombs: GAME_CONFIG.TOTAL_BOMBS,
-        score: gameState.score,
+        score: scoreStore.score,
         bonus: bonusPoints,
         hasBonus: bonusPoints > 0,
         coinsCollected: coinsCollected,
         powerModeActivations: powerModeActivations,
         completionTime: completionTime,
         timestamp: Date.now(),
-        lives: gameState.lives,
-        multiplier: gameState.multiplier,
+        lives: stateStore.lives,
+        multiplier: scoreStore.multiplier,
       };
-      gameState.addLevelResult(levelResult);
+      levelStore.addLevelResult(levelResult);
 
       // Send map completion data
       sendMapCompletionData({
-        mapName: gameState.currentMap.name,
-        level: gameState.currentLevel,
-        correctOrderCount: gameState.correctOrderCount,
+        mapName: levelStore.currentMap.name,
+        level: levelStore.currentLevel,
+        correctOrderCount: stateStore.correctOrderCount,
         totalBombs: GAME_CONFIG.TOTAL_BOMBS,
-        score: gameState.score,
+        score: scoreStore.score,
         bonus: bonusPoints,
         hasBonus: bonusPoints > 0,
         timestamp: Date.now(),
-        lives: gameState.lives,
-        multiplier: gameState.multiplier,
+        lives: stateStore.lives,
+        multiplier: scoreStore.multiplier,
         completionTime: completionTime,
         coinsCollected: coinsCollected,
         powerModeActivations: powerModeActivations,
@@ -199,12 +216,12 @@ export class LevelManager {
 
     if (bonusPoints > 0) {
       // Reset bonus animation flag before showing bonus screen
-      gameState.setBonusAnimationComplete(false);
+      stateStore.setBonusAnimationComplete(false);
       
       // Show bonus screen
       this.gameStateManager.setState(GameState.BONUS, MenuType.BONUS);
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
-      gameState.addScore(bonusPoints);
+      scoreStore.addScore(bonusPoints);
 
       // Notify coin manager about bonus points
       if (gameState.coinManager) {
@@ -218,18 +235,20 @@ export class LevelManager {
 
   public proceedToNextLevel(): void {
     const gameState = useGameStore.getState();
-    const nextLevel = gameState.currentLevel + 1;
+    const levelStore = useLevelStore.getState();
+    const coinStore = useCoinStore.getState();
+    const nextLevel = levelStore.currentLevel + 1;
 
     // Stop power-up melody if active
     this.gameStateManager.stopPowerUpMelodyIfActive();
 
     if (nextLevel <= mapDefinitions.length) {
       // Reset coin effects and state
-      gameState.resetEffects();
-      gameState.resetCoinState();
+      coinStore.resetEffects();
+      coinStore.resetCoinState();
       log.debug("Coins reset when proceeding to next level");
 
-      gameState.nextLevel();
+      levelStore.nextLevel();
       this.loadCurrentLevel();
 
       // Reset background music flag
@@ -244,22 +263,25 @@ export class LevelManager {
   }
 
   public respawnPlayer(): void {
-    const gameState = useGameStore.getState();
-    const currentMap = gameState.currentMap;
+    const levelStore = useLevelStore.getState();
+    const renderStore = useRenderStore.getState();
+    const coinStore = useCoinStore.getState();
+    const monsterStore = useMonsterStore.getState();
+    const currentMap = levelStore.currentMap;
 
     // Stop power-up melody if active
     this.gameStateManager.stopPowerUpMelodyIfActive();
 
     if (currentMap) {
       // Clear floating texts
-      gameState.clearAllFloatingTexts();
+      renderStore.clearAllFloatingTexts();
 
       // Reset difficulty
       this.scalingManager.resetOnDeath();
       log.debug("Difficulty reset after player death");
 
       // Reset coins
-      gameState.resetCoinState();
+      coinStore.resetCoinState();
       log.debug("Coins reset after player death");
 
       // Reset player position
@@ -274,7 +296,7 @@ export class LevelManager {
         x: (monster as any).patrolStartX || monster.x,
         direction: 1,
       }));
-      gameState.updateMonsters(resetMonsters);
+      monsterStore.updateMonsters(resetMonsters);
 
       // Reload background
       this.renderManager.loadMapBackground(currentMap.name);
@@ -285,8 +307,9 @@ export class LevelManager {
   }
 
   public handleMapClearedFall(wasGroundedWhenMapCleared: boolean): void {
-    const gameState = useGameStore.getState();
-    const player = gameState.player;
+    const playerStore = usePlayerStore.getState();
+    const levelStore = useLevelStore.getState();
+    const player = playerStore.player;
 
     // Only apply gravity if player wasn't already grounded
     if (!wasGroundedWhenMapCleared) {
@@ -295,16 +318,16 @@ export class LevelManager {
       updatedPlayer.y += updatedPlayer.velocityY;
 
       // Check for ground collision
-      const ground = gameState.ground;
+      const ground = levelStore.currentMap?.ground;
       if (ground) {
         const finalPlayer = this.playerManager.handlePlatformCollision(
           updatedPlayer,
           [],
           ground
         );
-        gameState.updatePlayer(finalPlayer);
+        playerStore.updatePlayer(finalPlayer);
       } else {
-        gameState.updatePlayer(updatedPlayer);
+        playerStore.updatePlayer(updatedPlayer);
       }
     }
   }

@@ -1,6 +1,7 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { getAudioPath } from "../config/assets";
 import { useGameStore } from "../stores/gameStore";
+import { useAudioStore } from "../stores/systems/audioStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 
@@ -416,22 +417,24 @@ export class AudioManager {
   }
 
   private updateAudioVolumes(): void {
-    const audioSettings = useGameStore.getState().audioSettings;
+    const audioStore = useAudioStore.getState();
     if (this.backgroundMusicGain) {
       const musicVolume =
-        audioSettings.masterMuted || audioSettings.musicMuted
+        audioStore.masterMuted || audioStore.musicMuted
           ? 0
-          : (audioSettings.masterVolume / 100) *
-            (audioSettings.musicVolume / 100);
-      this.backgroundMusicGain.gain.value = musicVolume;
+          : (audioStore.masterVolume / 100) * (audioStore.musicVolume / 100);
+      this.backgroundMusicGain.gain.setValueAtTime(
+        musicVolume,
+        this.audioContext.currentTime
+      );
     }
   }
 
   private getSFXVolume(): number {
-    const audioSettings = useGameStore.getState().audioSettings;
-    return audioSettings.masterMuted || audioSettings.sfxMuted
+    const audioStore = useAudioStore.getState();
+    return audioStore.masterMuted || audioStore.sfxMuted
       ? 0
-      : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);
+      : (audioStore.masterVolume / 100) * (audioStore.sfxVolume / 100);
   }
 
   // Public method to update audio volumes when settings change
