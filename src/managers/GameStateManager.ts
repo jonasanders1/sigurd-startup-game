@@ -171,6 +171,8 @@ export class GameStateManager {
       }
     } else if (currentState === GameState.PAUSED) {
       // Explicitly stop music when paused
+      console.log("Entering paused state", currentState);
+      console.log("handleBackgroundMusic", this.isBackgroundMusicPlaying);
       if (this.isBackgroundMusicPlaying) {
         log.audio("Game paused, stopping background music");
         this.audioManager.stopBackgroundMusic();
