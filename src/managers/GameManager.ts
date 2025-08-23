@@ -300,15 +300,17 @@ export class GameManager {
     // Check for bonus animation completion and auto-continue
     if (
       gameState.currentState === GameState.BONUS &&
-      gameState.bonusAnimationComplete &&
-      !DEV_CONFIG.ENABLED
+      gameState.bonusAnimationComplete
     ) {
+      log.debug("Bonus animation complete, scheduling transition to next level");
+      // Reset the flag immediately to prevent multiple calls
+      gameState.setBonusAnimationComplete(false);
+      
       // Animation is complete, proceed to next level after a brief delay
       setTimeout(() => {
+        log.debug("Executing transition to next level after bonus screen");
         this.proceedToNextLevel();
       }, 2000); // 2 second delay after animation completes
-      // Reset the flag to prevent multiple calls
-      gameState.setBonusAnimationComplete(false);
     }
 
     if (gameState.currentState === GameState.PLAYING) {
@@ -1022,6 +1024,8 @@ export class GameManager {
   private proceedToNextLevel(): void {
     const gameState = useGameStore.getState();
     const nextLevel = gameState.currentLevel + 1;
+    
+    log.info(`Proceeding to next level: ${gameState.currentLevel} -> ${nextLevel}`);
 
     // Stop power-up melody if active (level transition)
     if (this.audioManager.isPowerUpMelodyActive()) {

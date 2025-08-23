@@ -97,6 +97,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
     },
 
     setBonusAnimationComplete: (complete: boolean) => {
+      log.debug(`Bonus animation completed, setting flag for transition: ${complete}`);
       set({ bonusAnimationComplete: complete });
     },
 
