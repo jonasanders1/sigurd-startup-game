@@ -3,6 +3,7 @@ import { useGameStore } from "../../../stores/gameStore";
 import { GameState, MenuType } from "../../../types/enums";
 import { GAME_CONFIG, DEV_CONFIG } from "../../../types/constants";
 import { mapDefinitions } from "../../../maps/mapDefinitions";
+import { log } from "../../../lib/logger";
 
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
 
@@ -34,7 +35,10 @@ const BonusScreen: React.FC = () => {
     steps: 120, // More steps for smoother animation
     easing: "gentle-ease-out", // Less dramatic at start, still slows down
     delay: 200, // Small delay to let the screen settle
-    onComplete: () => setBonusAnimationComplete(true), // Notify game store when animation is done
+    onComplete: () => {
+      log.debug("Bonus animation completed, setting flag for transition");
+      setBonusAnimationComplete(true);
+    }, // Notify game store when animation is done
   });
 
   // const continueGame = () => {

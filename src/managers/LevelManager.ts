@@ -198,6 +198,9 @@ export class LevelManager {
     }
 
     if (bonusPoints > 0) {
+      // Reset bonus animation flag before showing bonus screen
+      gameState.setBonusAnimationComplete(false);
+      
       // Show bonus screen
       this.gameStateManager.setState(GameState.BONUS, MenuType.BONUS);
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
