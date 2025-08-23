@@ -1,4 +1,5 @@
-import { Monster, MonsterType } from "../types/interfaces";
+import { Monster } from "../types/interfaces";
+import { MonsterType } from "../types/enums";
 import { PatrolMovement } from "./monster-movements/PatrolMovement";
 import { ChaserMovement } from "./monster-movements/ChaserMovement";
 import { FloaterMovement } from "./monster-movements/FloaterMovement";

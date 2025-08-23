@@ -21,7 +21,7 @@ import type { CollisionManager } from "./CollisionManager";
 import type { AnimationController } from "../lib/AnimationController";
 import { playerSprite } from "../entities/Player";
 import { useScoreStore } from "../stores/game/scoreStore";
-import { useRenderStore } from "../stores/game/renderStore";
+import { useRenderStore } from "../stores/systems/renderStore";
 
 export class GameLoopManager {
   private animationFrameId: number | null = null;
