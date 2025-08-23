@@ -98,15 +98,7 @@ export class InputManager {
     }
   }
 
-  // private handlePause() {
-  //   const { currentState, setState } = useGameStore.getState();
 
-  //   if (currentState === GameState.PLAYING) {
-  //     setState(GameState.PAUSED);
-  //   } else if (currentState === GameState.PAUSED) {
-  //     setState(GameState.PLAYING);
-  //   }
-  // }
 
   private isGameKey(key: string): boolean {
     const gameKeys = [
