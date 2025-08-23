@@ -183,7 +183,7 @@ export class GameManager {
 
     // Handle bonus animation completion
     this.gameStateManager.handleBonusCompletion(() => {
-      console.log("handleBonusCompletion.. proceeding to next level");
+      log.info("Bonus completion callback triggered, proceeding to next level");
       this.levelManager.proceedToNextLevel();
     });
 

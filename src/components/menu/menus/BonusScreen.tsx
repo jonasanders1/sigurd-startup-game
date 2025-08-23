@@ -33,10 +33,25 @@ const BonusScreen: React.FC = () => {
     easing: "gentle-ease-out", // Less dramatic at start, still slows down
     delay: 200, // Small delay to let the screen settle
     onComplete: () => {
-      log.debug("Bonus animation completed, setting flag for transition");
+      log.info(`✅ BonusScreen: Animation completed for ${bonusPoints} bonus points`);
+      log.info("✅ BonusScreen: Setting bonusAnimationComplete flag to true");
       setBonusAnimationComplete(true);
+      log.debug("BonusScreen: Flag set, GameStateManager should pick it up on next update");
     }, // Notify game store when animation is done
   });
+
+  // Log when component mounts
+  React.useEffect(() => {
+    log.info(`BonusScreen mounted with ${bonusPoints} bonus points`);
+    log.debug(`Effective count: ${effectiveCount}, Lives: ${lives}, Current level: ${currentLevel}`);
+    
+    // Edge case: If there are no bonus points, immediately set animation complete
+    // This shouldn't normally happen as bonus screen should only show when bonusPoints > 0
+    if (bonusPoints === 0) {
+      log.warn("BonusScreen shown with 0 bonus points - immediately completing");
+      setBonusAnimationComplete(true);
+    }
+  }, []);
 
   return (
     <div className="text-center max-w-md">
