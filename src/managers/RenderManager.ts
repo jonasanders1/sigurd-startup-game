@@ -299,7 +299,7 @@ export class RenderManager {
       this.ctx.fillRect(monster.x + monster.width - 10, eyeY, 4, 4);
 
       // Monster mouth - based on type
-      this.ctx.fillStyle = "#333";
+      this.ctx.fillStyle = "rgba(51, 51, 51, 0.5)";
       this.ctx.font = "12px JetBrains Mono";
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";

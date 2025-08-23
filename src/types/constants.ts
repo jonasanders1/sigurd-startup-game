@@ -1,131 +1,91 @@
-import { AudioSettings } from "@/stores/slices/audioSettingsSlice";
+/**
+ * Legacy constants file - maintained for backwards compatibility
+ * New code should import directly from @/config modules
+ * @deprecated Use imports from @/config instead
+ */
 
+import {
+  CANVAS_CONFIG,
+  PHYSICS_CONFIG,
+  GAME_RULES,
+  RENDERING_CONFIG,
+  ENTITY_SIZES,
+  COIN_PHYSICS,
+  COIN_SPAWNING,
+  COIN_EFFECTS,
+  BOMB_POINTS,
+  MULTIPLIER_SYSTEM,
+  BONUS_POINTS,
+  COLORS,
+  DEFAULT_AUDIO_SETTINGS,
+  DEV_CONFIG,
+} from "@/config";
+
+// Re-export for backwards compatibility
+export { COLORS, DEFAULT_AUDIO_SETTINGS, DEV_CONFIG };
+
+// Legacy GAME_CONFIG object - assembled from new config modules
+// Maintained for backwards compatibility with existing code
 export const GAME_CONFIG = {
-  CANVAS_WIDTH: 800,
-  CANVAS_HEIGHT: 600,
-  PLAYER_HEIGHT: 35,
-  PLAYER_WIDTH: 25,
-  BOMB_SIZE: 25,
-  MONSTER_SIZE: 25,
-  PLATFORM_HEIGHT: 25,
-  COIN_SIZE: 25, // Size of coins
-  USE_SPRITES: true,
-  USE_BOMB_SPRITES: true,
-  PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
-
-  // Physics - Reduced for moon-like gravity
-  GRAVITY: 0.2,
-  FLOAT_GRAVITY: 0.005, // Reduced from 0.1 for much slower floating fall
-  FAST_FALL_GRAVITY_MULTIPLIER: 2, // Multiplier for gravity when fast falling
-  MOVE_SPEED: 4,
-  JUMP_POWER: 7,
-  SUPER_JUMP_POWER: 12,
-
+  // Canvas
+  CANVAS_WIDTH: CANVAS_CONFIG.WIDTH,
+  CANVAS_HEIGHT: CANVAS_CONFIG.HEIGHT,
+  
+  // Entity sizes
+  PLAYER_HEIGHT: ENTITY_SIZES.PLAYER.HEIGHT,
+  PLAYER_WIDTH: ENTITY_SIZES.PLAYER.WIDTH,
+  BOMB_SIZE: ENTITY_SIZES.BOMB_SIZE,
+  MONSTER_SIZE: ENTITY_SIZES.MONSTER_SIZE,
+  PLATFORM_HEIGHT: ENTITY_SIZES.PLATFORM_HEIGHT,
+  COIN_SIZE: ENTITY_SIZES.COIN_SIZE,
+  
+  // Rendering
+  USE_SPRITES: RENDERING_CONFIG.USE_SPRITES,
+  USE_BOMB_SPRITES: RENDERING_CONFIG.USE_BOMB_SPRITES,
+  PARALLAX_ENABLED: RENDERING_CONFIG.PARALLAX_ENABLED,
+  
+  // Physics
+  GRAVITY: PHYSICS_CONFIG.GRAVITY,
+  FLOAT_GRAVITY: PHYSICS_CONFIG.FLOAT_GRAVITY,
+  FAST_FALL_GRAVITY_MULTIPLIER: PHYSICS_CONFIG.FAST_FALL_GRAVITY_MULTIPLIER,
+  MOVE_SPEED: PHYSICS_CONFIG.MOVE_SPEED,
+  JUMP_POWER: PHYSICS_CONFIG.JUMP_POWER,
+  SUPER_JUMP_POWER: PHYSICS_CONFIG.SUPER_JUMP_POWER,
+  
   // Coin physics
-  COIN_BOUNCE_SPEED: 3, // Initial speed when coin bounces
-  COIN_BOUNCE_DAMPING: 0.8, // How much the coin slows down on bounce
-  COIN_GRAVITY: 0.1, // Gravity affecting coins (reduced from 0.2)
-
+  COIN_BOUNCE_SPEED: COIN_PHYSICS.BOUNCE_SPEED,
+  COIN_BOUNCE_DAMPING: COIN_PHYSICS.BOUNCE_DAMPING,
+  COIN_GRAVITY: COIN_PHYSICS.GRAVITY,
+  
   // Jump mechanics
-  MIN_JUMP_DURATION: 50, // Minimum time for a jump (ms)
-  MAX_JUMP_DURATION: 300, // Maximum time for variable jump height (ms)
-
+  MIN_JUMP_DURATION: PHYSICS_CONFIG.MIN_JUMP_DURATION,
+  MAX_JUMP_DURATION: PHYSICS_CONFIG.MAX_JUMP_DURATION,
+  
   // Game rules
-  TOTAL_BOMBS: 23,
-  STARTING_LIVES: 3,
-
+  TOTAL_BOMBS: GAME_RULES.TOTAL_BOMBS,
+  STARTING_LIVES: GAME_RULES.STARTING_LIVES,
+  
   // Coin spawning rules
-  POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 9 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 5000 points
-  EXTRA_LIFE_COIN_RATIO: 10, // Extra life coin appears for every 10 bonus multiplier coins
-
+  POWER_COIN_SPAWN_INTERVAL: COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL,
+  BONUS_COIN_SPAWN_INTERVAL: COIN_SPAWNING.BONUS_COIN_SPAWN_INTERVAL,
+  EXTRA_LIFE_COIN_RATIO: COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO,
+  
   // Coin effects
-  POWER_COIN_DURATION: 7000, // Power coin effect duration in milliseconds (7 seconds)
-  POWER_COIN_POINTS: 2000, // Points awarded for collecting power coin
-  MONSTER_KILL_POINTS: 100, // Points for killing monsters during power mode
-
+  POWER_COIN_DURATION: COIN_EFFECTS.POWER_COIN_DURATION,
+  POWER_COIN_POINTS: COIN_EFFECTS.POWER_COIN_POINTS,
+  MONSTER_KILL_POINTS: COIN_EFFECTS.MONSTER_KILL_POINTS,
+  
   // Coin base points
-  BONUS_MULTIPLIER_COIN_POINTS: 1000, // Base points for bonus multiplier coin
-  EXTRA_LIFE_COIN_POINTS: 1000, // Base points for extra life coin
-
-  // Multiplier system - incremental thresholds
-  MULTIPLIER_THRESHOLDS: {
-    1: 0, // 1x multiplier (default)
-    2: 1800, // 2x multiplier (1800 points needed)
-    3: 3600, // 3x multiplier (1800 more points needed = 3600 total)
-    4: 5400, // 4x multiplier (1800 more points needed = 5400 total)
-    5: 7200, // 5x multiplier (1800 more points needed = 7200 total)
-  },
-  MAX_MULTIPLIER: 5,
-
+  BONUS_MULTIPLIER_COIN_POINTS: COIN_EFFECTS.BONUS_MULTIPLIER_COIN_POINTS,
+  EXTRA_LIFE_COIN_POINTS: COIN_EFFECTS.EXTRA_LIFE_COIN_POINTS,
+  
+  // Multiplier system
+  MULTIPLIER_THRESHOLDS: MULTIPLIER_SYSTEM.THRESHOLDS,
+  MAX_MULTIPLIER: MULTIPLIER_SYSTEM.MAX_MULTIPLIER,
+  
   // Scoring
-  BOMB_POINTS: {
-    NORMAL: 100, // Normal bomb base points
-    FIREBOMB: 200, // Firebomb (next correct bomb) base points
-  },
-
+  BOMB_POINTS: BOMB_POINTS,
+  
   // Bonus points
-  BONUS_POINTS: {
-    23: 50000,
-    22: 30000,
-    21: 20000,
-    20: 10000,
-  },
-};
-
-export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
-  masterVolume: 50,
-  musicVolume: 80,
-  sfxVolume: 10,
-  masterMuted: false,
-  musicMuted: false,
-  sfxMuted: false,
-};
-
-// Development Mode Configuration
-export const DEV_CONFIG = {
-  ENABLED: false, // Set to false to disable dev mode
-  TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 1, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
-
-  GOD_MODE: true, // Set to true to enable god mode (player is invincible to monsters)
-
-  MOCK_DATA: {
-    score: 15000,
-    lives: 2,
-    currentLevel: 1,
-    correctOrderCount: 18,
-    multiplier: 2, // Mock multiplier level (1-5)
-    multiplierScore: 2600, // Mock points toward next multiplier (0-1800)
-  },
-};
-
-// Set global dev logging flag
-if (typeof window !== "undefined") {
-  (window as any).__DEV_LOGGING_ENABLED__ = DEV_CONFIG.ENABLED;
-}
-
-export const COLORS = {
-  PLAYER: "#00FF00",
-  BOMB: "#FFD700",
-  BOMB_COLLECTED: "#666666",
-  BOMB_NEXT: "#FF0000",
-  MONSTER: "#FF4444", // Default monster color (fallback)
-  MONSTER_FROZEN: "#4444FF", // Blue color for frozen monsters
-
-  // Unique monster type colors
-  MONSTER_HORIZONTAL_PATROL: "#FF4444", // Red - horizontal patrol
-  MONSTER_VERTICAL_PATROL: "#44FF44", // Green - vertical patrol
-  MONSTER_CHASER: "#FF8844", // Orange - chaser
-  MONSTER_AMBUSHER: "#8844FF", // Purple - ambusher
-  MONSTER_FLOATER: "#44FFFF", // Cyan - floater
-
-  PLATFORM: "#484744",
-  BACKGROUND: "#262521",
-  GROUND: "#484744",
-  UI_PRIMARY: "#00FFFF",
-  UI_SECONDARY: "#FFFFFF",
-  COIN_POWER: "#0066FF", // Blue for power coin
-  COIN_BONUS: "#FF6600", // Orange for bonus multiplier coin
-  COIN_LIFE: "#FF0066", // Pink for extra life coin
-};
+  BONUS_POINTS: BONUS_POINTS,
+} as const;

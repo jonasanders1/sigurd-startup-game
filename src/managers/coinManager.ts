@@ -877,13 +877,13 @@ export class CoinManager {
     this.powerModeActive = true;
     
     // Get duration based on current P-coin color (if we have a recent P-coin)
-    let duration = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
+    let duration: number = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
     
     // Find the most recent P-coin to get its color
     const recentPcoin = this.coins.find(coin => coin.type === CoinType.POWER && coin.spawnTime);
     if (recentPcoin && recentPcoin.spawnTime) {
       const colorData = this.getPcoinColorForTime(recentPcoin.spawnTime);
-      duration = colorData.duration;
+      duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
     }
     
     this.powerModeEndTime = Date.now() + duration;

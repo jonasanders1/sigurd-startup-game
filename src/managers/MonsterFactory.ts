@@ -11,15 +11,15 @@ import { MonsterType } from "../types/enums";
 const getMonsterColor = (type: MonsterType): string => {
   switch (type) {
     case MonsterType.HORIZONTAL_PATROL:
-      return COLORS.MONSTER_HORIZONTAL_PATROL;
+      return COLORS.MONSTER_TYPES.HORIZONTAL_PATROL;
     case MonsterType.VERTICAL_PATROL:
-      return COLORS.MONSTER_VERTICAL_PATROL;
+      return COLORS.MONSTER_TYPES.VERTICAL_PATROL;
     case MonsterType.CHASER:
-      return COLORS.MONSTER_CHASER;
+      return COLORS.MONSTER_TYPES.CHASER;
     case MonsterType.AMBUSHER:
-      return COLORS.MONSTER_AMBUSHER;
+      return COLORS.MONSTER_TYPES.AMBUSHER;
     case MonsterType.FLOATER:
-      return COLORS.MONSTER_FLOATER;
+      return COLORS.MONSTER_TYPES.FLOATER;
     default:
       return COLORS.MONSTER;
   }

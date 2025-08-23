@@ -15,11 +15,11 @@ import { ScalingManager } from "../managers/ScalingManager";
 export const COIN_EFFECTS = {
   POWER_MODE: {
     type: "POWER_MODE",
-    duration: GAME_CONFIG.POWER_COIN_DURATION, // Default duration (will be overridden)
+    duration: GAME_CONFIG.POWER_COIN_DURATION as number, // Default duration (will be overridden)
     points: GAME_CONFIG.POWER_COIN_POINTS,
     apply: (gameState: GameStateInterface, coin?: any) => {
       // Calculate duration based on coin color if available
-      let duration = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
+      let duration: number = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
 
       if (coin && coin.spawnTime !== undefined) {
         // Get the color data for this specific coin
