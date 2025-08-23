@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useGameStore } from "../stores/gameStore";
-import { GameState, MenuType } from "../types/enums";
+import { GameState } from "../types/enums";
 
 // Type definition for webkit fullscreen element
 interface WebkitDocument extends Document {
@@ -8,7 +8,7 @@ interface WebkitDocument extends Document {
 }
 
 export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
-  const { currentState, setState, setMenuType, isPaused, updateAudioSettings, audioSettings } = useGameStore();
+  const { currentState, gameStateManager, audioSettings, updateAudioSettings } = useGameStore();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -40,21 +40,17 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
 
         case "p":
         case "P":
-          // Pause/unpause game if playing, or resume if paused
+          // Use centralized pause/resume logic through GameStateManager
           if (currentState === GameState.PLAYING) {
             event.preventDefault();
-            setState(GameState.PAUSED);
-            setMenuType(MenuType.PAUSE);
-          } else if (isPaused) {
+            // Use the GameStateManager to pause the game
+            // This ensures all managers are properly paused
+            gameStateManager?.pauseGame();
+          } else if (currentState === GameState.PAUSED) {
             event.preventDefault();
-            // Use the same resume logic as the pause menu button
-            setMenuType(MenuType.COUNTDOWN);
-            setState(GameState.COUNTDOWN);
-            
-            // After 3 seconds, start the game
-            setTimeout(() => {
-              setState(GameState.PLAYING);
-            }, 3000);
+            // Use the GameStateManager to resume the game
+            // This ensures all managers are properly resumed
+            gameStateManager?.resumeGame();
           }
           break;
 
@@ -72,5 +68,5 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentState, isPaused, setState, setMenuType, onFullscreenToggle, updateAudioSettings, audioSettings.masterMuted]);
+  }, [currentState, gameStateManager, onFullscreenToggle, updateAudioSettings, audioSettings.masterMuted]);
 };

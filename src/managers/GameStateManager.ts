@@ -120,29 +120,33 @@ export class GameStateManager {
 
   public setState(state: GameState, menuType?: MenuType): void {
     const gameState = useGameStore.getState();
+    
+    // Set the state first
     gameState.setState(state);
 
     if (menuType !== undefined) {
       gameState.setMenuType(menuType);
     }
 
-    // Send state update to external system
+    // CRITICAL: Handle state transition immediately and synchronously
+    // This ensures managers are paused/resumed before any other code runs
+    this.handleStateTransition(state);
+
+    // Send state update to external system after handling the transition
     sendGameStateUpdate(JSON.stringify({
       state,
       menuType,
       timestamp: Date.now(),
     }));
-
-    // Handle state-specific logic
-    this.handleStateTransition(state);
   }
 
   private handleStateTransition(state: GameState): void {
-    // Handle background music
-    this.handleBackgroundMusic(state);
-
-    // Handle difficulty pausing
+    // IMPORTANT: Handle difficulty pausing first (stops all managers)
+    // This must happen before background music to prevent race conditions
     this.handleDifficultyPause(state);
+    
+    // Then handle background music
+    this.handleBackgroundMusic(state);
   }
 
   public handleBackgroundMusic(currentState: GameState): void {
