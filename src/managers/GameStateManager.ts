@@ -367,17 +367,18 @@ export class GameStateManager {
     if (
       gameState.currentState === GameState.BONUS &&
       gameState.bonusAnimationComplete &&
-      !this.bonusTransitionInProgress &&
-      !DEV_CONFIG.ENABLED
+      !this.bonusTransitionInProgress
     ) {
       // Mark transition as in progress to prevent multiple calls
       this.bonusTransitionInProgress = true;
+      log.debug("Bonus animation complete, starting transition to next level");
       
       // Reset the flag immediately to prepare for next bonus
       gameState.setBonusAnimationComplete(false);
       
       // Animation is complete, proceed after delay
       setTimeout(() => {
+        log.info("Proceeding from bonus screen to next level");
         onComplete();
         // Reset the transition flag after completion
         this.bonusTransitionInProgress = false;
