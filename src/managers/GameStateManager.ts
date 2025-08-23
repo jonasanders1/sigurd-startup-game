@@ -362,8 +362,22 @@ export class GameStateManager {
   }
 
   public handleBonusCompletion(onComplete: () => void): void {
-    console.log("handleBonusCompletion");
     const gameState = useGameStore.getState();
+
+    // Debug logging for tracking the bonus completion flow
+    if (gameState.currentState === GameState.BONUS) {
+      if (!gameState.bonusAnimationComplete) {
+        // Only log this occasionally to avoid spam
+        if (Math.random() < 0.01) {
+          log.debug("Waiting for bonus animation to complete...");
+        }
+      } else if (this.bonusTransitionInProgress) {
+        // Only log this occasionally to avoid spam
+        if (Math.random() < 0.01) {
+          log.debug("Bonus transition already in progress...");
+        }
+      }
+    }
 
     if (
       gameState.currentState === GameState.BONUS &&
@@ -372,17 +386,22 @@ export class GameStateManager {
     ) {
       // Mark transition as in progress to prevent multiple calls
       this.bonusTransitionInProgress = true;
-      log.debug("Bonus animation complete, starting transition to next level");
-      
-      // Reset the flag immediately to prepare for next bonus
-      gameState.setBonusAnimationComplete(false);
+      log.info("✅ Bonus animation complete, starting 2-second transition to next level");
+      log.debug(`Current state: ${gameState.currentState}, Animation flag: ${gameState.bonusAnimationComplete}, Transition flag: ${this.bonusTransitionInProgress}`);
       
       // Animation is complete, proceed after delay
       setTimeout(() => {
-        log.info("Proceeding from bonus screen to next level");
+        log.info("✅ Transition delay complete, proceeding to next level now");
+        
+        // Reset the flag AFTER we're about to transition, not before
+        gameState.setBonusAnimationComplete(false);
+        
+        // Call the completion callback
         onComplete();
+        
         // Reset the transition flag after completion
         this.bonusTransitionInProgress = false;
+        log.debug("Bonus transition flags reset for next bonus");
       }, 2000);
     }
   }
@@ -399,6 +418,16 @@ export class GameStateManager {
     return this.isBackgroundMusicPlaying;
   }
 
+  /**
+   * Reset bonus transition flags - useful for edge cases or cleanup
+   */
+  public resetBonusTransition(): void {
+    const gameState = useGameStore.getState();
+    this.bonusTransitionInProgress = false;
+    gameState.setBonusAnimationComplete(false);
+    log.debug("Bonus transition flags reset");
+  }
+
   // ===== CENTRALIZED STATE TRANSITIONS =====
   
   /**
@@ -406,6 +435,10 @@ export class GameStateManager {
    */
   public startNewGame(): void {
     log.info("Starting new game with countdown");
+    
+    // Reset any lingering bonus transition state
+    this.resetBonusTransition();
+    
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
     
     setTimeout(() => {
@@ -420,6 +453,10 @@ export class GameStateManager {
     const gameState = useGameStore.getState();
     
     log.info("Restarting game");
+    
+    // Reset any lingering bonus transition state
+    this.resetBonusTransition();
+    
     // Reset the game (this now also loads the first level)
     gameState.resetGame();
     
