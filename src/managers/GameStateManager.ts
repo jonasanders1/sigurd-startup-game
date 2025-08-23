@@ -12,6 +12,7 @@ export class GameStateManager {
   private previousGameState: GameState | null = null;
   private isBackgroundMusicPlaying = false;
   private devModeInitialized = false;
+  private bonusTransitionInProgress = false;
 
   // Dependencies
   private audioManager: AudioManager;
@@ -304,6 +305,33 @@ export class GameStateManager {
         log.debug(`Game state ${currentState}: All managers paused`);
         break;
 
+      case GameState.MAP_CLEARED:
+        // Pause all managers when map is cleared (similar to BONUS state)
+        // IMPORTANT: Pause in reverse order to avoid race conditions
+        
+        // 1. Pause coin manager first (stops power-ups)
+        if (gameState.coinManager) {
+          gameState.coinManager.pause();
+        }
+        
+        // 2. Pause scaling managers
+        this.scalingManager.pause();
+        this.scalingManager.pauseAllMonsterScaling();
+        
+        // 3. Pause spawn/respawn managers last
+        this.monsterSpawnManager.pause();
+        this.monsterRespawnManager.pause();
+        
+        // 4. Stop audio effects
+        if (this.audioManager.isPowerUpMelodyActive()) {
+          log.audio("Map cleared, stopping PowerUp melody");
+          this.audioManager.stopPowerUpMelody();
+          this.isBackgroundMusicPlaying = false;
+        }
+        
+        log.debug("Game state MAP_CLEARED: All managers paused in correct order");
+        break;
+
       default:
         // For any other states, default to paused
         log.warn(`Unhandled game state in handleDifficultyPause: ${currentState}`);
@@ -339,15 +367,21 @@ export class GameStateManager {
     if (
       gameState.currentState === GameState.BONUS &&
       gameState.bonusAnimationComplete &&
+      !this.bonusTransitionInProgress &&
       !DEV_CONFIG.ENABLED
     ) {
+      // Mark transition as in progress to prevent multiple calls
+      this.bonusTransitionInProgress = true;
+      
+      // Reset the flag immediately to prepare for next bonus
+      gameState.setBonusAnimationComplete(false);
+      
       // Animation is complete, proceed after delay
       setTimeout(() => {
         onComplete();
+        // Reset the transition flag after completion
+        this.bonusTransitionInProgress = false;
       }, 2000);
-
-      // Reset the flag to prevent multiple calls
-      gameState.setBonusAnimationComplete(false);
     }
   }
 
