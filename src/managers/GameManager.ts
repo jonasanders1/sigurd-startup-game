@@ -19,7 +19,6 @@ import { playerSprite } from "../entities/Player";
 import { sendGameReady } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 
-
 /**
  * GameManager - Main orchestrator for the game
  * Coordinates between all specialized managers
@@ -100,7 +99,7 @@ export class GameManager {
       onUpdate: this.update.bind(this),
       onCollisions: this.handleCollisions.bind(this),
       onCheckWinCondition: this.checkWinCondition.bind(this),
-      onMapClearedFall: this.handleMapClearedFall.bind(this)
+      onMapClearedFall: this.handleMapClearedFall.bind(this),
     });
 
     // Set AudioManager reference in store
@@ -108,7 +107,7 @@ export class GameManager {
     if ("setAudioManager" in gameState) {
       gameState.setAudioManager(this.audioManager);
     }
-    
+
     // Set GameStateManager reference in store
     if ("setGameStateManager" in gameState) {
       gameState.setGameStateManager(this.gameStateManager);
@@ -132,11 +131,11 @@ export class GameManager {
       // Normal game start
       const gameState = useGameStore.getState();
       gameState.resetGame();
-      
+
       if ("setGameStartTime" in gameState) {
         (gameState as any).setGameStartTime(Date.now());
       }
-      
+
       this.levelManager.loadCurrentLevel();
     }
 
@@ -168,9 +167,11 @@ export class GameManager {
     this.gameStateManager.handleDifficultyPause(gameState.currentState);
 
     // Skip updates in dev mode if not playing
-    if (DEV_CONFIG.ENABLED && 
-        this.gameStateManager.isDevModeInitialized() && 
-        gameState.currentState !== GameState.PLAYING) {
+    if (
+      DEV_CONFIG.ENABLED &&
+      this.gameStateManager.isDevModeInitialized() &&
+      gameState.currentState !== GameState.PLAYING
+    ) {
       return;
     }
 
@@ -182,6 +183,7 @@ export class GameManager {
 
     // Handle bonus animation completion
     this.gameStateManager.handleBonusCompletion(() => {
+      console.log("handleBonusCompletion.. proceeding to next level");
       this.levelManager.proceedToNextLevel();
     });
 
@@ -264,10 +266,10 @@ export class GameManager {
    */
   private handlePlayerDeath(): void {
     const gameState = useGameStore.getState();
-    
+
     // Stop any power-up effects
     this.powerUpManager.handlePlayerDeath();
-    
+
     // Stop background music immediately when player dies
     this.audioManager.stopBackgroundMusic();
     this.gameStateManager.resetBackgroundMusicFlag();

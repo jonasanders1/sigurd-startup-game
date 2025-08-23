@@ -362,6 +362,7 @@ export class GameStateManager {
   }
 
   public handleBonusCompletion(onComplete: () => void): void {
+    console.log("handleBonusCompletion");
     const gameState = useGameStore.getState();
 
     if (

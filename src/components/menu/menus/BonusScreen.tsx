@@ -1,13 +1,10 @@
 import React from "react";
 import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
 import { GAME_CONFIG, DEV_CONFIG } from "../../../types/constants";
 import { mapDefinitions } from "../../../maps/mapDefinitions";
 import { log } from "../../../lib/logger";
 
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
-
-import { CircleDollarSign, Map, Zap } from "lucide-react";
 
 const BonusScreen: React.FC = () => {
   const {
@@ -40,71 +37,6 @@ const BonusScreen: React.FC = () => {
       setBonusAnimationComplete(true);
     }, // Notify game store when animation is done
   });
-
-  // const continueGame = () => {
-  //   const nextLevelNum = currentLevel + 1;
-
-  //   if (nextLevelNum <= mapDefinitions.length) {
-  //     // More levels available
-  //     nextLevel();
-
-  //     // Load the next level's map data
-  //     const nextMapIndex = nextLevelNum - 1;
-  //     const nextMap = mapDefinitions[nextMapIndex];
-  //     if (nextMap) {
-  //       initializeLevel(nextMap);
-  //     }
-
-  //     setMenuType(MenuType.COUNTDOWN);
-  //     setState(GameState.COUNTDOWN);
-
-  //     setTimeout(() => {
-  //       setState(GameState.PLAYING);
-  //     }, 3000);
-  //   } else {
-  //     // All levels completed - send comprehensive victory completion data
-  //     const gameStore = useGameStore.getState();
-  //     const levelResults = gameStore.getLevelResults();
-  //     const multiplier = gameStore.multiplier;
-  //     const gameStartTime = gameStore.getGameStartTime();
-  //     const sessionId = gameStore.getSessionId();
-
-  //     // Calculate comprehensive game statistics
-  //     const gameStats = calculateGameStats(
-  //       levelResults,
-  //       gameStore.score,
-  //       gameStore.lives,
-  //       multiplier,
-  //       "completed",
-  //       gameStartTime,
-  //       Date.now()
-  //     );
-
-  //     const gameCompletionData: GameCompletionData = {
-  //       finalScore: gameStore.score,
-  //       totalLevels: mapDefinitions.length,
-  //       completedLevels: levelResults.length,
-  //       timestamp: Date.now(),
-  //       lives: gameStore.lives,
-  //       multiplier,
-  //       levelHistory: levelResults,
-  //       totalCoinsCollected: gameStats.totalCoinsCollected,
-  //       totalPowerModeActivations: gameStats.totalPowerModeActivations,
-  //       totalBombs: gameStats.totalBombs,
-  //       totalCorrectOrders: gameStats.totalCorrectOrders,
-  //       averageCompletionTime: gameStats.averageCompletionTime,
-  //       gameEndReason: "completed",
-  //       sessionId,
-  //       startTime: gameStartTime,
-  //       endTime: Date.now(),
-  //     };
-
-  //     sendGameCompletionData(gameCompletionData);
-
-  //     setState(GameState.VICTORY);
-  //     setMenuType(MenuType.VICTORY);
-  //   }
-  // };
 
   return (
     <div className="text-center max-w-md">
