@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
+
 import {
   Play,
   Pause,
@@ -26,8 +26,7 @@ const InGameMenu: React.FC = () => {
     score,
     lives,
     currentLevel,
-    setState,
-    setMenuType,
+    gameStateManager,
     isPaused,
     multiplier,
     multiplierScore,
@@ -36,12 +35,8 @@ const InGameMenu: React.FC = () => {
   const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   const togglePause = () => {
-    if (isPaused) {
-      setState(GameState.PLAYING);
-    } else {
-      setState(GameState.PAUSED);
-      setMenuType(MenuType.PAUSE);
-    }
+    // Use centralized pause/resume transition
+    gameStateManager?.togglePause();
   };
 
   const handleFullscreenToggle = () => {

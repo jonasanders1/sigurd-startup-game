@@ -214,46 +214,58 @@ export class GameStateManager {
     switch (currentState) {
       case GameState.PLAYING:
         // Resume all managers when playing
+        // IMPORTANT: Resume in correct order to avoid race conditions
+        
+        // 1. Resume spawn/respawn managers first
+        this.monsterSpawnManager.resume();
+        this.monsterRespawnManager.resume();
+        
+        // 2. Resume scaling manager (respects power mode state)
         if (!this.scalingManager.isCurrentlyPausedByPowerMode()) {
           this.scalingManager.resume();
         }
         this.scalingManager.resumeAllMonsterScaling();
-        this.monsterSpawnManager.resume();
-        this.monsterRespawnManager.resume();
-
-        // Resume coin manager
+        
+        // 3. Resume coin manager
         if (gameState.coinManager) {
           gameState.coinManager.resume();
         }
         
-        log.audio("Game playing, all managers resumed");
+        log.debug("Game state PLAYING: All managers resumed in correct order");
         break;
 
       case GameState.PAUSED:
         // Pause all managers when paused
-        this.scalingManager.pause();
-        this.scalingManager.pauseAllMonsterScaling();
-        this.monsterSpawnManager.pause();
-        this.monsterRespawnManager.pause();
-
-        // Pause coin manager
+        // IMPORTANT: Pause in reverse order to avoid race conditions
+        
+        // 1. Pause coin manager first (stops power-ups)
         if (gameState.coinManager) {
           gameState.coinManager.pause();
         }
+        
+        // 2. Pause scaling managers
+        this.scalingManager.pause();
+        this.scalingManager.pauseAllMonsterScaling();
+        
+        // 3. Pause spawn/respawn managers last
+        this.monsterSpawnManager.pause();
+        this.monsterRespawnManager.pause();
 
-        // Stop power-up melody when paused
+        // 4. Stop audio effects
         if (this.audioManager.isPowerUpMelodyActive()) {
           log.audio("Game paused, stopping PowerUp melody");
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
         
-        log.audio("Game paused, all managers paused");
+        log.debug("Game state PAUSED: All managers paused in correct order");
         break;
 
       case GameState.COUNTDOWN:
         // Keep managers paused during countdown
         // They will resume when state changes to PLAYING
+        // This prevents updates during countdown animation
+        log.debug("Game state COUNTDOWN: Managers remain paused");
         break;
 
       case GameState.BONUS:
@@ -261,26 +273,34 @@ export class GameStateManager {
       case GameState.GAME_OVER:
       case GameState.MENU:
         // Stop managers for end states and menu
-        this.scalingManager.pause();
-        this.scalingManager.pauseAllMonsterScaling();
-        this.monsterSpawnManager.pause();
-        this.monsterRespawnManager.pause();
-
-        // Pause coin manager
+        // Use same order as PAUSED state
+        
+        // 1. Pause coin manager first
         if (gameState.coinManager) {
           gameState.coinManager.pause();
         }
+        
+        // 2. Pause scaling managers
+        this.scalingManager.pause();
+        this.scalingManager.pauseAllMonsterScaling();
+        
+        // 3. Pause spawn/respawn managers
+        this.monsterSpawnManager.pause();
+        this.monsterRespawnManager.pause();
 
-        // Stop power-up melody for these states
+        // 4. Stop audio effects
         if (this.audioManager.isPowerUpMelodyActive()) {
           log.audio(`Game state ${currentState}, stopping PowerUp melody`);
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
+        
+        log.debug(`Game state ${currentState}: All managers paused`);
         break;
 
       default:
         // For any other states, default to paused
+        log.warn(`Unhandled game state in handleDifficultyPause: ${currentState}`);
         break;
     }
   }
@@ -335,5 +355,108 @@ export class GameStateManager {
 
   public isBackgroundMusicActive(): boolean {
     return this.isBackgroundMusicPlaying;
+  }
+
+  // ===== CENTRALIZED STATE TRANSITIONS =====
+  
+  /**
+   * Start a new game from the start menu
+   */
+  public startNewGame(): void {
+    log.info("Starting new game with countdown");
+    this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
+    
+    setTimeout(() => {
+      this.setState(GameState.PLAYING);
+    }, 3000);
+  }
+
+  /**
+   * Restart the game after game over
+   */
+  public restartGame(): void {
+    const gameState = useGameStore.getState();
+    
+    log.info("Restarting game");
+    // Reset the game (this now also loads the first level)
+    gameState.resetGame();
+    
+    // Show countdown before starting
+    this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
+    
+    setTimeout(() => {
+      this.setState(GameState.PLAYING);
+    }, 3000);
+  }
+
+  /**
+   * Pause the game
+   */
+  public pauseGame(): void {
+    log.info("Pausing game");
+    this.setState(GameState.PAUSED, MenuType.PAUSE);
+  }
+
+  /**
+   * Resume the game from pause
+   */
+  public resumeGame(): void {
+    log.info("Resuming game with countdown");
+    this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
+    
+    setTimeout(() => {
+      this.setState(GameState.PLAYING);
+    }, 3000);
+  }
+
+  /**
+   * Toggle pause state
+   */
+  public togglePause(): void {
+    const gameState = useGameStore.getState();
+    
+    if (gameState.isPaused) {
+      this.resumeGame();
+    } else {
+      this.pauseGame();
+    }
+  }
+
+  /**
+   * Go to settings menu
+   */
+  public openSettings(): void {
+    const gameState = useGameStore.getState();
+    
+    // Store current menu before switching to settings
+    gameState.setMenuType(MenuType.SETTINGS);
+  }
+
+  /**
+   * Go back from settings menu
+   */
+  public closeSettings(): void {
+    const gameState = useGameStore.getState();
+    
+    // Go back to the previous menu that was stored when opening settings
+    if (gameState.previousMenu) {
+      gameState.setMenuType(gameState.previousMenu);
+    } else {
+      // Fallback to START menu if no previous menu is stored
+      gameState.setMenuType(MenuType.START);
+    }
+  }
+
+  /**
+   * Quit to main menu
+   */
+  public quitToMenu(): void {
+    const gameState = useGameStore.getState();
+    
+    log.info("Quitting to main menu");
+    // Reset the game
+    gameState.resetGame();
+    // Set to menu state with start menu
+    this.setState(GameState.MENU, MenuType.START);
   }
 }

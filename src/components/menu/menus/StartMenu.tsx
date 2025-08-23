@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
+
 import { Maximize, Minimize, Play, Settings } from "lucide-react";
 import {
   Tooltip,
@@ -12,24 +12,18 @@ import {
 import { useFullscreen } from "../../../hooks/useFullscreen";
 
 const StartMenu: React.FC = () => {
-  const { setState, setMenuType } = useGameStore();
+  const { gameStateManager } = useGameStore();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const startGame = () => {
-    // First hide the start menu
-    setMenuType(MenuType.COUNTDOWN);
-    // Then set countdown state
-    setState(GameState.COUNTDOWN);
-
-    // After 3 seconds, start the game
-    setTimeout(() => {
-      setState(GameState.PLAYING);
-    }, 3000);
+    // Use centralized state transition
+    gameStateManager?.startNewGame();
   };
 
   const openSettings = () => {
-    setMenuType(MenuType.SETTINGS);
+    // Use centralized settings transition
+    gameStateManager?.openSettings();
   };
 
   const handleFullscreenToggle = () => {
