@@ -108,6 +108,11 @@ export class GameManager {
     if ("setAudioManager" in gameState) {
       gameState.setAudioManager(this.audioManager);
     }
+    
+    // Set GameStateManager reference in store
+    if ("setGameStateManager" in gameState) {
+      gameState.setGameStateManager(this.gameStateManager);
+    }
   }
 
   /**

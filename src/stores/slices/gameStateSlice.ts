@@ -36,6 +36,7 @@ export interface GameStateSlice {
   previousMenu: MenuType | null;
   isPaused: boolean;
   bonusAnimationComplete: boolean;
+  gameStateManager?: any; // Reference to GameStateManager instance
 
   setState: (state: GameState) => void;
   setMenuType: (menuType: MenuType) => void;
@@ -46,6 +47,7 @@ export interface GameStateSlice {
   addScore: (points: number) => void;
   resetLevelScores: () => void;
   resetGameState: () => void;
+  setGameStateManager: (manager: any) => void;
 }
 
 export const createGameStateSlice: StateCreator<GameStateSlice> = (
@@ -261,6 +263,10 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
         isPaused: false,
         bonusAnimationComplete: false,
       });
+    },
+
+    setGameStateManager: (manager: any) => {
+      set({ gameStateManager: manager });
     },
   };
 };

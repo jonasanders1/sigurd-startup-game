@@ -1,23 +1,14 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
+
 
 const GameOverScreen: React.FC = () => {
-  const { score, resetGame, levelHistory, setState, setMenuType } = useGameStore();
+  const { score, levelHistory, gameStateManager } = useGameStore();
 
   const handleRestart = () => {
-    // Reset the game (this now also loads the first level)
-    resetGame();
-    
-    // Show countdown before starting
-    setMenuType(MenuType.COUNTDOWN);
-    setState(GameState.COUNTDOWN);
-    
-    // After 3 seconds, start the game
-    setTimeout(() => {
-      setState(GameState.PLAYING);
-    }, 3000);
+    // Use centralized restart transition
+    gameStateManager?.restartGame();
   };
 
   return (
