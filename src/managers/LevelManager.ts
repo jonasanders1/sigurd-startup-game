@@ -58,14 +58,14 @@ export class LevelManager {
 
   public loadCurrentLevel(): void {
     const { currentLevel } = useStateStore.getState();
-    const { initializeLevel } = useLevelStore.getState();
-    const { updateMonsters } = useMonsterStore.getState();
-    const { resetCoinState } = useCoinStore.getState();
+    const gameStore = useGameStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
 
     if (currentLevel <= mapDefinitions.length) {
       const mapDefinition = mapDefinitions[currentLevel - 1];
-      initializeLevel(mapDefinition);
+      
+      // Use the gameStore initializeLevel which properly sets up bombs, monsters, coins, and player
+      gameStore.initializeLevel(mapDefinition);
 
       // Clear floating texts when loading new level
       clearAllFloatingTexts();
@@ -95,7 +95,8 @@ export class LevelManager {
       // Reset respawn manager
       this.monsterRespawnManager.reset();
 
-      // Set up original spawn points for static monsters
+      // Set up original spawn points for static monsters (this is already done in gameStore.initializeLevel, but we need spawn points)
+      const { updateMonsters } = useMonsterStore.getState();
       if (mapDefinition.monsters) {
         const monstersWithSpawnPoints = mapDefinition.monsters.map(
           (monster) => ({
@@ -108,10 +109,6 @@ export class LevelManager {
           `Set up spawn points for ${monstersWithSpawnPoints.length} static monsters`
         );
       }
-
-      // Reset coins
-      resetCoinState();
-      log.debug("Coins reset when loading new level");
 
       // Record map start time
       this.mapStartTime = Date.now();
@@ -227,18 +224,21 @@ export class LevelManager {
   }
 
   public proceedToNextLevel(): void {
-    const { nextLevel, gameStateManager } = useStateStore.getState();
+    const { nextLevel, currentLevel, gameStateManager } = useStateStore.getState();
     const { resetEffects, resetCoinState } = useCoinStore.getState();
 
     // Stop power-up melody if active
     gameStateManager.stopPowerUpMelodyIfActive();
 
-    if (nextLevel() <= mapDefinitions.length) {
+    // Check if there are more levels BEFORE incrementing
+    const nextLevelNumber = currentLevel + 1;
+    if (nextLevelNumber <= mapDefinitions.length) {
       // Reset coin effects and state
       resetEffects();
       resetCoinState();
       log.debug("Coins reset when proceeding to next level");
 
+      // Increment level only once
       nextLevel();
       this.loadCurrentLevel();
 
