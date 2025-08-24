@@ -29,6 +29,7 @@ export class OptimizedSpawnManager {
   private pauseState: PauseState;
   private lastUpdateTime: number = 0;
   private updateInterval: number = 16; // Update every 16ms (60fps) for smooth movement
+  private isInitialized: boolean = false; // Add initialization flag
 
   constructor() {
     this.behaviorManager = new MonsterBehaviorManager();
@@ -37,9 +38,20 @@ export class OptimizedSpawnManager {
 
   // ===== INITIALIZATION =====
   public initializeLevel(spawnPoints: MonsterSpawnPoint[]): void {
+    // Warn if already initialized without cleanup
+    if (this.isInitialized && this.scheduledSpawns.length > 0) {
+      logger.warn(
+        `SpawnManager.initializeLevel called while already initialized with ${this.scheduledSpawns.length} spawns. Cleaning up first.`
+      );
+      this.cleanup();
+    }
+
+    // Reset and initialize properly
+    this.reset();
     this.levelStartTime = Date.now();
     this.scheduledSpawns = this.createScheduledSpawns(spawnPoints);
     this.resetPauseState();
+    this.isInitialized = true; // Mark as initialized
 
     logger.level(`Level initialized with ${spawnPoints.length} spawn points`);
 
@@ -85,6 +97,11 @@ export class OptimizedSpawnManager {
 
   // ===== UPDATE LOOP =====
   public update(currentTime: number, deltaTime?: number): void {
+    // Don't update if not initialized
+    if (!this.isInitialized) {
+      return;
+    }
+
     // Don't update if paused
     if (this.pauseState.isPaused) {
       return;
@@ -132,6 +149,12 @@ export class OptimizedSpawnManager {
   }
 
   private processSpawns(currentTime: number, gameState: any): void {
+    // Defensive check: Don't process spawns if level hasn't been initialized properly
+    if (this.levelStartTime === 0) {
+      logger.warn("processSpawns called with levelStartTime = 0, skipping");
+      return;
+    }
+
     const adjustedTime = this.getAdjustedTime();
     const adjustedAbsoluteTime = this.getAdjustedAbsoluteTime();
     const spawnsToExecute: ScheduledSpawn[] = [];
@@ -323,6 +346,7 @@ export class OptimizedSpawnManager {
     this.scheduledSpawns.forEach((spawn) => (spawn.executed = false));
     this.resetPauseState();
     this.lastUpdateTime = 0;
+    this.isInitialized = false; // Reset initialization flag
   }
 
   public getSpawnStatus(): any {
@@ -365,5 +389,6 @@ export class OptimizedSpawnManager {
     this.scheduledSpawns = [];
     this.resetPauseState();
     this.lastUpdateTime = 0;
+    this.isInitialized = false; // Reset initialization flag
   }
 }

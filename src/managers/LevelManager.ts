@@ -67,6 +67,9 @@ export class LevelManager {
       // Reset map cleared state for new level
       this.wasGroundedWhenMapCleared = false;
       
+      // Cleanup spawn manager before loading new level
+      this.monsterSpawnManager.cleanup();
+      
       // Use the gameStore initializeLevel which properly sets up bombs, monsters, coins, and player
       gameStore.initializeLevel(mapDefinition);
 
@@ -298,6 +301,16 @@ export class LevelManager {
         direction: 1,
       }));
       updateMonsters(resetMonsters);
+
+      // Reset spawn manager and reinitialize spawn points
+      if (currentMap.monsterSpawnPoints) {
+        log.debug("Resetting spawn manager after player death");
+        this.monsterSpawnManager.reset();
+        this.monsterSpawnManager.initializeLevel(currentMap.monsterSpawnPoints);
+      }
+
+      // Reset respawn manager
+      this.monsterRespawnManager.reset();
 
       // Reload background
       this.renderManager.loadMapBackground(currentMap.name);
