@@ -69,7 +69,7 @@ export const sendScoreToHost = (
     multiplier,
   };
 
-  log.dataPassing("Sending score to host:", scoreData);
+  log.data("Sending score to host:", scoreData);
 
   // Send current score update
   const scoreEvent = new CustomEvent("scoreUpdate", {
@@ -89,7 +89,7 @@ export const sendScoreToHost = (
 };
 
 export const sendGameReady = () => {
-  log.dataPassing("Game ready signal sent to host");
+  log.data("Game ready signal sent to host");
   const event = new CustomEvent("game:ready", {
     detail: { timestamp: Date.now() },
     bubbles: true,
@@ -99,7 +99,7 @@ export const sendGameReady = () => {
 };
 
 export const sendGameStateUpdate = (state: string, map?: string) => {
-  log.dataPassing("Game state update sent to host:", { state, map });
+  log.data("Game state update sent to host:", { state, map });
   const event = new CustomEvent("game:state-updated", {
     detail: { state, map, timestamp: Date.now() },
     bubbles: true,
@@ -109,7 +109,7 @@ export const sendGameStateUpdate = (state: string, map?: string) => {
 };
 
 export const sendMapCompletionData = (data: MapCompletionData) => {
-  log.dataPassing("Sending map completion data to host:", data);
+  log.data("Sending map completion data to host:", data);
   const event = new CustomEvent("game:map-completed", {
     detail: data,
     bubbles: true,
@@ -119,7 +119,7 @@ export const sendMapCompletionData = (data: MapCompletionData) => {
 };
 
 export const sendGameCompletionData = (data: GameCompletionData) => {
-  log.dataPassing("Sending game completion data to host:", data);
+  log.data("Sending game completion data to host:", data);
   const event = new CustomEvent("game:completed", {
     detail: data,
     bubbles: true,

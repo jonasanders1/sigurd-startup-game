@@ -1,6 +1,8 @@
 // Asset configuration using Vite's import.meta.glob
 // Works in dev, local install, and production (Vercel CDN)
 
+import { log } from '../lib/logger';
+
 // Preload all backgrounds and audio as URLs
 const backgrounds = import.meta.glob(
   '../assets/maps-bg-images/*.png',
@@ -43,7 +45,7 @@ export const getBackgroundImagePath = (theme: string): string => {
     return url;
   }
 
-  console.warn(`❌ Background image not found for theme: ${theme}`);
+  log.asset(`Background image not found for theme: ${theme}`);
   return '';
 };
 
@@ -70,7 +72,7 @@ export const getAudioPath = (name: string): string => {
     return url;
   }
 
-  console.warn(`❌ Audio file not found: ${name}`);
+  log.asset(`Audio file not found: ${name}`);
   return '';
 };
 
@@ -104,7 +106,7 @@ export const loadSpriteImage = (path: string): HTMLImageElement => {
     return img;
   }
 
-  console.warn(`❌ Sprite not found: ${path}`);
+  log.asset(`Sprite not found: ${path}`);
   // Return a broken image as fallback
   const img = new Image();
   img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
@@ -113,15 +115,15 @@ export const loadSpriteImage = (path: string): HTMLImageElement => {
 
 // --- Debug helper ---
 export const debugAssetPaths = () => {
-  console.log('🔧 Asset Debug');
-  console.log('  Backgrounds loaded:', Object.keys(backgrounds));
-  console.log('  Audio loaded:', Object.keys(audioFiles));
-  console.log('  Sprites loaded:', Object.keys(spriteImages));
-  console.log('  Cache size:', assetCache.size);
-  console.log('  Backgrounds object:', backgrounds);
-  console.log('  Audio files object:', audioFiles);
-  console.log('  Sprites object:', spriteImages);
-  console.log('  Current working directory:', import.meta.url);
+  log.debug('Asset Debug');
+  log.debug('  Backgrounds loaded:', Object.keys(backgrounds));
+  log.debug('  Audio loaded:', Object.keys(audioFiles));
+  log.debug('  Sprites loaded:', Object.keys(spriteImages));
+  log.debug('  Cache size:', assetCache.size);
+  log.debug('  Backgrounds object:', backgrounds);
+  log.debug('  Audio files object:', audioFiles);
+  log.debug('  Sprites object:', spriteImages);
+  log.debug('  Current working directory:', import.meta.url);
 };
 
 // Legacy support functions (for backward compatibility)

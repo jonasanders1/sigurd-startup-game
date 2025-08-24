@@ -12,6 +12,7 @@ import { GAME_CONFIG } from "../types/constants";
 import { ScalingManager } from "../managers/ScalingManager";
 import { useScoreStore } from "../stores/gameStore";
 import { useAudioStore } from "../stores/systems/audioStore";
+import { log } from "../lib/logger";
 
 // Define coin effects
 export const COIN_EFFECTS = {
@@ -34,7 +35,7 @@ export const COIN_EFFECTS = {
             const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
             duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
           } catch (error) {
-            console.warn(
+            log.warn(
               "Failed to get P-coin color data, using default duration:",
               error
             );
@@ -63,7 +64,7 @@ export const COIN_EFFECTS = {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.pauseForPowerMode();
       } catch (error) {
-        console.log(
+        log.debug(
           "Could not pause difficulty scaling (ScalingManager not available)"
         );
       }
@@ -72,17 +73,17 @@ export const COIN_EFFECTS = {
       // Get audioManager from the audioStore instead of gameState
       const audioStore = useAudioStore.getState();
       if (audioStore.audioManager && typeof audioStore.audioManager.startPowerUpMelodyWithDuration === 'function') {
-        console.log(`Starting PowerUp melody from coin effect for ${duration}ms`);
-        console.log(`AudioManager available:`, audioStore.audioManager);
+        log.audio(`Starting PowerUp melody from coin effect for ${duration}ms`);
+        log.debug(`AudioManager available:`, audioStore.audioManager);
         audioStore.audioManager.startPowerUpMelodyWithDuration(duration);
       } else {
-        console.warn("AudioManager not available for PowerUp melody");
-        console.log(`AudioStore audioManager:`, audioStore.audioManager);
-        console.log(`AudioStore keys:`, Object.keys(audioStore));
+        log.warn("AudioManager not available for PowerUp melody");
+        log.debug(`AudioStore audioManager:`, audioStore.audioManager);
+        log.debug(`AudioStore keys:`, Object.keys(audioStore));
       }
     },
     remove: (gameState: GameStateInterface) => {
-      console.log("Removing POWER_MODE effect, stopping PowerUp melody");
+      log.audio("Removing POWER_MODE effect, stopping PowerUp melody");
       
       // Stop power-up melody when effect ends
       // Get audioManager from the audioStore instead of gameState
@@ -90,7 +91,7 @@ export const COIN_EFFECTS = {
       if (audioStore.audioManager && typeof audioStore.audioManager.stopPowerUpMelody === 'function') {
         audioStore.audioManager.stopPowerUpMelody();
       } else {
-        console.warn("AudioManager not available to stop PowerUp melody");
+        log.warn("AudioManager not available to stop PowerUp melody");
       }
       
       // Unfreeze monsters (safely handle undefined monsters)
@@ -106,7 +107,7 @@ export const COIN_EFFECTS = {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.resumeFromPowerMode();
       } catch (error) {
-        console.log(
+        log.debug(
           "Could not resume difficulty scaling (ScalingManager not available)"
         );
       }

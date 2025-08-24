@@ -76,7 +76,7 @@ export class GameStateManager {
     this.setDevModeState(DEV_CONFIG.TARGET_STATE);
 
     // Set multiplier LAST
-    log.dev(
+    log.debug(
       `DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x`
     );
     setMultiplier(
@@ -84,7 +84,7 @@ export class GameStateManager {
       DEV_CONFIG.MOCK_DATA.multiplierScore
     );
 
-    log.dev(
+    log.debug(
       `DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}, level: ${DEV_CONFIG.TARGET_LEVEL}`
     );
     this.devModeInitialized = true;
@@ -191,8 +191,8 @@ export class GameStateManager {
       }
     } else if (currentState === GameState.PAUSED) {
       // Explicitly stop music when paused
-      console.log("Entering paused state", currentState);
-      console.log("handleBackgroundMusic", this.isBackgroundMusicPlaying);
+      log.game("Entering paused state", currentState);
+      log.debug("handleBackgroundMusic", this.isBackgroundMusicPlaying);
       if (this.isBackgroundMusicPlaying) {
         log.audio("Game paused, stopping background music");
         this.audioManager.stopBackgroundMusic();

@@ -8,7 +8,7 @@ export const useBackgroundPreloading = () => {
   useEffect(() => {
     // Preload all background images to prevent flashing
     BackgroundManager.preloadAllBackgrounds().then(() => {
-      logger.flow("All background images preloaded");
+      logger.asset("All background images preloaded");
       setIsPreloading(false);
     }).catch(error => {
       logger.warn("Failed to preload some background images");

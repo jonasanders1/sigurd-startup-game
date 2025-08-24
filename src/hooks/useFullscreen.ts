@@ -79,7 +79,7 @@ export const useFullscreen = () => {
   // Enter fullscreen
   const enterFullscreen = useCallback(async (element?: HTMLElement) => {
     if (!isFullscreenSupported()) {
-      console.warn('Fullscreen is not supported in this browser');
+      log.warn('Fullscreen is not supported in this browser');
       return false;
     }
 
@@ -97,7 +97,7 @@ export const useFullscreen = () => {
       }
       return true;
     } catch (error) {
-      console.error('Error entering fullscreen:', error);
+      log.error('Error entering fullscreen:', error);
       return false;
     }
   }, []);
@@ -116,7 +116,7 @@ export const useFullscreen = () => {
       }
       return true;
     } catch (error) {
-      console.error('Error exiting fullscreen:', error);
+      log.error('Error exiting fullscreen:', error);
       return false;
     }
   }, []);

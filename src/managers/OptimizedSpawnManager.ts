@@ -36,7 +36,7 @@ export class OptimizedSpawnManager {
     this.scheduledSpawns = this.createScheduledSpawns(spawnPoints);
     this.resetPauseState();
     
-    logger.flow(`Level initialized with ${spawnPoints.length} spawn points`);
+    logger.level(`Level initialized with ${spawnPoints.length} spawn points`);
     
     // Debug: Log scheduled spawns
     this.scheduledSpawns.forEach((spawn, index) => {
@@ -104,12 +104,12 @@ export class OptimizedSpawnManager {
     // Debug: Log spawn processing (every 5 seconds)
     if (Math.floor(adjustedTime / 5000) !== Math.floor((adjustedTime - 16) / 5000)) {
       const pendingSpawns = this.scheduledSpawns.filter(s => !s.executed);
-      logger.info(`Spawn check at ${(adjustedTime / 1000).toFixed(1)}s: ${pendingSpawns.length} pending spawns`);
+      logger.spawn(`Spawn check at ${(adjustedTime / 1000).toFixed(1)}s: ${pendingSpawns.length} pending spawns`);
       pendingSpawns.forEach(spawn => {
         const timeUntilSpawn = (spawn.scheduledTime - adjustedAbsoluteTime) / 1000;
         try {
           const monster = spawn.spawnPoint.createMonster();
-          logger.info(`  - ${monster.type} in ${timeUntilSpawn.toFixed(1)}s (scheduled: ${spawn.scheduledTime}, current: ${adjustedAbsoluteTime})`);
+          logger.spawn(`  - ${monster.type} in ${timeUntilSpawn.toFixed(1)}s (scheduled: ${spawn.scheduledTime}, current: ${adjustedAbsoluteTime})`);
         } catch (error) {
           logger.error(`  - Failed to create monster: ${error}`);
         }
@@ -120,13 +120,13 @@ export class OptimizedSpawnManager {
     for (const spawn of this.scheduledSpawns) {
       if (!spawn.executed && adjustedAbsoluteTime >= spawn.scheduledTime) {
         spawnsToExecute.push(spawn);
-        logger.info(`Spawn ready to execute: ${spawn.spawnPoint.createMonster().type} (scheduled at ${(spawn.scheduledTime / 1000).toFixed(1)}s, current time ${(adjustedTime / 1000).toFixed(1)}s)`);
+        logger.spawn(`Spawn ready to execute: ${spawn.spawnPoint.createMonster().type} (scheduled at ${(spawn.scheduledTime / 1000).toFixed(1)}s, current time ${(adjustedTime / 1000).toFixed(1)}s)`);
       }
     }
 
     // Execute spawns in batch
     if (spawnsToExecute.length > 0) {
-      logger.info(`Executing ${spawnsToExecute.length} spawns at ${(adjustedTime / 1000).toFixed(1)}s`);
+      logger.spawn(`Executing ${spawnsToExecute.length} spawns at ${(adjustedTime / 1000).toFixed(1)}s`);
       this.executeSpawns(spawnsToExecute, currentTime, gameState);
     }
   }
@@ -185,7 +185,7 @@ export class OptimizedSpawnManager {
       this.pauseState.pauseStartTime = Date.now();
     }
     this.pauseState.pauseReasons.add(reason);
-    logger.pause(`Spawning paused (${reason})`);
+    logger.game(`Spawning paused (${reason})`);
     logger.debug(`SpawnManager pause state: ${this.pauseState.isPaused}, reasons: ${Array.from(this.pauseState.pauseReasons).join(', ')}`);
   }
 
@@ -196,7 +196,7 @@ export class OptimizedSpawnManager {
       const pauseDuration = Date.now() - this.pauseState.pauseStartTime;
       this.pauseState.totalPausedTime += pauseDuration;
       this.pauseState.isPaused = false;
-      logger.pause(`Spawning resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
+      logger.game(`Spawning resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
     }
     logger.debug(`SpawnManager pause state: ${this.pauseState.isPaused}, reasons: ${Array.from(this.pauseState.pauseReasons).join(', ')}`);
   }

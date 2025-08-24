@@ -33,13 +33,13 @@ export class BombManager {
     const bombId = `${group}-${order}`;
 
     if (DEV_CONFIG.ENABLED) {
-      log.dev(`USER CLICK: Group ${group}, Order ${order}`);
+      log.debug(`USER CLICK: Group ${group}, Order ${order}`);
     }
 
     // Check if bomb is already collected
     if (this.collectedBombs.has(bombId)) {
       if (DEV_CONFIG.ENABLED) {
-        log.dev("Bomb already collected!");
+        log.debug("Bomb already collected!");
       }
       return { isValid: false, isCorrect: false, gameCompleted: false };
     }
@@ -47,7 +47,7 @@ export class BombManager {
     // If game hasn't started yet, start it with this bomb
     if (!this.gameStarted) {
       if (DEV_CONFIG.ENABLED) {
-        log.dev("Starting new game...");
+        log.debug("Starting new game...");
       }
       this.startGame(group, order);
       this.collectBomb(bombId, true);
@@ -64,17 +64,17 @@ export class BombManager {
 
     if (isCorrectOrder) {
       if (DEV_CONFIG.ENABLED) {
-        log.dev("Correct order - collecting bomb");
+        log.debug("Correct order - collecting bomb");
       }
       this.collectBomb(bombId, true);
       this.updateNextBomb();
     } else {
       if (DEV_CONFIG.ENABLED) {
-        log.dev("Wrong order - but collecting anyway");
-        log.dev(
+        log.debug("Wrong order - but collecting anyway");
+        log.debug(
           `   Expected: Group ${this.activeGroup}, Order ${this.nextBombOrder}`
         );
-        log.dev(`   Clicked: Group ${group}, Order ${order}`);
+        log.debug(`   Clicked: Group ${group}, Order ${order}`);
       }
       this.collectBomb(bombId, false);
       // Don't update next bomb - keep the same target
@@ -93,10 +93,10 @@ export class BombManager {
     this.nextBombOrder = this.findLowestOrderInGroup(group);
 
     if (DEV_CONFIG.ENABLED) {
-      log.dev(`GAME STARTED:`);
-      log.dev(`   Started with: Group ${group}, Order ${order}`);
-      log.dev(`   Active group: ${this.activeGroup}`);
-      log.dev(`   Next target: Order ${this.nextBombOrder}`);
+      log.debug(`GAME STARTED:`);
+      log.debug(`   Started with: Group ${group}, Order ${order}`);
+      log.debug(`   Active group: ${this.activeGroup}`);
+      log.debug(`   Next target: Order ${this.nextBombOrder}`);
     }
   }
 
@@ -118,13 +118,13 @@ export class BombManager {
     if (isCorrect) {
       this.correctBombs.add(bombId);
       if (DEV_CONFIG.ENABLED) {
-        log.dev(
+        log.debug(
           `Correct bomb collected (${this.correctBombs.size} correct so far)`
         );
       }
     } else {
       if (DEV_CONFIG.ENABLED) {
-        log.dev(
+        log.debug(
           `Wrong bomb collected (${this.correctBombs.size} correct so far)`
         );
       }
@@ -142,25 +142,25 @@ export class BombManager {
     if (this.activeGroup === null) return;
 
     if (DEV_CONFIG.ENABLED) {
-      log.dev(`UPDATING NEXT BOMB:`);
+      log.debug(`UPDATING NEXT BOMB:`);
     }
 
     // Check if current group is completed
     if (this.isGroupCompleted(this.activeGroup)) {
-      log.dev(`GROUP ${this.activeGroup} COMPLETED!`);
+      log.debug(`GROUP ${this.activeGroup} COMPLETED!`);
       const nextGroup = this.findNextAvailableGroup();
 
       if (nextGroup !== null) {
         this.activeGroup = nextGroup;
         this.nextBombOrder = this.findLowestOrderInGroup(nextGroup);
         if (DEV_CONFIG.ENABLED) {
-          log.dev(
+          log.debug(
             `Moving to next group: Group ${this.activeGroup}, Order ${this.nextBombOrder}`
           );
         }
       } else {
         if (DEV_CONFIG.ENABLED) {
-          log.dev("ALL GROUPS COMPLETED!");
+          log.debug("ALL GROUPS COMPLETED!");
         }
         this.activeGroup = null;
         this.nextBombOrder = null;
@@ -172,7 +172,7 @@ export class BombManager {
       if (nextOrder !== null) {
         this.nextBombOrder = nextOrder;
         if (DEV_CONFIG.ENABLED) {
-          log.dev(`Next in current group: Order ${this.nextBombOrder}`);
+          log.debug(`Next in current group: Order ${this.nextBombOrder}`);
         }
       }
     }

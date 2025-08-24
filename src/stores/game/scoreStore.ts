@@ -36,7 +36,7 @@ export const useScoreStore = create<ScoreStore>((set, get) => ({
     const { score, levelScore, multiplier } = get();
     const actualPoints = points * multiplier;
     
-    log.debug(`Adding score: ${points} × ${multiplier} = ${actualPoints}`);
+    log.score(`Adding score: ${points} × ${multiplier} = ${actualPoints}`);
     
     set({
       score: score + actualPoints,

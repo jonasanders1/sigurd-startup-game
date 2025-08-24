@@ -140,8 +140,8 @@ export class GameManager {
 
     // Handle dev mode if enabled
     if (DEV_CONFIG.ENABLED) {
-      log.dev("DEV_MODE is ENABLED");
-      log.dev(`Target state: ${DEV_CONFIG.TARGET_STATE}`);
+      log.debug("DEV_MODE is ENABLED");
+      log.debug(`Target state: ${DEV_CONFIG.TARGET_STATE}`);
       this.gameStateManager.initializeDevMode();
       this.levelManager.loadCurrentLevel();
     } else {
@@ -268,7 +268,7 @@ export class GameManager {
   private handleMonsterCollision(monster: any): void {
     // Check god mode
     if (this.powerUpManager.isGodModeEnabled()) {
-      log.dev("God mode enabled - player is invincible");
+      log.debug("God mode enabled - player is invincible");
       return;
     }
 
