@@ -25,9 +25,15 @@ import {
 import { GameState, AudioEvent } from "../types/enums";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
-import { sendGameReady } from "../lib/communicationUtils";
+import {
+  sendGameReady,
+  sendLevelFailure,
+  LevelFailureData,
+  LevelHistoryEntry,
+} from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 import { SpawnDiagnostics } from "./spawn-diagnostics";
+import { LevelResult } from "@/stores/game/levelStore";
 
 /**
  * GameManager - Main orchestrator for the game
@@ -190,7 +196,7 @@ export class GameManager {
           instance.stopDiagnostics();
           delete (window as any).spawnDiagnosticsInstance;
         }
-      }
+      },
     };
 
     // Also expose managers for advanced debugging
@@ -200,11 +206,13 @@ export class GameManager {
         respawn: this.monsterRespawnManager,
         gameState: this.gameStateManager,
         level: this.levelManager,
-        audio: this.audioManager
+        audio: this.audioManager,
       };
     }
 
-    log.debug("Spawn diagnostics initialized - use spawnDiagnostics.dump() in console");
+    log.debug(
+      "Spawn diagnostics initialized - use spawnDiagnostics.dump() in console"
+    );
   }
 
   /**
@@ -330,7 +338,22 @@ export class GameManager {
    * Handle player death
    */
   private handlePlayerDeath(): void {
-    const { lives, loseLife } = useStateStore.getState();
+    const { lives, loseLife, currentLevel, correctOrderCount } =
+      useStateStore.getState();
+    const { score, multiplier } = this.scoreManager.getScore
+      ? {
+          score: this.scoreManager.getScore(),
+          multiplier: this.scoreManager.getMultiplier(),
+        }
+      : { score: 0, multiplier: 1 };
+    const { currentMap, addLevelResult } = useLevelStore.getState();
+    const { getCoinStats } = useCoinStore.getState();
+    const { bombs } = useStateStore.getState();
+
+    // Get coin stats before reset
+    const coinStats = getCoinStats();
+    const levelStartTime = useLevelStore.getState().levelStartTime;
+    const completionTime = Date.now() - levelStartTime;
 
     // Stop any power-up effects
     this.powerUpManager.handlePlayerDeath();
@@ -338,6 +361,39 @@ export class GameManager {
     // Stop background music immediately when player dies
     this.audioManager.stopBackgroundMusic();
     this.gameStateManager.resetBackgroundMusicFlag();
+
+    // Send level failure event for tracking (with current stats)
+    if (currentMap) {
+      const failureData: LevelFailureData = {
+        level: currentLevel,
+        mapName: currentMap.name,
+        score: score,
+        bombs: bombs.filter((b) => b.isCollected).length,
+        correctOrders: correctOrderCount,
+        lives: lives - 1, // Lives after death
+        multiplier: multiplier,
+        timestamp: Date.now(),
+      };
+      sendLevelFailure(failureData);
+
+      // Add partial level result to history
+      const partialLevelResult: LevelHistoryEntry = {
+        level: currentLevel,
+        mapName: currentMap.name,
+        score: score,
+        bonus: 0,
+        completionTime: completionTime,
+        coinsCollected: coinStats.totalCoinsCollected,
+        powerModeActivations: coinStats.totalPowerCoinsCollected,
+        timestamp: Date.now(),
+        correctOrderCount: correctOrderCount,
+        totalBombs: bombs.length,
+        lives: lives - 1,
+        multiplier: multiplier,
+        isPartial: true, // Mark as partial/incomplete
+      };
+      addLevelResult(partialLevelResult as LevelResult);
+    }
 
     if (lives <= 1) {
       // Game over
@@ -360,9 +416,7 @@ export class GameManager {
    * Handle map cleared falling animation
    */
   private handleMapClearedFall(wasGroundedWhenMapCleared: boolean): void {
-    this.levelManager.handleMapClearedFall(
-      this.levelManager.getWasGroundedWhenMapCleared()
-    );
+    this.levelManager.handleMapClearedFall(wasGroundedWhenMapCleared);
   }
 
   /**

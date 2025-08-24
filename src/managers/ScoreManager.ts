@@ -1,17 +1,28 @@
 import {
   useCoinStore,
   useGameStore,
+  useLevelStore,
   useRenderStore,
   useScoreStore,
   useStateStore,
 } from "../stores/gameStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
+import { sendScoreToHost } from "../lib/communicationUtils";
 
 export class ScoreManager {
   public addScore(points: number): void {
-    const { addScore } = useScoreStore.getState();
+    const { addScore, score, multiplier } = useScoreStore.getState();
+    const { currentLevel } = useStateStore.getState();
+    const { currentMap } = useLevelStore.getState();
+    const { lives } = useStateStore.getState();
+    
     addScore(points);
+    
+    // Send real-time score update to host
+    const updatedScore = score + points;
+    const mapName = currentMap?.name || "";
+    sendScoreToHost(updatedScore, mapName, currentLevel, lives, multiplier);
   }
 
   public calculateBonus(correctCount: number, livesLost: number): number {
