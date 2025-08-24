@@ -16,7 +16,7 @@ import type { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 
 export class GameStateManager {
-  private previousGameState: GameState | null = null;
+  private previousGameState: GameState = GameState.MENU; // Initialize with MENU instead of null
   private isBackgroundMusicPlaying = false;
   private devModeInitialized = false;
   private bonusTransitionInProgress = false;

@@ -1,6 +1,6 @@
 import React from "react";
 import ShortcutControls from "../ShortcutControls";
-import { useGameStore } from "../../stores/gameStore";
+import { useGameStore, useStateStore } from "../../stores/gameStore";
 import { GameState } from "@/types/enums";
 
 const Menu = ({
@@ -10,7 +10,7 @@ const Menu = ({
   children: React.ReactNode;
   transparent?: boolean;
 }) => {
-  const { currentState } = useGameStore();
+  const { currentState } = useStateStore();
 
   return (
     <div

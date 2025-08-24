@@ -10,6 +10,7 @@ import {
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { ScalingManager } from "../managers/ScalingManager";
+import { useScoreStore } from "../stores/gameStore";
 
 // Define coin effects
 export const COIN_EFFECTS = {
@@ -111,9 +112,12 @@ export const COIN_EFFECTS = {
     type: "BONUS_MULTIPLIER",
     points: 0, // Points will be calculated dynamically
     apply: (gameState: GameStateInterface) => {
+      // Get the score store to add points
+      const scoreStore = useScoreStore.getState();
+      
       // Give points based on current multiplier (1000 * multiplier)
       const points = 1000 * gameState.multiplier;
-      gameState.addScore(points);
+      scoreStore.addScore(points);
 
       // Increase multiplier
       if (gameState.multiplier < GAME_CONFIG.MAX_MULTIPLIER) {

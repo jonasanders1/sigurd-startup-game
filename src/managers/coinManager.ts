@@ -15,6 +15,7 @@ import { COIN_TYPES, P_COIN_COLORS, COIN_EFFECTS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 import { useAudioStore } from "../stores/systems/audioStore";
+import { useScoreStore, useStateStore } from "../stores/gameStore";
 
 interface EffectData {
   endTime: number;
@@ -35,7 +36,7 @@ export class CoinManager {
   private bombAndMonsterPoints: number = 0; // Track points from bombs and monsters only (no bonus)
   private monsterKillCount: number = 0; // Track monsters killed in current power mode session
   private pCoinColorIndex: number = 0; // Track current P-coin color index
-  
+
   // Pause state tracking
   private isPaused: boolean = false;
   private pauseStartTime: number = 0;
@@ -59,20 +60,24 @@ export class CoinManager {
     // Don't reset pCoinColorIndex - let it persist across sessions
   }
 
-  update(platforms: Platform[], ground: Ground, gameState?: GameStateInterface): void {
+  update(
+    platforms: Platform[],
+    ground: Ground,
+    gameState?: GameStateInterface
+  ): void {
     // Update coin physics based on coin type
     this.coins.forEach((coin) => {
       if (coin.isCollected) return;
-      
+
       const coinConfig = COIN_TYPES[coin.type];
       if (coinConfig) {
         CoinPhysics.updateCoin(coin, platforms, ground, coinConfig.physics);
       } else {
         // Fallback to legacy behavior
         if (coin.type === CoinType.POWER) {
-        CoinPhysics.updatePowerCoin(coin, platforms, ground);
-      } else {
-        CoinPhysics.updateCoin(coin, platforms, ground);
+          CoinPhysics.updatePowerCoin(coin, platforms, ground);
+        } else {
+          CoinPhysics.updateCoin(coin, platforms, ground);
         }
       }
     });
@@ -101,9 +106,9 @@ export class CoinManager {
     } else {
       // Legacy behavior - check if any coin of this type exists
       const existingCoin = this.coins.find((coin) => coin.type === type);
-    if (existingCoin) {
-      log.debug(`${type} coin already exists, skipping spawn`);
-      return;
+      if (existingCoin) {
+        log.debug(`${type} coin already exists, skipping spawn`);
+        return;
       }
     }
 
@@ -113,7 +118,7 @@ export class CoinManager {
     } else {
       initialVelocity = CoinPhysics.createInitialVelocity();
     }
-    
+
     const coin: Coin = {
       type,
       x,
@@ -206,7 +211,7 @@ export class CoinManager {
       const spawnPoints = this.spawnPoints.filter(
         (point) => point.type === coinConfig.type
       );
-    
+
       if (spawnPoints.length > 0) {
         const spawnPoint =
           spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
@@ -232,7 +237,11 @@ export class CoinManager {
           firebombCount: this.firebombCount,
         };
 
-        if (coinConfig.spawnCondition(combinedState as unknown as GameStateInterface)) {
+        if (
+          coinConfig.spawnCondition(
+            combinedState as unknown as GameStateInterface
+          )
+        ) {
           // Create a unique key for this spawn condition
           const spawnKey = `${coinConfig.type}_${this.firebombCount}`;
 
@@ -288,7 +297,11 @@ export class CoinManager {
           bombAndMonsterPoints: this.bombAndMonsterPoints,
         };
 
-        if (coinConfig.spawnCondition(combinedState as unknown as GameStateInterface)) {
+        if (
+          coinConfig.spawnCondition(
+            combinedState as unknown as GameStateInterface
+          )
+        ) {
           // Create a unique key for this spawn condition based on the current state
           let spawnKey = `${coinConfig.type}`;
 
@@ -332,7 +345,9 @@ export class CoinManager {
           ) {
             const bonusCount =
               (gameState.totalBonusMultiplierCoinsCollected as number) || 0;
-            const threshold = Math.floor(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
+            const threshold =
+              Math.floor(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) *
+              GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
             spawnKey = `${coinConfig.type}_${threshold}`;
             // log.debug(
             //   `E-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}, ratio=${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}, shouldSpawn=${bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0}`
@@ -380,7 +395,7 @@ export class CoinManager {
               spawnY = 100 + Math.random() * 100; // Random position for other coins
             }
             this.spawnCoin(coinConfig.type as CoinType, spawnX, spawnY);
-    }
+          }
         }
       }
     });
@@ -389,11 +404,13 @@ export class CoinManager {
   collectCoin(coin: Coin, gameState?: Record<string, unknown>): void {
     coin.isCollected = true;
     log.debug(`Collected ${coin.type} coin`);
-    
+
     const coinConfig = COIN_TYPES[coin.type];
     if (coinConfig && gameState) {
-      log.debug(`Processing ${coin.type} coin with ${coinConfig.effects.length} effects`);
-      
+      log.debug(
+        `Processing ${coin.type} coin with ${coinConfig.effects.length} effects`
+      );
+
       // Calculate points earned from this coin
       let pointsEarned = coinConfig.points;
 
@@ -420,9 +437,21 @@ export class CoinManager {
       }
 
       // Show floating text for points earned
-      if ('addFloatingText' in gameState && typeof gameState.addFloatingText === 'function') {
+      if (
+        "addFloatingText" in gameState &&
+        typeof gameState.addFloatingText === "function"
+      ) {
         const text = pointsEarned.toString();
-        (gameState.addFloatingText as (text: string, x: number, y: number, duration: number, color: string, fontSize: number) => void)(
+        (
+          gameState.addFloatingText as (
+            text: string,
+            x: number,
+            y: number,
+            duration: number,
+            color: string,
+            fontSize: number
+          ) => void
+        )(
           text,
           coin.x + coin.width / 2,
           coin.y + coin.height / 2,
@@ -436,16 +465,48 @@ export class CoinManager {
       coinConfig.effects.forEach((effect) => {
         // Create a proper GameStateInterface object with coinManager and activeEffects
         const gameStateWithManager: GameStateInterface = {
-          ...gameState as any,
+          ...(gameState as any),
+          // Ensure required properties are present
+          player: (gameState as any).player || {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            velocityX: 0,
+            velocityY: 0,
+          },
+          currentState: (gameState as any).currentState || "PLAYING",
+          currentLevel: (gameState as any).currentLevel || 1,
+          score: (gameState as any).score || 0,
+          lives: (gameState as any).lives || 3,
+          monsters: (gameState as any).monsters || [],
+          multiplier: (gameState as any).multiplier || 1,
+          multiplierScore: (gameState as any).multiplierScore || 0,
+          bombs: (gameState as any).bombs || [],
+          coins: (gameState as any).coins || [],
+          platforms: (gameState as any).platforms || [],
+          ground: (gameState as any).ground || {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+          },
+          firebombCount: (gameState as any).firebombCount || 0,
+          totalCoinsCollected: (gameState as any).totalCoinsCollected || 0,
+          totalPowerCoinsCollected:
+            (gameState as any).totalPowerCoinsCollected || 0,
+          totalBonusMultiplierCoinsCollected:
+            (gameState as any).totalBonusMultiplierCoinsCollected || 0,
           activeEffects: {
             powerMode: false,
             powerModeEndTime: 0,
-            ...(gameState as any).activeEffects
+            ...(gameState as any).activeEffects,
           },
           coinManager: {
             resetMonsterKillCount: () => this.resetMonsterKillCount(),
-            getPcoinColorForTime: (spawnTime: number) => this.getPcoinColorForTime(spawnTime),
-            getPowerModeEndTime: () => this.getPowerModeEndTime()
+            getPcoinColorForTime: (spawnTime: number) =>
+              this.getPcoinColorForTime(spawnTime),
+            getPowerModeEndTime: () => this.getPowerModeEndTime(),
           },
           difficultyManager: {
             pause: () => {
@@ -459,14 +520,29 @@ export class CoinManager {
               const scalingManager = ScalingManager.getInstance();
               scalingManager.resume();
               log.debug("Difficulty scaling resumed (power mode ended)");
-            }
+            },
           },
           // Ensure audioManager is included from the original gameState
-          audioManager: (gameState as any).audioManager
+          audioManager: (gameState as any).audioManager,
+          // Add the missing methods
+          addScore: (points: number) => {
+            const scoreStore = useScoreStore.getState();
+            scoreStore.addScore(points);
+          },
+          setMultiplier: (multiplier: number, score: number) => {
+            const scoreStore = useScoreStore.getState();
+            scoreStore.setMultiplier(multiplier, score);
+          },
         };
-        
-        log.debug(`GameStateWithManager created, audioManager:`, (gameStateWithManager as any).audioManager);
-        log.debug(`GameStateWithManager keys:`, Object.keys(gameStateWithManager));
+
+        log.debug(
+          `GameStateWithManager created, audioManager:`,
+          (gameStateWithManager as any).audioManager
+        );
+        log.debug(
+          `GameStateWithManager keys:`,
+          Object.keys(gameStateWithManager)
+        );
         // Apply the effect first
         log.debug(`Applying effect: ${effect.type}`);
         effect.apply(gameStateWithManager, coin);
@@ -475,19 +551,26 @@ export class CoinManager {
         // Track timed effects - for POWER_MODE, get the duration from the activeEffects
         if (effect.type === "POWER_MODE") {
           // POWER_MODE effect calculates its own duration, so get it from the updated gameState
-          const powerModeEndTime = (gameStateWithManager as any).activeEffects.powerModeEndTime;
+          const powerModeEndTime = (gameStateWithManager as any).activeEffects
+            .powerModeEndTime;
           if (powerModeEndTime > 0) {
             this.activeEffects.set(effect.type, {
               endTime: powerModeEndTime,
               effect,
             });
-            
+
             // Also update the coin manager's internal power mode state
             this.powerModeActive = true;
             this.powerModeEndTime = powerModeEndTime;
-            
-            log.debug(`POWER_MODE effect tracked with endTime: ${powerModeEndTime}, internal state updated`);
-            log.debug(`Current time: ${Date.now()}, Effect will end at: ${powerModeEndTime}, Duration: ${powerModeEndTime - Date.now()}ms`);
+
+            log.debug(
+              `POWER_MODE effect tracked with endTime: ${powerModeEndTime}, internal state updated`
+            );
+            log.debug(
+              `Current time: ${Date.now()}, Effect will end at: ${powerModeEndTime}, Duration: ${
+                powerModeEndTime - Date.now()
+              }ms`
+            );
           } else {
             log.warn("POWER_MODE effect applied but no endTime found");
           }
@@ -502,7 +585,11 @@ export class CoinManager {
     } else {
       // Legacy behavior - just use the old system for now
       // Only warn if it's not a known coin type (to avoid spam)
-      if (coin.type !== CoinType.POWER && coin.type !== CoinType.BONUS_MULTIPLIER && coin.type !== CoinType.EXTRA_LIFE) {
+      if (
+        coin.type !== CoinType.POWER &&
+        coin.type !== CoinType.BONUS_MULTIPLIER &&
+        coin.type !== CoinType.EXTRA_LIFE
+      ) {
         log.warn(`Unknown coin type: ${coin.type}, using legacy behavior`);
       }
       if (coin.type === CoinType.POWER) {
@@ -516,39 +603,48 @@ export class CoinManager {
     if (this.isPaused) {
       return;
     }
-    
+
     const currentTime = Date.now();
     const effectsToRemove: string[] = [];
 
-    log.debug(`checkEffectsEnd called at ${currentTime}, checking ${this.activeEffects.size} active effects`);
+    log.debug(
+      `checkEffectsEnd called at ${currentTime}, checking ${this.activeEffects.size} active effects`
+    );
 
     this.activeEffects.forEach((effectData, effectType) => {
       const timeLeft = effectData.endTime - currentTime;
-      log.debug(`Checking effect: ${effectType}, endTime: ${effectData.endTime}, currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${timeLeft <= 0}`);
-      
+      log.debug(
+        `Checking effect: ${effectType}, endTime: ${
+          effectData.endTime
+        }, currentTime: ${currentTime}, timeLeft: ${timeLeft}ms, shouldEnd: ${
+          timeLeft <= 0
+        }`
+      );
+
       // Add a minimum duration safeguard to prevent effects from being removed too quickly
       const minimumDuration = 100; // 100ms minimum
       const shouldEnd = timeLeft <= -minimumDuration; // Allow some buffer time
-      
+
       if (shouldEnd) {
         effectsToRemove.push(effectType);
         log.debug(`Effect ${effectType} marked for removal`);
-        
+
         if (effectData.effect.remove && gameState) {
           log.debug(`Removing effect: ${effectType}`);
-          
+
           // Create a proper GameStateInterface for the remove function
           const gameStateWithManager: GameStateInterface = {
-            ...gameState as any,
+            ...(gameState as any),
             activeEffects: {
               powerMode: false,
               powerModeEndTime: 0,
-              ...(gameState as any).activeEffects
+              ...(gameState as any).activeEffects,
             },
             coinManager: {
               resetMonsterKillCount: () => this.resetMonsterKillCount(),
-              getPcoinColorForTime: (spawnTime: number) => this.getPcoinColorForTime(spawnTime),
-              getPowerModeEndTime: () => this.getPowerModeEndTime()
+              getPcoinColorForTime: (spawnTime: number) =>
+                this.getPcoinColorForTime(spawnTime),
+              getPowerModeEndTime: () => this.getPowerModeEndTime(),
             },
             difficultyManager: {
               pause: () => {
@@ -560,10 +656,10 @@ export class CoinManager {
                 const scalingManager = ScalingManager.getInstance();
                 scalingManager.resumeFromPowerMode();
                 log.debug("Difficulty scaling resumed (power mode ended)");
-              }
-            }
+              },
+            },
           };
-          
+
           try {
             effectData.effect.remove(gameStateWithManager);
             log.debug(`Effect ${effectType} removed successfully`);
@@ -575,12 +671,16 @@ export class CoinManager {
     });
 
     if (effectsToRemove.length > 0) {
-      log.debug(`Removing ${effectsToRemove.length} effects: ${effectsToRemove.join(', ')}`);
+      log.debug(
+        `Removing ${effectsToRemove.length} effects: ${effectsToRemove.join(
+          ", "
+        )}`
+      );
     }
 
     effectsToRemove.forEach((effectType) => {
       this.activeEffects.delete(effectType);
-      
+
       // Handle legacy power mode state when POWER_MODE effect is removed
       if (effectType === "POWER_MODE") {
         this.powerModeActive = false;
@@ -688,8 +788,6 @@ export class CoinManager {
     log.debug("Monster kill count reset for new power mode session");
   }
 
-
-
   isPowerModeActive(): boolean {
     // Check if POWER_MODE effect is active
     const powerModeEffect = this.activeEffects.get("POWER_MODE");
@@ -724,11 +822,11 @@ export class CoinManager {
   updateMonsters(monsters: Monster[]): void {
     // Check both new effect system and legacy system
     const isPowerModeActive = this.isPowerModeActive() || this.powerModeActive;
-    
+
     if (isPowerModeActive) {
       // Calculate remaining time from either system
       let timeLeft = 0;
-      
+
       // Check new effect system first
       const powerModeEffect = this.activeEffects.get("POWER_MODE");
       if (powerModeEffect) {
@@ -737,9 +835,9 @@ export class CoinManager {
         // Fall back to legacy system
         timeLeft = this.powerModeEndTime - Date.now();
       }
-      
+
       const shouldBlink = timeLeft <= 2000 && timeLeft > 0; // Blink when 2 seconds or less remaining
-      
+
       monsters.forEach((monster) => {
         monster.isFrozen = true;
         monster.isBlinking = shouldBlink;
@@ -762,19 +860,21 @@ export class CoinManager {
   // Pause and resume methods for proper effect duration handling
   pause(): void {
     if (this.isPaused) return;
-    
+
     this.isPaused = true;
     this.pauseStartTime = Date.now();
-    
+
     // Store remaining duration for all active effects
     this.activeEffects.forEach((effectData, effectType) => {
       const remainingTime = effectData.endTime - Date.now();
       if (remainingTime > 0) {
         effectData.remainingDuration = remainingTime;
-        log.debug(`Pausing effect ${effectType} with ${remainingTime}ms remaining`);
+        log.debug(
+          `Pausing effect ${effectType} with ${remainingTime}ms remaining`
+        );
       }
     });
-    
+
     // Also handle legacy powerModeEndTime
     if (this.powerModeActive && this.powerModeEndTime > Date.now()) {
       const remainingTime = this.powerModeEndTime - Date.now();
@@ -784,49 +884,66 @@ export class CoinManager {
 
   resume(): void {
     if (!this.isPaused) return;
-    
+
     this.isPaused = false;
     const pauseDuration = Date.now() - this.pauseStartTime;
-    
+
     // Restore end times for all active effects
     this.activeEffects.forEach((effectData, effectType) => {
-      if (effectData.remainingDuration !== undefined && effectData.remainingDuration > 0) {
+      if (
+        effectData.remainingDuration !== undefined &&
+        effectData.remainingDuration > 0
+      ) {
         effectData.endTime = Date.now() + effectData.remainingDuration;
-        log.debug(`Resuming effect ${effectType} with ${effectData.remainingDuration}ms remaining, new endTime: ${effectData.endTime}`);
-        
+        log.debug(
+          `Resuming effect ${effectType} with ${effectData.remainingDuration}ms remaining, new endTime: ${effectData.endTime}`
+        );
+
         // Restart power-up melody if it's the POWER_MODE effect
-        if (effectType === 'POWER_MODE' && effectData.remainingDuration > 0) {
+        if (effectType === "POWER_MODE" && effectData.remainingDuration > 0) {
           // Get the game state to access audioManager
           const gameState = useAudioStore.getState();
-          if (gameState?.audioManager && typeof gameState.audioManager.startPowerUpMelodyWithDuration === 'function') {
-            log.debug(`Restarting PowerUp melody with ${effectData.remainingDuration}ms remaining`);
-            gameState.audioManager.startPowerUpMelodyWithDuration(effectData.remainingDuration);
+          if (
+            gameState?.audioManager &&
+            typeof gameState.audioManager.startPowerUpMelodyWithDuration ===
+              "function"
+          ) {
+            log.debug(
+              `Restarting PowerUp melody with ${effectData.remainingDuration}ms remaining`
+            );
+            gameState.audioManager.startPowerUpMelodyWithDuration(
+              effectData.remainingDuration
+            );
           }
         }
-        
+
         effectData.remainingDuration = undefined; // Clear the remaining duration
       }
     });
-    
+
     // Also update legacy powerModeEndTime if it was active
     if (this.powerModeActive && this.powerModeEndTime > 0) {
       // Only adjust if the power mode hasn't expired during pause
       const originalRemainingTime = this.powerModeEndTime - this.pauseStartTime;
       if (originalRemainingTime > 0) {
         this.powerModeEndTime = Date.now() + originalRemainingTime;
-        log.debug(`Resuming legacy power mode, new endTime: ${this.powerModeEndTime}`);
+        log.debug(
+          `Resuming legacy power mode, new endTime: ${this.powerModeEndTime}`
+        );
       }
     }
-    
+
     this.pauseStartTime = 0;
   }
 
   resetEffects(): void {
     // Stop power-up melody if active when resetting effects
     if (this.powerModeActive) {
-      log.debug("Resetting effects while power mode is active, this should stop PowerUp melody");
+      log.debug(
+        "Resetting effects while power mode is active, this should stop PowerUp melody"
+      );
     }
-    
+
     this.powerModeActive = false;
     this.powerModeEndTime = 0;
     this.firebombCount = 0;
@@ -844,14 +961,16 @@ export class CoinManager {
       this.powerModeActive = false;
       this.powerModeEndTime = 0;
       this.activeEffects.delete("POWER_MODE");
-      
+
       // Resume difficulty scaling
       try {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.resumeFromPowerMode();
         log.debug("Difficulty scaling resumed after force stop");
       } catch (error) {
-        log.debug("Could not resume difficulty scaling (ScalingManager not available)");
+        log.debug(
+          "Could not resume difficulty scaling (ScalingManager not available)"
+        );
       }
     }
   }
@@ -875,37 +994,45 @@ export class CoinManager {
   // Legacy method with dynamic duration
   private activatePowerMode(): void {
     this.powerModeActive = true;
-    
+
     // Get duration based on current P-coin color (if we have a recent P-coin)
     let duration: number = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
-    
+
     // Find the most recent P-coin to get its color
-    const recentPcoin = this.coins.find(coin => coin.type === CoinType.POWER && coin.spawnTime);
+    const recentPcoin = this.coins.find(
+      (coin) => coin.type === CoinType.POWER && coin.spawnTime
+    );
     if (recentPcoin && recentPcoin.spawnTime) {
       const colorData = this.getPcoinColorForTime(recentPcoin.spawnTime);
       duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
     }
-    
+
     this.powerModeEndTime = Date.now() + duration;
     this.resetMonsterKillCount();
-    
+
     // Also add to activeEffects Map so checkEffectsEnd can handle it properly
     this.activeEffects.set("POWER_MODE", {
       endTime: this.powerModeEndTime,
-      effect: COIN_EFFECTS.POWER_MODE
+      effect: COIN_EFFECTS.POWER_MODE,
     });
-    
-    log.debug(`Power mode timing - duration: ${duration}ms, endTime: ${this.powerModeEndTime}, currentTime: ${Date.now()}`);
-    
+
+    log.debug(
+      `Power mode timing - duration: ${duration}ms, endTime: ${
+        this.powerModeEndTime
+      }, currentTime: ${Date.now()}`
+    );
+
     // Pause difficulty scaling during power mode
     try {
       const scalingManager = ScalingManager.getInstance();
       scalingManager.pauseForPowerMode();
       log.debug("Difficulty scaling paused (power mode active)");
     } catch (error) {
-      log.debug("Could not pause difficulty scaling (ScalingManager not available)");
+      log.debug(
+        "Could not pause difficulty scaling (ScalingManager not available)"
+      );
     }
-    
-    log.debug(`Power mode activated for ${duration}ms (${duration/1000}s)`);
+
+    log.debug(`Power mode activated for ${duration}ms (${duration / 1000}s)`);
   }
 }

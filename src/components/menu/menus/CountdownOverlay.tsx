@@ -4,7 +4,7 @@ import { useLevelStore } from "../../../stores/gameStore";
 
 const CountdownOverlay: React.FC = () => {
   const [count, setCount] = useState(3);
-  const { currentMap } = useLevelStore.getState();
+  const { currentMap } = useLevelStore();
   useEffect(() => {
     // Only run countdown if not in DEV_MODE
     if (!DEV_CONFIG.ENABLED) {

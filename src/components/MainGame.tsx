@@ -20,7 +20,8 @@ import { useBackgroundPreloading } from "../hooks/useBackgroundPreloading";
 import { VERSION_STRING, getVersion } from "../version";
 
 const MainGame: React.FC = () => {
-  const { currentState, showMenu } = useStateStore.getState();
+  // Fix: Use the store hooks properly to subscribe to state changes
+  const { currentState, showMenu } = useStateStore();
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
   const { toggleFullscreen } = useFullscreen();
   const { isFullscreen } = useFullscreen();
