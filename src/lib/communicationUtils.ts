@@ -1,5 +1,22 @@
 import { log } from "./logger";
 
+export interface LevelStartData {
+  level: number;
+  mapName: string;
+  timestamp: number;
+}
+
+export interface LevelFailureData {
+  level: number;
+  mapName: string;
+  score: number;
+  bombs?: number;
+  correctOrders?: number;
+  lives: number;
+  multiplier: number;
+  timestamp?: number;
+}
+
 export interface MapCompletionData {
   mapName: string;
   level: number;
@@ -29,6 +46,7 @@ export interface LevelHistoryEntry {
   totalBombs: number;
   lives: number;
   multiplier: number;
+  isPartial?: boolean; // True for failed/incomplete levels
 }
 
 export interface GameCompletionData {
@@ -86,6 +104,39 @@ export const sendScoreToHost = (
     composed: true,
   });
   window.dispatchEvent(detailedScoreEvent);
+};
+
+export const sendLevelStart = (level: number, mapName: string) => {
+  const levelStartData: LevelStartData = {
+    level,
+    mapName,
+    timestamp: Date.now(),
+  };
+
+  log.data("Sending level start to host:", levelStartData);
+
+  const event = new CustomEvent("game:level-started", {
+    detail: levelStartData,
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
+};
+
+export const sendLevelFailure = (data: LevelFailureData) => {
+  const failureData = {
+    ...data,
+    timestamp: data.timestamp || Date.now(),
+  };
+
+  log.data("Sending level failure to host:", failureData);
+
+  const event = new CustomEvent("game:level-failed", {
+    detail: failureData,
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
 };
 
 export const sendGameReady = () => {
