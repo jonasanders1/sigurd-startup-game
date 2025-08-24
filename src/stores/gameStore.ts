@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { MapDefinition } from "../types/interfaces";
 import { CoinManager } from "../managers/coinManager";
 import { mapDefinitions } from "../maps/mapDefinitions";
+import { BackgroundManager } from "../managers/BackgroundManager";
 
 // Import all individual stores
 import { usePlayerStore } from "./entities/playerStore";

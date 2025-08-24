@@ -901,17 +901,17 @@ export class CoinManager {
 
         // Restart power-up melody if it's the POWER_MODE effect
         if (effectType === "POWER_MODE" && effectData.remainingDuration > 0) {
-          // Get the game state to access audioManager
-          const gameState = useAudioStore.getState();
+          // Get the audioManager from audioStore
+          const audioStore = useAudioStore.getState();
           if (
-            gameState?.audioManager &&
-            typeof gameState.audioManager.startPowerUpMelodyWithDuration ===
+            audioStore?.audioManager &&
+            typeof audioStore.audioManager.startPowerUpMelodyWithDuration ===
               "function"
           ) {
             log.debug(
               `Restarting PowerUp melody with ${effectData.remainingDuration}ms remaining`
             );
-            gameState.audioManager.startPowerUpMelodyWithDuration(
+            audioStore.audioManager.startPowerUpMelodyWithDuration(
               effectData.remainingDuration
             );
           }

@@ -484,6 +484,7 @@ export class GameStateManager {
 
     // Reset the game (this now also loads the first level)
     gameState.resetGame();
+    
 
     // Show countdown before starting
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
