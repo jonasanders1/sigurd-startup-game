@@ -11,6 +11,7 @@ import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { ScalingManager } from "../managers/ScalingManager";
 import { useScoreStore } from "../stores/gameStore";
+import { useAudioStore } from "../stores/systems/audioStore";
 
 // Define coin effects
 export const COIN_EFFECTS = {
@@ -68,22 +69,26 @@ export const COIN_EFFECTS = {
       }
 
       // Start power-up melody with the correct duration
-      if (gameState.audioManager && typeof gameState.audioManager.startPowerUpMelodyWithDuration === 'function') {
+      // Get audioManager from the audioStore instead of gameState
+      const audioStore = useAudioStore.getState();
+      if (audioStore.audioManager && typeof audioStore.audioManager.startPowerUpMelodyWithDuration === 'function') {
         console.log(`Starting PowerUp melody from coin effect for ${duration}ms`);
-        console.log(`AudioManager available:`, gameState.audioManager);
-        gameState.audioManager.startPowerUpMelodyWithDuration(duration);
+        console.log(`AudioManager available:`, audioStore.audioManager);
+        audioStore.audioManager.startPowerUpMelodyWithDuration(duration);
       } else {
         console.warn("AudioManager not available for PowerUp melody");
-        console.log(`GameState audioManager:`, gameState.audioManager);
-        console.log(`GameState keys:`, Object.keys(gameState));
+        console.log(`AudioStore audioManager:`, audioStore.audioManager);
+        console.log(`AudioStore keys:`, Object.keys(audioStore));
       }
     },
     remove: (gameState: GameStateInterface) => {
       console.log("Removing POWER_MODE effect, stopping PowerUp melody");
       
       // Stop power-up melody when effect ends
-      if (gameState.audioManager && typeof gameState.audioManager.stopPowerUpMelody === 'function') {
-        gameState.audioManager.stopPowerUpMelody();
+      // Get audioManager from the audioStore instead of gameState
+      const audioStore = useAudioStore.getState();
+      if (audioStore.audioManager && typeof audioStore.audioManager.stopPowerUpMelody === 'function') {
+        audioStore.audioManager.stopPowerUpMelody();
       } else {
         console.warn("AudioManager not available to stop PowerUp melody");
       }
