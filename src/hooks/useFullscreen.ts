@@ -79,7 +79,7 @@ export const useFullscreen = () => {
   // Enter fullscreen
   const enterFullscreen = useCallback(async (element?: HTMLElement) => {
     if (!isFullscreenSupported()) {
-      console.warn('Fullscreen is not supported in this browser');
+      log.warn('Fullscreen is not supported in this browser');
       return false;
     }
 

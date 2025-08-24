@@ -76,7 +76,7 @@ export class GameStateManager {
     this.setDevModeState(DEV_CONFIG.TARGET_STATE);
 
     // Set multiplier LAST
-    log.dev(
+    log.debug(
       `DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x`
     );
     setMultiplier(
@@ -84,7 +84,7 @@ export class GameStateManager {
       DEV_CONFIG.MOCK_DATA.multiplierScore
     );
 
-    log.dev(
+    log.debug(
       `DEV_MODE initialized with state: ${DEV_CONFIG.TARGET_STATE}, level: ${DEV_CONFIG.TARGET_LEVEL}`
     );
     this.devModeInitialized = true;

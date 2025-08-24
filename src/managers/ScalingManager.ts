@@ -96,7 +96,7 @@ export class ScalingManager {
       this.globalPauseState.pauseStartTime = Date.now();
     }
     this.globalPauseState.pauseReasons.add(reason);
-    logger.pause(`Scaling paused (${reason})`);
+    logger.game(`Scaling paused (${reason})`);
   }
 
   public resume(reason: string = "default"): void {
@@ -110,7 +110,7 @@ export class ScalingManager {
       this.globalPauseState.totalPausedTime += pauseDuration;
       this.globalPauseState.isPaused = false;
       this.clearCache();
-      logger.pause(
+      logger.game(
         `Scaling resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`
       );
     }
@@ -142,7 +142,7 @@ export class ScalingManager {
     this.globalStartTime = Date.now();
     this.globalPauseState = this.createPauseState();
     this.clearCache();
-    logger.flow("New map started - difficulty reset");
+    logger.level("New map started - difficulty reset");
   }
 
   public resetOnDeath(): void {
@@ -194,7 +194,7 @@ export class ScalingManager {
     this.pause("monster_scaling");
     // Only log if this is a new pause (not already paused)
     if (this.globalPauseState.pauseReasons.size === 1) {
-      logger.pause("All monster scaling paused");
+      logger.game("All monster scaling paused");
     }
   }
 
@@ -202,7 +202,7 @@ export class ScalingManager {
     this.resume("monster_scaling");
     // Only log if this was the last pause reason (completely resumed)
     if (this.globalPauseState.pauseReasons.size === 0) {
-      logger.pause("All monster scaling resumed");
+      logger.game("All monster scaling resumed");
     }
   }
 
@@ -271,7 +271,7 @@ export class ScalingManager {
           initialInfo = "base values";
       }
 
-      logger.scaling(`${monster.type} initialized with ${initialInfo}`);
+      logger.performance(`${monster.type} initialized with ${initialInfo}`);
     }
   }
 
@@ -432,7 +432,7 @@ export class ScalingManager {
       }
 
       if (changes.length > 0) {
-        logger.scaling(
+        logger.performance(
           `${monster.type} scaling (${age.toFixed(
             1
           )}s, interval ${intervals}): ${changes.join(", ")}`

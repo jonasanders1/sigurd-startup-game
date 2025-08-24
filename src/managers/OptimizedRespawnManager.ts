@@ -149,12 +149,12 @@ export class OptimizedRespawnManager {
   // ===== PAUSE MANAGEMENT =====
   public pause(): void {
     this.paused = true;
-    logger.pause("Respawn system paused");
+    logger.game("Respawn system paused");
   }
 
   public resume(): void {
     this.paused = false;
-    logger.pause("Respawn system resumed");
+    logger.game("Respawn system resumed");
   }
 
   public isPaused(): boolean {
