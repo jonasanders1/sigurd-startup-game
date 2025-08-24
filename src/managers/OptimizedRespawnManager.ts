@@ -1,5 +1,5 @@
 import { Monster } from "../types/interfaces";
-import { logger } from "../lib/logger";
+import { logger, LogCategory } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 
 export interface RespawnConfig {
@@ -148,13 +148,25 @@ export class OptimizedRespawnManager {
 
   // ===== PAUSE MANAGEMENT =====
   public pause(): void {
-    this.paused = true;
-    logger.game("Respawn system paused");
+    // Only log if we weren't already paused
+    if (!this.paused) {
+      this.paused = true;
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, "respawn_paused", "Respawn system paused", 5000);
+    } else {
+      this.paused = true;
+    }
   }
 
   public resume(): void {
-    this.paused = false;
-    logger.game("Respawn system resumed");
+    // Only log if we were actually paused
+    if (this.paused) {
+      this.paused = false;
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, "respawn_resumed", "Respawn system resumed", 5000);
+    } else {
+      this.paused = false;
+    }
   }
 
   public isPaused(): boolean {

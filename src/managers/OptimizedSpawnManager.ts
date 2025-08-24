@@ -1,5 +1,5 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
-import { logger } from "../lib/logger";
+import { logger, LogCategory } from "../lib/logger";
 import { useGameStore, useMonsterStore } from "../stores/gameStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
 
@@ -185,7 +185,8 @@ export class OptimizedSpawnManager {
       this.pauseState.pauseStartTime = Date.now();
     }
     this.pauseState.pauseReasons.add(reason);
-    logger.game(`Spawning paused (${reason})`);
+    // Use throttled logging to prevent spam
+    logger.throttled(LogCategory.GAME, `spawning_paused_${reason}`, `Spawning paused (${reason})`, 5000);
     logger.debug(`SpawnManager pause state: ${this.pauseState.isPaused}, reasons: ${Array.from(this.pauseState.pauseReasons).join(', ')}`);
   }
 
@@ -196,7 +197,8 @@ export class OptimizedSpawnManager {
       const pauseDuration = Date.now() - this.pauseState.pauseStartTime;
       this.pauseState.totalPausedTime += pauseDuration;
       this.pauseState.isPaused = false;
-      logger.game(`Spawning resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`);
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, `spawning_resumed_${reason}`, `Spawning resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`, 5000);
     }
     logger.debug(`SpawnManager pause state: ${this.pauseState.isPaused}, reasons: ${Array.from(this.pauseState.pauseReasons).join(', ')}`);
   }

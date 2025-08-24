@@ -152,7 +152,7 @@ export class LevelManager {
     const { getCoinStats, resetEffects, resetCoinState, coinManager } =
       useCoinStore.getState();
     const { currentMap, addLevelResult } = useLevelStore.getState();
-    const { score, multiplier, addScore } = useScoreStore.getState();
+    const { score, multiplier, addScore, addRawScore } = useScoreStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
 
     // Stop power-up melody if active
@@ -214,7 +214,7 @@ export class LevelManager {
       // Show bonus screen
       this.gameStateManager.setState(GameState.BONUS, MenuType.BONUS);
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
-      addScore(bonusPoints);
+      addRawScore(bonusPoints);  // Use addRawScore to avoid multiplying bonus
 
       // Notify coin manager about bonus points
       if (coinManager) {

@@ -11,6 +11,7 @@ interface ScoreState {
 
 interface ScoreActions {
   addScore: (points: number) => void;
+  addRawScore: (points: number) => void;  // Add score without multiplier
   addMultiplierScore: (points: number) => {
     newMultiplier: number;
     multiplierIncreased: boolean;
@@ -41,6 +42,17 @@ export const useScoreStore = create<ScoreStore>((set, get) => ({
     set({
       score: score + actualPoints,
       levelScore: levelScore + actualPoints
+    });
+  },
+  
+  addRawScore: (points: number) => {
+    const { score, levelScore } = get();
+    
+    log.score(`Adding bonus score (no multiplier): ${points}`);
+    
+    set({
+      score: score + points,
+      levelScore: levelScore + points
     });
   },
   

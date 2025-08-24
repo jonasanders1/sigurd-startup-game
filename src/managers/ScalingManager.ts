@@ -1,5 +1,5 @@
 import { Monster } from "../types/interfaces";
-import { logger } from "../lib/logger";
+import { logger, LogCategory } from "../lib/logger";
 
 // Unified scaling configuration
 export interface ScalingConfig {
@@ -96,7 +96,8 @@ export class ScalingManager {
       this.globalPauseState.pauseStartTime = Date.now();
     }
     this.globalPauseState.pauseReasons.add(reason);
-    logger.game(`Scaling paused (${reason})`);
+    // Use throttled logging to prevent spam
+    logger.throttled(LogCategory.GAME, `scaling_paused_${reason}`, `Scaling paused (${reason})`, 5000);
   }
 
   public resume(reason: string = "default"): void {
@@ -110,9 +111,8 @@ export class ScalingManager {
       this.globalPauseState.totalPausedTime += pauseDuration;
       this.globalPauseState.isPaused = false;
       this.clearCache();
-      logger.game(
-        `Scaling resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`
-      );
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, `scaling_resumed_${reason}`, `Scaling resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`, 5000);
     }
   }
 
@@ -177,12 +177,14 @@ export class ScalingManager {
 
   public pauseForPowerMode(): void {
     this.pause("power_mode");
-    logger.power("Power mode activated - scaling paused");
+    // Use throttled logging to prevent spam
+    logger.throttled(LogCategory.POWER, "power_mode_activated", "Power mode activated - scaling paused", 5000);
   }
 
   public resumeFromPowerMode(): void {
     this.resume("power_mode");
-    logger.power("Power mode ended - scaling resumed");
+    // Use throttled logging to prevent spam
+    logger.throttled(LogCategory.POWER, "power_mode_ended", "Power mode ended - scaling resumed", 5000);
   }
 
   public isCurrentlyPausedByPowerMode(): boolean {
@@ -194,7 +196,8 @@ export class ScalingManager {
     this.pause("monster_scaling");
     // Only log if this is a new pause (not already paused)
     if (this.globalPauseState.pauseReasons.size === 1) {
-      logger.game("All monster scaling paused");
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, "monster_scaling_paused", "All monster scaling paused", 5000);
     }
   }
 
@@ -202,7 +205,8 @@ export class ScalingManager {
     this.resume("monster_scaling");
     // Only log if this was the last pause reason (completely resumed)
     if (this.globalPauseState.pauseReasons.size === 0) {
-      logger.game("All monster scaling resumed");
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, "monster_scaling_resumed", "All monster scaling resumed", 5000);
     }
   }
 
