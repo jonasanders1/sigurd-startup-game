@@ -99,7 +99,7 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
     const { levelStartTime } = get();
     const completionTime = Date.now() - levelStartTime;
     
-    log.info('Sending level completion data with bonus:', data.hasBonus);
+    log.level('Sending level completion data with bonus:', data.hasBonus);
     
     sendMapCompletionData({
       mapName: data.mapName,

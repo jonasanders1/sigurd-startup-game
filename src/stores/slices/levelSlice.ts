@@ -106,7 +106,7 @@ export const createLevelSlice: StateCreator<LevelSlice> = (set, get) => ({
       completionTime,
     };
     
-    log.debug("Sending level completion data:", completionData);
+    log.data("Sending level completion data:", completionData);
     sendMapCompletionData(completionData);
     
     // Note: Level history is now handled by LevelHistorySlice

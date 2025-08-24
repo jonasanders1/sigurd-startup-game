@@ -133,13 +133,13 @@ export const useStateStore = create<StateStore>((set, get) => ({
     const { lives } = get();
     const newLives = lives - 1;
 
-    log.info(`Losing life: ${lives} → ${newLives}`);
+    log.player(`Losing life: ${lives} → ${newLives}`);
     set({ lives: newLives });
 
     // Reset multiplier when player dies
     const scoreStore = useScoreStore.getState();
     scoreStore.resetMultiplier();
-    log.info("Multiplier reset to 1x after player death");
+    log.score("Multiplier reset to 1x after player death");
 
     // Get current map for state update
     const levelStore = useLevelStore.getState();
@@ -147,7 +147,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
 
     // Check if game over after setting new lives
     if (newLives <= 0) {
-      log.info(`GAME OVER triggered at ${newLives} lives`);
+      log.game(`GAME OVER triggered at ${newLives} lives`);
       set({
         currentState: GameState.GAME_OVER,
         showMenu: MenuType.GAME_OVER,
@@ -198,7 +198,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
     const { lives } = get();
     const newLives = lives + 1;
 
-    log.info(`Adding life: ${lives} → ${newLives}`);
+    log.player(`Adding life: ${lives} → ${newLives}`);
     set({ lives: newLives });
   },
 
@@ -210,7 +210,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
     const scoreStore = useScoreStore.getState();
     scoreStore.resetLevelScore();
     scoreStore.resetMultiplier();
-    log.debug("Resetting multiplier on level change...");
+    log.score("Resetting multiplier on level change...");
 
     // Send state update with new level info
     const levelStore = useLevelStore.getState();

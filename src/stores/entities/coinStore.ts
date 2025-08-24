@@ -65,7 +65,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     const { coinManager } = get();
     if (!coinManager) return;
 
-    log.debug(`Coin store: Collecting ${coin.type} coin`);
+    log.coin(`Coin store: Collecting ${coin.type} coin`);
 
     // Get the current game state to pass to coinManager.collectCoin
     const currentState = get();
@@ -76,7 +76,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       currentState as unknown as Record<string, unknown>
     );
 
-    log.debug(`Coin store: Coin manager collectCoin completed`);
+    log.coin(`Coin store: Coin manager collectCoin completed`);
 
     // Update coins list
     const updatedCoins = currentState.coins.map((c) =>
@@ -152,10 +152,10 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
 
       // Add extra life
       stateStore.addLife();
-      log.debug(`Extra life added via coin store!`);
+      log.player(`Extra life added via coin store!`);
     }
 
-    log.debug(
+    log.coin(
       `Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`
     );
   },

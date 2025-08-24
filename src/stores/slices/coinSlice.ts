@@ -53,7 +53,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     const { coinManager } = get();
     if (!coinManager) return;
     
-    log.debug(`Coin slice: Collecting ${coin.type} coin`);
+    log.coin(`Coin slice: Collecting ${coin.type} coin`);
     
     // Get the current game state to pass to coinManager.collectCoin
     const currentState = get();
@@ -61,7 +61,7 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
     // Pass the game state to coinManager so effects can be applied
     coinManager.collectCoin(coin, currentState as unknown as Record<string, unknown>);
     
-    log.debug(`Coin slice: Coin manager collectCoin completed`);
+    log.coin(`Coin slice: Coin manager collectCoin completed`);
     
     // Update coins list
     const updatedCoins = currentState.coins.map(c => 
@@ -137,11 +137,11 @@ export const createCoinSlice: StateCreator<CoinSlice> = (set, get) => ({
         
         // Add extra life
         (api as { addLife: () => void }).addLife();
-        log.debug(`Extra life added via coin slice!`);
+        log.player(`Extra life added via coin slice!`);
       }
     }
     
-    log.debug(`Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`);
+    log.coin(`Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`);
   },
   
   onFirebombCollected: () => {

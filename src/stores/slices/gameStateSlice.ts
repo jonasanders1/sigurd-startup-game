@@ -54,7 +54,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
   set,
   get
 ) => {
-  log.info(
+  log.game(
     `Initializing game state slice with ${GAME_CONFIG.STARTING_LIVES} lives`
   );
   return {
@@ -106,14 +106,14 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       const { lives } = get();
       const newLives = lives - 1;
 
-      log.info(`Losing life: ${lives} → ${newLives}`);
+      log.player(`Losing life: ${lives} → ${newLives}`);
       set({ lives: newLives });
 
       // Reset multiplier when player dies
       const api = get();
       if ("resetMultiplier" in api) {
         (api as { resetMultiplier: () => void }).resetMultiplier();
-        log.info("Multiplier reset to 1x after player death");
+        log.score("Multiplier reset to 1x after player death");
       }
 
       // Get current map for state update
@@ -125,7 +125,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
 
       // Check if game over after setting new lives
       if (newLives <= 0) {
-        log.info(`GAME OVER triggered at ${newLives} lives`);
+        log.game(`GAME OVER triggered at ${newLives} lives`);
         set({
           currentState: GameState.GAME_OVER,
           showMenu: MenuType.GAME_OVER,
@@ -193,7 +193,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       const { lives } = get();
       const newLives = lives + 1;
 
-      log.info(`Adding life: ${lives} → ${newLives}`);
+      log.player(`Adding life: ${lives} → ${newLives}`);
       set({ lives: newLives });
     },
 
@@ -207,7 +207,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
       // Reset multiplier directly
       const api = get();
       if ("resetMultiplier" in api) {
-        log.debug("Resetting multiplier on level change...");
+        log.score("Resetting multiplier on level change...");
         (api as { resetMultiplier: () => void }).resetMultiplier();
       }
 
