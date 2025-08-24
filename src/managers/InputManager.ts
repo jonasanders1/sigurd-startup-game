@@ -3,7 +3,7 @@ import { InputKey } from "../types/enums";
 
 export class InputManager {
   private keysPressed: Set<string> = new Set();
-  private store = useInputStore.getState();
+  // Remove the cached store reference
   private initialized = false;
 
   public initialize() {
@@ -50,11 +50,14 @@ export class InputManager {
   private handleBlur() {
     // Clear all keys when window loses focus
     this.keysPressed.clear();
-    this.store.clearInput();
+    // Get the store when needed
+    const { clearInput } = useInputStore.getState();
+    clearInput();
   }
 
   private updateInputState(key: string, pressed: boolean) {
-    // this.store = useGameStore.getState();
+    // Get the store when needed instead of using cached reference
+    const { setInput } = useInputStore.getState();
     console.log("updateInputState", key, pressed);
 
     switch (key) {
@@ -62,38 +65,38 @@ export class InputManager {
       case "a":
       case "A":
       case InputKey.LEFT:
-        this.store.setInput("left", pressed);
+        setInput("left", pressed);
         break;
 
       // Right movement - D or Arrow Right
       case "d":
       case "D":
       case InputKey.RIGHT:
-        this.store.setInput("right", pressed);
+        setInput("right", pressed);
         break;
 
       // Jump - W or Arrow Up
       case "w":
       case "W":
       case InputKey.UP:
-        this.store.setInput("jump", pressed);
+        setInput("jump", pressed);
         break;
 
       // Fast Fall - S or Arrow Down
       case "s":
       case "S":
       case InputKey.DOWN:
-        this.store.setInput("fastFall", pressed);
+        setInput("fastFall", pressed);
         break;
 
       // Super Jump - Shift
       case "Shift":
-        this.store.setInput("superJump", pressed);
+        setInput("superJump", pressed);
         break;
 
       // Float - Space or Z
       case InputKey.SPACE:
-        this.store.setInput("float", pressed);
+        setInput("float", pressed);
         break;
     }
   }
@@ -128,6 +131,8 @@ export class InputManager {
 
   clearKeys() {
     this.keysPressed.clear();
-    this.store.clearInput();
+    // Get the store when needed
+    const { clearInput } = useInputStore.getState();
+    clearInput();
   }
 }
