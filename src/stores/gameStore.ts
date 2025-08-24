@@ -79,6 +79,9 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const monsterStore = useMonsterStore.getState();
     const playerStore = usePlayerStore.getState();
     
+    // IMPORTANT: Reset bomb state first to clear collectedBombs from previous level
+    stateStore.resetBombState();
+    
     // Initialize level
     const { bombManager, firstBomb } = levelStore.initializeLevel(mapData);
 

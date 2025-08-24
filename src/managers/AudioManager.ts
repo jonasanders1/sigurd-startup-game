@@ -82,6 +82,7 @@ export class AudioManager {
         this.playCoinCollectSound();
         break;
       case AudioEvent.POWER_COIN_ACTIVATE:
+        log.audio("Power coin activate sound");
         this.playPowerCoinActivateSound();
         // Note: PowerUp melody is now started by the coin effect system with proper duration
         // No need to start it here as it will be started by startPowerUpMelodyWithDuration

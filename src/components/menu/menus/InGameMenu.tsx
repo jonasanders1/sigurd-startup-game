@@ -27,17 +27,11 @@ import {
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 const InGameMenu: React.FC = () => {
-  const { currentLevel, gameStateManager, isPaused, lives } =
-    useStateStore();
+  const { currentLevel, gameStateManager, isPaused, lives } = useStateStore();
   const { score, multiplier, multiplierScore } = useScoreStore();
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
-
-  const togglePause = () => {
-    // Use centralized pause/resume transition
-    gameStateManager?.togglePause();
-  };
 
   const handleFullscreenToggle = () => {
     // Find the game container element (the shadow root host)
@@ -99,7 +93,7 @@ const InGameMenu: React.FC = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={togglePause}
+                onClick={() => gameStateManager?.pauseGame()}
                 variant="outline"
                 className="bg-background-80 text-foreground backdrop-blur-sm border-none hover:bg-primary hover:text-black h-10 w-10"
               >
