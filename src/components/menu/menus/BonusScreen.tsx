@@ -15,10 +15,11 @@ import { log } from "../../../lib/logger";
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
 
 const BonusScreen: React.FC = () => {
-  const { currentLevel, correctOrderCount, lives } = useStateStore.getState();
-  const { currentMap } = useLevelStore.getState();
+  const { currentLevel, correctOrderCount, lives } = useStateStore();
+  const { score } = useScoreStore();
+  const { setBonusAnimationComplete, gameStateManager } = useStateStore();
+  const { currentMap } = useLevelStore();
 
-  const { setBonusAnimationComplete } = useStateStore.getState();
   const livesLost = GAME_CONFIG.STARTING_LIVES - lives;
   const effectiveCount = Math.max(0, correctOrderCount - livesLost);
 

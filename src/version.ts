@@ -5,9 +5,9 @@ export const VERSION = {
   major: 2,
   minor: 5,
   patch: 0,
-  build: 5,
-  timestamp: 1755946434596,
-  hash: 'YADOZE',
+  build: 7,
+  timestamp: 1756018556775,
+  hash: 'BNJZIA',
   full: '2.5.0'
 };
 

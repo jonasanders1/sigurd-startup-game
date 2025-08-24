@@ -28,10 +28,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 const InGameMenu: React.FC = () => {
   const { currentLevel, gameStateManager, isPaused, lives } =
-    useStateStore.getState();
-  const { score } = useScoreStore.getState();
-  const { multiplier } = useScoreStore.getState();
-  const { multiplierScore } = useScoreStore.getState();
+    useStateStore();
+  const { score, multiplier, multiplierScore } = useScoreStore();
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
