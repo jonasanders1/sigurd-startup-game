@@ -1,12 +1,29 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "../../../stores/gameStore";
+import { GameState, MenuType } from "../../../types/enums";
 
 const GameOverScreen: React.FC = () => {
-  const { score, resetGame, levelHistory } = useGameStore();
+  const { score, resetGame, levelHistory, setState, setMenuType } = useGameStore();
 
   const handleRestart = () => {
+    // Reset the game
     resetGame();
+    
+    // Ensure we're in MENU state first to trigger level reload
+    setState(GameState.MENU);
+    setMenuType(MenuType.START);
+
+    // Small delay to ensure the game loop processes the MENU state and loads the level
+    setTimeout(() => {
+      setMenuType(MenuType.COUNTDOWN);
+      setState(GameState.COUNTDOWN);
+      
+      // After countdown, start the game
+      setTimeout(() => {
+        setState(GameState.PLAYING);
+      }, 3000);
+    }, 100); // 100ms delay to ensure level loads
   };
 
   return (
