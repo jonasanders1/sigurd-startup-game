@@ -113,7 +113,8 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
       multiplier: data.multiplier,
       coinsCollected: data.coinsCollected || 0,
       powerModeActivations: data.powerModeActivations || 0,
-      completionTime
+      completionTime: completionTime,
+      timestamp: Date.now()
     });
   },
   

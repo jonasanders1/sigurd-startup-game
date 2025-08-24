@@ -87,12 +87,19 @@ export class OptimizedSpawnManager {
       logger.debug(`SpawnManager.update() called at ${(adjustedTime / 1000).toFixed(1)}s, paused: ${this.pauseState.isPaused}, spawns: ${this.scheduledSpawns.length}`);
     }
     
+    // Create a gameState object with the required properties
+    const gameState = {
+      monsters,
+      updateMonsters,
+      currentState: 'PLAYING' // Add this for movement classes to check pause state
+    };
+    
     // Process spawns every frame (no throttling for spawn timing)
-    this.processSpawns(currentTime, updateMonsters);
+    this.processSpawns(currentTime, gameState);
     
     // Update behaviors every frame for smooth movement (only if there are active monsters)
     if (monsters.some(m => m.isActive)) {
-      this.behaviorManager.updateMonsterBehaviors(currentTime, updateMonsters, deltaTime);
+      this.behaviorManager.updateMonsterBehaviors(currentTime, gameState, deltaTime);
     }
   }
 

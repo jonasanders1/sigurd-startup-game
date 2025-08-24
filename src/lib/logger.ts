@@ -243,6 +243,10 @@ export class Logger {
           "%cType gameLog.help() for available commands",
           "color: #888; font-size: 12px;"
         );
+        console.log(
+          "%cYou can also use log.data() for data-passing logs",
+          "color: #888; font-size: 12px;"
+        );
       }
     }
   }
@@ -636,6 +640,11 @@ export const log = {
   dataPassing: (message: string, ...args: unknown[]) =>
     logger.dataPassing(message, ...args),
 };
+
+// Expose log to window for console access
+if (typeof window !== "undefined") {
+  (window as any).log = log;
+}
 
 // Type definitions for better IDE support
 export type LogMethod = (message: string, ...args: unknown[]) => void;

@@ -144,13 +144,7 @@ export class GameStateManager {
     this.handleStateTransition(state);
 
     // Send state update to external system after handling the transition
-    sendGameStateUpdate(
-      JSON.stringify({
-        state,
-        menuType,
-        timestamp: Date.now(),
-      })
-    );
+    sendGameStateUpdate(state, menuType);
   }
 
   private handleStateTransition(state: GameState): void {
@@ -484,7 +478,6 @@ export class GameStateManager {
 
     // Reset the game (this now also loads the first level)
     gameState.resetGame();
-    
 
     // Show countdown before starting
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
