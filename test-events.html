@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Events Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        #events-log {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .event-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #333;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+        }
+        .event-type {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .event-data {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game Communication Events Test</h1>
+    <div>
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="openGame()">Open Game</button>
+    </div>
+    <div id="events-log"></div>
+    
+    <script>
+        const eventsLog = document.getElementById('events-log');
+        let eventCount = 0;
+        
+        // Listen to all game events
+        const events = [
+            'game:ready',
+            'game:level-started',
+            'scoreUpdate',
+            'game:score-updated',
+            'game:level-failed', 
+            'game:map-completed',
+            'game:completed',
+            'game:state-updated'
+        ];
+        
+        events.forEach(eventName => {
+            window.addEventListener(eventName, (event) => {
+                eventCount++;
+                const timestamp = new Date().toLocaleTimeString();
+                const eventDiv = document.createElement('div');
+                eventDiv.className = 'event-item';
+                eventDiv.innerHTML = `
+                    <div class="event-type">#${eventCount} - ${eventName} - ${timestamp}</div>
+                    <div class="event-data">
+                        <pre>${JSON.stringify(event.detail, null, 2)}</pre>
+                    </div>
+                `;
+                eventsLog.insertBefore(eventDiv, eventsLog.firstChild);
+                
+                console.log(`[${eventName}]`, event.detail);
+            });
+        });
+        
+        function clearLog() {
+            eventsLog.innerHTML = '';
+            eventCount = 0;
+        }
+        
+        function openGame() {
+            window.open('http://localhost:5173', '_blank');
+        }
+        
+        console.log('Event listener ready. Listening for:', events);
+    </script>
+</body>
+</html>

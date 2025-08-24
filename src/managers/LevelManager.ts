@@ -11,7 +11,13 @@ import {
 import { GameState, MenuType, AudioEvent } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { mapDefinitions } from "../maps/mapDefinitions";
-import { sendMapCompletionData } from "../lib/communicationUtils";
+import { 
+  sendMapCompletionData, 
+  sendLevelStart, 
+  sendGameCompletionData, 
+  GameCompletionData, 
+  calculateGameStats 
+} from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 import type { RenderManager } from "./RenderManager";
 import type { OptimizedSpawnManager } from "./OptimizedSpawnManager";
@@ -25,6 +31,7 @@ import type { GameStateManager } from "./GameStateManager";
 export class LevelManager {
   private mapStartTime: number = 0;
   private wasGroundedWhenMapCleared: boolean = false;
+  private gameStartTime: number = Date.now();
 
   // Dependencies
   private renderManager: RenderManager;
@@ -84,6 +91,12 @@ export class LevelManager {
 
       // Load parallax background (non-blocking)
       this.renderManager.loadMapBackground(mapDefinition.name);
+      
+      // Send level start event for tracking
+      sendLevelStart(currentLevel, mapDefinition.name);
+      
+      // Record level start time
+      this.mapStartTime = Date.now();
 
       // Initialize monster spawn manager
       if (mapDefinition.monsterSpawnPoints) {
@@ -264,6 +277,9 @@ export class LevelManager {
     } else {
       // All levels completed - victory!
       gameStateManager.setState(GameState.VICTORY, MenuType.VICTORY);
+      
+      // Send game completion data for victory
+      this.sendGameCompletion("completed");
     }
   }
 
@@ -340,9 +356,55 @@ export class LevelManager {
         updatePlayer(finalPlayer);
       } else {
         updatePlayer(updatedPlayer);
-      }
-    }
+          }
   }
+  
+  /**
+   * Send game completion data when game ends (victory or game over)
+   */
+  private sendGameCompletion(reason: "completed" | "failed"): void {
+    const { score, multiplier } = useScoreStore.getState();
+    const { currentLevel, lives } = useStateStore.getState();
+    const { getLevelResults, getSessionId, getGameStartTime } = useLevelStore.getState();
+    
+    const levelResults = getLevelResults();
+    const sessionId = getSessionId();
+    const startTime = getGameStartTime() || this.gameStartTime;
+    const endTime = Date.now();
+    
+    // Calculate comprehensive game stats
+    const gameStats = calculateGameStats(
+      levelResults,
+      score,
+      lives,
+      multiplier,
+      reason,
+      startTime,
+      endTime
+    );
+    
+    const gameCompletionData: GameCompletionData = {
+      finalScore: score,
+      totalLevels: mapDefinitions.length,
+      completedLevels: levelResults.filter((l: any) => !l.isPartial).length,
+      timestamp: Date.now(),
+      lives: lives,
+      multiplier: multiplier,
+      levelHistory: levelResults,
+      totalCoinsCollected: gameStats.totalCoinsCollected,
+      totalPowerModeActivations: gameStats.totalPowerModeActivations,
+      totalBombs: gameStats.totalBombs,
+      totalCorrectOrders: gameStats.totalCorrectOrders,
+      averageCompletionTime: gameStats.averageCompletionTime,
+      gameEndReason: reason,
+      sessionId: sessionId,
+      startTime: startTime,
+      endTime: endTime
+    };
+    
+    sendGameCompletionData(gameCompletionData);
+  }
+}
 
   public getWasGroundedWhenMapCleared(): boolean {
     return this.wasGroundedWhenMapCleared;

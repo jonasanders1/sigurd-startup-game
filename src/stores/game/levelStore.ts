@@ -18,6 +18,7 @@ export interface LevelResult {
   timestamp: number;
   lives: number;
   multiplier: number;
+  isPartial?: boolean; // True for failed/incomplete levels
 }
 
 interface LevelState {
