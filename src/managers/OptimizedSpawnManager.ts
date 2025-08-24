@@ -71,6 +71,58 @@ export class OptimizedSpawnManager {
     });
   }
 
+  /**
+   * Reset spawn timing when gameplay actually begins
+   * This ensures consistent spawn timing regardless of menu/countdown delays
+   */
+  public resetSpawnTiming(): void {
+    if (!this.isInitialized) {
+      logger.warn("resetSpawnTiming called but spawn manager not initialized");
+      return;
+    }
+
+    const oldStartTime = this.levelStartTime;
+    const newStartTime = Date.now();
+    const timeDiff = newStartTime - oldStartTime;
+
+    // Update level start time
+    this.levelStartTime = newStartTime;
+
+    // Recalculate all spawn times based on new start time
+    this.scheduledSpawns = this.scheduledSpawns.map((spawn) => {
+      // Calculate the original delay from the spawn point
+      const originalDelay = spawn.scheduledTime - oldStartTime;
+      
+      return {
+        ...spawn,
+        scheduledTime: newStartTime + originalDelay,
+        executed: false // Reset execution status
+      };
+    });
+
+    // Reset pause state for clean start
+    this.resetPauseState();
+
+    logger.spawn(
+      `Spawn timing reset. Time adjustment: ${(timeDiff / 1000).toFixed(1)}s`
+    );
+
+    // Debug: Log updated spawn times
+    this.scheduledSpawns.forEach((spawn, index) => {
+      const delaySeconds = (spawn.scheduledTime - this.levelStartTime) / 1000;
+      try {
+        const monster = spawn.spawnPoint.createMonster();
+        logger.debug(
+          `Updated spawn ${index}: ${monster.type} at ${delaySeconds.toFixed(
+            1
+          )}s`
+        );
+      } catch (error) {
+        logger.error(`Failed to create monster for spawn ${index}: ${error}`);
+      }
+    });
+  }
+
   private createScheduledSpawns(
     spawnPoints: MonsterSpawnPoint[]
   ): ScheduledSpawn[] {

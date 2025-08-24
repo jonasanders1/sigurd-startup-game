@@ -235,9 +235,18 @@ export class GameStateManager {
         // Resume all managers when playing
         // IMPORTANT: Resume in correct order to avoid race conditions
 
+        // Check if we're coming from COUNTDOWN state (game just started/respawned)
+        const wasCountdown = this.previousGameState === GameState.COUNTDOWN;
+
         // 1. Resume spawn/respawn managers first
         this.monsterSpawnManager.resume();
         this.monsterRespawnManager.resume();
+
+        // 1b. Reset spawn timing if coming from countdown to ensure consistent spawn times
+        if (wasCountdown) {
+          this.monsterSpawnManager.resetSpawnTiming();
+          log.spawn("Reset spawn timing after countdown");
+        }
 
         // 2. Resume scaling manager (respects power mode state)
         if (!this.scalingManager.isCurrentlyPausedByPowerMode()) {

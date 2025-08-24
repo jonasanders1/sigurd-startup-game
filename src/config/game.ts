@@ -13,12 +13,12 @@ export const PHYSICS_CONFIG = {
   GRAVITY: 0.2,
   FLOAT_GRAVITY: 0.005, // Reduced for slower floating fall
   FAST_FALL_GRAVITY_MULTIPLIER: 2, // Multiplier when fast falling
-  
+
   // Movement
   MOVE_SPEED: 4,
   JUMP_POWER: 7,
   SUPER_JUMP_POWER: 12,
-  
+
   // Jump mechanics
   MIN_JUMP_DURATION: 50, // Minimum time for a jump (ms)
   MAX_JUMP_DURATION: 300, // Maximum time for variable jump height (ms)
@@ -31,6 +31,4 @@ export const GAME_RULES = {
 
 export const RENDERING_CONFIG = {
   USE_SPRITES: true,
-  USE_BOMB_SPRITES: true,
-  PARALLAX_ENABLED: true, // Re-enabled parallax with fixed implementation
 } as const;

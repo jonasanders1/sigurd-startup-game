@@ -180,7 +180,7 @@ export const level1Map: MapDefinition = {
 
   monsterSpawnPoints: [
     {
-      spawnDelay: 5000,
+      spawnDelay: 4000,
       createMonster: () =>
         createHorizontalPatrolMonster(
           430, // platformX
@@ -193,7 +193,7 @@ export const level1Map: MapDefinition = {
     },
 
     {
-      spawnDelay: 6000,
+      spawnDelay: 5000,
       createMonster: () => createAmbusherMonster(500, 500, 1),
     },
   ],

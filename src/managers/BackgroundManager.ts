@@ -1,5 +1,7 @@
 import { logger } from "../lib/logger";
 import { getBackgroundImagePath } from "../config/assets";
+import { RENDERING_CONFIG } from "@/config/game";
+import { DEV_CONFIG } from "@/config/dev";
 
 interface BackgroundImage {
   image: HTMLImageElement;
@@ -92,7 +94,14 @@ export class BackgroundManager {
   }
 
   render(ctx: CanvasRenderingContext2D): void {
-    if (!this.currentBackground || !this.currentBackground.isLoaded) {
+    // Import RENDERING_CONFIG at the top of the file:
+    // import { RENDERING_CONFIG } from "../config/game";
+
+    if (
+      !this.currentBackground ||
+      !this.currentBackground.isLoaded ||
+      !RENDERING_CONFIG.USE_SPRITES
+    ) {
       // Show loading state
       if (this.isLoading) {
         this.renderLoading(ctx);
@@ -142,12 +151,7 @@ export class BackgroundManager {
   }
 
   private renderFallback(ctx: CanvasRenderingContext2D): void {
-    // Create a simple gradient background as fallback
-    const gradient = ctx.createLinearGradient(0, 0, 0, this.canvasHeight);
-    gradient.addColorStop(0, "#87CEEB"); // Sky blue
-    gradient.addColorStop(1, "#4682B4"); // Steel blue
-
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = DEV_CONFIG.COLORS.BACKGROUND;
     ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
   }
 

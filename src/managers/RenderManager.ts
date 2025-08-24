@@ -7,7 +7,7 @@ import {
   Coin,
   FloatingText,
 } from "../types/interfaces";
-import { COLORS } from "../types/constants";
+import { COLORS, DEV_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
 import { bombSprite, BombSpriteInstance } from "../entities/Bomb";
 import { SpriteInstance } from "../lib/SpriteInstance";
@@ -76,7 +76,11 @@ export class RenderManager {
   }
 
   private renderGround(ground: Ground): void {
-    this.ctx.fillStyle = ground.color;
+    if (GAME_CONFIG.USE_SPRITES) {
+      this.ctx.fillStyle = ground.color;
+    } else {
+      this.ctx.fillStyle = DEV_CONFIG.COLORS.GROUND;
+    }
     this.ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
   }
 
@@ -93,8 +97,13 @@ export class RenderManager {
 
   private renderPlatforms(platforms: Platform[]): void {
     platforms.forEach((platform) => {
-      this.ctx.fillStyle = platform.color;
-      this.ctx.strokeStyle = platform.borderColor;
+      if (GAME_CONFIG.USE_SPRITES) {
+        this.ctx.fillStyle = platform.color;
+        this.ctx.strokeStyle = platform.borderColor;
+      } else {
+        this.ctx.fillStyle = DEV_CONFIG.COLORS.PLATFORM;
+        this.ctx.strokeStyle = DEV_CONFIG.COLORS.PLATFORM;
+      }
 
       // Draw rounded rectangle
       const radius = 4; // Corner radius
@@ -132,7 +141,7 @@ export class RenderManager {
         return;
       }
 
-      if (bombSprite && GAME_CONFIG.USE_BOMB_SPRITES) {
+      if (bombSprite && GAME_CONFIG.USE_SPRITES) {
         // Get or create individual sprite for this bomb
         let individualSprite = this.bombSprites.get(bomb.order);
         if (!individualSprite) {
