@@ -18,6 +18,11 @@ interface CoinState {
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
   totalExtraLifeCoinsCollected: number;
+  // Level-specific counters that accumulate across respawns
+  levelCoinsCollected: number;
+  levelPowerCoinsCollected: number;
+  levelBonusMultiplierCoinsCollected: number;
+  levelExtraLifeCoinsCollected: number;
 }
 
 interface CoinActions {
@@ -26,9 +31,16 @@ interface CoinActions {
   collectCoin: (coin: Coin) => void;
   onFirebombCollected: () => void;
   resetCoinState: () => void;
+  resetLevelCoinCounters: () => void;
   updateMonsterStates: (monsters: Monster[]) => void;
   resetEffects: () => void;
   getCoinStats: () => {
+    totalCoinsCollected: number;
+    totalPowerCoinsCollected: number;
+    totalBonusMultiplierCoinsCollected: number;
+    totalExtraLifeCoinsCollected: number;
+  };
+  getLevelCoinStats: () => {
     totalCoinsCollected: number;
     totalPowerCoinsCollected: number;
     totalBonusMultiplierCoinsCollected: number;
@@ -51,6 +63,11 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
   totalPowerCoinsCollected: 0,
   totalBonusMultiplierCoinsCollected: 0,
   totalExtraLifeCoinsCollected: 0,
+  // Level-specific counters
+  levelCoinsCollected: 0,
+  levelPowerCoinsCollected: 0,
+  levelBonusMultiplierCoinsCollected: 0,
+  levelExtraLifeCoinsCollected: 0,
 
   // Actions
   setCoins: (coins: Coin[]) => {
@@ -109,6 +126,17 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       currentState.totalExtraLifeCoinsCollected +
       (coin.type === "EXTRA_LIFE" ? 1 : 0);
 
+    // Update level-specific counters (these accumulate across respawns)
+    const newLevelCoinsCollected = currentState.levelCoinsCollected + 1;
+    const newLevelPowerCoinsCollected =
+      currentState.levelPowerCoinsCollected + (coin.type === "POWER" ? 1 : 0);
+    const newLevelBonusMultiplierCoinsCollected =
+      currentState.levelBonusMultiplierCoinsCollected +
+      (coin.type === "BONUS_MULTIPLIER" ? 1 : 0);
+    const newLevelExtraLifeCoinsCollected =
+      currentState.levelExtraLifeCoinsCollected +
+      (coin.type === "EXTRA_LIFE" ? 1 : 0);
+
     set({
       coins: updatedCoins,
       activeEffects,
@@ -116,6 +144,10 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalPowerCoinsCollected: newTotalPowerCoinsCollected,
       totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
       totalExtraLifeCoinsCollected: newTotalExtraLifeCoinsCollected,
+      levelCoinsCollected: newLevelCoinsCollected,
+      levelPowerCoinsCollected: newLevelPowerCoinsCollected,
+      levelBonusMultiplierCoinsCollected: newLevelBonusMultiplierCoinsCollected,
+      levelExtraLifeCoinsCollected: newLevelExtraLifeCoinsCollected,
     });
 
     // Handle coin-specific effects by calling the individual stores
@@ -177,6 +209,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       coinManager.reset();
     }
 
+    // Don't reset level-specific counters here - they accumulate across respawns
     set({
       coins: [],
       activeEffects: {
@@ -191,6 +224,16 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     });
   },
 
+  resetLevelCoinCounters: () => {
+    // Reset level-specific counters when moving to a new level
+    set({
+      levelCoinsCollected: 0,
+      levelPowerCoinsCollected: 0,
+      levelBonusMultiplierCoinsCollected: 0,
+      levelExtraLifeCoinsCollected: 0,
+    });
+  },
+
   getCoinStats: () => {
     const state = get();
     return {
@@ -199,6 +242,17 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalBonusMultiplierCoinsCollected:
         state.totalBonusMultiplierCoinsCollected,
       totalExtraLifeCoinsCollected: state.totalExtraLifeCoinsCollected,
+    };
+  },
+
+  getLevelCoinStats: () => {
+    const state = get();
+    return {
+      totalCoinsCollected: state.levelCoinsCollected,
+      totalPowerCoinsCollected: state.levelPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected:
+        state.levelBonusMultiplierCoinsCollected,
+      totalExtraLifeCoinsCollected: state.levelExtraLifeCoinsCollected,
     };
   },
 

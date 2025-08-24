@@ -60,6 +60,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     levelStore.resetLevelHistory();
     coinStore.resetCoinState();
     coinStore.resetEffects();
+    coinStore.resetLevelCoinCounters();
     monsterStore.resetMonsters();
     audioStore.resetAudioSettings();
     inputStore.resetInput();

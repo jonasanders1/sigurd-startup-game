@@ -174,7 +174,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
       const gameCompletionData: GameCompletionData = {
         finalScore: score,
         totalLevels: mapDefinitions.length,
-        completedLevels: levelResults.length,
+        completedLevels: levelResults.filter((l: any) => !l.isPartial).length,
         timestamp: Date.now(),
         lives: newLives,
         multiplier,
