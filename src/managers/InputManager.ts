@@ -1,5 +1,6 @@
 import { useInputStore } from "../stores/gameStore";
 import { InputKey } from "../types/enums";
+import { log } from "../lib/logger";
 
 export class InputManager {
   private keysPressed: Set<string> = new Set();
@@ -58,7 +59,7 @@ export class InputManager {
   private updateInputState(key: string, pressed: boolean) {
     // Get the store when needed instead of using cached reference
     const { setInput } = useInputStore.getState();
-    console.log("updateInputState", key, pressed);
+    log.input("updateInputState", key, pressed);
 
     switch (key) {
       // Left movement - A or Arrow Left

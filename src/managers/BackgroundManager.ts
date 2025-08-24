@@ -45,7 +45,7 @@ export class BackgroundManager {
 
     // Start loading in background - doesn't block game loop
     this.loadBackgroundAsync(mapName).catch((error) => {
-      console.error("BackgroundManager: Failed to load background:", error);
+      logger.error("BackgroundManager: Failed to load background:", error);
       this.isLoading = false;
     });
   }
@@ -56,7 +56,7 @@ export class BackgroundManager {
 
       const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
       if (!themeName) {
-        console.warn(
+        logger.warn(
           `BackgroundManager: No background image found for map: ${mapName}, using fallback`
         );
         this.isLoading = false;
@@ -74,7 +74,7 @@ export class BackgroundManager {
       this.isLoading = false;
       logger.flow(`Background loaded: ${mapName}`);
     } catch (error) {
-      console.error(
+      logger.error(
         "BackgroundManager: Failed to load background image:",
         error
       );

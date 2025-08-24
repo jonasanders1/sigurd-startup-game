@@ -97,7 +97,7 @@ export const useFullscreen = () => {
       }
       return true;
     } catch (error) {
-      console.error('Error entering fullscreen:', error);
+      log.error('Error entering fullscreen:', error);
       return false;
     }
   }, []);
@@ -116,7 +116,7 @@ export const useFullscreen = () => {
       }
       return true;
     } catch (error) {
-      console.error('Error exiting fullscreen:', error);
+      log.error('Error exiting fullscreen:', error);
       return false;
     }
   }, []);
