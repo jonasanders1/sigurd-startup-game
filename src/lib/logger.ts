@@ -181,6 +181,23 @@ export class Logger {
           LogCategory.SPAWN, LogCategory.COLLISION
         ]),
         
+        // Category-specific filters (singular names as aliases)
+        coin: () => this.showOnly(LogCategory.COIN),
+        bomb: () => this.showOnly(LogCategory.BOMB),
+        monster: () => this.showOnly(LogCategory.MONSTER),
+        power: () => this.showOnly(LogCategory.POWER),
+        level: () => this.showOnly(LogCategory.LEVEL),
+        score: () => this.showOnly(LogCategory.SCORE),
+        game: () => this.showOnly(LogCategory.GAME),
+        input: () => this.showOnly(LogCategory.INPUT),
+        render: () => this.showOnly(LogCategory.RENDER),
+        physics: () => this.showOnly(LogCategory.PHYSICS),
+        spawn: () => this.showOnly(LogCategory.SPAWN),
+        collision: () => this.showOnly(LogCategory.COLLISION),
+        performance: () => this.showOnly(LogCategory.PERFORMANCE),
+        data: () => this.showOnly(LogCategory.DATA),
+        asset: () => this.showOnly(LogCategory.ASSET),
+        
         // Utility
         clear: () => console.clear(),
         help: () => this.showHelp(),
@@ -211,6 +228,8 @@ export class Logger {
     console.log('  gameLog.coins()     - Show coin collection');
     console.log('  gameLog.gameplay()  - Show all gameplay logs');
     console.log('  gameLog.technical() - Show technical logs');
+    console.log('  gameLog.coin()      - Show only coin logs (singular)');
+    console.log('  gameLog.bomb()      - Show only bomb logs (singular)');
     
     console.log('%c\n🔧 Category Control:', 'color: #FFD700; font-weight: bold;');
     console.log('  gameLog.enable("audio")     - Enable a category');
