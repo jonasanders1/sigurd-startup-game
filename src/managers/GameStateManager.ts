@@ -144,7 +144,9 @@ export class GameStateManager {
     this.handleStateTransition(state);
 
     // Send state update to external system after handling the transition
-    sendGameStateUpdate(state, menuType);
+    // Get the actual current map name from levelStore, not menuType
+    const levelStore = useLevelStore.getState();
+    sendGameStateUpdate(state, levelStore.currentMap?.name);
   }
 
   private handleStateTransition(state: GameState): void {
