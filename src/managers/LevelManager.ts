@@ -243,13 +243,21 @@ export class LevelManager {
 
       // Increment level only once
       nextLevel();
-      this.loadCurrentLevel();
-
+      
       // Reset background music flag
       gameStateManager.resetBackgroundMusicFlag();
 
-      // Show countdown for next level
-      gameStateManager.showCountdown();
+      // IMPORTANT: Set state to COUNTDOWN BEFORE loading the new level
+      // This ensures MAP_CLEARED state doesn't persist to the new level
+      gameStateManager.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
+      
+      // Now load the new level with a clean state
+      this.loadCurrentLevel();
+
+      // Start the countdown timer to transition to PLAYING
+      setTimeout(() => {
+        gameStateManager.setState(GameState.PLAYING);
+      }, 3000);
     } else {
       // All levels completed - victory!
       gameStateManager.setState(GameState.VICTORY, MenuType.VICTORY);
