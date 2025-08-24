@@ -1,6 +1,6 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
 import { logger, LogCategory } from "../lib/logger";
-import { useGameStore, useMonsterStore } from "../stores/gameStore";
+import { useGameStore, useMonsterStore, useLevelStore, usePlayerStore } from "../stores/gameStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
 
 interface ScheduledSpawn {
@@ -80,6 +80,8 @@ export class OptimizedSpawnManager {
     }
 
     const { monsters, updateMonsters } = useMonsterStore.getState();
+    const { player } = usePlayerStore.getState();
+    const { platforms, ground } = useLevelStore.getState();
     const adjustedTime = this.getAdjustedTime();
     
     // Debug: Log that update is being called (every 5 seconds)
@@ -87,10 +89,13 @@ export class OptimizedSpawnManager {
       logger.debug(`SpawnManager.update() called at ${(adjustedTime / 1000).toFixed(1)}s, paused: ${this.pauseState.isPaused}, spawns: ${this.scheduledSpawns.length}`);
     }
     
-    // Create a gameState object with the required properties
+    // Create a gameState object with ALL required properties for movement classes
     const gameState = {
       monsters,
       updateMonsters,
+      player,        // Needed by Chaser and Ambusher monsters
+      platforms,     // Needed by all monster types for collision detection
+      ground,        // Needed for ground collision detection
       currentState: 'PLAYING' // Add this for movement classes to check pause state
     };
     
