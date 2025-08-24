@@ -20,6 +20,7 @@ import {
   useMonsterStore,
   useCoinStore,
   useStateStore,
+  useRenderStore,
 } from "../stores/gameStore";
 import { GameState, AudioEvent } from "../types/enums";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
@@ -113,6 +114,8 @@ export class GameManager {
     // Set AudioManager reference in store
     const { setAudioManager } = useAudioStore.getState();
     const { setGameStateManager } = useStateStore.getState();
+    const { setRenderManager } = useRenderStore.getState();
+
     if (setAudioManager) {
       setAudioManager(this.audioManager);
     }
@@ -120,6 +123,11 @@ export class GameManager {
     // Set GameStateManager reference in store
     if (setGameStateManager) {
       setGameStateManager(this.gameStateManager);
+    }
+
+    // Set RenderManager reference in store
+    if (setRenderManager) {
+      setRenderManager(this.renderManager);
     }
   }
 

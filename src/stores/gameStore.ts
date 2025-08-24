@@ -70,6 +70,11 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const firstMap = mapDefinitions[0];
     if (firstMap) {
       get().initializeLevel(firstMap);
+      
+      // Load the background for the first map if renderManager is available
+      if (renderStore.renderManager) {
+        renderStore.renderManager.loadMapBackground(firstMap.name);
+      }
     }
   },
 
