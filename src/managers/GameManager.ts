@@ -375,28 +375,28 @@ export class GameManager {
         timestamp: Date.now(),
       };
       sendLevelFailure(failureData);
-
-      // Add partial level result to history
-      const partialLevelResult: LevelHistoryEntry = {
-        level: currentLevel,
-        mapName: currentMap.name,
-        score: score,
-        bonus: 0,
-        completionTime: completionTime,
-        coinsCollected: coinStats.totalCoinsCollected,
-        powerModeActivations: coinStats.totalPowerCoinsCollected,
-        timestamp: Date.now(),
-        correctOrderCount: correctOrderCount,
-        totalBombs: bombs.length,
-        lives: lives - 1,
-        multiplier: multiplier,
-        isPartial: true, // Mark as partial/incomplete
-      };
-      addLevelResult(partialLevelResult as LevelResult);
     }
 
     if (lives <= 1) {
-      // Game over
+      // Game over - only record level data on final death
+      if (currentMap) {
+        const partialLevelResult: LevelHistoryEntry = {
+          level: currentLevel,
+          mapName: currentMap.name,
+          score: score,
+          bonus: 0,
+          completionTime: completionTime,
+          coinsCollected: coinStats.totalCoinsCollected,
+          powerModeActivations: coinStats.totalPowerCoinsCollected,
+          timestamp: Date.now(),
+          correctOrderCount: correctOrderCount,
+          totalBombs: bombs.length,
+          lives: lives - 1,
+          multiplier: multiplier,
+          isPartial: true, // Mark as partial/incomplete
+        };
+        addLevelResult(partialLevelResult as LevelResult);
+      }
       loseLife();
     } else {
       // Respawn player
