@@ -27,6 +27,7 @@ import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
 import { sendGameReady } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
+import { SpawnDiagnostics } from "./spawn-diagnostics";
 
 /**
  * GameManager - Main orchestrator for the game
@@ -156,11 +157,54 @@ export class GameManager {
       this.levelManager.loadCurrentLevel();
     }
 
+    // Initialize spawn diagnostics for debugging
+    this.initializeSpawnDiagnostics();
+
     // Send ready signal
     sendGameReady();
 
     // Start game loop
     this.gameLoopManager.start();
+  }
+
+  /**
+   * Initialize spawn diagnostics utility
+   */
+  private initializeSpawnDiagnostics(): void {
+    // Create and expose spawn diagnostics utility
+    const diagnostics = new SpawnDiagnostics(
+      this.monsterSpawnManager,
+      this.monsterRespawnManager
+    );
+
+    // Make available globally for console debugging
+    (window as any).spawnDiagnostics = {
+      dump: () => diagnostics.dumpFullDiagnostics(),
+      start: (intervalMs: number = 1000) => {
+        (window as any).spawnDiagnosticsInstance = diagnostics;
+        diagnostics.startDiagnostics(intervalMs);
+      },
+      stop: () => {
+        const instance = (window as any).spawnDiagnosticsInstance;
+        if (instance) {
+          instance.stopDiagnostics();
+          delete (window as any).spawnDiagnosticsInstance;
+        }
+      }
+    };
+
+    // Also expose managers for advanced debugging
+    if (DEV_CONFIG.ENABLED) {
+      (window as any).gameManagers = {
+        spawn: this.monsterSpawnManager,
+        respawn: this.monsterRespawnManager,
+        gameState: this.gameStateManager,
+        level: this.levelManager,
+        audio: this.audioManager
+      };
+    }
+
+    log.debug("Spawn diagnostics initialized - use spawnDiagnostics.dump() in console");
   }
 
   /**
