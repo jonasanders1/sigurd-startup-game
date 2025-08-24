@@ -3,6 +3,7 @@ import { FloatingText } from '../../types/interfaces';
 
 interface RenderState {
   floatingTexts: FloatingText[];
+  renderManager?: any; // Reference to RenderManager instance
 }
 
 interface RenderActions {
@@ -10,6 +11,7 @@ interface RenderActions {
   removeFloatingText: (id: string) => void;
   updateFloatingTexts: () => void;
   clearAllFloatingTexts: () => void;
+  setRenderManager: (manager: any) => void;
 }
 
 export type RenderStore = RenderState & RenderActions;
@@ -17,6 +19,7 @@ export type RenderStore = RenderState & RenderActions;
 export const useRenderStore = create<RenderStore>((set, get) => ({
   // State
   floatingTexts: [],
+  renderManager: undefined,
   
   // Actions
   addFloatingText: (text: string, x: number, y: number, duration: number = 1000, color: string = '#FFFFFF', fontSize: number = 16) => {
@@ -54,5 +57,9 @@ export const useRenderStore = create<RenderStore>((set, get) => ({
   
   clearAllFloatingTexts: () => {
     set({ floatingTexts: [] });
+  },
+  
+  setRenderManager: (manager: any) => {
+    set({ renderManager: manager });
   }
 }));
