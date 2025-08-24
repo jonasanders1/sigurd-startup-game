@@ -64,6 +64,9 @@ export class LevelManager {
     if (currentLevel <= mapDefinitions.length) {
       const mapDefinition = mapDefinitions[currentLevel - 1];
       
+      // Reset map cleared state for new level
+      this.wasGroundedWhenMapCleared = false;
+      
       // Use the gameStore initializeLevel which properly sets up bombs, monsters, coins, and player
       gameStore.initializeLevel(mapDefinition);
 
