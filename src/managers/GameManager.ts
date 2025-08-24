@@ -347,11 +347,11 @@ export class GameManager {
         }
       : { score: 0, multiplier: 1 };
     const { currentMap, addLevelResult } = useLevelStore.getState();
-    const { getCoinStats } = useCoinStore.getState();
+    const { getLevelCoinStats } = useCoinStore.getState();
     const { bombs } = useStateStore.getState();
 
-    // Get coin stats before reset
-    const coinStats = getCoinStats();
+    // Get level coin stats (accumulated across respawns)
+    const coinStats = getLevelCoinStats();
     const levelStartTime = useLevelStore.getState().levelStartTime;
     const completionTime = Date.now() - levelStartTime;
 
@@ -385,7 +385,7 @@ export class GameManager {
           mapName: currentMap.name,
           score: score,
           bonus: 0,
-          completionTime: completionTime,
+          // Don't include completionTime for partial levels - the level wasn't completed
           coinsCollected: coinStats.totalCoinsCollected,
           powerModeActivations: coinStats.totalPowerCoinsCollected,
           timestamp: Date.now(),

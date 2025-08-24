@@ -38,7 +38,7 @@ export interface LevelHistoryEntry {
   mapName: string;
   score: number;
   bonus: number;
-  completionTime: number;
+  completionTime?: number; // Optional - not included for partial/incomplete levels
   coinsCollected: number;
   powerModeActivations: number;
   timestamp: number;

@@ -165,7 +165,7 @@ export class LevelManager {
       setBonusAnimationComplete,
       gameStateManager,
     } = useStateStore.getState();
-    const { getCoinStats, resetEffects, resetCoinState, coinManager } =
+    const { getLevelCoinStats, resetEffects, resetCoinState, resetLevelCoinCounters, coinManager } =
       useCoinStore.getState();
     const { currentMap, addLevelResult } = useLevelStore.getState();
     const { score, multiplier, addScore, addRawScore } = useScoreStore.getState();
@@ -186,8 +186,8 @@ export class LevelManager {
     // Calculate completion time
     const completionTime = Date.now() - this.mapStartTime;
 
-    // Capture coin stats BEFORE resetting
-    const coinStats = getCoinStats();
+    // Capture level coin stats BEFORE resetting
+    const coinStats = getLevelCoinStats();
     const coinsCollected = coinStats.totalCoinsCollected;
     const powerModeActivations = coinStats.totalPowerCoinsCollected;
 
@@ -244,7 +244,7 @@ export class LevelManager {
 
   public proceedToNextLevel(): void {
     const { nextLevel, currentLevel, gameStateManager } = useStateStore.getState();
-    const { resetEffects, resetCoinState } = useCoinStore.getState();
+    const { resetEffects, resetCoinState, resetLevelCoinCounters } = useCoinStore.getState();
 
     // Stop power-up melody if active
     gameStateManager.stopPowerUpMelodyIfActive();
@@ -255,6 +255,7 @@ export class LevelManager {
       // Reset coin effects and state
       resetEffects();
       resetCoinState();
+      resetLevelCoinCounters(); // Reset level-specific counters for the new level
       log.debug("Coins reset when proceeding to next level");
 
       // Increment level only once

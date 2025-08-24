@@ -169,7 +169,7 @@ export const createGameStateSlice: StateCreator<GameStateSlice> = (
         const gameCompletionData: GameCompletionData = {
           finalScore: get().score,
           totalLevels: mapDefinitions.length,
-          completedLevels: levelResults.length,
+          completedLevels: levelResults.filter((l: any) => !l.isPartial).length,
           timestamp: Date.now(),
           lives: newLives,
           multiplier,

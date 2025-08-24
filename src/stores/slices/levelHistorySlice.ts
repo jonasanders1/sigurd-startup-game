@@ -10,7 +10,7 @@ export interface LevelResult {
   hasBonus: boolean;
   coinsCollected: number;
   powerModeActivations: number;
-  completionTime: number;
+  completionTime?: number; // Optional - not included for partial/incomplete levels
   timestamp: number;
   lives: number;
   multiplier: number;
