@@ -1,4 +1,9 @@
-import { useGameStore } from "../stores/gameStore";
+import {
+  useGameStore,
+  useInputStore,
+  usePlayerStore,
+  useStateStore,
+} from "../stores/gameStore";
 import { Player } from "../types/interfaces";
 import { GAME_CONFIG } from "../types/constants";
 import { CollisionManager } from "./CollisionManager";
@@ -25,25 +30,25 @@ export class PlayerManager {
   }
 
   update(deltaTime: number): void {
-    const gameState = useGameStore.getState();
-    let player = { ...gameState.player };
-
+    const { player, updatePlayer } = usePlayerStore.getState();
+    const { input } = useInputStore.getState();
+    const { currentState, loseLife } = useStateStore.getState();
     // Handle input from store
-    const moveX = this.processInput(gameState.input);
+    const moveX = this.processInput(input);
 
     // Update animation state
     this.animationController.update(
       player.isGrounded,
       moveX,
       player.isFloating,
-      gameState.currentState
+      currentState
     );
 
     // Handle jumping mechanics
-    this.handleJumping(player, gameState.input);
+    this.handleJumping(player, input);
 
     // Handle fast fall and floating
-    this.handleAirMovement(player, gameState.input);
+    this.handleAirMovement(player, input);
 
     // Apply movement with frame-rate compensation
     this.applyMovement(player, moveX, deltaTime);
@@ -63,24 +68,23 @@ export class PlayerManager {
         this.onPlayerDeath();
       } else {
         // Fallback to direct loseLife if no callback set
-        gameState.loseLife();
+        loseLife();
       }
       return;
     }
 
     // Update player with boundary-resolved position
-    player = boundaryResult.player;
+    const updatedPlayer = boundaryResult.player;
 
     // Reset grounded state
     player.isGrounded = false;
 
     // Update the store
-    gameState.updatePlayer(player);
+    updatePlayer(updatedPlayer);
   }
 
   private processInput(input: any): number {
-    const gameState = useGameStore.getState();
-    const player = gameState.player;
+    const { player } = usePlayerStore.getState();
     let moveX = 0;
     if (input.left) {
       moveX = -player.moveSpeed;
@@ -278,8 +282,8 @@ export class PlayerManager {
 
   // Reset player position and state
   resetPlayer(x: number, y: number): void {
-    const gameState = useGameStore.getState();
-    gameState.setPlayerPosition(x, y);
+    const { player, updatePlayer } = usePlayerStore.getState();
+    updatePlayer({ ...player, x, y });
 
     // Reset animation controller state
     this.animationController.reset();
@@ -287,6 +291,7 @@ export class PlayerManager {
 
   // Get current player state
   getPlayer(): Player {
-    return useGameStore.getState().player;
+    const { player } = usePlayerStore.getState();
+    return player;
   }
 }

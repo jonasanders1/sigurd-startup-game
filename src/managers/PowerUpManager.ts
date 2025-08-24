@@ -1,4 +1,4 @@
-import { useGameStore } from "../stores/gameStore";
+import { useCoinStore, useGameStore } from "../stores/gameStore";
 import { AudioEvent } from "../types/enums";
 import { DEV_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
@@ -48,13 +48,13 @@ export class PowerUpManager {
   }
 
   public isPowerModeActive(): boolean {
-    const gameState = useGameStore.getState();
-    return gameState.activeEffects.powerMode;
+    const { activeEffects } = useCoinStore.getState();
+    return activeEffects.powerMode;
   }
 
   public getPowerModeEndTime(): number {
-    const gameState = useGameStore.getState();
-    return gameState.activeEffects.powerModeEndTime;
+    const { activeEffects } = useCoinStore.getState();
+    return activeEffects.powerModeEndTime;
   }
 
   public getPowerModeTimeLeft(): number {
@@ -89,12 +89,12 @@ export class PowerUpManager {
   }
 
   public resetEffects(): void {
-    const gameState = useGameStore.getState();
-    gameState.resetEffects();
+    const { resetEffects } = useCoinStore.getState();
+    resetEffects();
   }
 
   public getPowerUpStatus(): any {
-    const gameState = useGameStore.getState();
+    const { activeEffects } = useCoinStore.getState();
     
     return {
       powerUpMelody: this.audioManager.getPowerUpMelodyStatus(),
@@ -103,10 +103,10 @@ export class PowerUpManager {
         endTime: this.getPowerModeEndTime(),
         timeLeft: this.getPowerModeTimeLeft(),
       },
-      coinManager: gameState.coinManager
+      coinManager: activeEffects
         ? {
-            powerModeActive: gameState.coinManager.isPowerModeActive(),
-            powerModeEndTime: gameState.coinManager.getPowerModeEndTime(),
+            powerModeActive: activeEffects.powerMode,
+            powerModeEndTime: activeEffects.powerModeEndTime,
           }
         : null,
     };

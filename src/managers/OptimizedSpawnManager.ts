@@ -1,6 +1,6 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
 import { logger } from "../lib/logger";
-import { useGameStore } from "../stores/gameStore";
+import { useGameStore, useMonsterStore } from "../stores/gameStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
 
 interface ScheduledSpawn {
@@ -79,7 +79,7 @@ export class OptimizedSpawnManager {
       return;
     }
 
-    const gameState = useGameStore.getState();
+    const { monsters, updateMonsters } = useMonsterStore.getState();
     const adjustedTime = this.getAdjustedTime();
     
     // Debug: Log that update is being called (every 5 seconds)
@@ -88,11 +88,11 @@ export class OptimizedSpawnManager {
     }
     
     // Process spawns every frame (no throttling for spawn timing)
-    this.processSpawns(currentTime, gameState);
+    this.processSpawns(currentTime, updateMonsters);
     
     // Update behaviors every frame for smooth movement (only if there are active monsters)
-    if (gameState.monsters.some(m => m.isActive)) {
-      this.behaviorManager.updateMonsterBehaviors(currentTime, gameState, deltaTime);
+    if (monsters.some(m => m.isActive)) {
+      this.behaviorManager.updateMonsterBehaviors(currentTime, updateMonsters, deltaTime);
     }
   }
 
@@ -227,11 +227,11 @@ export class OptimizedSpawnManager {
   public removeMonster(monster: Monster): void {
     monster.isActive = false;
 
-    const gameState = useGameStore.getState();
-    if (gameState.updateMonsters) {
-      const currentMonsters = gameState.monsters || [];
+    const { updateMonsters, monsters } = useMonsterStore.getState();
+    if (updateMonsters) {
+      const currentMonsters = monsters || [];
       const updatedMonsters = currentMonsters.filter((m) => m !== monster);
-      gameState.updateMonsters(updatedMonsters);
+      updateMonsters(updatedMonsters);
     }
   }
 

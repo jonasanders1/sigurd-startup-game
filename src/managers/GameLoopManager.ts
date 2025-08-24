@@ -1,4 +1,10 @@
-import { useGameStore } from "../stores/gameStore";
+import {
+  getGameState,
+  useCoinStore,
+  useGameStore,
+  usePlayerStore,
+  useStateStore,
+} from "../stores/gameStore";
 import { GameState } from "../types/enums";
 import { DEV_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
@@ -9,12 +15,13 @@ import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 import type { CollisionManager } from "./CollisionManager";
 import type { AnimationController } from "../lib/AnimationController";
 import { playerSprite } from "../entities/Player";
-
+import { useMonsterStore } from "../stores/gameStore";
+import { useLevelStore } from "../stores/gameStore";
 export class GameLoopManager {
   private animationFrameId: number | null = null;
   private lastTime = 0;
   private boundGameLoop: (currentTime: number) => void;
-  
+
   // Dependencies
   private renderManager: RenderManager;
   private playerManager: PlayerManager;
@@ -22,7 +29,7 @@ export class GameLoopManager {
   private monsterRespawnManager: OptimizedRespawnManager;
   private collisionManager: CollisionManager;
   private animationController: AnimationController;
-  
+
   // Callbacks for external managers
   private onUpdate?: (deltaTime: number) => void;
   private onCollisions?: () => void;
@@ -43,7 +50,7 @@ export class GameLoopManager {
     this.monsterRespawnManager = monsterRespawnManager;
     this.collisionManager = collisionManager;
     this.animationController = animationController;
-    
+
     // Bind the game loop once
     this.boundGameLoop = this.gameLoop.bind(this);
   }
@@ -76,7 +83,7 @@ export class GameLoopManager {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
-    const gameState = useGameStore.getState();
+    const gameState = useStateStore.getState();
 
     // Handle dev mode special cases
     if (DEV_CONFIG.ENABLED && gameState.currentState !== GameState.PLAYING) {
@@ -104,34 +111,26 @@ export class GameLoopManager {
   private updatePlaying(deltaTime: number): void {
     // Update sprite animation
     playerSprite.update(deltaTime);
-    
+
     // Call external update handler
     this.onUpdate?.(deltaTime);
-    
+
     // Handle collisions
     this.onCollisions?.();
-    
+
     // Check win condition
     this.onCheckWinCondition?.();
   }
 
   private updateMapCleared(deltaTime: number): void {
-    const gameState = useGameStore.getState();
-    
+    const { player } = usePlayerStore.getState();
+    const { currentState } = useStateStore.getState();
     // Update sprite animation for map cleared state
     playerSprite.update(deltaTime);
-
     // Handle falling animation if needed
     this.onMapClearedFall?.(false); // Pass the appropriate flag
-
     // Update animation controller with actual player state
-    const player = gameState.player;
-    this.animationController.update(
-      player.isGrounded,
-      0,
-      false,
-      gameState.currentState
-    );
+    this.animationController.update(player.isGrounded, 0, false, currentState);
   }
 
   public update(deltaTime: number): void {
@@ -146,66 +145,77 @@ export class GameLoopManager {
 
   private updateMonsters(deltaTime: number): void {
     const currentTime = Date.now();
-    
+
     // Update monster spawn manager
     this.monsterSpawnManager.update(currentTime, deltaTime);
-    
+
     // Update respawn manager
     const respawnedMonsters = this.monsterRespawnManager.update();
-    
-    const gameState = useGameStore.getState();
-    let monsters = gameState.monsters;
-    
+
+    let { monsters } = useMonsterStore.getState();
+
     if (respawnedMonsters.length > 0) {
       monsters = [...monsters, ...respawnedMonsters];
       log.debug(
         `Added ${respawnedMonsters.length} respawned monsters to active list`
       );
     }
-    
-    gameState.updateMonsters(monsters);
+
+    useMonsterStore.getState().updateMonsters(monsters);
   }
 
   private updateCoins(deltaTime: number): void {
-    const gameState = useGameStore.getState();
-    const platforms = gameState.currentMap?.platforms || [];
-    const ground = gameState.currentMap?.ground;
-    const coinManager = gameState.coinManager;
+    const { currentMap } = useLevelStore.getState();
+    const { coinManager, updateMonsterStates } = useCoinStore.getState();
+    const platforms = currentMap?.platforms || [];
+    const ground = currentMap?.ground;
 
     if (ground && coinManager) {
       // Check spawn conditions for all coin types
       coinManager.checkSpawnConditions(
-        gameState as unknown as Record<string, unknown>
+        useStateStore.getState() as unknown as Record<string, unknown>
       );
 
       // Let CoinManager handle all coin physics updates
-      coinManager.update(platforms, ground, gameState);
+      coinManager.update(platforms, ground, getGameState());
 
       // Update the store with the latest coin state
-      gameState.setCoins(coinManager.getCoins());
+      useCoinStore.getState().setCoins(coinManager.getCoins());
 
       // Update monster states based on power mode
-      gameState.updateMonsterStates(gameState.monsters);
+      const { monsters } = useMonsterStore.getState();
+      updateMonsterStates(monsters);
     }
 
     // Update floating texts
-    gameState.updateFloatingTexts();
+    const { updateFloatingTexts } = getGameState();
+    updateFloatingTexts();
   }
 
   private render(): void {
-    const gameState = useGameStore.getState();
+    const {
+      player,
+      platforms,
+      bombs,
+      monsters,
+      ground,
+      coins,
+      floatingTexts,
+      coinManager,
+      currentMap,
+    } = getGameState();
     this.renderManager.render(
-      gameState.player,
-      gameState.platforms,
-      gameState.bombs,
-      gameState.monsters,
-      gameState.ground,
-      gameState.coins,
-      gameState.floatingTexts,
-      gameState.coinManager,
+      player,
+      platforms,
+      bombs,
+      monsters,
+      ground,
+      coins,
+      floatingTexts,
+      coinManager,
       this.monsterSpawnManager,
-      gameState.currentMap,
-      gameState
+      currentMap,
+      getGameState()
     );
   }
 }

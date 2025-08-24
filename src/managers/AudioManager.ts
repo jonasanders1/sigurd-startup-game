@@ -1,6 +1,7 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { getAudioPath } from "../config/assets";
 import { useGameStore } from "../stores/gameStore";
+import { useAudioStore } from "../stores/systems/audioStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 
@@ -416,7 +417,7 @@ export class AudioManager {
   }
 
   private updateAudioVolumes(): void {
-    const audioSettings = useGameStore.getState().audioSettings;
+    const audioSettings = useAudioStore.getState().audioSettings;
     if (this.backgroundMusicGain) {
       const musicVolume =
         audioSettings.masterMuted || audioSettings.musicMuted
@@ -428,7 +429,7 @@ export class AudioManager {
   }
 
   private getSFXVolume(): number {
-    const audioSettings = useGameStore.getState().audioSettings;
+    const audioSettings = useAudioStore.getState().audioSettings;
     return audioSettings.masterMuted || audioSettings.sfxMuted
       ? 0
       : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);

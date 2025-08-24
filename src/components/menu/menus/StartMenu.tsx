@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
+import { useStateStore } from "../../../stores/gameStore";
 
 import { Maximize, Minimize, Play, Settings } from "lucide-react";
 import {
@@ -12,7 +12,7 @@ import {
 import { useFullscreen } from "../../../hooks/useFullscreen";
 
 const StartMenu: React.FC = () => {
-  const { gameStateManager } = useGameStore();
+  const { gameStateManager } = useStateStore.getState();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const gameContainerRef = useRef<HTMLDivElement>(null);
 

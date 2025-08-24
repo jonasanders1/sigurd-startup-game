@@ -1,13 +1,17 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
-
+import {
+  useLevelStore,
+  useScoreStore,
+  useStateStore,
+} from "../../../stores/gameStore";
 
 const GameOverScreen: React.FC = () => {
-  const { score, levelHistory, gameStateManager } = useGameStore();
+  const { gameStateManager } = useStateStore.getState();
+  const { score } = useScoreStore.getState();
+  const { levelHistory } = useLevelStore.getState();
 
   const handleRestart = () => {
-    // Use centralized restart transition
     gameStateManager?.restartGame();
   };
 

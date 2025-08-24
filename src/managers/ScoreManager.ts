@@ -1,11 +1,17 @@
-import { useGameStore } from "../stores/gameStore";
+import {
+  useCoinStore,
+  useGameStore,
+  useRenderStore,
+  useScoreStore,
+  useStateStore,
+} from "../stores/gameStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 
 export class ScoreManager {
   public addScore(points: number): void {
-    const gameState = useGameStore.getState();
-    gameState.addScore(points);
+    const { addScore } = useScoreStore.getState();
+    addScore(points);
   }
 
   public calculateBonus(correctCount: number, livesLost: number): number {
@@ -20,20 +26,21 @@ export class ScoreManager {
     );
   }
 
-  public calculateEffectiveBombCount(correctCount: number, lives: number): number {
+  public calculateEffectiveBombCount(
+    correctCount: number,
+    lives: number
+  ): number {
     const livesLost = GAME_CONFIG.STARTING_LIVES - lives;
     return Math.max(0, correctCount - livesLost);
   }
 
   public calculateMonsterKillPoints(multiplier: number): number {
-    const gameState = useGameStore.getState();
-    
-    if (gameState.coinManager) {
-      return gameState.coinManager.calculateMonsterKillPoints(multiplier);
+    // Use the score store for multiplier and fallback to default calculation
+    const { activeEffects, coinManager } = useCoinStore.getState();
+
+    if (activeEffects) {
+      return coinManager.calculateMonsterKillPoints(multiplier);
     }
-    
-    // Fallback if coin manager not available
-    return GAME_CONFIG.MONSTER_KILL_POINTS * multiplier;
   }
 
   public showFloatingText(
@@ -44,37 +51,39 @@ export class ScoreManager {
     color: string = "#fff",
     fontSize: number = 15
   ): void {
-    const gameState = useGameStore.getState();
-    
-    if (gameState.addFloatingText) {
-      gameState.addFloatingText(text, x, y, duration, color, fontSize);
+    const { addFloatingText } = useRenderStore.getState();
+
+    if (addFloatingText) {
+      addFloatingText(text, x, y, duration, color, fontSize);
     }
   }
 
   public handleCoinCollection(coin: any): void {
-    const gameState = useGameStore.getState();
-    
+    const { collectCoin } = useCoinStore.getState();
+
     // Let the coin slice handle the collection
-    gameState.collectCoin(coin);
+    collectCoin(coin);
   }
 
   public handleBombCollection(bomb: any): any {
-    const gameState = useGameStore.getState();
-    const result = gameState.collectBomb(bomb.order);
-    
+    const { collectBomb } = useStateStore.getState();
+    const { onFirebombCollected } = useCoinStore.getState();
+    const result = collectBomb(bomb.order);
+
     // Check if this was a firebomb (correct order)
     if (result && result.isCorrect) {
-      gameState.onFirebombCollected();
+      onFirebombCollected();
     }
-    
+
     return result;
   }
 
   public handleMonsterKill(monster: any): void {
-    const gameState = useGameStore.getState();
-    
+    const { multiplier } = useScoreStore.getState();
+    const { activeEffects, coinManager } = useCoinStore.getState();
+
     // Calculate points using progressive bonus system
-    const points = this.calculateMonsterKillPoints(gameState.multiplier);
+    const points = this.calculateMonsterKillPoints(multiplier);
     this.addScore(points);
 
     // Show floating text for monster kill points
@@ -85,38 +94,38 @@ export class ScoreManager {
     );
 
     // Notify coin manager about points earned
-    if (gameState.coinManager) {
-      gameState.coinManager.onPointsEarned(points, false);
+    if (activeEffects) {
+      coinManager.onPointsEarned(points, false);
     }
 
     log.debug(`Monster killed during power mode: ${points} points`);
   }
 
   public handleBonusPoints(bonusPoints: number): void {
-    const gameState = useGameStore.getState();
-    
+    const { activeEffects, coinManager } = useCoinStore.getState();
+
     this.addScore(bonusPoints);
-    
+
     // Notify coin manager about bonus points (should not trigger B-coin spawning)
-    if (gameState.coinManager) {
-      gameState.coinManager.onPointsEarned(bonusPoints, true);
+    if (activeEffects) {
+      coinManager.onPointsEarned(bonusPoints, true);
     }
   }
 
   public getScore(): number {
-    return useGameStore.getState().score;
+    return useScoreStore.getState().score;
   }
 
   public getMultiplier(): number {
-    return useGameStore.getState().multiplier;
+    return useScoreStore.getState().multiplier;
   }
 
   public getMultiplierProgress(): number {
-    return useGameStore.getState().multiplierScore;
+    return useScoreStore.getState().multiplierScore;
   }
 
   public resetScore(): void {
-    const gameState = useGameStore.getState();
-    gameState.resetGameState();
+    const { resetScore } = useScoreStore.getState();
+    resetScore();
   }
 }

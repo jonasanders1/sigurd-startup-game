@@ -1,20 +1,15 @@
 import React from "react";
 
-import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
+import { useScoreStore, useStateStore } from "../../../stores/gameStore";
 
-import { Home, RotateCcw, Trophy } from "lucide-react";
+import { Home } from "lucide-react";
 
 const VictoryMenu: React.FC = () => {
-  const { score, resetGame, setState, setMenuType } = useGameStore();
+  const { gameStateManager } = useStateStore.getState();
+  const { score } = useScoreStore.getState();
 
   const handleRestart = () => {
-    // Reset the game (this now also loads the first level)
-    resetGame();
-    
-    // Return to the start menu
-    setState(GameState.MENU);
-    setMenuType(MenuType.START);
+    gameStateManager?.restartGame();
   };
 
   return (
@@ -43,18 +38,6 @@ const VictoryMenu: React.FC = () => {
         >
           <Home className="w-7 h-7" strokeWidth={2} />
         </button>
-        {/* <button
-          onClick={() => {}}
-          className="bg-primary text-white font-bold hover:bg-primary/80 rounded-lg py-1 px-3 text-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2"
-        >
-          <RotateCcw className="w-7 h-7" strokeWidth={2} />
-        </button>
-        <button
-          onClick={() => {}}
-          className="bg-primary text-white font-bold hover:bg-primary/80 rounded-lg py-1 px-3 text-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2"
-        >
-          <Trophy className="w-7 h-7" strokeWidth={2} />
-        </button> */}
       </div>
     </div>
   );

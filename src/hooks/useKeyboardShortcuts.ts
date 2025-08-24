@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { useGameStore } from "../stores/gameStore";
 import { GameState } from "../types/enums";
+import { useStateStore } from "../stores/game/stateStore";
+import { useAudioStore } from "../stores/systems/audioStore";
+import { GameStateManager } from "@/managers/GameStateManager";
 
 // Type definition for webkit fullscreen element
 interface WebkitDocument extends Document {
@@ -8,7 +11,9 @@ interface WebkitDocument extends Document {
 }
 
 export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
-  const { currentState, gameStateManager, audioSettings, updateAudioSettings } = useGameStore();
+  
+  const { audioSettings, updateAudioSettings } = useAudioStore.getState();
+  const { currentState, gameStateManager } = useStateStore.getState();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -68,5 +73,11 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentState, gameStateManager, onFullscreenToggle, updateAudioSettings, audioSettings.masterMuted]);
+  }, [
+    currentState,
+    gameStateManager,
+    onFullscreenToggle,
+    updateAudioSettings,
+    audioSettings.masterMuted,
+  ]);
 };

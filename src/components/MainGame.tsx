@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useGameStore } from "../stores/gameStore";
+import { useGameStore, useStateStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import GameCanvas from "./GameCanvas";
 import StartMenu from "./menu/menus/StartMenu";
@@ -20,7 +20,7 @@ import { useBackgroundPreloading } from "../hooks/useBackgroundPreloading";
 import { VERSION_STRING, getVersion } from "../version";
 
 const MainGame: React.FC = () => {
-  const { currentState, showMenu } = useGameStore();
+  const { currentState, showMenu } = useStateStore.getState();
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
   const { toggleFullscreen } = useFullscreen();
   const { isFullscreen } = useFullscreen();

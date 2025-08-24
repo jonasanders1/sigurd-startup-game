@@ -1,11 +1,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
+import { useStateStore } from "../../../stores/gameStore";
 
 import { Play, Settings, Home, RotateCcw } from "lucide-react";
 
 const PauseMenu: React.FC = () => {
-  const { gameStateManager } = useGameStore();
+  const { gameStateManager } = useStateStore.getState();
 
   const resumeGame = () => {
     // Use centralized resume transition

@@ -12,7 +12,15 @@ import { GameStateManager } from "./GameStateManager";
 import { LevelManager } from "./LevelManager";
 import { ScoreManager } from "./ScoreManager";
 import { PowerUpManager } from "./PowerUpManager";
-import { useGameStore } from "../stores/gameStore";
+import {
+  useAudioStore,
+  useGameStore,
+  useLevelStore,
+  usePlayerStore,
+  useMonsterStore,
+  useCoinStore,
+  useStateStore,
+} from "../stores/gameStore";
 import { GameState, AudioEvent } from "../types/enums";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
@@ -103,14 +111,15 @@ export class GameManager {
     });
 
     // Set AudioManager reference in store
-    const gameState = useGameStore.getState();
-    if ("setAudioManager" in gameState) {
-      gameState.setAudioManager(this.audioManager);
+    const { setAudioManager } = useAudioStore.getState();
+    const { setGameStateManager } = useStateStore.getState();
+    if (setAudioManager) {
+      setAudioManager(this.audioManager);
     }
 
     // Set GameStateManager reference in store
-    if ("setGameStateManager" in gameState) {
-      gameState.setGameStateManager(this.gameStateManager);
+    if (setGameStateManager) {
+      setGameStateManager(this.gameStateManager);
     }
   }
 
@@ -160,23 +169,24 @@ export class GameManager {
    * Main update method called by game loop
    */
   private update(deltaTime: number): void {
-    const gameState = useGameStore.getState();
+    const { currentState } = useStateStore.getState();
+    const { currentMap } = useLevelStore.getState();
 
     // Handle background music and difficulty pausing
-    this.gameStateManager.handleBackgroundMusic(gameState.currentState);
-    this.gameStateManager.handleDifficultyPause(gameState.currentState);
+    this.gameStateManager.handleBackgroundMusic(currentState);
+    this.gameStateManager.handleDifficultyPause(currentState);
 
     // Skip updates in dev mode if not playing
     if (
       DEV_CONFIG.ENABLED &&
       this.gameStateManager.isDevModeInitialized() &&
-      gameState.currentState !== GameState.PLAYING
+      currentState !== GameState.PLAYING
     ) {
       return;
     }
 
     // Check if level needs to be loaded
-    if (gameState.currentState === GameState.MENU && !gameState.currentMap) {
+    if (currentState === GameState.MENU && !currentMap) {
       this.powerUpManager.stopPowerUpMelody();
       this.levelManager.loadCurrentLevel();
     }
@@ -188,7 +198,7 @@ export class GameManager {
     });
 
     // Update game loop (players, monsters, coins)
-    if (gameState.currentState === GameState.PLAYING) {
+    if (currentState === GameState.PLAYING) {
       this.gameLoopManager.update(deltaTime);
     }
   }
@@ -197,8 +207,11 @@ export class GameManager {
    * Handle all collisions
    */
   private handleCollisions(): void {
-    const gameState = useGameStore.getState();
-    const { player, platforms, bombs, monsters, ground, coins } = gameState;
+    const { player } = usePlayerStore.getState();
+    const { platforms, ground } = useLevelStore.getState();
+    const { bombs } = useStateStore.getState();
+    const { monsters } = useMonsterStore.getState();
+    const { coins } = useCoinStore.getState();
 
     // Platform collisions
     const updatedPlayer = this.playerManager.handlePlatformCollision(
@@ -207,7 +220,7 @@ export class GameManager {
       ground
     );
     if (updatedPlayer !== player) {
-      gameState.updatePlayer(updatedPlayer);
+      usePlayerStore.getState().updatePlayer(updatedPlayer);
     }
 
     // Bomb collisions
@@ -265,7 +278,7 @@ export class GameManager {
    * Handle player death
    */
   private handlePlayerDeath(): void {
-    const gameState = useGameStore.getState();
+    const { lives, loseLife } = useStateStore.getState();
 
     // Stop any power-up effects
     this.powerUpManager.handlePlayerDeath();
@@ -274,12 +287,12 @@ export class GameManager {
     this.audioManager.stopBackgroundMusic();
     this.gameStateManager.resetBackgroundMusicFlag();
 
-    if (gameState.lives <= 1) {
+    if (lives <= 1) {
       // Game over
-      gameState.loseLife();
+      loseLife();
     } else {
       // Respawn player
-      gameState.loseLife();
+      loseLife();
       this.levelManager.respawnPlayer();
     }
   }
@@ -320,7 +333,7 @@ export class GameManager {
   // Debug methods
   public getPauseStatus(): any {
     return {
-      gameState: useGameStore.getState().currentState,
+      gameState: useStateStore.getState().currentState,
       scalingManager: this.scalingManager.getPauseStatus(),
       spawnManager: this.monsterSpawnManager.getPauseStatus(),
       respawnManager: {

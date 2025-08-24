@@ -1,6 +1,11 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
+import {
+  useGameStore,
+  usePlayerStore,
+  useScoreStore,
+  useStateStore,
+} from "../../../stores/gameStore";
 
 import {
   Play,
@@ -22,15 +27,12 @@ import {
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 const InGameMenu: React.FC = () => {
-  const {
-    score,
-    lives,
-    currentLevel,
-    gameStateManager,
-    isPaused,
-    multiplier,
-    multiplierScore,
-  } = useGameStore();
+  const { currentLevel, gameStateManager, isPaused, lives } =
+    useStateStore.getState();
+  const { score } = useScoreStore.getState();
+  const { multiplier } = useScoreStore.getState();
+  const { multiplierScore } = useScoreStore.getState();
+
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
 

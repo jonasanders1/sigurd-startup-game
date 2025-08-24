@@ -1,9 +1,9 @@
-import { useGameStore } from "../stores/gameStore";
-import { InputKey, GameState } from "../types/enums";
+import { useInputStore } from "../stores/gameStore";
+import { InputKey } from "../types/enums";
 
 export class InputManager {
   private keysPressed: Set<string> = new Set();
-  private store = useGameStore.getState();
+  private store = useInputStore.getState();
   private initialized = false;
 
   public initialize() {
@@ -54,7 +54,7 @@ export class InputManager {
   }
 
   private updateInputState(key: string, pressed: boolean) {
-    this.store = useGameStore.getState();
+    // this.store = useGameStore.getState();
     console.log("updateInputState", key, pressed);
 
     switch (key) {
@@ -98,8 +98,6 @@ export class InputManager {
     }
   }
 
-
-
   private isGameKey(key: string): boolean {
     const gameKeys = [
       InputKey.LEFT,
@@ -133,5 +131,3 @@ export class InputManager {
     this.store.clearInput();
   }
 }
-
-

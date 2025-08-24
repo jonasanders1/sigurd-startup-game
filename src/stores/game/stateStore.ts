@@ -1,22 +1,22 @@
-import { create } from 'zustand';
-import { GameState, MenuType } from '../../types/enums';
-import { Bomb } from '../../types/interfaces';
-import { BombManager } from '../../managers/bombManager';
-import { GAME_CONFIG } from '../../types/constants';
-import { calculateBombScore, formatScoreLog } from '../../lib/scoringUtils';
+import { create } from "zustand";
+import { GameState, MenuType } from "../../types/enums";
+import { Bomb } from "../../types/interfaces";
+import { BombManager } from "../../managers/bombManager";
+import { GAME_CONFIG } from "../../types/constants";
+import { calculateBombScore, formatScoreLog } from "../../lib/scoringUtils";
 import {
   sendScoreToHost,
   sendGameStateUpdate,
   sendGameCompletionData,
   calculateGameStats,
   GameCompletionData,
-} from '@/lib/communicationUtils';
-import { mapDefinitions } from '@/maps/mapDefinitions';
-import { log } from '../../lib/logger';
-import { useScoreStore } from './scoreStore';
-import { useLevelStore } from './levelStore';
-import { useCoinStore } from '../entities/coinStore';
-import { useRenderStore } from '../systems/renderStore';
+} from "@/lib/communicationUtils";
+import { mapDefinitions } from "@/maps/mapDefinitions";
+import { log } from "../../lib/logger";
+import { useScoreStore } from "./scoreStore";
+import { useLevelStore } from "./levelStore";
+import { useCoinStore } from "../entities/coinStore";
+import { useRenderStore } from "../systems/renderStore";
 
 interface StateData {
   currentState: GameState;
@@ -27,7 +27,7 @@ interface StateData {
   isPaused: boolean;
   bonusAnimationComplete: boolean;
   gameStateManager?: any;
-  
+
   // Bomb-related state
   bombs: Bomb[];
   collectedBombs: number[];
@@ -42,10 +42,10 @@ interface StateActions {
   setBonusAnimationComplete: (complete: boolean) => void;
   loseLife: () => void;
   addLife: () => void;
-  nextLevel: () => void;
+  nextLevel: () => number;
   resetGameState: () => void;
   setGameStateManager: (manager: any) => void;
-  
+
   // Bomb-related actions
   collectBomb: (bombOrder: number) => { isValid: boolean; isCorrect: boolean };
   setBombs: (bombs: Bomb[]) => void;
@@ -65,30 +65,56 @@ export const useStateStore = create<StateStore>((set, get) => ({
   isPaused: false,
   bonusAnimationComplete: false,
   gameStateManager: undefined,
-  
+
   bombs: [],
   collectedBombs: [],
   correctOrderCount: 0,
   nextBombOrder: 1,
   bombManager: null,
-  
+
   // Actions
   setState: (state: GameState) => {
     set({
       currentState: state,
       isPaused: state === GameState.PAUSED,
     });
-    if (state === GameState.MENU) {
-      set({ showMenu: MenuType.START });
-    } else if (state === GameState.PLAYING) {
-      set({ showMenu: MenuType.IN_GAME });
+
+    // Handle menu type based on game state
+    switch (state) {
+      case GameState.MENU:
+        set({ showMenu: MenuType.START });
+        break;
+      case GameState.COUNTDOWN:
+        set({ showMenu: MenuType.COUNTDOWN });
+        break;
+      case GameState.PLAYING:
+        set({ showMenu: MenuType.IN_GAME });
+        break;
+      case GameState.PAUSED:
+        set({ showMenu: MenuType.PAUSE });
+        break;
+      case GameState.BONUS:
+        set({ showMenu: MenuType.BONUS });
+        break;
+      case GameState.VICTORY:
+        set({ showMenu: MenuType.VICTORY });
+        break;
+      case GameState.GAME_OVER:
+        set({ showMenu: MenuType.GAME_OVER });
+        break;
+      case GameState.MAP_CLEARED:
+        // Keep current menu type for map cleared
+        break;
+      default:
+        // For any other states, hide the menu
+        set({ showMenu: MenuType.IN_GAME });
     }
 
     // Get current map for state update
     const levelStore = useLevelStore.getState();
     sendGameStateUpdate(state, levelStore.currentMap?.name);
   },
-  
+
   setMenuType: (menuType: MenuType) => {
     const currentState = get();
     if (menuType === MenuType.SETTINGS) {
@@ -98,11 +124,11 @@ export const useStateStore = create<StateStore>((set, get) => ({
       set({ showMenu: menuType });
     }
   },
-  
+
   setBonusAnimationComplete: (complete: boolean) => {
     set({ bonusAnimationComplete: complete });
   },
-  
+
   loseLife: () => {
     const { lives } = get();
     const newLives = lives - 1;
@@ -167,7 +193,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
       sendGameCompletionData(gameCompletionData);
     }
   },
-  
+
   addLife: () => {
     const { lives } = get();
     const newLives = lives + 1;
@@ -175,7 +201,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
     log.info(`Adding life: ${lives} → ${newLives}`);
     set({ lives: newLives });
   },
-  
+
   nextLevel: () => {
     const { currentLevel } = get();
     set({ currentLevel: currentLevel + 1 });
@@ -189,8 +215,10 @@ export const useStateStore = create<StateStore>((set, get) => ({
     // Send state update with new level info
     const levelStore = useLevelStore.getState();
     sendGameStateUpdate(GameState.PLAYING, levelStore.currentMap?.name);
+
+    return currentLevel + 1;
   },
-  
+
   resetGameState: () => {
     set({
       currentState: GameState.MENU,
@@ -202,15 +230,15 @@ export const useStateStore = create<StateStore>((set, get) => ({
       bonusAnimationComplete: false,
     });
   },
-  
+
   setGameStateManager: (manager: any) => {
     set({ gameStateManager: manager });
   },
-  
+
   // Bomb actions
   collectBomb: (bombOrder: number) => {
     const { bombs, bombManager } = get();
-    
+
     const bomb = bombs.find((b) => b.order === bombOrder);
     if (!bomb || !bombManager) {
       log.warn("Bomb or bomb manager not found");
@@ -218,33 +246,36 @@ export const useStateStore = create<StateStore>((set, get) => ({
     }
 
     const result = bombManager.handleBombClick(bomb.group, bomb.order);
-    
+
     if (!result.isValid) {
       return { isValid: false, isCorrect: false };
     }
 
     // Determine if this is a firebomb (next correct bomb in sequence)
     const isFirebomb = result.isCorrect;
-    
+
     // Get current multiplier from the score store
     const scoreStore = useScoreStore.getState();
     const currentMultiplier = scoreStore.multiplier;
-    
+
     // Calculate score using utility function
     const scoreCalculation = calculateBombScore(isFirebomb, currentMultiplier);
-    
+
     // Add score to game state
     scoreStore.addScore(scoreCalculation.actualPoints);
-    
+
     // Add points to multiplier system
     scoreStore.addMultiplierScore(scoreCalculation.actualPoints);
 
     // Notify coin manager about points earned (not bonus)
     const coinStore = useCoinStore.getState();
     if (coinStore.coinManager) {
-      coinStore.coinManager.onPointsEarned(scoreCalculation.actualPoints, false);
+      coinStore.coinManager.onPointsEarned(
+        scoreCalculation.actualPoints,
+        false
+      );
     }
-    
+
     // Log the score (only for firebombs or high scores to reduce spam)
     if (isFirebomb || scoreCalculation.actualPoints >= 400) {
       log.score(formatScoreLog(scoreCalculation));
@@ -261,7 +292,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
           bomb.x + bomb.width / 2,
           bomb.y + bomb.height / 2,
           1000, // duration
-          '#FFD700', // color
+          "#FFD700", // color
           15 // fontSize
         );
       }
@@ -271,7 +302,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
       if (b.order === bombOrder) {
         return { ...b, isCollected: true, isCorrect: result.isCorrect };
       }
-      
+
       const nextGroup = bombManager.getActiveGroup();
       const nextOrder = bombManager.getNextBombOrder();
       const isNextBomb =
@@ -280,10 +311,10 @@ export const useStateStore = create<StateStore>((set, get) => ({
         b.group === nextGroup &&
         b.order === nextOrder &&
         !b.isCollected;
-      
+
       return { ...b, isBlinking: isNextBomb };
     });
-    
+
     set({
       bombs: updatedBombs,
       correctOrderCount: bombManager.getCorrectOrderCount(),
@@ -295,15 +326,15 @@ export const useStateStore = create<StateStore>((set, get) => ({
 
     return { isValid: true, isCorrect: result.isCorrect };
   },
-  
+
   setBombs: (bombs: Bomb[]) => {
     set({ bombs });
   },
-  
+
   setBombManager: (bombManager: BombManager) => {
     set({ bombManager });
   },
-  
+
   resetBombState: () => {
     set({
       bombs: [],

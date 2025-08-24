@@ -1,17 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
+import { useAudioStore, useStateStore } from "../../../stores/gameStore";
 
 import { ArrowLeft } from "lucide-react";
 
 const AudioSettingsMenu: React.FC = () => {
-  const { gameStateManager } = useGameStore();
-  
-  // Get audio settings from AudioManager
-  const audioSettings = useGameStore((state) => state.audioSettings);
-  const updateAudioSettings = useGameStore(
-    (state) => state.updateAudioSettings
-  );
+  const { gameStateManager } = useStateStore.getState();
+  const { audioSettings, updateAudioSettings } = useAudioStore.getState();
 
   const {
     masterVolume,

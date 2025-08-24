@@ -1,5 +1,13 @@
 import React from "react";
-import { useGameStore } from "../../../stores/gameStore";
+import {
+  useGameStore,
+  useStateStore,
+  useScoreStore,
+  useLevelStore,
+  useCoinStore,
+  useMonsterStore,
+  usePlayerStore,
+} from "../../../stores/gameStore";
 import { GAME_CONFIG, DEV_CONFIG } from "../../../types/constants";
 import { mapDefinitions } from "../../../maps/mapDefinitions";
 import { log } from "../../../lib/logger";
@@ -7,17 +15,10 @@ import { log } from "../../../lib/logger";
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
 
 const BonusScreen: React.FC = () => {
-  const {
-    correctOrderCount,
-    currentMap,
-    currentLevel,
-    lives,
-    score,
-    setBonusAnimationComplete,
-  } = useGameStore();
+  const { currentLevel, correctOrderCount, lives } = useStateStore.getState();
+  const { currentMap } = useLevelStore.getState();
 
-  // Calculate effective bomb count by subtracting lives lost
-  // Each life lost is equivalent to missing one bomb
+  const { setBonusAnimationComplete } = useStateStore.getState();
   const livesLost = GAME_CONFIG.STARTING_LIVES - lives;
   const effectiveCount = Math.max(0, correctOrderCount - livesLost);
 

@@ -1,5 +1,3 @@
-import { GAME_CONFIG } from "../types/constants";
-import { ASSET_PATHS } from "../config/assets";
 import { logger } from "../lib/logger";
 import { getBackgroundImagePath } from "../config/assets";
 

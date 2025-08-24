@@ -1,4 +1,11 @@
-import { useGameStore } from "../stores/gameStore";
+import {
+  useGameStore,
+  useStateStore,
+  useScoreStore,
+  useLevelStore,
+  useCoinStore,
+} from "../stores/gameStore";
+
 import { GameState, MenuType, AudioEvent } from "../types/enums";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { sendGameStateUpdate } from "../lib/communicationUtils";
@@ -33,32 +40,35 @@ export class GameStateManager {
   }
 
   public initializeDevMode(): void {
-    const gameState = useGameStore.getState();
+    const { resetGameState, nextLevel, loseLife, setState, lives } =
+      useStateStore.getState();
+    const { setMultiplier } = useScoreStore.getState();
+    const { addScore } = useScoreStore.getState();
+    const { resetLevelState } = useLevelStore.getState();
 
     // Reset game state first
-    gameState.resetGameState();
-
+    resetGameState();
     // Apply mock data AFTER reset
-    gameState.addScore(DEV_CONFIG.MOCK_DATA.score);
+    addScore(DEV_CONFIG.MOCK_DATA.score);
 
     // Set lives
-    const currentLives = gameState.lives;
+    const currentLives = lives;
     const targetLives = DEV_CONFIG.MOCK_DATA.lives;
     if (targetLives < currentLives) {
       for (let i = 0; i < currentLives - targetLives; i++) {
-        gameState.loseLife();
+        loseLife();
       }
       if (targetLives > 0) {
-        gameState.setState(GameState.MENU);
+        setState(GameState.MENU);
       }
     }
 
     // Set level
     const targetLevel = DEV_CONFIG.TARGET_LEVEL;
     if (targetLevel > 1) {
-      gameState.resetLevelState();
+      resetLevelState();
       for (let i = 1; i < targetLevel; i++) {
-        gameState.nextLevel();
+        nextLevel();
       }
     }
 
@@ -69,7 +79,7 @@ export class GameStateManager {
     log.dev(
       `DEV_MODE: Setting multiplier to ${DEV_CONFIG.MOCK_DATA.multiplier}x`
     );
-    gameState.setMultiplier(
+    setMultiplier(
       DEV_CONFIG.MOCK_DATA.multiplier,
       DEV_CONFIG.MOCK_DATA.multiplierScore
     );
@@ -81,7 +91,7 @@ export class GameStateManager {
   }
 
   private setDevModeState(targetState: string): void {
-    const gameState = useGameStore.getState();
+    const { resetBombState, collectBomb } = useStateStore.getState();
 
     switch (targetState) {
       case "START_MENU":
@@ -102,9 +112,9 @@ export class GameStateManager {
       case "BONUS":
         this.setState(GameState.BONUS, MenuType.BONUS);
         // Mock bomb collection
-        gameState.resetBombState();
+        resetBombState();
         for (let i = 0; i < DEV_CONFIG.MOCK_DATA.correctOrderCount; i++) {
-          gameState.collectBomb(i + 1);
+          collectBomb(i + 1);
         }
         break;
       case "VICTORY":
@@ -120,13 +130,13 @@ export class GameStateManager {
   }
 
   public setState(state: GameState, menuType?: MenuType): void {
-    const gameState = useGameStore.getState();
-    
+    const stateStore = useStateStore.getState();
+
     // Set the state first
-    gameState.setState(state);
+    stateStore.setState(state);
 
     if (menuType !== undefined) {
-      gameState.setMenuType(menuType);
+      stateStore.setMenuType(menuType);
     }
 
     // CRITICAL: Handle state transition immediately and synchronously
@@ -134,18 +144,20 @@ export class GameStateManager {
     this.handleStateTransition(state);
 
     // Send state update to external system after handling the transition
-    sendGameStateUpdate(JSON.stringify({
-      state,
-      menuType,
-      timestamp: Date.now(),
-    }));
+    sendGameStateUpdate(
+      JSON.stringify({
+        state,
+        menuType,
+        timestamp: Date.now(),
+      })
+    );
   }
 
   private handleStateTransition(state: GameState): void {
     // IMPORTANT: Handle difficulty pausing first (stops all managers)
     // This must happen before background music to prevent race conditions
     this.handleDifficultyPause(state);
-    
+
     // Then handle background music
     this.handleBackgroundMusic(state);
   }
@@ -167,7 +179,10 @@ export class GameStateManager {
     }
 
     // Handle music based on state
-    if (currentState === GameState.PLAYING && !this.audioManager.isPowerUpMelodyActive()) {
+    if (
+      currentState === GameState.PLAYING &&
+      !this.audioManager.isPowerUpMelodyActive()
+    ) {
       // Start music if not already playing
       if (!this.isBackgroundMusicPlaying) {
         log.audio("Starting background music");
@@ -186,16 +201,17 @@ export class GameStateManager {
     } else if (currentState !== GameState.PLAYING) {
       // Stop music for all other non-playing states
       if (this.isBackgroundMusicPlaying) {
-        log.audio(
-          `Stopping background music (state: ${currentState})`
-        );
+        log.audio(`Stopping background music (state: ${currentState})`);
         this.audioManager.stopBackgroundMusic();
         this.isBackgroundMusicPlaying = false;
       }
     }
 
     // Also stop music if power-up melody becomes active
-    if (this.audioManager.isPowerUpMelodyActive() && this.isBackgroundMusicPlaying) {
+    if (
+      this.audioManager.isPowerUpMelodyActive() &&
+      this.isBackgroundMusicPlaying
+    ) {
       log.audio("PowerUp melody active, stopping background music");
       this.audioManager.stopBackgroundMusic();
       this.isBackgroundMusicPlaying = false;
@@ -215,45 +231,45 @@ export class GameStateManager {
   }
 
   public handleDifficultyPause(currentState: GameState): void {
-    const gameState = useGameStore.getState();
+    const { coinManager } = useCoinStore.getState();
 
     // Only pause/resume managers based on specific states
     switch (currentState) {
       case GameState.PLAYING:
         // Resume all managers when playing
         // IMPORTANT: Resume in correct order to avoid race conditions
-        
+
         // 1. Resume spawn/respawn managers first
         this.monsterSpawnManager.resume();
         this.monsterRespawnManager.resume();
-        
+
         // 2. Resume scaling manager (respects power mode state)
         if (!this.scalingManager.isCurrentlyPausedByPowerMode()) {
           this.scalingManager.resume();
         }
         this.scalingManager.resumeAllMonsterScaling();
-        
+
         // 3. Resume coin manager
-        if (gameState.coinManager) {
-          gameState.coinManager.resume();
+        if (coinManager) {
+          coinManager.resume();
         }
-        
+
         log.debug("Game state PLAYING: All managers resumed in correct order");
         break;
 
       case GameState.PAUSED:
         // Pause all managers when paused
         // IMPORTANT: Pause in reverse order to avoid race conditions
-        
+
         // 1. Pause coin manager first (stops power-ups)
-        if (gameState.coinManager) {
-          gameState.coinManager.pause();
+        if (coinManager) {
+          coinManager.pause();
         }
-        
+
         // 2. Pause scaling managers
         this.scalingManager.pause();
         this.scalingManager.pauseAllMonsterScaling();
-        
+
         // 3. Pause spawn/respawn managers last
         this.monsterSpawnManager.pause();
         this.monsterRespawnManager.pause();
@@ -264,7 +280,7 @@ export class GameStateManager {
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
-        
+
         log.debug("Game state PAUSED: All managers paused in correct order");
         break;
 
@@ -281,16 +297,16 @@ export class GameStateManager {
       case GameState.MENU:
         // Stop managers for end states and menu
         // Use same order as PAUSED state
-        
+
         // 1. Pause coin manager first
-        if (gameState.coinManager) {
-          gameState.coinManager.pause();
+        if (coinManager) {
+          coinManager.pause();
         }
-        
+
         // 2. Pause scaling managers
         this.scalingManager.pause();
         this.scalingManager.pauseAllMonsterScaling();
-        
+
         // 3. Pause spawn/respawn managers
         this.monsterSpawnManager.pause();
         this.monsterRespawnManager.pause();
@@ -301,40 +317,44 @@ export class GameStateManager {
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
-        
+
         log.debug(`Game state ${currentState}: All managers paused`);
         break;
 
       case GameState.MAP_CLEARED:
         // Pause all managers when map is cleared (similar to BONUS state)
         // IMPORTANT: Pause in reverse order to avoid race conditions
-        
+
         // 1. Pause coin manager first (stops power-ups)
-        if (gameState.coinManager) {
-          gameState.coinManager.pause();
+        if (coinManager) {
+          coinManager.pause();
         }
-        
+
         // 2. Pause scaling managers
         this.scalingManager.pause();
         this.scalingManager.pauseAllMonsterScaling();
-        
+
         // 3. Pause spawn/respawn managers last
         this.monsterSpawnManager.pause();
         this.monsterRespawnManager.pause();
-        
+
         // 4. Stop audio effects
         if (this.audioManager.isPowerUpMelodyActive()) {
           log.audio("Map cleared, stopping PowerUp melody");
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
-        
-        log.debug("Game state MAP_CLEARED: All managers paused in correct order");
+
+        log.debug(
+          "Game state MAP_CLEARED: All managers paused in correct order"
+        );
         break;
 
       default:
         // For any other states, default to paused
-        log.warn(`Unhandled game state in handleDifficultyPause: ${currentState}`);
+        log.warn(
+          `Unhandled game state in handleDifficultyPause: ${currentState}`
+        );
         break;
     }
   }
@@ -362,11 +382,12 @@ export class GameStateManager {
   }
 
   public handleBonusCompletion(onComplete: () => void): void {
-    const gameState = useGameStore.getState();
+    const { currentState, bonusAnimationComplete, setBonusAnimationComplete } =
+      useStateStore.getState();
 
     // Debug logging for tracking the bonus completion flow
-    if (gameState.currentState === GameState.BONUS) {
-      if (!gameState.bonusAnimationComplete) {
+    if (currentState === GameState.BONUS) {
+      if (!bonusAnimationComplete) {
         // Only log this occasionally to avoid spam
         if (Math.random() < 0.01) {
           log.debug("Waiting for bonus animation to complete...");
@@ -380,25 +401,29 @@ export class GameStateManager {
     }
 
     if (
-      gameState.currentState === GameState.BONUS &&
-      gameState.bonusAnimationComplete &&
+      currentState === GameState.BONUS &&
+      bonusAnimationComplete &&
       !this.bonusTransitionInProgress
     ) {
       // Mark transition as in progress to prevent multiple calls
       this.bonusTransitionInProgress = true;
-      log.info("✅ Bonus animation complete, starting 2-second transition to next level");
-      log.debug(`Current state: ${gameState.currentState}, Animation flag: ${gameState.bonusAnimationComplete}, Transition flag: ${this.bonusTransitionInProgress}`);
-      
+      log.info(
+        "✅ Bonus animation complete, starting 2-second transition to next level"
+      );
+      log.debug(
+        `Current state: ${currentState}, Animation flag: ${bonusAnimationComplete}, Transition flag: ${this.bonusTransitionInProgress}`
+      );
+
       // Animation is complete, proceed after delay
       setTimeout(() => {
         log.info("✅ Transition delay complete, proceeding to next level now");
-        
+
         // Reset the flag AFTER we're about to transition, not before
-        gameState.setBonusAnimationComplete(false);
-        
+        setBonusAnimationComplete(false);
+
         // Call the completion callback
         onComplete();
-        
+
         // Reset the transition flag after completion
         this.bonusTransitionInProgress = false;
         log.debug("Bonus transition flags reset for next bonus");
@@ -411,7 +436,7 @@ export class GameStateManager {
   }
 
   public getCurrentState(): GameState {
-    return useGameStore.getState().currentState;
+    return useStateStore.getState().currentState;
   }
 
   public isBackgroundMusicActive(): boolean {
@@ -422,25 +447,25 @@ export class GameStateManager {
    * Reset bonus transition flags - useful for edge cases or cleanup
    */
   public resetBonusTransition(): void {
-    const gameState = useGameStore.getState();
+    const { setBonusAnimationComplete } = useStateStore.getState();
     this.bonusTransitionInProgress = false;
-    gameState.setBonusAnimationComplete(false);
+    setBonusAnimationComplete(false);
     log.debug("Bonus transition flags reset");
   }
 
   // ===== CENTRALIZED STATE TRANSITIONS =====
-  
+
   /**
    * Start a new game from the start menu
    */
   public startNewGame(): void {
     log.info("Starting new game with countdown");
-    
+
     // Reset any lingering bonus transition state
     this.resetBonusTransition();
-    
+
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
-    
+
     setTimeout(() => {
       this.setState(GameState.PLAYING);
     }, 3000);
@@ -451,18 +476,18 @@ export class GameStateManager {
    */
   public restartGame(): void {
     const gameState = useGameStore.getState();
-    
+
     log.info("Restarting game");
-    
+
     // Reset any lingering bonus transition state
     this.resetBonusTransition();
-    
+
     // Reset the game (this now also loads the first level)
     gameState.resetGame();
-    
+
     // Show countdown before starting
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
-    
+
     setTimeout(() => {
       this.setState(GameState.PLAYING);
     }, 3000);
@@ -482,7 +507,7 @@ export class GameStateManager {
   public resumeGame(): void {
     log.info("Resuming game with countdown");
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
-    
+
     setTimeout(() => {
       this.setState(GameState.PLAYING);
     }, 3000);
@@ -491,38 +516,36 @@ export class GameStateManager {
   /**
    * Toggle pause state
    */
-  public togglePause(): void {
-    const gameState = useGameStore.getState();
-    
-    if (gameState.isPaused) {
-      this.resumeGame();
-    } else {
-      this.pauseGame();
-    }
-  }
+  // public togglePause(): void {
+  //   const gameState = useGameStore.getState();
+
+  //   if (gameState.isPaused) {
+  //     this.resumeGame();
+  //   } else {
+  //     this.pauseGame();
+  //   }
+  // }
 
   /**
    * Go to settings menu
    */
   public openSettings(): void {
-    const gameState = useGameStore.getState();
-    
+    const { setMenuType } = useStateStore.getState();
     // Store current menu before switching to settings
-    gameState.setMenuType(MenuType.SETTINGS);
+    setMenuType(MenuType.SETTINGS);
   }
 
   /**
    * Go back from settings menu
    */
   public closeSettings(): void {
-    const gameState = useGameStore.getState();
-    
+    const { previousMenu, setMenuType } = useStateStore.getState();
     // Go back to the previous menu that was stored when opening settings
-    if (gameState.previousMenu) {
-      gameState.setMenuType(gameState.previousMenu);
+    if (previousMenu) {
+      setMenuType(previousMenu);
     } else {
       // Fallback to START menu if no previous menu is stored
-      gameState.setMenuType(MenuType.START);
+      setMenuType(MenuType.START);
     }
   }
 
@@ -531,7 +554,7 @@ export class GameStateManager {
    */
   public quitToMenu(): void {
     const gameState = useGameStore.getState();
-    
+
     log.info("Quitting to main menu");
     // Reset the game
     gameState.resetGame();
