@@ -8,7 +8,6 @@ import { Player } from "../types/interfaces";
 import { GAME_CONFIG } from "../types/constants";
 import { CollisionManager } from "./CollisionManager";
 import { AnimationController } from "../lib/AnimationController";
-import { log } from "../lib/logger";
 
 export class PlayerManager {
   private collisionManager: CollisionManager;
@@ -282,8 +281,9 @@ export class PlayerManager {
 
   // Reset player position and state
   resetPlayer(x: number, y: number): void {
-    const { player, updatePlayer } = usePlayerStore.getState();
-    updatePlayer({ ...player, x, y });
+    const { setPlayerPosition } = usePlayerStore.getState();
+    // Use setPlayerPosition to properly reset all movement properties
+    setPlayerPosition(x, y);
 
     // Reset animation controller state
     this.animationController.reset();

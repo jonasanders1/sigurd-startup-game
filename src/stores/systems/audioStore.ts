@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { DEFAULT_AUDIO_SETTINGS } from '../../types/constants';
+import { log } from 'console';
 
 export interface AudioSettings {
   masterVolume: number;
@@ -40,6 +41,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     set({
       audioSettings: { ...get().audioSettings, ...newSettings },
     });
+    console.log("Updated audio settings", newSettings);
 
     // Update AudioManager if available
     const audioManager = get().audioManager;

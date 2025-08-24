@@ -10,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 
 const SettingsMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
-  const { audioSettings, updateAudioSettings } = useAudioStore.getState();
+  const { audioSettings, updateAudioSettings } = useAudioStore();
 
   const {
     masterVolume,
