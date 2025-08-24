@@ -1,6 +1,11 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
 import { logger, LogCategory } from "../lib/logger";
-import { useGameStore, useMonsterStore } from "../stores/gameStore";
+import {
+  useGameStore,
+  useMonsterStore,
+  useLevelStore,
+  usePlayerStore,
+} from "../stores/gameStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
 
 interface ScheduledSpawn {
@@ -35,22 +40,28 @@ export class OptimizedSpawnManager {
     this.levelStartTime = Date.now();
     this.scheduledSpawns = this.createScheduledSpawns(spawnPoints);
     this.resetPauseState();
-    
+
     logger.level(`Level initialized with ${spawnPoints.length} spawn points`);
-    
+
     // Debug: Log scheduled spawns
     this.scheduledSpawns.forEach((spawn, index) => {
       const delaySeconds = (spawn.scheduledTime - this.levelStartTime) / 1000;
       try {
         const monster = spawn.spawnPoint.createMonster();
-        logger.debug(`Scheduled spawn ${index}: ${monster.type} at ${delaySeconds.toFixed(1)}s`);
+        logger.debug(
+          `Scheduled spawn ${index}: ${monster.type} at ${delaySeconds.toFixed(
+            1
+          )}s`
+        );
       } catch (error) {
         logger.error(`Failed to create monster for spawn ${index}: ${error}`);
       }
     });
   }
 
-  private createScheduledSpawns(spawnPoints: MonsterSpawnPoint[]): ScheduledSpawn[] {
+  private createScheduledSpawns(
+    spawnPoints: MonsterSpawnPoint[]
+  ): ScheduledSpawn[] {
     return spawnPoints.map((spawnPoint, index) => ({
       id: `spawn-${index}`,
       spawnPoint,
@@ -80,26 +91,43 @@ export class OptimizedSpawnManager {
     }
 
     const { monsters, updateMonsters } = useMonsterStore.getState();
+    const { player } = usePlayerStore.getState();
+    const { platforms, ground } = useLevelStore.getState();
     const adjustedTime = this.getAdjustedTime();
-    
+
     // Debug: Log that update is being called (every 5 seconds)
-    if (Math.floor(adjustedTime / 5000) !== Math.floor((adjustedTime - 16) / 5000)) {
-      logger.debug(`SpawnManager.update() called at ${(adjustedTime / 1000).toFixed(1)}s, paused: ${this.pauseState.isPaused}, spawns: ${this.scheduledSpawns.length}`);
+    if (
+      Math.floor(adjustedTime / 5000) !== Math.floor((adjustedTime - 16) / 5000)
+    ) {
+      logger.debug(
+        `SpawnManager.update() called at ${(adjustedTime / 1000).toFixed(
+          1
+        )}s, paused: ${this.pauseState.isPaused}, spawns: ${
+          this.scheduledSpawns.length
+        }`
+      );
     }
-    
-    // Create a gameState object with the required properties
+
+    // Create a gameState object with ALL required properties for movement classes
     const gameState = {
       monsters,
       updateMonsters,
-      currentState: 'PLAYING' // Add this for movement classes to check pause state
+      player, // Needed by Chaser and Ambusher monsters
+      platforms, // Needed by all monster types for collision detection
+      ground, // Needed for ground collision detection
+      currentState: "PLAYING", // Add this for movement classes to check pause state
     };
-    
+
     // Process spawns every frame (no throttling for spawn timing)
     this.processSpawns(currentTime, gameState);
-    
+
     // Update behaviors every frame for smooth movement (only if there are active monsters)
-    if (monsters.some(m => m.isActive)) {
-      this.behaviorManager.updateMonsterBehaviors(currentTime, gameState, deltaTime);
+    if (monsters.some((m) => m.isActive)) {
+      this.behaviorManager.updateMonsterBehaviors(
+        currentTime,
+        gameState,
+        deltaTime
+      );
     }
   }
 
@@ -109,14 +137,25 @@ export class OptimizedSpawnManager {
     const spawnsToExecute: ScheduledSpawn[] = [];
 
     // Debug: Log spawn processing (every 5 seconds)
-    if (Math.floor(adjustedTime / 5000) !== Math.floor((adjustedTime - 16) / 5000)) {
-      const pendingSpawns = this.scheduledSpawns.filter(s => !s.executed);
-      logger.spawn(`Spawn check at ${(adjustedTime / 1000).toFixed(1)}s: ${pendingSpawns.length} pending spawns`);
-      pendingSpawns.forEach(spawn => {
-        const timeUntilSpawn = (spawn.scheduledTime - adjustedAbsoluteTime) / 1000;
+    if (
+      Math.floor(adjustedTime / 5000) !== Math.floor((adjustedTime - 16) / 5000)
+    ) {
+      const pendingSpawns = this.scheduledSpawns.filter((s) => !s.executed);
+      logger.spawn(
+        `Spawn check at ${(adjustedTime / 1000).toFixed(1)}s: ${
+          pendingSpawns.length
+        } pending spawns`
+      );
+      pendingSpawns.forEach((spawn) => {
+        const timeUntilSpawn =
+          (spawn.scheduledTime - adjustedAbsoluteTime) / 1000;
         try {
           const monster = spawn.spawnPoint.createMonster();
-          logger.spawn(`  - ${monster.type} in ${timeUntilSpawn.toFixed(1)}s (scheduled: ${spawn.scheduledTime}, current: ${adjustedAbsoluteTime})`);
+          logger.spawn(
+            `  - ${monster.type} in ${timeUntilSpawn.toFixed(1)}s (scheduled: ${
+              spawn.scheduledTime
+            }, current: ${adjustedAbsoluteTime})`
+          );
         } catch (error) {
           logger.error(`  - Failed to create monster: ${error}`);
         }
@@ -127,18 +166,32 @@ export class OptimizedSpawnManager {
     for (const spawn of this.scheduledSpawns) {
       if (!spawn.executed && adjustedAbsoluteTime >= spawn.scheduledTime) {
         spawnsToExecute.push(spawn);
-        logger.spawn(`Spawn ready to execute: ${spawn.spawnPoint.createMonster().type} (scheduled at ${(spawn.scheduledTime / 1000).toFixed(1)}s, current time ${(adjustedTime / 1000).toFixed(1)}s)`);
+        logger.spawn(
+          `Spawn ready to execute: ${
+            spawn.spawnPoint.createMonster().type
+          } (scheduled at ${(spawn.scheduledTime / 1000).toFixed(
+            1
+          )}s, current time ${(adjustedTime / 1000).toFixed(1)}s)`
+        );
       }
     }
 
     // Execute spawns in batch
     if (spawnsToExecute.length > 0) {
-      logger.spawn(`Executing ${spawnsToExecute.length} spawns at ${(adjustedTime / 1000).toFixed(1)}s`);
+      logger.spawn(
+        `Executing ${spawnsToExecute.length} spawns at ${(
+          adjustedTime / 1000
+        ).toFixed(1)}s`
+      );
       this.executeSpawns(spawnsToExecute, currentTime, gameState);
     }
   }
 
-  private executeSpawns(spawns: ScheduledSpawn[], currentTime: number, gameState: any): void {
+  private executeSpawns(
+    spawns: ScheduledSpawn[],
+    currentTime: number,
+    gameState: any
+  ): void {
     const spawnedMonsters: Monster[] = [];
 
     for (const spawn of spawns) {
@@ -146,8 +199,10 @@ export class OptimizedSpawnManager {
         const monster = this.createMonster(spawn.spawnPoint);
         spawnedMonsters.push(monster);
         spawn.executed = true;
-        
-        logger.monster(`Spawned ${monster.type} at (${monster.x}, ${monster.y})`);
+
+        logger.monster(
+          `Spawned ${monster.type} at (${monster.x}, ${monster.y})`
+        );
       } catch (error) {
         logger.error(`Failed to spawn monster: ${error}`);
       }
@@ -162,7 +217,7 @@ export class OptimizedSpawnManager {
 
   private createMonster(spawnPoint: MonsterSpawnPoint): Monster {
     const monster = spawnPoint.createMonster();
-    
+
     if (spawnPoint.color) {
       monster.color = spawnPoint.color;
     }
@@ -193,21 +248,39 @@ export class OptimizedSpawnManager {
     }
     this.pauseState.pauseReasons.add(reason);
     // Use throttled logging to prevent spam
-    logger.throttled(LogCategory.GAME, `spawning_paused_${reason}`, `Spawning paused (${reason})`, 5000);
-    logger.debug(`SpawnManager pause state: ${this.pauseState.isPaused}, reasons: ${Array.from(this.pauseState.pauseReasons).join(', ')}`);
+    logger.throttled(
+      LogCategory.GAME,
+      `spawning_paused_${reason}`,
+      `Spawning paused (${reason})`,
+      5000
+    );
+    logger.debug(
+      `SpawnManager pause state: ${
+        this.pauseState.isPaused
+      }, reasons: ${Array.from(this.pauseState.pauseReasons).join(", ")}`
+    );
   }
 
   public resume(reason: string = "default"): void {
     this.pauseState.pauseReasons.delete(reason);
-    
+
     if (this.pauseState.pauseReasons.size === 0 && this.pauseState.isPaused) {
       const pauseDuration = Date.now() - this.pauseState.pauseStartTime;
       this.pauseState.totalPausedTime += pauseDuration;
       this.pauseState.isPaused = false;
       // Use throttled logging to prevent spam
-      logger.throttled(LogCategory.GAME, `spawning_resumed_${reason}`, `Spawning resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`, 5000);
+      logger.throttled(
+        LogCategory.GAME,
+        `spawning_resumed_${reason}`,
+        `Spawning resumed (paused for ${(pauseDuration / 1000).toFixed(1)}s)`,
+        5000
+      );
     }
-    logger.debug(`SpawnManager pause state: ${this.pauseState.isPaused}, reasons: ${Array.from(this.pauseState.pauseReasons).join(', ')}`);
+    logger.debug(
+      `SpawnManager pause state: ${
+        this.pauseState.isPaused
+      }, reasons: ${Array.from(this.pauseState.pauseReasons).join(", ")}`
+    );
   }
 
   public isPaused(): boolean {
@@ -247,16 +320,16 @@ export class OptimizedSpawnManager {
   // ===== UTILITY METHODS =====
   public reset(): void {
     this.levelStartTime = Date.now();
-    this.scheduledSpawns.forEach(spawn => spawn.executed = false);
+    this.scheduledSpawns.forEach((spawn) => (spawn.executed = false));
     this.resetPauseState();
     this.lastUpdateTime = 0;
   }
 
   public getSpawnStatus(): any {
-    const executedCount = this.scheduledSpawns.filter(s => s.executed).length;
-    const pendingCount = this.scheduledSpawns.filter(s => !s.executed).length;
+    const executedCount = this.scheduledSpawns.filter((s) => s.executed).length;
+    const pendingCount = this.scheduledSpawns.filter((s) => !s.executed).length;
     const adjustedTime = this.getAdjustedTime();
-    
+
     return {
       totalSpawnPoints: this.scheduledSpawns.length,
       executedCount,
@@ -278,12 +351,14 @@ export class OptimizedSpawnManager {
   }
 
   public getPendingSpawns(): ScheduledSpawn[] {
-    return this.scheduledSpawns.filter(s => !s.executed);
+    return this.scheduledSpawns.filter((s) => !s.executed);
   }
 
   public setUpdateInterval(intervalMs: number): void {
     this.updateInterval = intervalMs;
-    logger.debug(`OptimizedSpawnManager: Update interval set to ${intervalMs}ms`);
+    logger.debug(
+      `OptimizedSpawnManager: Update interval set to ${intervalMs}ms`
+    );
   }
 
   public cleanup(): void {
@@ -291,4 +366,4 @@ export class OptimizedSpawnManager {
     this.resetPauseState();
     this.lastUpdateTime = 0;
   }
-} 
+}

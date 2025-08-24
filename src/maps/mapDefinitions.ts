@@ -155,11 +155,7 @@ export const level1Map: MapDefinition = {
       type: CoinType.POWER,
       spawnAngle: 135,
     },
-    // {
-    //   x: centerX(GAME_CONFIG.COIN_SIZE),
-    //   y: 75,
-    //   type: CoinType.BONUS_MULTIPLIER,
-    // },
+
     {
       x: 200,
       y: 75,
@@ -183,18 +179,6 @@ export const level1Map: MapDefinition = {
   ],
 
   monsterSpawnPoints: [
-    {
-      spawnDelay: 4000,
-      createMonster: () =>
-        createHorizontalPatrolMonster(
-          430, // platformX
-          430, // platformWidth
-          200,
-          "left", // spawnSide
-          1, // walkLengths
-          1.0 // speed
-        ),
-    },
     {
       spawnDelay: 4000,
       createMonster: () =>
