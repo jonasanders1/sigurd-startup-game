@@ -216,6 +216,7 @@ export class LevelManager {
         timestamp: Date.now(),
         lives: lives,
         multiplier: multiplier,
+        isPartial: false, // Explicitly mark as completed level
       };
       addLevelResult(levelResult);
 
