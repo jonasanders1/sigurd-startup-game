@@ -11,12 +11,12 @@ import {
 import { GameState, MenuType, AudioEvent } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { mapDefinitions } from "../maps/mapDefinitions";
-import { 
-  sendMapCompletionData, 
-  sendLevelStart, 
-  sendGameCompletionData, 
-  GameCompletionData, 
-  calculateGameStats 
+import {
+  sendMapCompletionData,
+  sendLevelStart,
+  sendGameCompletionData,
+  GameCompletionData,
+  calculateGameStats,
 } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 import type { RenderManager } from "./RenderManager";
@@ -70,13 +70,13 @@ export class LevelManager {
 
     if (currentLevel <= mapDefinitions.length) {
       const mapDefinition = mapDefinitions[currentLevel - 1];
-      
+
       // Reset map cleared state for new level
       this.wasGroundedWhenMapCleared = false;
-      
+
       // Cleanup spawn manager before loading new level
       this.monsterSpawnManager.cleanup();
-      
+
       // Use the gameStore initializeLevel which properly sets up bombs, monsters, coins, and player
       gameStore.initializeLevel(mapDefinition);
 
@@ -91,10 +91,10 @@ export class LevelManager {
 
       // Load parallax background (non-blocking)
       this.renderManager.loadMapBackground(mapDefinition.name);
-      
+
       // Send level start event for tracking
       sendLevelStart(currentLevel, mapDefinition.name);
-      
+
       // Record level start time
       this.mapStartTime = Date.now();
 
@@ -165,10 +165,16 @@ export class LevelManager {
       setBonusAnimationComplete,
       gameStateManager,
     } = useStateStore.getState();
-    const { getLevelCoinStats, resetEffects, resetCoinState, resetLevelCoinCounters, coinManager } =
-      useCoinStore.getState();
+    const {
+      getLevelCoinStats,
+      resetEffects,
+      resetCoinState,
+      resetLevelCoinCounters,
+      coinManager,
+    } = useCoinStore.getState();
     const { currentMap, addLevelResult } = useLevelStore.getState();
-    const { score, multiplier, addScore, addRawScore } = useScoreStore.getState();
+    const { score, multiplier, addScore, addRawScore } =
+      useScoreStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
 
     // Stop power-up melody if active
@@ -216,6 +222,7 @@ export class LevelManager {
         timestamp: Date.now(),
         lives: lives,
         multiplier: multiplier,
+        isPartial: false,
       };
       addLevelResult(levelResult);
 
@@ -230,7 +237,7 @@ export class LevelManager {
       // Show bonus screen
       this.gameStateManager.setState(GameState.BONUS, MenuType.BONUS);
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
-      addRawScore(bonusPoints);  // Use addRawScore to avoid multiplying bonus
+      addRawScore(bonusPoints); // Use addRawScore to avoid multiplying bonus
 
       // Notify coin manager about bonus points
       if (coinManager) {
@@ -243,8 +250,10 @@ export class LevelManager {
   }
 
   public proceedToNextLevel(): void {
-    const { nextLevel, currentLevel, gameStateManager } = useStateStore.getState();
-    const { resetEffects, resetCoinState, resetLevelCoinCounters } = useCoinStore.getState();
+    const { nextLevel, currentLevel, gameStateManager } =
+      useStateStore.getState();
+    const { resetEffects, resetCoinState, resetLevelCoinCounters } =
+      useCoinStore.getState();
 
     // Stop power-up melody if active
     gameStateManager.stopPowerUpMelodyIfActive();
@@ -260,14 +269,14 @@ export class LevelManager {
 
       // Increment level only once
       nextLevel();
-      
+
       // Reset background music flag
       gameStateManager.resetBackgroundMusicFlag();
 
       // IMPORTANT: Set state to COUNTDOWN BEFORE loading the new level
       // This ensures MAP_CLEARED state doesn't persist to the new level
       gameStateManager.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
-      
+
       // Now load the new level with a clean state
       this.loadCurrentLevel();
 
@@ -278,7 +287,7 @@ export class LevelManager {
     } else {
       // All levels completed - victory!
       gameStateManager.setState(GameState.VICTORY, MenuType.VICTORY);
-      
+
       // Send game completion data for victory
       this.sendGameCompletion("completed");
     }
@@ -360,20 +369,21 @@ export class LevelManager {
       }
     }
   }
-  
+
   /**
    * Send game completion data when game ends (victory or game over)
    */
   private sendGameCompletion(reason: "completed" | "failed"): void {
     const { score, multiplier } = useScoreStore.getState();
     const { currentLevel, lives } = useStateStore.getState();
-    const { getLevelResults, getSessionId, getGameStartTime } = useLevelStore.getState();
-    
+    const { getLevelResults, getSessionId, getGameStartTime } =
+      useLevelStore.getState();
+
     const levelResults = getLevelResults();
     const sessionId = getSessionId();
     const startTime = getGameStartTime() || this.gameStartTime;
     const endTime = Date.now();
-    
+
     // Calculate comprehensive game stats
     const gameStats = calculateGameStats(
       levelResults,
@@ -384,7 +394,7 @@ export class LevelManager {
       startTime,
       endTime
     );
-    
+
     const gameCompletionData: GameCompletionData = {
       finalScore: score,
       totalLevels: mapDefinitions.length,
@@ -401,12 +411,11 @@ export class LevelManager {
       gameEndReason: reason,
       sessionId: sessionId,
       startTime: startTime,
-      endTime: endTime
+      endTime: endTime,
     };
-    
+
     sendGameCompletionData(gameCompletionData);
   }
-  
 
   public getWasGroundedWhenMapCleared(): boolean {
     return this.wasGroundedWhenMapCleared;

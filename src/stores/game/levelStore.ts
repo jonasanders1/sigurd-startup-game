@@ -128,7 +128,8 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
         lives: result.lives || 0,
         multiplier: result.multiplier || 1,
         totalBombs: result.totalBombs || 0,
-        correctOrderCount: result.correctOrderCount || 0
+        correctOrderCount: result.correctOrderCount || 0,
+        isPartial: result.isPartial || false
       }]
     }));
   },
