@@ -390,7 +390,7 @@ export class GameManager {
           powerModeActivations: coinStats.totalPowerCoinsCollected,
           timestamp: Date.now(),
           correctOrderCount: correctOrderCount,
-          totalBombs: bombs.length,
+          totalBombs: bombs.filter((b) => b.isCollected).length,
           lives: lives - 1,
           multiplier: multiplier,
           isPartial: true, // Mark as partial/incomplete

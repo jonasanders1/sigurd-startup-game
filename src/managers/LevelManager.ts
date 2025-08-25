@@ -164,6 +164,7 @@ export class LevelManager {
       currentLevel,
       setBonusAnimationComplete,
       gameStateManager,
+      collectedBombs,
     } = useStateStore.getState();
     const {
       getLevelCoinStats,
@@ -205,25 +206,25 @@ export class LevelManager {
     resetCoinState();
     log.debug("Coins reset when map is cleared");
 
-    // Record the level result
-    if (currentMap) {
-      const levelResult = {
-        level: currentLevel,
-        mapName: currentMap.name,
-        correctOrderCount: correctOrderCount,
-        effectiveCount: effectiveCount,
-        totalBombs: GAME_CONFIG.TOTAL_BOMBS,
-        score: score,
-        bonus: bonusPoints,
-        hasBonus: bonusPoints > 0,
-        coinsCollected: coinsCollected,
-        powerModeActivations: powerModeActivations,
-        completionTime: completionTime,
-        timestamp: Date.now(),
-        lives: lives,
-        multiplier: multiplier,
-        isPartial: false,
-      };
+          // Record the level result
+      if (currentMap) {
+        const levelResult = {
+          level: currentLevel,
+          mapName: currentMap.name,
+          correctOrderCount: correctOrderCount,
+          effectiveCount: effectiveCount,
+          totalBombs: collectedBombs.length,
+          score: score,
+          bonus: bonusPoints,
+          hasBonus: bonusPoints > 0,
+          coinsCollected: coinsCollected,
+          powerModeActivations: powerModeActivations,
+          completionTime: completionTime,
+          timestamp: Date.now(),
+          lives: lives,
+          multiplier: multiplier,
+          isPartial: false,
+        };
       addLevelResult(levelResult);
 
       // Send map completion data
