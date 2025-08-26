@@ -31,7 +31,11 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
   const hasStartedLoading = useRef(false);
   const animationInterval = useRef<NodeJS.Timeout | null>(null);
   const { isFullscreen } = useFullscreen();
-  const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({});
+  const [containerStyle, setContainerStyle] = useState<React.CSSProperties>({
+    width: `${GAME_CONFIG.CANVAS_WIDTH}px`,
+    height: `${GAME_CONFIG.CANVAS_HEIGHT}px`,
+    imageRendering: "crisp-edges",
+  });
   useEffect(() => {
     // Set up dot animation for visual feedback
     let dots = 0;
@@ -48,14 +52,18 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
   }, []);
 
   useEffect(() => {
-    const updateCanvasSize = () => {
+    const updateContainerSize = () => {
       if (!isFullscreen) {
-        setCanvasStyle({
+        // Non-fullscreen: use default canvas dimensions
+        setContainerStyle({
+          width: `${GAME_CONFIG.CANVAS_WIDTH}px`,
+          height: `${GAME_CONFIG.CANVAS_HEIGHT}px`,
           imageRendering: "crisp-edges",
         });
         return;
       }
 
+      // Fullscreen: calculate responsive size maintaining aspect ratio
       const aspectRatio = GAME_CONFIG.CANVAS_WIDTH / GAME_CONFIG.CANVAS_HEIGHT; // 4:3
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
@@ -73,18 +81,18 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
         height = width / aspectRatio;
       }
 
-      setCanvasStyle({
+      setContainerStyle({
         width: `${width}px`,
         height: `${height}px`,
         imageRendering: "crisp-edges",
       });
     };
 
-    updateCanvasSize();
-    window.addEventListener("resize", updateCanvasSize);
+    updateContainerSize();
+    window.addEventListener("resize", updateContainerSize);
 
     return () => {
-      window.removeEventListener("resize", updateCanvasSize);
+      window.removeEventListener("resize", updateContainerSize);
     };
   }, [isFullscreen]);
 
@@ -142,19 +150,21 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
   return (
     <Menu showShortcuts={false}>
-      <div
-        className="flex flex-col items-center justify-center p-8 border-2 border-red-500"
-        style={canvasStyle}
-      >
-        {/* Logo or Title */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-2 font-pixel">
-            Sigurd Startup
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Forbereder din gründerreise
-          </p>
-        </div>
+      {/* Container that mimics the game canvas dimensions */}
+      <div className="flex items-center justify-center">
+        <div
+          className="flex flex-col items-center justify-center p-8 bg-background rounded-lg shadow-lg"
+          style={containerStyle}
+        >
+          {/* Logo or Title */}
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-bold text-foreground mb-2 font-pixel">
+              Sigurd Startup
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Forbereder din gründerreise
+            </p>
+          </div>
 
         {/* Loading Spinner/Animation */}
         <div className="mb-6">
@@ -217,20 +227,21 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
           )}
         </div>
 
-        {/* Error Details */}
-        {progress.error && (
-          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
-            <p className="text-destructive text-sm font-mono">
-              Feilmelding: {progress.error}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-3 px-4 py-2 bg-destructive hover:bg-destructive/80 text-destructive-foreground rounded-lg transition-colors font-mono"
-            >
-              Last på nytt
-            </button>
-          </div>
-        )}
+          {/* Error Details */}
+          {progress.error && (
+            <div className="mt-4 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <p className="text-destructive text-sm font-mono">
+                Feilmelding: {progress.error}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-3 px-4 py-2 bg-destructive hover:bg-destructive/80 text-destructive-foreground rounded-lg transition-colors font-mono"
+              >
+                Last på nytt
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </Menu>
   );
