@@ -56,7 +56,7 @@ const MainGame: React.FC = () => {
   };
 
   return (
-    <div ref={gameContainerRef} className="relative rounded-lg">
+    <div ref={gameContainerRef} className="relative rounded-lg h-[600px] w-[800px]">
       {/* Show loading screen first, before anything else */}
       {isLoading ? (
         <LoadingMenu 

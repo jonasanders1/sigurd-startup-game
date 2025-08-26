@@ -6,9 +6,11 @@ import { GameState } from "@/types/enums";
 const Menu = ({
   children,
   transparent,
+  showShortcuts = true,
 }: {
   children: React.ReactNode;
   transparent?: boolean;
+  showShortcuts?: boolean;
 }) => {
   const { currentState } = useStateStore();
 
@@ -19,7 +21,7 @@ const Menu = ({
       }`}
     >
       {children}
-      {currentState !== GameState.PLAYING && <ShortcutControls />}
+      {currentState !== GameState.PLAYING && showShortcuts && <ShortcutControls />}
     </div>
   );
 };

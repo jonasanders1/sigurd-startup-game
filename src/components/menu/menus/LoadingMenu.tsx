@@ -86,23 +86,27 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
   // Determine progress bar color based on state
   const getProgressBarColor = () => {
-    if (progress.error) return "bg-red-500";
-    if (progress.isComplete) return "bg-green-500";
-    if (progress.progress > 66) return "bg-blue-400";
-    if (progress.progress > 33) return "bg-blue-500";
-    return "bg-blue-600";
+    if (progress.error) return "bg-destructive";
+    if (progress.isComplete) return "bg-primary";
+    if (progress.progress > 66) return "bg-primary-light";
+    if (progress.progress > 33) return "bg-primary";
+    return "bg-primary-dark";
   };
 
   // Calculate actual width for smooth animation
   const progressWidth = Math.min(Math.max(progress.progress, 0), 100);
 
   return (
-    <Menu>
+    <Menu showShortcuts={false}>
       <div className="flex flex-col items-center justify-center p-8 max-w-lg w-full">
         {/* Logo or Title */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-white mb-2">Sigurd Startup</h1>
-          <p className="text-gray-300 text-sm">Forbereder din gründerreise</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2 font-pixel">
+            Sigurd Startup
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Forbereder din gründerreise
+          </p>
         </div>
 
         {/* Loading Spinner/Animation */}
@@ -110,24 +114,24 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
           {!progress.error ? (
             <div className="relative w-24 h-24">
               {/* Outer rotating ring */}
-              <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
 
               {/* Inner pulsing circle */}
-              <div className="absolute inset-4 rounded-full bg-blue-500/20 animate-pulse"></div>
+              <div className="absolute inset-4 rounded-full bg-primary/20 animate-pulse"></div>
 
               {/* Center icon or percentage */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">
+                <span className="text-foreground font-bold text-lg font-mono">
                   {progress.progress}%
                 </span>
               </div>
             </div>
           ) : (
             // Error icon
-            <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center">
+            <div className="w-24 h-24 rounded-full bg-destructive/20 flex items-center justify-center">
               <svg
-                className="w-12 h-12 text-red-500"
+                className="w-12 h-12 text-destructive"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -145,7 +149,7 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
         {/* Progress Bar */}
         <div className="w-full mb-4">
-          <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
             <div
               className={`h-full ${getProgressBarColor()} transition-all duration-300 ease-out`}
               style={{ width: `${progressWidth}%` }}
@@ -155,12 +159,12 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
         {/* Loading Message */}
         <div className="text-center mb-4">
-          <p className="text-white text-lg font-medium">
+          <p className="text-foreground text-lg font-medium font-mono">
             {progress.currentMessage}
             {!progress.error && !progress.isComplete && dotAnimation}
           </p>
           {progress.currentStep && !progress.error && (
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1 font-mono">
               {getStepDescription(progress.currentStep)}
             </p>
           )}
@@ -168,25 +172,16 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
         {/* Error Details */}
         {progress.error && (
-          <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-sm">
+          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <p className="text-destructive text-sm font-mono">
               Feilmelding: {progress.error}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              className="mt-3 px-4 py-2 bg-destructive hover:bg-destructive/80 text-destructive-foreground rounded-lg transition-colors font-mono"
             >
               Last på nytt
             </button>
-          </div>
-        )}
-
-        {/* Loading Tips */}
-        {!progress.error && !progress.isComplete && (
-          <div className="mt-8 text-center">
-            <p className="text-gray-400 text-xs italic">
-              {getLoadingTip(progress.progress)}
-            </p>
           </div>
         )}
       </div>
@@ -208,24 +203,6 @@ const getStepDescription = (stepId: string): string => {
     complete: "Alt klart!",
   };
   return descriptions[stepId] || "";
-};
-
-// Helper function for loading tips
-const getLoadingTip = (progress: number): string => {
-  const tips = [
-    "Visste du at Sigurd må navigere gjennom 6 forskjellige norske institusjoner?",
-    "Tips: Hold mellomromstasten for å flyte gjennom luften!",
-    "Samle alle dokumenter i riktig rekkefølge for bonuspoeng!",
-    "Pass deg for Byråkrat-klonen - den følger alltid samme rute.",
-    "Hodeløs konsulent beveger seg uforutsigbart - vær forsiktig!",
-    "Skatte-spøkelset kan fly gjennom plattformer.",
-    "Power mode lar deg samle mynter raskere!",
-    "Jo flere dokumenter du samler korrekt, jo høyere multiplikator!",
-  ];
-
-  // Select tip based on progress
-  const tipIndex = Math.floor((progress / 100) * tips.length);
-  return tips[Math.min(tipIndex, tips.length - 1)];
 };
 
 export default LoadingMenu;

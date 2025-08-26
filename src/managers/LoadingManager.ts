@@ -1,16 +1,20 @@
 /**
  * LoadingManager - Centralized loading system for all game assets and initialization
- * 
+ *
  * This manager ensures all required assets and data are loaded before the game can start,
  * preventing any runtime failures due to missing assets or uninitialized states.
  */
 
-import { logger } from '../lib/logger';
-import { BackgroundManager } from './BackgroundManager';
-import { waitForAudioSettings } from '../lib/communicationUtils';
-import { getBackgroundImagePath, getAudioPath, getSpriteImagePath } from '../config/assets';
-import { mapDefinitions } from '../maps/mapDefinitions';
-import { DEV_CONFIG } from '../config/dev';
+import { logger } from "../lib/logger";
+import { BackgroundManager } from "./BackgroundManager";
+import { waitForAudioSettings } from "../lib/communicationUtils";
+import {
+  getBackgroundImagePath,
+  getAudioPath,
+  getSpriteImagePath,
+} from "../config/assets";
+import { mapDefinitions } from "../maps/mapDefinitions";
+import { DEV_CONFIG } from "../config/dev";
 
 export interface LoadingStep {
   id: string;
@@ -35,8 +39,8 @@ export class LoadingManager {
   private progressCallback: LoadingProgressCallback | null = null;
   private loadedAssets: Set<string> = new Set();
   private currentProgress: LoadingProgress = {
-    currentStep: '',
-    currentMessage: 'Initialiserer...',
+    currentStep: "",
+    currentMessage: "Initialiserer...",
     progress: 0,
     isComplete: false,
   };
@@ -44,88 +48,88 @@ export class LoadingManager {
   // Define loading steps with their messages and weights
   private readonly loadingSteps: LoadingStep[] = [
     {
-      id: 'host-communication',
-      name: 'Kommunikasjon',
-      message: 'Kobler til vertssystem...',
+      id: "host-communication",
+      name: "Kommunikasjon",
+      message: "Kobler til vertssystem...",
       weight: 15,
     },
     {
-      id: 'background-images',
-      name: 'Bakgrunner',
-      message: 'Laster spillbakgrunner...',
+      id: "background-images",
+      name: "Bakgrunner",
+      message: "Laster spillbakgrunner...",
       weight: 20,
     },
     {
-      id: 'player-sprites',
-      name: 'Spillerfigur',
-      message: 'Laster Sigurd-animasjoner...',
+      id: "player-sprites",
+      name: "Spillerfigur",
+      message: "Laster Sigurd-animasjoner...",
       weight: 15,
     },
     {
-      id: 'monster-sprites',
-      name: 'Monstre',
-      message: 'Laster byråkrater og hindringer...',
+      id: "monster-sprites",
+      name: "Monstre",
+      message: "Laster byråkrater og hindringer...",
       weight: 10,
     },
     {
-      id: 'ui-sprites',
-      name: 'UI-elementer',
-      message: 'Laster brukergrensesnitt...',
+      id: "ui-sprites",
+      name: "UI-elementer",
+      message: "Laster brukergrensesnitt...",
       weight: 10,
     },
     {
-      id: 'audio-files',
-      name: 'Lyd',
-      message: 'Laster lydeffekter og musikk...',
+      id: "audio-files",
+      name: "Lyd",
+      message: "Laster lydeffekter og musikk...",
       weight: 15,
     },
     {
-      id: 'map-data',
-      name: 'Baner',
-      message: 'Forbereder spillbaner...',
+      id: "map-data",
+      name: "Baner",
+      message: "Forbereder spillbaner...",
       weight: 10,
     },
     {
-      id: 'finalization',
-      name: 'Fullføring',
-      message: 'Gjør klar for spilling...',
+      id: "finalization",
+      name: "Fullføring",
+      message: "Gjør klar for spilling...",
       weight: 5,
     },
   ];
 
   // Dynamic loading messages for variety
   private readonly dynamicMessages: Record<string, string[]> = {
-    'host-communication': [
-      'Venter på lydinnstillinger...',
-      'Synkroniserer med vertssystem...',
-      'Etablerer spillforbindelse...',
+    "host-communication": [
+      "Venter på lydinnstillinger...",
+      "Synkroniserer med vertssystem...",
+      "Etablerer spillforbindelse...",
     ],
-    'background-images': [
-      'Laster Startup Lab bakgrunn...',
-      'Laster Innovasjon Norge bakgrunn...',
-      'Laster Skatteetaten bakgrunn...',
-      'Laster NAV bakgrunn...',
-      'Laster Kommunehuset bakgrunn...',
-      'Laster Alltinn bakgrunn...',
+    "background-images": [
+      "Laster Startup Lab bakgrunn...",
+      "Laster Innovasjon Norge bakgrunn...",
+      "Laster Skatteetaten bakgrunn...",
+      "Laster NAV bakgrunn...",
+      "Laster Kommunehuset bakgrunn...",
+      "Laster Alltinn bakgrunn...",
     ],
-    'player-sprites': [
-      'Laster Sigurd idle-animasjoner...',
-      'Laster Sigurd løpe-animasjoner...',
-      'Laster Sigurd hoppe-animasjoner...',
-      'Laster Sigurd flyte-animasjoner...',
-      'Laster Sigurd fullføring-animasjoner...',
+    "player-sprites": [
+      "Laster Sigurd idle-animasjoner...",
+      "Laster Sigurd løpe-animasjoner...",
+      "Laster Sigurd hoppe-animasjoner...",
+      "Laster Sigurd flyte-animasjoner...",
+      "Laster Sigurd fullføring-animasjoner...",
     ],
-    'monster-sprites': [
-      'Laster Byråkrat-klonen...',
-      'Laster Hodeløs konsulent...',
-      'Laster Regel-robot...',
-      'Laster Skatte-spøkelset...',
-      'Laster Vertikal byråkrat...',
+    "monster-sprites": [
+      "Laster Byråkrat-klonen...",
+      "Laster Hodeløs konsulent...",
+      "Laster Regel-robot...",
+      "Laster Skatte-spøkelset...",
+      "Laster Vertikal byråkrat...",
     ],
-    'audio-files': [
-      'Laster bakgrunnsmusikk...',
-      'Laster Sigurd tema-sang...',
-      'Laster lydeffekter...',
+    "audio-files": [
+      "Laster bakgrunnsmusikk...",
+      "Laster Sigurd tema-sang...",
+      "Laster lydeffekter...",
     ],
   };
 
@@ -150,17 +154,20 @@ export class LoadingManager {
    */
   public async load(): Promise<void> {
     if (this.isLoading) {
-      logger.warn('Loading already in progress');
+      logger.warn("Loading already in progress");
       return;
     }
 
     this.isLoading = true;
     this.loadedAssets.clear();
-    logger.asset('🚀 Starting comprehensive loading process...');
+    logger.asset("🚀 Starting comprehensive loading process...");
 
     try {
       let cumulativeProgress = 0;
-      const totalWeight = this.loadingSteps.reduce((sum, step) => sum + step.weight, 0);
+      const totalWeight = this.loadingSteps.reduce(
+        (sum, step) => sum + step.weight,
+        0
+      );
 
       for (const step of this.loadingSteps) {
         await this.executeLoadingStep(step, cumulativeProgress, totalWeight);
@@ -168,25 +175,24 @@ export class LoadingManager {
       }
 
       this.updateProgress({
-        currentStep: 'complete',
-        currentMessage: 'Lasting fullført! Starter spill...',
+        currentStep: "complete",
+        currentMessage: "Lasting fullført! Starter spill...",
         progress: 100,
         isComplete: true,
       });
 
-      logger.asset('✅ All assets loaded successfully!');
-      
+      logger.asset("✅ All assets loaded successfully!");
+
       // Small delay to show completion message
       await this.delay(500);
-      
     } catch (error) {
-      logger.error('Loading failed:', error);
+      logger.error("Loading failed:", error);
       this.updateProgress({
-        currentStep: 'error',
-        currentMessage: 'Lasting feilet. Vennligst prøv igjen.',
+        currentStep: "error",
+        currentMessage: "Lasting feilet. Vennligst prøv igjen.",
         progress: 0,
         isComplete: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       });
       throw error;
     } finally {
@@ -214,34 +220,36 @@ export class LoadingManager {
 
     // Execute the appropriate loading logic
     switch (step.id) {
-      case 'host-communication':
+      case "host-communication":
         await this.loadHostCommunication(step);
         break;
-      case 'background-images':
+      case "background-images":
         await this.loadBackgroundImages(step);
         break;
-      case 'player-sprites':
+      case "player-sprites":
         await this.loadPlayerSprites(step);
         break;
-      case 'monster-sprites':
+      case "monster-sprites":
         await this.loadMonsterSprites(step);
         break;
-      case 'ui-sprites':
+      case "ui-sprites":
         await this.loadUISprites(step);
         break;
-      case 'audio-files':
+      case "audio-files":
         await this.loadAudioFiles(step);
         break;
-      case 'map-data':
+      case "map-data":
         await this.loadMapData(step);
         break;
-      case 'finalization':
+      case "finalization":
         await this.finalize(step);
         break;
     }
 
     // Update progress after step completion
-    const newProgress = Math.round(((currentProgress + step.weight) / totalWeight) * 100);
+    const newProgress = Math.round(
+      ((currentProgress + step.weight) / totalWeight) * 100
+    );
     this.updateProgress({
       ...this.currentProgress,
       progress: Math.min(newProgress, 99), // Keep at 99% until fully complete
@@ -254,13 +262,13 @@ export class LoadingManager {
   private async loadHostCommunication(step: LoadingStep): Promise<void> {
     // Skip in dev mode if configured
     if (DEV_CONFIG.ENABLED && DEV_CONFIG.SKIP_AUDIO_SETTINGS_WAIT) {
-      logger.debug('Skipping audio settings wait (dev mode)');
+      logger.debug("Skipping audio settings wait (dev mode)");
       return;
     }
 
     this.updateDynamicMessage(step.id, 0);
     await waitForAudioSettings();
-    logger.asset('Audio settings received from host');
+    logger.asset("Audio settings received from host");
   }
 
   /**
@@ -268,12 +276,12 @@ export class LoadingManager {
    */
   private async loadBackgroundImages(step: LoadingStep): Promise<void> {
     const backgrounds = [
-      'startup-lab',
-      'innovasjon-norge',
-      'skatteetaten',
-      'nav',
-      'kommunehuset',
-      'alltinn-norge',
+      "startup-lab",
+      "innovasjon-norge",
+      "skatteetaten",
+      "nav",
+      "kommunehuset",
+      "alltinn-norge",
     ];
 
     for (let i = 0; i < backgrounds.length; i++) {
@@ -291,50 +299,50 @@ export class LoadingManager {
    */
   private async loadPlayerSprites(step: LoadingStep): Promise<void> {
     const playerSprites = [
-      'sprites/sigurd/sigurd-idle/sigurd-idle1.png',
-      'sprites/sigurd/sigurd-idle/sigurd-idle2.png',
-      'sprites/sigurd/sigurd-idle/sigurd-idle3.png',
-      'sprites/sigurd/sigurd-idle/sigurd-idle4.png',
-      'sprites/sigurd/running/run1.png',
-      'sprites/sigurd/running/run2.png',
-      'sprites/sigurd/running/run3.png',
-      'sprites/sigurd/jumping/jump1.png',
-      'sprites/sigurd/jumping/jump2.png',
-      'sprites/sigurd/jumping/jump3.png',
-      'sprites/sigurd/landing/landing1.png',
-      'sprites/sigurd/float/float1.png',
-      'sprites/sigurd/float-dir/float-dir1.png',
-      'sprites/sigurd/complete/complete1.png',
-      'sprites/sigurd/complete/complete2.png',
-      'sprites/sigurd/complete/complete3.png',
-      'sprites/sigurd/complete/complete4.png',
-      'sprites/sigurd/complete/complete5.png',
-      'ghost-idle/ghost-idle1.png',
-      'ghost-idle/ghost-idle2.png',
-      'ghost-idle/ghost-idle3.png',
-      'ghost-idle/ghost-idle4.png',
-      'ghost-idle/ghost-idle5.png',
-      'ghost-idle/ghost-idle6.png',
-      'ghost-walk/ghost-walk1.png',
-      'ghost-walk/ghost-walk2.png',
-      'ghost-walk/ghost-walk3.png',
-      'ghost-walk/ghost-walk4.png',
-      'ghost-walk/ghost-walk5.png',
-      'ghost-walk/ghost-walk6.png',
-      'ghost-walk/ghost-walk7.png',
-      'ghost-walk/ghost-walk8.png',
-      'ghost-jump/ghost-jump1.png',
-      'ghost-jump/ghost-jump2.png',
-      'ghost-jump/ghost-jump3.png',
-      'ghost-landing/ghost-landing1.png',
-      'ghost-landing/ghost-landing2.png',
-      'ghost-landing/ghost-landing3.png',
-      'ghost-float/ghost-float1.png',
-      'ghost-float/ghost-float2.png',
-      'ghost-map-complete/ghost-map-complete1.png',
-      'ghost-map-complete/ghost-map-complete2.png',
-      'ghost-map-complete/ghost-map-complete3.png',
-      'ghost-map-complete/ghost-map-complete4.png',
+      "sprites/sigurd/sigurd-idle/sigurd-idle1.png",
+      "sprites/sigurd/sigurd-idle/sigurd-idle2.png",
+      "sprites/sigurd/sigurd-idle/sigurd-idle3.png",
+      "sprites/sigurd/sigurd-idle/sigurd-idle4.png",
+      "sprites/sigurd/running/run1.png",
+      "sprites/sigurd/running/run2.png",
+      "sprites/sigurd/running/run3.png",
+      "sprites/sigurd/jumping/jump1.png",
+      "sprites/sigurd/jumping/jump2.png",
+      "sprites/sigurd/jumping/jump3.png",
+      "sprites/sigurd/landing/landing1.png",
+      "sprites/sigurd/float/float1.png",
+      "sprites/sigurd/float-dir/float-dir1.png",
+      "sprites/sigurd/complete/complete1.png",
+      "sprites/sigurd/complete/complete2.png",
+      "sprites/sigurd/complete/complete3.png",
+      "sprites/sigurd/complete/complete4.png",
+      "sprites/sigurd/complete/complete5.png",
+      "ghost-idle/ghost-idle1.png",
+      "ghost-idle/ghost-idle2.png",
+      "ghost-idle/ghost-idle3.png",
+      "ghost-idle/ghost-idle4.png",
+      "ghost-idle/ghost-idle5.png",
+      "ghost-idle/ghost-idle6.png",
+      "ghost-walk/ghost-walk1.png",
+      "ghost-walk/ghost-walk2.png",
+      "ghost-walk/ghost-walk3.png",
+      "ghost-walk/ghost-walk4.png",
+      "ghost-walk/ghost-walk5.png",
+      "ghost-walk/ghost-walk6.png",
+      "ghost-walk/ghost-walk7.png",
+      "ghost-walk/ghost-walk8.png",
+      "ghost-jump/ghost-jump1.png",
+      "ghost-jump/ghost-jump2.png",
+      "ghost-jump/ghost-jump3.png",
+      "ghost-landing/ghost-landing1.png",
+      "ghost-landing/ghost-landing2.png",
+      "ghost-landing/ghost-landing3.png",
+      "ghost-float/ghost-float1.png",
+      "ghost-float/ghost-float2.png",
+      "ghost-map-complete/ghost-map-complete1.png",
+      "ghost-map-complete/ghost-map-complete2.png",
+      "ghost-map-complete/ghost-map-complete3.png",
+      "ghost-map-complete/ghost-map-complete4.png",
     ];
 
     const batchSize = 8;
@@ -342,10 +350,10 @@ export class LoadingManager {
       const batch = playerSprites.slice(i, i + batchSize);
       const messageIndex = Math.floor((i / playerSprites.length) * 5);
       this.updateDynamicMessage(step.id, messageIndex);
-      
-      await Promise.all(batch.map(sprite => 
-        this.loadImage(getSpriteImagePath(sprite))
-      ));
+
+      await Promise.all(
+        batch.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))
+      );
     }
   }
 
@@ -354,32 +362,32 @@ export class LoadingManager {
    */
   private async loadMonsterSprites(step: LoadingStep): Promise<void> {
     const monsterSprites = [
-      'sprites/byråkrat-klonen/byråkrat-klonen_0.png',
-      'sprites/byråkrat-klonen/byråkrat-klonen_1.png',
-      'sprites/byråkrat-klonen/byråkrat-klonen_2.png',
-      'sprites/hodeløs-konsulent/hodeløs-konsulent_0.png',
-      'sprites/hodeløs-konsulent/hodeløs-konsulent_1.png',
-      'sprites/hodeløs-konsulent/hodeløs-konsulent_2.png',
-      'sprites/regel-robot/regel-robot_0.png',
-      'sprites/regel-robot/regel-robot_1.png',
-      'sprites/regel-robot/regel-robot_2.png',
-      'sprites/skatte-spøkelset/skatte-spøkelse_0.png',
-      'sprites/skatte-spøkelset/skatte-spøkelse_1.png',
-      'sprites/skatte-spøkelset/skatte-spøkelse_2.png',
-      'sprites/vertikal-byråkrat/vertikal-byråkrat_0.png',
-      'sprites/vertikal-byråkrat/vertikal-byråkrat_1.png',
-      'sprites/vertikal-byråkrat/vertikal-byråkrat_2.png',
+      "sprites/byråkrat-klonen/byråkrat-klonen_0.png",
+      "sprites/byråkrat-klonen/byråkrat-klonen_1.png",
+      "sprites/byråkrat-klonen/byråkrat-klonen_2.png",
+      "sprites/hodeløs-konsulent/hodeløs-konsulent_0.png",
+      "sprites/hodeløs-konsulent/hodeløs-konsulent_1.png",
+      "sprites/hodeløs-konsulent/hodeløs-konsulent_2.png",
+      "sprites/regel-robot/regel-robot_0.png",
+      "sprites/regel-robot/regel-robot_1.png",
+      "sprites/regel-robot/regel-robot_2.png",
+      "sprites/skatte-spøkelset/skatte-spøkelse_0.png",
+      "sprites/skatte-spøkelset/skatte-spøkelse_1.png",
+      "sprites/skatte-spøkelset/skatte-spøkelse_2.png",
+      "sprites/vertikal-byråkrat/vertikal-byråkrat_0.png",
+      "sprites/vertikal-byråkrat/vertikal-byråkrat_1.png",
+      "sprites/vertikal-byråkrat/vertikal-byråkrat_2.png",
     ];
 
     const monsterTypes = 5;
     for (let i = 0; i < monsterSprites.length; i += 3) {
       const messageIndex = Math.floor(i / 3);
       this.updateDynamicMessage(step.id, messageIndex);
-      
+
       const batch = monsterSprites.slice(i, i + 3);
-      await Promise.all(batch.map(sprite => 
-        this.loadImage(getSpriteImagePath(sprite))
-      ));
+      await Promise.all(
+        batch.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))
+      );
     }
   }
 
@@ -387,24 +395,18 @@ export class LoadingManager {
    * Load UI sprites (bombs, coins, etc.)
    */
   private async loadUISprites(step: LoadingStep): Promise<void> {
-    const uiSprites = [
-      'bomb/bomb1.png',
-      'bomb/bomb2.png',
-    ];
+    const uiSprites = ["bomb/bomb1.png", "bomb/bomb2.png"];
 
-    await Promise.all(uiSprites.map(sprite => 
-      this.loadImage(getSpriteImagePath(sprite))
-    ));
+    await Promise.all(
+      uiSprites.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))
+    );
   }
 
   /**
    * Load audio files
    */
   private async loadAudioFiles(step: LoadingStep): Promise<void> {
-    const audioFiles = [
-      'background-music.wav',
-      'sigurd-theme-song.mp3',
-    ];
+    const audioFiles = ["background-music.wav", "sigurd-theme-song.mp3"];
 
     for (let i = 0; i < audioFiles.length; i++) {
       this.updateDynamicMessage(step.id, i);
@@ -430,7 +432,7 @@ export class LoadingManager {
    * Finalize loading
    */
   private async finalize(step: LoadingStep): Promise<void> {
-    logger.asset('Finalizing game initialization...');
+    logger.asset("Finalizing game initialization...");
     await this.delay(200);
   }
 
@@ -505,7 +507,7 @@ export class LoadingManager {
    * Utility delay function
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -529,8 +531,8 @@ export class LoadingManager {
     this.isLoading = false;
     this.loadedAssets.clear();
     this.currentProgress = {
-      currentStep: '',
-      currentMessage: 'Initialiserer...',
+      currentStep: "",
+      currentMessage: "Initialiserer...",
       progress: 0,
       isComplete: false,
     };
