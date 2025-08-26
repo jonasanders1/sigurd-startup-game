@@ -1,18 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   useLevelStore,
   useScoreStore,
   useStateStore,
 } from "../../../stores/gameStore";
+import { waitForGameSaveConfirmation } from "../../../lib/communicationUtils";
+import { Loader2 } from "lucide-react";
 
 const GameOverScreen: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
   const { score } = useScoreStore.getState();
   const { levelHistory } = useLevelStore.getState();
+  const [isSaving, setIsSaving] = useState(true);
+
+  useEffect(() => {
+    // Wait for the game to be saved before allowing restart
+    waitForGameSaveConfirmation().then(() => {
+      setIsSaving(false);
+    });
+  }, []);
 
   const handleRestart = () => {
-    gameStateManager?.restartGame();
+    if (!isSaving) {
+      gameStateManager?.restartGame();
+    }
   };
 
   return (
@@ -80,12 +92,25 @@ const GameOverScreen: React.FC = () => {
         )}
       </div>
 
-      <Button
-        onClick={handleRestart}
-        className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 text-lg transition-all duration-200 uppercase"
-      >
-        prøv igjen
-      </Button>
+      <div className="flex flex-col items-center gap-3">
+        {isSaving && (
+          <div className="text-sm text-gray-400 flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Lagrer spillet...
+          </div>
+        )}
+        <Button
+          onClick={handleRestart}
+          disabled={isSaving}
+          className={`${
+            isSaving
+              ? "bg-gray-500 hover:bg-gray-500 cursor-not-allowed"
+              : "bg-primary hover:bg-primary-dark"
+          } text-white font-bold py-3 px-8 text-lg transition-all duration-200 uppercase`}
+        >
+          prøv igjen
+        </Button>
+      </div>
     </div>
   );
 };
