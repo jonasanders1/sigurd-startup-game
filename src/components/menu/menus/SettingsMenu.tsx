@@ -5,6 +5,7 @@ import {
   useGameStore,
   useStateStore,
 } from "../../../stores/gameStore";
+import { sendAudioSettingsUpdate } from "../../../lib/communicationUtils";
 
 import { ArrowLeft } from "lucide-react";
 
@@ -29,8 +30,30 @@ const SettingsMenu: React.FC = () => {
   };
 
   const goBack = () => {
+    // Send audio settings to host before closing
+    sendAudioSettingsUpdate(
+      masterVolume,
+      musicVolume,
+      sfxVolume,
+      masterMuted,
+      musicMuted,
+      sfxMuted
+    );
+    
     // Use centralized close settings transition
     gameStateManager?.closeNestedMenu();
+  };
+
+  const handleUpdateAudio = () => {
+    // Send audio settings to host for storage
+    sendAudioSettingsUpdate(
+      masterVolume,
+      musicVolume,
+      sfxVolume,
+      masterMuted,
+      musicMuted,
+      sfxMuted
+    );
   };
 
   return (
@@ -132,7 +155,9 @@ const SettingsMenu: React.FC = () => {
             disabled={sfxMuted}
           />
         </div>
-        <Button variant="default">Oppdater lyd</Button>
+        <Button variant="default" onClick={handleUpdateAudio}>
+          Oppdater lyd
+        </Button>
         <div className="text-center text-sm text-gray-400">
           <p>(Trykk på tallene for å mute lyd)</p>
         </div>
