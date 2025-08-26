@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import Menu from "../Menu";
 import { LoadingProgress } from "../../../managers/LoadingManager";
 import { logger } from "../../../lib/logger";
+import { GAME_CONFIG } from "@/types/constants";
+import { useFullscreen } from "@/hooks/useFullscreen";
 
 interface LoadingMenuProps {
   onLoadingComplete: () => void;
@@ -28,7 +30,8 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
   const [dotAnimation, setDotAnimation] = useState("");
   const hasStartedLoading = useRef(false);
   const animationInterval = useRef<NodeJS.Timeout | null>(null);
-
+  const { isFullscreen } = useFullscreen();
+  const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({});
   useEffect(() => {
     // Set up dot animation for visual feedback
     let dots = 0;
@@ -43,6 +46,47 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
       }
     };
   }, []);
+
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (!isFullscreen) {
+        setCanvasStyle({
+          imageRendering: "crisp-edges",
+        });
+        return;
+      }
+
+      const aspectRatio = GAME_CONFIG.CANVAS_WIDTH / GAME_CONFIG.CANVAS_HEIGHT; // 4:3
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const windowAspectRatio = windowWidth / windowHeight;
+
+      let width, height;
+
+      if (windowAspectRatio > aspectRatio) {
+        // Window is wider than game aspect ratio
+        height = windowHeight * 0.9; // Use 90% of window height
+        width = height * aspectRatio;
+      } else {
+        // Window is taller than game aspect ratio
+        width = windowWidth * 0.9; // Use 90% of window width
+        height = width / aspectRatio;
+      }
+
+      setCanvasStyle({
+        width: `${width}px`,
+        height: `${height}px`,
+        imageRendering: "crisp-edges",
+      });
+    };
+
+    updateCanvasSize();
+    window.addEventListener("resize", updateCanvasSize);
+
+    return () => {
+      window.removeEventListener("resize", updateCanvasSize);
+    };
+  }, [isFullscreen]);
 
   useEffect(() => {
     // Prevent multiple loading attempts
@@ -98,7 +142,10 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
   return (
     <Menu showShortcuts={false}>
-      <div className="flex flex-col items-center justify-center p-8 max-w-lg w-full">
+      <div
+        className="flex flex-col items-center justify-center p-8 border-2 border-red-500"
+        style={canvasStyle}
+      >
         {/* Logo or Title */}
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-foreground mb-2 font-pixel">

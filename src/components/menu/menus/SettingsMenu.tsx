@@ -110,7 +110,7 @@ const SettingsMenu: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center h-full w-[80%]">
+    <div className="flex flex-col justify-center ">
       <div className="flex items-center mb-6 gap-2">
         <Button
           onClick={goBack}
