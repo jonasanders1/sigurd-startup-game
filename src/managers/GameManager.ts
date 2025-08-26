@@ -30,6 +30,8 @@ import {
   sendLevelFailure,
   LevelFailureData,
   LevelHistoryEntry,
+  waitForAudioSettings,
+  initializeAudioSettingsListener,
 } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 import { SpawnDiagnostics } from "./spawn-diagnostics";
@@ -58,6 +60,7 @@ export class GameManager {
   private scalingManager: ScalingManager;
   private monsterRespawnManager: OptimizedRespawnManager;
   private playerManager: PlayerManager;
+  private audioSettingsListenerCleanup: (() => void) | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     // Create managers
@@ -141,9 +144,22 @@ export class GameManager {
   /**
    * Start the game
    */
-  public start(): void {
+  public async start(): Promise<void> {
     // Initialize input
     this.inputManager.initialize();
+
+    // Wait for audio settings from the host before starting the game
+    // Skip waiting if in dev mode with SKIP_AUDIO_SETTINGS_WAIT enabled
+    if (!DEV_CONFIG.ENABLED || !DEV_CONFIG.SKIP_AUDIO_SETTINGS_WAIT) {
+      log.data("Game waiting for audio settings...");
+      await waitForAudioSettings();
+      log.data("Audio settings received, continuing with game initialization");
+    } else {
+      log.debug("Skipping audio settings wait (dev mode)");
+    }
+
+    // Initialize ongoing audio settings listener for future updates
+    this.audioSettingsListenerCleanup = initializeAudioSettingsListener();
 
     // Handle dev mode if enabled
     if (DEV_CONFIG.ENABLED) {
@@ -434,6 +450,12 @@ export class GameManager {
     this.stop();
     this.inputManager.destroy();
     this.audioManager.cleanup();
+    
+    // Clean up audio settings listener
+    if (this.audioSettingsListenerCleanup) {
+      this.audioSettingsListenerCleanup();
+      this.audioSettingsListenerCleanup = null;
+    }
   }
 
   // Debug methods
