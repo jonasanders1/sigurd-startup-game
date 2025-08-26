@@ -4,11 +4,11 @@
 export const VERSION = {
   major: 2,
   minor: 7,
-  patch: 1,
+  patch: 2,
   build: 0,
-  timestamp: 1756155953338,
-  hash: 'MJN2U1',
-  full: '2.7.1'
+  timestamp: 1756158125768,
+  hash: 'M5VIVU',
+  full: '2.7.2'
 };
 
 // Version string for easy access
