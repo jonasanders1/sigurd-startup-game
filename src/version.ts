@@ -5,9 +5,9 @@ export const VERSION = {
   major: 2,
   minor: 7,
   patch: 2,
-  build: 0,
-  timestamp: 1756158125768,
-  hash: 'M5VIVU',
+  build: 1,
+  timestamp: 1756206228071,
+  hash: 'PFA91L',
   full: '2.7.2'
 };
 

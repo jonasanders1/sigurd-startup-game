@@ -89,15 +89,7 @@ export const sendScoreToHost = (
 
   log.data("Sending score to host:", scoreData);
 
-  // Send current score update
-  const scoreEvent = new CustomEvent("scoreUpdate", {
-    detail: { score },
-    bubbles: true,
-    composed: true,
-  });
-  window.dispatchEvent(scoreEvent);
-
-  // Send detailed score data
+  // Send detailed score data only (removed scoreUpdate event)
   const detailedScoreEvent = new CustomEvent("game:score-updated", {
     detail: scoreData,
     bubbles: true,
@@ -217,4 +209,26 @@ export const calculateGameStats = (
     averageCompletionTime: Math.round(averageCompletionTime),
     totalPlayTime: Math.round(totalPlayTime / 1000), // Convert to seconds
   };
+};
+
+// New function to wait for game save confirmation
+export const waitForGameSaveConfirmation = (): Promise<void> => {
+  return new Promise((resolve) => {
+    log.data("Waiting for game:run-saved event from host");
+    
+    const handleGameSaved = () => {
+      log.data("Received game:run-saved event from host");
+      window.removeEventListener("game:run-saved", handleGameSaved);
+      resolve();
+    };
+    
+    window.addEventListener("game:run-saved", handleGameSaved);
+    
+    // Add a timeout as a fallback (30 seconds)
+    setTimeout(() => {
+      log.warn("Timeout waiting for game:run-saved event, proceeding anyway");
+      window.removeEventListener("game:run-saved", handleGameSaved);
+      resolve();
+    }, 30000);
+  });
 };

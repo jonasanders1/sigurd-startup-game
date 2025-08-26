@@ -1,15 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import { useScoreStore, useStateStore } from "../../../stores/gameStore";
+import { waitForGameSaveConfirmation } from "../../../lib/communicationUtils";
 
-import { Home } from "lucide-react";
+import { Home, Loader2 } from "lucide-react";
 
 const VictoryMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
   const { score } = useScoreStore.getState();
+  const [isSaving, setIsSaving] = useState(true);
+
+  useEffect(() => {
+    // Wait for the game to be saved before allowing restart
+    waitForGameSaveConfirmation().then(() => {
+      setIsSaving(false);
+    });
+  }, []);
 
   const handleRestart = () => {
-    gameStateManager?.restartGame();
+    if (!isSaving) {
+      gameStateManager?.restartGame();
+    }
   };
 
   return (
@@ -31,10 +42,21 @@ const VictoryMenu: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex flex-col items-center justify-center gap-2">
+        {isSaving && (
+          <div className="text-sm text-gray-400 flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Lagrer spillet...
+          </div>
+        )}
         <button
           onClick={handleRestart}
-          className="bg-primary text-white font-bold hover:bg-primary-dark rounded-lg py-1 px-3 text-lg transition-all duration-200 flex items-center justify-center gap-2"
+          disabled={isSaving}
+          className={`${
+            isSaving 
+              ? "bg-gray-500 cursor-not-allowed" 
+              : "bg-primary hover:bg-primary-dark"
+          } text-white font-bold rounded-lg py-1 px-3 text-lg transition-all duration-200 flex items-center justify-center gap-2`}
         >
           <Home className="w-7 h-7" strokeWidth={2} />
         </button>
