@@ -143,22 +143,14 @@ export class GameManager {
 
   /**
    * Start the game
+   * Note: All loading is now handled by LoadingManager before GameManager is created
    */
-  public async start(): Promise<void> {
+  public start(): void {
     // Initialize input
     this.inputManager.initialize();
 
-    // Wait for audio settings from the host before starting the game
-    // Skip waiting if in dev mode with SKIP_AUDIO_SETTINGS_WAIT enabled
-    if (!DEV_CONFIG.ENABLED || !DEV_CONFIG.SKIP_AUDIO_SETTINGS_WAIT) {
-      log.data("Game waiting for audio settings...");
-      await waitForAudioSettings();
-      log.data("Audio settings received, continuing with game initialization");
-    } else {
-      log.debug("Skipping audio settings wait (dev mode)");
-    }
-
     // Initialize ongoing audio settings listener for future updates
+    // Audio settings have already been loaded by LoadingManager
     this.audioSettingsListenerCleanup = initializeAudioSettingsListener();
 
     // Handle dev mode if enabled

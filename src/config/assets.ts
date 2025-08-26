@@ -82,39 +82,36 @@ export const getAudioPath = (name: string): string => {
 };
 
 // --- Sprites ---
-export const loadSpriteImage = (path: string): HTMLImageElement => {
+export const getSpriteImagePath = (path: string): string => {
   const cacheKey = `sprite-${path}`;
-  if (assetCache.has(cacheKey)) {
-    const cachedUrl = assetCache.get(cacheKey)!;
-    const img = new Image();
-    img.src = cachedUrl;
-    return img;
-  }
-
-  // console.log(`🔍 Looking for sprite: ${path}`);
-  // console.log(`🔍 Available sprite paths:`, Object.keys(spriteImages));
+  if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
   // Find by path (e.g., "bomb/bomb1.png")
   const match = Object.entries(spriteImages).find(([filePath]) =>
     filePath.endsWith(path)
   );
 
-  // console.log(`🔍 Sprite match found:`, match);
-
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    // console.log(`✅ Sprite loaded for ${path}:`, url);
-    
-    const img = new Image();
-    img.src = url;
-    return img;
+    return url;
   }
 
   log.asset(`Sprite not found: ${path}`);
-  // Return a broken image as fallback
+  return '';
+};
+
+export const loadSpriteImage = (path: string): HTMLImageElement => {
+  const url = getSpriteImagePath(path);
   const img = new Image();
-  img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+  
+  if (url) {
+    img.src = url;
+  } else {
+    // Return a broken image as fallback
+    img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+  }
+  
   return img;
 };
 

@@ -12,7 +12,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
   const gameManagerRef = useRef<GameManager | null>(null);
   const { isFullscreen } = useFullscreen();
   const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({});
-  const [isWaitingForAudioSettings, setIsWaitingForAudioSettings] = useState(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,18 +21,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
     canvas.width = GAME_CONFIG.CANVAS_WIDTH;
     canvas.height = GAME_CONFIG.CANVAS_HEIGHT;
 
-    // Initialize game manager and start asynchronously
-    const initGame = async () => {
+    // Initialize game manager and start
+    // Note: All loading is now handled by LoadingManager before this component is rendered
     gameManagerRef.current = new GameManager(canvas);
-      
-      // Start the game (will wait for audio settings internally)
-      await gameManagerRef.current.start();
-      
-      // Audio settings received, hide loading indicator
-      setIsWaitingForAudioSettings(false);
-    };
-
-    initGame();
+    gameManagerRef.current.start();
 
     return () => {
       if (gameManagerRef.current) {
