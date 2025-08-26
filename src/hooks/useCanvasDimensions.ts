@@ -7,13 +7,21 @@ export interface CanvasDimensions {
   height: number;
   scale: number;
   isFullscreen: boolean;
+  containerWidth: number;
+  containerHeight: number;
 }
 
+/**
+ * Hook to get the current dimensions of the game container.
+ * The container maintains 800x600 aspect ratio and scales in fullscreen.
+ */
 export const useCanvasDimensions = (): CanvasDimensions => {
   const { isFullscreen } = useFullscreen();
   const [dimensions, setDimensions] = useState<CanvasDimensions>(() => ({
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: GAME_CONFIG.CANVAS_HEIGHT,
+    containerWidth: GAME_CONFIG.CANVAS_WIDTH,
+    containerHeight: GAME_CONFIG.CANVAS_HEIGHT,
     scale: 1,
     isFullscreen: false,
   }));
@@ -25,6 +33,8 @@ export const useCanvasDimensions = (): CanvasDimensions => {
         setDimensions({
           width: GAME_CONFIG.CANVAS_WIDTH,
           height: GAME_CONFIG.CANVAS_HEIGHT,
+          containerWidth: GAME_CONFIG.CANVAS_WIDTH,
+          containerHeight: GAME_CONFIG.CANVAS_HEIGHT,
           scale: 1,
           isFullscreen: false,
         });
@@ -37,27 +47,29 @@ export const useCanvasDimensions = (): CanvasDimensions => {
       const windowHeight = window.innerHeight;
       const windowAspectRatio = windowWidth / windowHeight;
 
-      let width, height, scale;
+      let containerWidth, containerHeight, scale;
 
       if (windowAspectRatio > aspectRatio) {
         // Window is wider than game aspect ratio
-        height = windowHeight * 0.9; // Use 90% of window height
-        width = height * aspectRatio;
+        containerHeight = windowHeight * 0.9; // Use 90% of window height
+        containerWidth = containerHeight * aspectRatio;
       } else {
         // Window is taller than game aspect ratio
-        width = windowWidth * 0.9; // Use 90% of window width
-        height = width / aspectRatio;
+        containerWidth = windowWidth * 0.9; // Use 90% of window width
+        containerHeight = containerWidth / aspectRatio;
       }
 
       // Calculate scale factor for UI elements
       scale = Math.min(
-        width / GAME_CONFIG.CANVAS_WIDTH,
-        height / GAME_CONFIG.CANVAS_HEIGHT
+        containerWidth / GAME_CONFIG.CANVAS_WIDTH,
+        containerHeight / GAME_CONFIG.CANVAS_HEIGHT
       );
 
       setDimensions({
-        width,
-        height,
+        width: GAME_CONFIG.CANVAS_WIDTH,  // Canvas always renders at native resolution
+        height: GAME_CONFIG.CANVAS_HEIGHT,
+        containerWidth,  // Container scales
+        containerHeight,
         scale,
         isFullscreen: true,
       });

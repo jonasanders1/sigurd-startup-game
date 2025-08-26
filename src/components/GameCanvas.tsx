@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { GameManager } from "../managers/GameManager";
 import { GAME_CONFIG } from "../types/constants";
-import { useFullscreen } from "../hooks/useFullscreen";
 
 interface GameCanvasProps {
   className?: string;
@@ -10,7 +9,6 @@ interface GameCanvasProps {
 const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameManagerRef = useRef<GameManager | null>(null);
-  const { isFullscreen } = useFullscreen();
   const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
@@ -33,53 +31,21 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
     };
   }, []);
 
-  // Handle responsive sizing for fullscreen
+  // Canvas should fill the container - container handles scaling
   useEffect(() => {
-    const updateCanvasSize = () => {
-      if (!isFullscreen) {
-        setCanvasStyle({
-          imageRendering: "crisp-edges",
-        });
-        return;
-      }
-
-      const aspectRatio = GAME_CONFIG.CANVAS_WIDTH / GAME_CONFIG.CANVAS_HEIGHT; // 4:3
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      const windowAspectRatio = windowWidth / windowHeight;
-
-      let width, height;
-
-      if (windowAspectRatio > aspectRatio) {
-        // Window is wider than game aspect ratio
-        height = windowHeight * 0.9; // Use 90% of window height
-        width = height * aspectRatio;
-      } else {
-        // Window is taller than game aspect ratio
-        width = windowWidth * 0.9; // Use 90% of window width
-        height = width / aspectRatio;
-      }
-
-      setCanvasStyle({
-        width: `${width}px`,
-        height: `${height}px`,
-        imageRendering: "crisp-edges",
-      });
-    };
-
-    updateCanvasSize();
-    window.addEventListener("resize", updateCanvasSize);
-
-    return () => {
-      window.removeEventListener("resize", updateCanvasSize);
-    };
-  }, [isFullscreen]);
+    setCanvasStyle({
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      imageRendering: 'crisp-edges',
+    });
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="absolute inset-0">
       <canvas
         ref={canvasRef}
-        className={`shadow-black/10 shadow-lg rounded-lg ${className}`}
+        className={`w-full h-full ${className}`}
         style={canvasStyle}
       />
       {/* Loading overlay while waiting for audio settings */}

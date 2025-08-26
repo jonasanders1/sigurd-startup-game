@@ -6,7 +6,6 @@ import {
   useStateStore,
 } from "../../../stores/gameStore";
 import { sendAudioSettingsUpdate } from "../../../lib/communicationUtils";
-import { useCanvasDimensions } from "../../../hooks/useCanvasDimensions";
 
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { DEFAULT_AUDIO_SETTINGS } from "../../../config/audio";
@@ -14,7 +13,6 @@ import { DEFAULT_AUDIO_SETTINGS } from "../../../config/audio";
 const SettingsMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
   const { audioSettings, updateAudioSettings } = useAudioStore();
-  const { scale, isFullscreen } = useCanvasDimensions();
   const [isUpdating, setIsUpdating] = useState(false);
   const [initialSettings, setInitialSettings] = useState<
     typeof audioSettings | null
@@ -111,33 +109,17 @@ const SettingsMenu: React.FC = () => {
     }, 800);
   };
 
-  // Calculate responsive container styles
-  const containerStyle: React.CSSProperties = {
-    width: '80%',
-    maxWidth: isFullscreen ? `${600 * scale}px` : '600px',
-    fontSize: isFullscreen ? `${16 * scale}px` : '16px',
-  };
-
-  // Button size classes based on scale
-  const buttonSizeClass = isFullscreen && scale > 1.2 
-    ? "w-12 h-12" 
-    : "w-10 h-10";
-
-  const textSizeClass = isFullscreen && scale > 1.2
-    ? "text-3xl"
-    : "text-2xl";
-
   return (
-    <div className="flex flex-col justify-center h-full px-4" style={containerStyle}>
+    <div className="flex flex-col justify-center h-full w-[80%] max-w-[600px]">
       <div className="flex items-center mb-6 gap-2">
         <Button
           onClick={goBack}
           variant="default"
-          className={`bg-primary hover:bg-primary-dark text-white ${buttonSizeClass}`}
+          className="bg-primary hover:bg-primary-dark text-white w-10 h-10"
         >
-          <ArrowLeft size={isFullscreen && scale > 1.2 ? 30 : 25} />
+          <ArrowLeft size={25} />
         </Button>
-        <h2 className={`${textSizeClass} font-bold text-white uppercase`}>
+        <h2 className="text-2xl font-bold text-white uppercase">
           Innstillinger
         </h2>
       </div>

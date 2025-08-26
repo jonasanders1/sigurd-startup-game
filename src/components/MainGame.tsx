@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useGameStore, useStateStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import GameCanvas from "./GameCanvas";
+import GameContainer from "./GameContainer";
 import StartMenu from "./menu/menus/StartMenu";
 import CountdownOverlay from "./menu/menus/CountdownOverlay";
 import InGameMenu from "./menu/menus/InGameMenu";
@@ -56,7 +57,7 @@ const MainGame: React.FC = () => {
   };
 
   return (
-    <div ref={gameContainerRef} className="relative rounded-lg">
+    <GameContainer ref={gameContainerRef}>
       {/* Show loading screen first, before anything else */}
       {isLoading ? (
         <LoadingMenu 
@@ -144,7 +145,7 @@ const MainGame: React.FC = () => {
           )}
         </>
       )}
-    </div>
+    </GameContainer>
   );
 };
 
