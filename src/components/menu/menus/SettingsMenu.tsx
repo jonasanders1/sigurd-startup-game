@@ -132,6 +132,7 @@ const SettingsMenu: React.FC = () => {
             disabled={sfxMuted}
           />
         </div>
+        <Button variant="default">Oppdater lyd</Button>
         <div className="text-center text-sm text-gray-400">
           <p>(Trykk på tallene for å mute lyd)</p>
         </div>

@@ -10,7 +10,7 @@ const backgrounds = import.meta.glob(
 ) as Record<string, { default: string }>;
 
 const audioFiles = import.meta.glob(
-  '../assets/audio/*.wav',
+  '../assets/audio/*.{wav,mp3}',
   { eager: true }
 ) as Record<string, { default: string }>;
 
@@ -60,7 +60,12 @@ export const getAudioPath = (name: string): string => {
   // Find by filename with or without extension
   const match = Object.entries(audioFiles).find(([path]) => {
     const filename = path.split('/').pop() || '';
-    return filename === name || filename === `${name}.wav` || filename.startsWith(name);
+    const nameWithoutExt = filename.replace(/\.(wav|mp3)$/, '');
+    return filename === name || 
+           filename === `${name}.wav` || 
+           filename === `${name}.mp3` || 
+           nameWithoutExt === name ||
+           filename.startsWith(name);
   });
 
   // console.log(`🔍 Audio match found:`, match);
