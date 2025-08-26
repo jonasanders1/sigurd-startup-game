@@ -540,10 +540,14 @@ export class GameStateManager {
     setMenuType(MenuType.SETTINGS);
   }
 
+  public openControls(): void {
+    const { setMenuType } = useStateStore.getState();
+    setMenuType(MenuType.CONTROLS);
+  }
   /**
    * Go back from settings menu
    */
-  public closeSettings(): void {
+  public closeNestedMenu(): void {
     const { previousMenu, setMenuType } = useStateStore.getState();
     // Go back to the previous menu that was stored when opening settings
     if (previousMenu) {
@@ -554,6 +558,10 @@ export class GameStateManager {
     }
   }
 
+  /**
+   * Go back from controls menu
+   */
+ 
   /**
    * Quit to main menu
    */

@@ -19,6 +19,7 @@ export enum MenuType {
   VICTORY = "VICTORY",
   GAME_OVER = "GAME_OVER",
   AUDIO_SETTINGS = "AUDIO_SETTINGS",
+  CONTROLS = "CONTROLS",
 }
 
 export enum MonsterType {

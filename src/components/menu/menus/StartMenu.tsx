@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useStateStore } from "../../../stores/gameStore";
 
-import { Maximize, Minimize, Play, Settings } from "lucide-react";
+import { Joystick, Maximize, Minimize, Play, Settings } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -24,6 +24,11 @@ const StartMenu: React.FC = () => {
   const openSettings = () => {
     // Use centralized settings transition
     gameStateManager?.openSettings();
+  };
+
+  const openControls = () => {
+    // Use centralized controls transition
+    gameStateManager?.openControls();
   };
 
   const handleFullscreenToggle = () => {
@@ -94,6 +99,14 @@ const StartMenu: React.FC = () => {
         >
           <Settings size={20} />
           Innstillinger
+        </Button>
+        <Button
+          onClick={openControls}
+          variant="outline"
+          className="w-full border-secondary text-muted-foreground hover:bg-secondary hover:text-white font-bold py-3 text-lg transition-all duration-200 uppercase flex items-center justify-center gap-2"
+        >
+          <Joystick size={20} />
+          Kontroller
         </Button>
       </div>
     </div>

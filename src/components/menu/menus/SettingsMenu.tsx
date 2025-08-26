@@ -30,12 +30,12 @@ const SettingsMenu: React.FC = () => {
 
   const goBack = () => {
     // Use centralized close settings transition
-    gameStateManager?.closeSettings();
+    gameStateManager?.closeNestedMenu();
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full">
-      <div className="flex items-center mb-6 w-[70%] gap-2">
+    <div className="flex flex-col justify-center h-full w-[80%]">
+      <div className="flex items-center mb-6 gap-2">
         <Button
           onClick={goBack}
           variant="default"
@@ -48,7 +48,7 @@ const SettingsMenu: React.FC = () => {
         </h2>
       </div>
 
-      <div className="space-y-2 w-[70%]">
+      <div className="space-y-2">
         {/* Master Volume */}
         <div className="p-3 bg-card rounded-md">
           <div className="flex justify-between items-center mb-2">

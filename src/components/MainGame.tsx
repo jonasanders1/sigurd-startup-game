@@ -18,6 +18,7 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
 import { useBackgroundPreloading } from "../hooks/useBackgroundPreloading";
 import { VERSION_STRING, getVersion } from "../version";
+import ControlsMenu from "./menu/menus/ControlsMenu";
 
 const MainGame: React.FC = () => {
   // Fix: Use the store hooks properly to subscribe to state changes
@@ -96,6 +97,11 @@ const MainGame: React.FC = () => {
               <SettingsMenu />
             </Menu>
           )}
+          {showMenu === MenuType.CONTROLS && (
+            <Menu>
+              <ControlsMenu />
+            </Menu>
+          )}
           {currentState === GameState.PLAYING && (
             <Menu transparent={true}>
               <InGameMenu />
@@ -116,11 +122,11 @@ const MainGame: React.FC = () => {
               <GameOverScreen />
             </Menu>
           )}
-          {showMenu === MenuType.AUDIO_SETTINGS && (
+          {/* {showMenu === MenuType.AUDIO_SETTINGS && (
             <Menu>
               <AudioSettingsMenu />
             </Menu>
-          )}
+          )} */}
         </>
       )}
     </div>
