@@ -50,7 +50,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const inputStore = useInputStore.getState();
     const renderStore = useRenderStore.getState();
 
-    // Reset all state
+    // Reset all game state (but preserve audio settings as they are user preferences)
     stateStore.resetGameState();
     stateStore.resetBombState();
     scoreStore.resetScore();
@@ -62,7 +62,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     coinStore.resetEffects();
     coinStore.resetLevelCoinCounters();
     monsterStore.resetMonsters();
-    audioStore.resetAudioSettings();
+    // audioStore.resetAudioSettings(); // Don't reset audio settings - they should persist
     inputStore.resetInput();
     renderStore.clearAllFloatingTexts();
     
