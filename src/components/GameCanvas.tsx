@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { GameManager } from "../managers/GameManager";
 import { GAME_CONFIG } from "../types/constants";
 import { useFullscreen } from "../hooks/useFullscreen";
+import { testMonsterSprites } from "../test/testMonsterSprites";
 
 interface GameCanvasProps {
   className?: string;
@@ -23,6 +24,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
 
 
 
+    // Test monster sprites (development only)
+    if (import.meta.env.DEV) {
+      testMonsterSprites();
+    }
+    
     // Initialize game manager
     gameManagerRef.current = new GameManager(canvas);
     gameManagerRef.current.start();

@@ -17,6 +17,8 @@ export interface Player {
   floatGravity: number;
 }
 
+import { MonsterSpriteInstance } from "../lib/MonsterSpriteInstance";
+
 // Base monster properties that all monsters share
 interface BaseMonster {
   x: number;
@@ -53,6 +55,9 @@ interface BaseMonster {
   // Individual scaling properties
   individualSpawnTime?: number; // When this specific monster was spawned (for individual scaling)
   individualScalingPaused?: boolean; // Whether this monster's scaling is paused
+  
+  // Sprite animation properties
+  sprite?: MonsterSpriteInstance; // Sprite instance for animated rendering
 }
 
 // Patrol monster (horizontal and vertical)

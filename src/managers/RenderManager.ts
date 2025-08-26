@@ -285,56 +285,105 @@ export class RenderManager {
         return; // Don't render inactive monsters
       }
 
-      // Handle blinking effect for monsters about to unfreeze
-      let monsterColor = monster.color;
-      if (monster.isBlinking) {
-        const time = Date.now();
-        if (Math.floor(time / 300) % 2 === 0) {
-          monsterColor = COLORS.MONSTER_FROZEN; // Blink to frozen color
+      // Check if monster has a sprite instance
+      if (monster.sprite) {
+        // Render using sprite
+        // Determine if we need to flip the sprite horizontally
+        const flipHorizontal = monster.type === MonsterType.HORIZONTAL_PATROL && monster.direction < 0;
+        
+        // Apply frozen/blinking effects as a tint overlay
+        if (monster.isFrozen || monster.isBlinking) {
+          this.ctx.save();
+          
+          // Draw the sprite first
+          monster.sprite.draw(
+            this.ctx,
+            monster.x,
+            monster.y,
+            monster.width,
+            monster.height,
+            flipHorizontal
+          );
+          
+          // Apply overlay effect
+          this.ctx.globalCompositeOperation = 'source-atop';
+          if (monster.isBlinking) {
+            const time = Date.now();
+            if (Math.floor(time / 300) % 2 === 0) {
+              this.ctx.fillStyle = 'rgba(173, 216, 230, 0.7)'; // Frozen blue tint
+            }
+          } else if (monster.isFrozen) {
+            this.ctx.fillStyle = 'rgba(173, 216, 230, 0.7)'; // Frozen blue tint
+          }
+          if (this.ctx.fillStyle) {
+            this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
+          }
+          
+          this.ctx.restore();
         } else {
-          monsterColor = monster.color; // Normal color
+          // Normal sprite rendering
+          monster.sprite.draw(
+            this.ctx,
+            monster.x,
+            monster.y,
+            monster.width,
+            monster.height,
+            flipHorizontal
+          );
         }
-      } else if (monster.isFrozen) {
-        monsterColor = COLORS.MONSTER_FROZEN;
+      } else {
+        // Fallback to rectangle rendering if no sprite
+        // Handle blinking effect for monsters about to unfreeze
+        let monsterColor = monster.color;
+        if (monster.isBlinking) {
+          const time = Date.now();
+          if (Math.floor(time / 300) % 2 === 0) {
+            monsterColor = COLORS.MONSTER_FROZEN; // Blink to frozen color
+          } else {
+            monsterColor = monster.color; // Normal color
+          }
+        } else if (monster.isFrozen) {
+          monsterColor = COLORS.MONSTER_FROZEN;
+        }
+
+        this.ctx.fillStyle = monsterColor;
+        this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
+
+        // Draw monster eyes
+        this.ctx.fillStyle = "#333";
+        const eyeY = monster.y + 8;
+        this.ctx.fillRect(monster.x + 6, eyeY, 4, 4);
+        this.ctx.fillRect(monster.x + monster.width - 10, eyeY, 4, 4);
+
+        // Monster mouth - based on type
+        this.ctx.fillStyle = "rgba(51, 51, 51, 0.5)";
+        this.ctx.font = "12px JetBrains Mono";
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        let typeSymbol = "";
+        switch (monster.type) {
+          case MonsterType.HORIZONTAL_PATROL:
+            typeSymbol = "↔";
+            break;
+          case MonsterType.VERTICAL_PATROL:
+            typeSymbol = "↕";
+            break;
+          case MonsterType.FLOATER:
+            typeSymbol = "⟳";
+            break;
+          case MonsterType.CHASER:
+            typeSymbol = "!";
+            break;
+          case MonsterType.AMBUSHER:
+            typeSymbol = "?";
+            break;
+        }
+        this.ctx.fillText(
+          typeSymbol,
+          monster.x + monster.width / 2,
+          monster.y + monster.height - 5
+        );
       }
-
-      this.ctx.fillStyle = monsterColor;
-      this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
-
-      // Draw monster eyes
-      this.ctx.fillStyle = "#333";
-      const eyeY = monster.y + 8;
-      this.ctx.fillRect(monster.x + 6, eyeY, 4, 4);
-      this.ctx.fillRect(monster.x + monster.width - 10, eyeY, 4, 4);
-
-      // Monster mouth - based on type
-      this.ctx.fillStyle = "rgba(51, 51, 51, 0.5)";
-      this.ctx.font = "12px JetBrains Mono";
-      this.ctx.textAlign = "center";
-      this.ctx.textBaseline = "middle";
-      let typeSymbol = "";
-      switch (monster.type) {
-        case MonsterType.HORIZONTAL_PATROL:
-          typeSymbol = "↔";
-          break;
-        case MonsterType.VERTICAL_PATROL:
-          typeSymbol = "↕";
-          break;
-        case MonsterType.FLOATER:
-          typeSymbol = "⟳";
-          break;
-        case MonsterType.CHASER:
-          typeSymbol = "!";
-          break;
-        case MonsterType.AMBUSHER:
-          typeSymbol = "?";
-          break;
-      }
-      this.ctx.fillText(
-        typeSymbol,
-        monster.x + monster.width / 2,
-        monster.y + monster.height - 5
-      );
     });
 
     // Render respawn indicators for dead monsters

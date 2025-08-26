@@ -1,6 +1,8 @@
 import { Monster } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
 import { MonsterType } from "../types/enums";
+import { MonsterSpriteInstance } from "../lib/MonsterSpriteInstance";
+import { getMonsterAnimations, monsterNeedsDirection } from "../config/monsterAnimations";
 
 /**
  * Monster Factory - Centralized monster creation functions
@@ -32,18 +34,25 @@ const createBaseMonster = (
   type: MonsterType,
   speed: number = 1,
   spawnDelay: number = 0
-): Partial<Monster> => ({
-  x,
-  y,
-  width: GAME_CONFIG.MONSTER_SIZE,
-  height: GAME_CONFIG.MONSTER_SIZE,
-  color: getMonsterColor(type),
-  type,
-  speed,
-  direction: 1,
-  isActive: true,
-  spawnDelay,
-});
+): Partial<Monster> => {
+  // Create sprite instance for this monster type
+  const animations = getMonsterAnimations(type);
+  const sprite = new MonsterSpriteInstance(animations, "idle");
+  
+  return {
+    x,
+    y,
+    width: GAME_CONFIG.MONSTER_SIZE,
+    height: GAME_CONFIG.MONSTER_SIZE,
+    color: getMonsterColor(type),
+    type,
+    speed,
+    direction: 1,
+    isActive: true,
+    spawnDelay,
+    sprite, // Add sprite instance
+  };
+};
 
 /**
  * Creates a horizontal patrol monster that moves back and forth on a platform
