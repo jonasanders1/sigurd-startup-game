@@ -30,6 +30,7 @@ import {
   sendLevelFailure,
   LevelFailureData,
   LevelHistoryEntry,
+  initializeAudioSettingsListener,
 } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
 import { SpawnDiagnostics } from "./spawn-diagnostics";
@@ -58,6 +59,7 @@ export class GameManager {
   private scalingManager: ScalingManager;
   private monsterRespawnManager: OptimizedRespawnManager;
   private playerManager: PlayerManager;
+  private audioSettingsListenerCleanup: (() => void) | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     // Create managers
@@ -144,6 +146,9 @@ export class GameManager {
   public start(): void {
     // Initialize input
     this.inputManager.initialize();
+
+    // Initialize audio settings listener to receive settings from host
+    this.audioSettingsListenerCleanup = initializeAudioSettingsListener();
 
     // Handle dev mode if enabled
     if (DEV_CONFIG.ENABLED) {
@@ -434,6 +439,12 @@ export class GameManager {
     this.stop();
     this.inputManager.destroy();
     this.audioManager.cleanup();
+    
+    // Clean up audio settings listener
+    if (this.audioSettingsListenerCleanup) {
+      this.audioSettingsListenerCleanup();
+      this.audioSettingsListenerCleanup = null;
+    }
   }
 
   // Debug methods

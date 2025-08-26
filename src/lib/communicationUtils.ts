@@ -1,4 +1,5 @@
 import { log } from "./logger";
+import { useAudioStore } from "../stores/systems/audioStore";
 
 export interface LevelStartData {
   level: number;
@@ -269,4 +270,37 @@ export const waitForGameSaveConfirmation = (): Promise<void> => {
       resolve();
     }, 30000);
   });
+};
+
+// Function to listen for audio settings from the host
+export const initializeAudioSettingsListener = () => {
+  const handleLoadAudioSettings = (event: CustomEvent<AudioSettingsUpdateData>) => {
+    const audioSettings = event.detail;
+    
+    log.data("Received audio settings from host:", audioSettings);
+    
+    // Update the game's audio store with the received settings
+    const { updateAudioSettings } = useAudioStore.getState();
+    
+    updateAudioSettings({
+      masterVolume: audioSettings.masterVolume,
+      musicVolume: audioSettings.musicVolume,
+      sfxVolume: audioSettings.sfxVolume,
+      masterMuted: audioSettings.masterMuted,
+      musicMuted: audioSettings.musicMuted,
+      sfxMuted: audioSettings.sfxMuted,
+    });
+    
+    log.data("Audio settings updated successfully");
+  };
+  
+  // Listen for audio settings from the host
+  window.addEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+  
+  log.data("Audio settings listener initialized");
+  
+  // Return cleanup function
+  return () => {
+    window.removeEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+  };
 };
