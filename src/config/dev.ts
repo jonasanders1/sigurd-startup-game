@@ -12,6 +12,7 @@ export const DEV_CONFIG = {
 
   // Debug features
   GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)
+  SKIP_AUDIO_SETTINGS_WAIT: false, // Set to true to skip waiting for audio settings from host
 
   // Mock data for testing
   MOCK_DATA: {

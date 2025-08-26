@@ -30,6 +30,7 @@ import {
   sendLevelFailure,
   LevelFailureData,
   LevelHistoryEntry,
+  waitForAudioSettings,
   initializeAudioSettingsListener,
 } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
@@ -143,11 +144,21 @@ export class GameManager {
   /**
    * Start the game
    */
-  public start(): void {
+  public async start(): Promise<void> {
     // Initialize input
     this.inputManager.initialize();
 
-    // Initialize audio settings listener to receive settings from host
+    // Wait for audio settings from the host before starting the game
+    // Skip waiting if in dev mode with SKIP_AUDIO_SETTINGS_WAIT enabled
+    if (!DEV_CONFIG.ENABLED || !DEV_CONFIG.SKIP_AUDIO_SETTINGS_WAIT) {
+      log.data("Game waiting for audio settings...");
+      await waitForAudioSettings();
+      log.data("Audio settings received, continuing with game initialization");
+    } else {
+      log.debug("Skipping audio settings wait (dev mode)");
+    }
+
+    // Initialize ongoing audio settings listener for future updates
     this.audioSettingsListenerCleanup = initializeAudioSettingsListener();
 
     // Handle dev mode if enabled

@@ -272,12 +272,100 @@ export const waitForGameSaveConfirmation = (): Promise<void> => {
   });
 };
 
-// Function to listen for audio settings from the host
+// Track if audio settings have been received
+let audioSettingsReceived = false;
+let pendingAudioSettings: AudioSettingsUpdateData | null = null;
+
+// Set up early listener for audio settings (in case they arrive before game is ready)
+if (typeof window !== "undefined") {
+  const earlyAudioSettingsHandler = (event: CustomEvent<AudioSettingsUpdateData>) => {
+    if (!audioSettingsReceived) {
+      log.data("Received early audio settings from host (before game initialization)");
+      pendingAudioSettings = event.detail;
+      audioSettingsReceived = true;
+    }
+  };
+  
+  window.addEventListener("game:load-audio-settings", earlyAudioSettingsHandler as EventListener);
+}
+
+// Function to wait for audio settings from the host
+export const waitForAudioSettings = (): Promise<void> => {
+  return new Promise((resolve) => {
+    // Check if we already received the settings before this was called
+    if (audioSettingsReceived && pendingAudioSettings) {
+      log.data("Audio settings already received, applying immediately");
+      
+      const { updateAudioSettings } = useAudioStore.getState();
+      updateAudioSettings({
+        masterVolume: pendingAudioSettings.masterVolume,
+        musicVolume: pendingAudioSettings.musicVolume,
+        sfxVolume: pendingAudioSettings.sfxVolume,
+        masterMuted: pendingAudioSettings.masterMuted,
+        musicMuted: pendingAudioSettings.musicMuted,
+        sfxMuted: pendingAudioSettings.sfxMuted,
+      });
+      
+      pendingAudioSettings = null; // Clear pending settings
+      resolve();
+      return;
+    }
+    
+    log.data("Waiting for audio settings from host...");
+    
+    let isResolved = false;
+    
+    const handleLoadAudioSettings = (event: CustomEvent<AudioSettingsUpdateData>) => {
+      if (isResolved) return; // Prevent multiple resolutions
+      
+      const audioSettings = event.detail;
+      
+      log.data("Received audio settings from host:", audioSettings);
+      
+      // Update the game's audio store with the received settings
+      const { updateAudioSettings } = useAudioStore.getState();
+      
+      updateAudioSettings({
+        masterVolume: audioSettings.masterVolume,
+        musicVolume: audioSettings.musicVolume,
+        sfxVolume: audioSettings.sfxVolume,
+        masterMuted: audioSettings.masterMuted,
+        musicMuted: audioSettings.musicMuted,
+        sfxMuted: audioSettings.sfxMuted,
+      });
+      
+      log.data("Audio settings updated successfully");
+      
+      // Mark as received
+      audioSettingsReceived = true;
+      
+      // Clean up and resolve
+      window.removeEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+      isResolved = true;
+      resolve();
+    };
+    
+    // Listen for audio settings from the host
+    window.addEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+    
+    // Add a timeout fallback (5 seconds)
+    setTimeout(() => {
+      if (!isResolved) {
+        log.warn("Timeout waiting for audio settings from host, using defaults");
+        window.removeEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+        isResolved = true;
+        resolve();
+      }
+    }, 5000);
+  });
+};
+
+// Function to listen for audio settings from the host (for ongoing updates)
 export const initializeAudioSettingsListener = () => {
   const handleLoadAudioSettings = (event: CustomEvent<AudioSettingsUpdateData>) => {
     const audioSettings = event.detail;
     
-    log.data("Received audio settings from host:", audioSettings);
+    log.data("Received audio settings update from host:", audioSettings);
     
     // Update the game's audio store with the received settings
     const { updateAudioSettings } = useAudioStore.getState();
@@ -297,7 +385,7 @@ export const initializeAudioSettingsListener = () => {
   // Listen for audio settings from the host
   window.addEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
   
-  log.data("Audio settings listener initialized");
+  log.data("Audio settings listener initialized for ongoing updates");
   
   // Return cleanup function
   return () => {
