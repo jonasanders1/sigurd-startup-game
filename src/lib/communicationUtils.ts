@@ -71,6 +71,16 @@ export interface GameCompletionData {
   userId?: string;
 }
 
+export interface AudioSettingsUpdateData {
+  masterVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  masterMuted: boolean;
+  musicMuted: boolean;
+  sfxMuted: boolean;
+  timestamp: number;
+}
+
 export const sendScoreToHost = (
   score: number,
   map: string,
@@ -165,6 +175,34 @@ export const sendGameCompletionData = (data: GameCompletionData) => {
   log.data("Sending game completion data to host:", data);
   const event = new CustomEvent("game:completed", {
     detail: data,
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
+};
+
+export const sendAudioSettingsUpdate = (
+  masterVolume: number,
+  musicVolume: number,
+  sfxVolume: number,
+  masterMuted: boolean,
+  musicMuted: boolean,
+  sfxMuted: boolean
+) => {
+  const audioSettingsData: AudioSettingsUpdateData = {
+    masterVolume,
+    musicVolume,
+    sfxVolume,
+    masterMuted,
+    musicMuted,
+    sfxMuted,
+    timestamp: Date.now(),
+  };
+
+  log.data("Sending audio settings update to host:", audioSettingsData);
+
+  const event = new CustomEvent("game:audio-settings-updated", {
+    detail: audioSettingsData,
     bubbles: true,
     composed: true,
   });
