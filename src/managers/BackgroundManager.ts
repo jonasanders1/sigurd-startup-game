@@ -10,6 +10,7 @@ interface BackgroundImage {
 
 // Map human-readable map names to custom background image files
 const MAP_NAME_TO_BACKGROUND_MAP: Record<string, string> = {
+  garasjen: "garasjen",
   "startup lab": "startup-lab",
   nav: "nav",
   skatteetaten: "skatteetaten",

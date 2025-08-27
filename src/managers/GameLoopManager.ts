@@ -173,7 +173,7 @@ export class GameLoopManager {
     if (ground && coinManager) {
       // Check spawn conditions for all coin types
       coinManager.checkSpawnConditions(
-        useStateStore.getState() as unknown as Record<string, unknown>
+        getGameState() as unknown as Record<string, unknown>
       );
 
       // Let CoinManager handle all coin physics updates

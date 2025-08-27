@@ -264,8 +264,8 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.POWER,
     effects: [COIN_EFFECTS.POWER_MODE],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every 9 firebombs collected in correct order
-      return gameState.firebombCount % 9 === 0;
+      // Spawn every POWER_COIN_SPAWN_INTERVAL firebombs collected in correct order
+      return gameState.firebombCount % GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL === 0;
     },
     maxActive: 1,
   },

@@ -174,7 +174,7 @@ export class LevelManager {
       coinManager,
     } = useCoinStore.getState();
     const { currentMap, addLevelResult } = useLevelStore.getState();
-    const { score, multiplier, addScore, addRawScore } =
+    const { score, levelScore, multiplier, addScore, addRawScore } =
       useScoreStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
 
@@ -214,7 +214,7 @@ export class LevelManager {
           correctOrderCount: correctOrderCount,
           effectiveCount: effectiveCount,
           totalBombs: collectedBombs.length,
-          score: score,
+          score: levelScore,  // Use levelScore for this level's earnings only
           bonus: bonusPoints,
           hasBonus: bonusPoints > 0,
           coinsCollected: coinsCollected,

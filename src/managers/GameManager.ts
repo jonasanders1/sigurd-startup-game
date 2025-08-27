@@ -348,12 +348,13 @@ export class GameManager {
   private handlePlayerDeath(): void {
     const { lives, loseLife, currentLevel, correctOrderCount } =
       useStateStore.getState();
-    const { score, multiplier } = this.scoreManager.getScore
+    const { score, levelScore, multiplier } = this.scoreManager.getScore
       ? {
           score: this.scoreManager.getScore(),
+          levelScore: this.scoreManager.getLevelScore(),
           multiplier: this.scoreManager.getMultiplier(),
         }
-      : { score: 0, multiplier: 1 };
+      : { score: 0, levelScore: 0, multiplier: 1 };
     const { currentMap, addLevelResult } = useLevelStore.getState();
     const { getLevelCoinStats } = useCoinStore.getState();
     const { bombs } = useStateStore.getState();
@@ -391,7 +392,7 @@ export class GameManager {
         const partialLevelResult: LevelHistoryEntry = {
           level: currentLevel,
           mapName: currentMap.name,
-          score: score,
+          score: levelScore,  // Use levelScore for this level's earnings only
           bonus: 0,
           // Don't include completionTime for partial levels - the level wasn't completed
           coinsCollected: coinStats.totalCoinsCollected,

@@ -28,9 +28,14 @@ const VictoryMenu: React.FC = () => {
     }
   };
 
-  // Calculate total financing across all levels
+  // Calculate total financing and bonus separately
   const totalFinancing = levelResults.reduce(
     (sum, level) => sum + level.score,
+    0
+  );
+  
+  const totalBonus = levelResults.reduce(
+    (sum, level) => sum + level.bonus,
     0
   );
 
@@ -47,7 +52,7 @@ const VictoryMenu: React.FC = () => {
 
         {/* Level Results Table */}
         {levelResults.length > 0 && (
-          <div className="mt-4">
+          <div className="mt-4 mb-6 space-y-3 bg-gray-400/10 rounded-lg">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -91,13 +96,21 @@ const VictoryMenu: React.FC = () => {
                 <tfoot>
                   <tr className="border-t-2 border-primary">
                     <td className="py-3 px-3 text-left font-bold text-primary">
+                      Totalt
+                    </td>
+                    <td className="py-3 px-3 text-right font-bold text-primary text-xl">
+                      {totalFinancing.toLocaleString()} kr
+                    </td>
+                    <td className="py-3 px-3 text-right font-bold text-yellow-400 text-xl">
+                      {totalBonus > 0 ? `${totalBonus.toLocaleString()} kr` : '-'}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-3 text-left font-bold text-white text-lg">
                       Total finansiering
                     </td>
-                    <td
-                      colSpan={2}
-                      className="py-3 px-3 text-right font-bold text-primary text-xl"
-                    >
-                      {totalFinancing.toLocaleString()} kr
+                    <td colSpan={2} className="py-3 px-3 text-right font-bold text-white text-2xl">
+                      {(totalFinancing + totalBonus).toLocaleString()} kr
                     </td>
                   </tr>
                 </tfoot>

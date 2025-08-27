@@ -21,9 +21,11 @@ const Menu = ({
       }`}
     >
       {children}
-      {currentState !== GameState.PLAYING && showShortcuts && (
-        <ShortcutControls />
-      )}
+      {currentState !== GameState.PLAYING &&
+        currentState !== GameState.COUNTDOWN &&
+        currentState !== GameState.GAME_OVER &&
+        currentState !== GameState.VICTORY &&
+        showShortcuts && <ShortcutControls />}
     </div>
   );
 };

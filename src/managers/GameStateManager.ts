@@ -52,8 +52,11 @@ export class GameStateManager {
     addScore(DEV_CONFIG.MOCK_DATA.score);
 
     // Add mock level history if provided and target state is GAME_OVER or VICTORY
-    if (DEV_CONFIG.MOCK_DATA.levelHistory && 
-        (DEV_CONFIG.TARGET_STATE === 'GAME_OVER' || DEV_CONFIG.TARGET_STATE === 'VICTORY')) {
+    if (
+      DEV_CONFIG.MOCK_DATA.levelHistory &&
+      (DEV_CONFIG.TARGET_STATE === ("GAME_OVER" as any) ||
+        DEV_CONFIG.TARGET_STATE === ("VICTORY" as any))
+    ) {
       // Clear existing history and add mock data
       DEV_CONFIG.MOCK_DATA.levelHistory.forEach((levelResult: any) => {
         addLevelResult(levelResult);
@@ -570,7 +573,7 @@ export class GameStateManager {
   /**
    * Go back from controls menu
    */
- 
+
   /**
    * Quit to main menu
    */

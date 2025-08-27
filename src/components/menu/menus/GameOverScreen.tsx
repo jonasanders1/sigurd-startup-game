@@ -29,11 +29,13 @@ const GameOverScreen: React.FC = () => {
     }
   };
 
-  // Calculate total financing across all levels
+  // Calculate total financing and bonus separately
   const totalFinancing = levelResults.reduce(
     (sum, level) => sum + level.score,
     0
   );
+
+  const totalBonus = levelResults.reduce((sum, level) => sum + level.bonus, 0);
 
   return (
     <div className=" text-center max-w-2xl">
@@ -41,7 +43,7 @@ const GameOverScreen: React.FC = () => {
         Kapitalen tørket ut
       </h1>
 
-      <div className="text-white mb-6 space-y-3">
+      <div className="text-white mb-6 space-y-3 bg-gray-400/10 rounded-lg">
         {/* Level Results Table */}
         {levelResults.length > 0 && (
           <div className="mt-4">
@@ -105,18 +107,18 @@ const GameOverScreen: React.FC = () => {
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-primary">
+                  <tr>
                     <td
                       colSpan={2}
-                      className="py-3 px-3 text-left font-bold text-primary"
+                      className="py-3 px-3 text-left font-bold text-white text-lg"
                     >
                       Total finansiering
                     </td>
                     <td
                       colSpan={2}
-                      className="py-3 px-3 text-right font-bold text-primary text-xl"
+                      className="py-3 px-3 text-right font-bold text-white text-2xl"
                     >
-                      {totalFinancing.toLocaleString()} kr
+                      {(totalFinancing + totalBonus).toLocaleString()} kr
                     </td>
                   </tr>
                 </tfoot>

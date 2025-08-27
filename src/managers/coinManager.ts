@@ -296,12 +296,22 @@ export class CoinManager {
           firebombCount: this.firebombCount,
           bombAndMonsterPoints: this.bombAndMonsterPoints,
         };
+        
+        // Debug logging for EXTRA_LIFE coin
+        if (coinConfig.type === "EXTRA_LIFE") {
+          log.debug(`EXTRA_LIFE checking spawn condition, bonusCount: ${(combinedState as any).totalBonusMultiplierCoinsCollected}`);
+        }
 
         if (
           coinConfig.spawnCondition(
             combinedState as unknown as GameStateInterface
           )
         ) {
+          // Debug logging for EXTRA_LIFE coin
+          if (coinConfig.type === "EXTRA_LIFE") {
+            log.debug(`EXTRA_LIFE spawn condition met! bonusCount: ${(combinedState as any).totalBonusMultiplierCoinsCollected}`);
+          }
+          
           // Create a unique key for this spawn condition based on the current state
           let spawnKey = `${coinConfig.type}`;
 
@@ -349,9 +359,9 @@ export class CoinManager {
               Math.floor(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) *
               GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
             spawnKey = `${coinConfig.type}_${threshold}`;
-            // log.debug(
-            //   `E-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}, ratio=${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}, shouldSpawn=${bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0}`
-            // );
+            log.debug(
+              `E-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}, ratio=${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}, shouldSpawn=${bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0}`
+            );
           }
 
           // Check if we've already triggered this spawn condition
@@ -395,6 +405,11 @@ export class CoinManager {
               spawnY = 100 + Math.random() * 100; // Random position for other coins
             }
             this.spawnCoin(coinConfig.type as CoinType, spawnX, spawnY);
+          }
+        } else {
+          // Debug logging for EXTRA_LIFE coin when condition is not met
+          if (coinConfig.type === "EXTRA_LIFE") {
+            log.debug(`EXTRA_LIFE spawn condition NOT met, bonusCount: ${(combinedState as any).totalBonusMultiplierCoinsCollected}`);
           }
         }
       }

@@ -21,11 +21,11 @@ interface LevelHistoryMock {
 }
 
 export const DEV_CONFIG = {
-  ENABLED: false, // Set to false to disable dev mode
+  ENABLED: true, // Set to false to disable dev mode
 
   // Game state configuration
-  TARGET_STATE: "VICTORY", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 3, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
+  TARGET_LEVEL: 5, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   // Debug features
   GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)

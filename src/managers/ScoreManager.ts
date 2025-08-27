@@ -127,6 +127,10 @@ export class ScoreManager {
     return useScoreStore.getState().score;
   }
 
+  public getLevelScore(): number {
+    return useScoreStore.getState().levelScore;
+  }
+
   public getMultiplier(): number {
     return useScoreStore.getState().multiplier;
   }
