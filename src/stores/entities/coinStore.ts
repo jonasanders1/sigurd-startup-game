@@ -32,6 +32,7 @@ interface CoinActions {
   onFirebombCollected: () => void;
   resetCoinState: () => void;
   resetLevelCoinCounters: () => void;
+  resetTotalCoinCounters: () => void; // New method to reset total counters only on new game
   updateMonsterStates: (monsters: Monster[]) => void;
   resetEffects: () => void;
   getCoinStats: () => {
@@ -190,6 +191,12 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     log.coin(
       `Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`
     );
+    
+    // Additional debug logging for bonus coin tracking
+    if (coin.type === "BONUS_MULTIPLIER") {
+      const nextExtraLifeAt = Math.ceil(newTotalBonusMultiplierCoinsCollected / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
+      log.coin(`BONUS_MULTIPLIER collected! Total bonus coins: ${newTotalBonusMultiplierCoinsCollected}, Next EXTRA_LIFE at: ${nextExtraLifeAt}`);
+    }
   },
 
   onFirebombCollected: () => {
@@ -209,6 +216,10 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       coinManager.reset();
     }
 
+    // IMPORTANT: Preserve total coin counters across deaths and level changes
+    // These should only be reset when starting a new game
+    const state = get();
+    
     // Don't reset level-specific counters here - they accumulate across respawns
     set({
       coins: [],
@@ -217,10 +228,11 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         powerModeEndTime: 0,
       },
       firebombCount: 0,
-      totalCoinsCollected: 0,
-      totalPowerCoinsCollected: 0,
-      totalBonusMultiplierCoinsCollected: 0,
-      totalExtraLifeCoinsCollected: 0,
+      // Preserve these totals - they track progress throughout the entire game
+      totalCoinsCollected: state.totalCoinsCollected,
+      totalPowerCoinsCollected: state.totalPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected: state.totalBonusMultiplierCoinsCollected,
+      totalExtraLifeCoinsCollected: state.totalExtraLifeCoinsCollected,
     });
   },
 
@@ -231,6 +243,21 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       levelPowerCoinsCollected: 0,
       levelBonusMultiplierCoinsCollected: 0,
       levelExtraLifeCoinsCollected: 0,
+    });
+  },
+
+  resetTotalCoinCounters: () => {
+    // Reset total coin counters - only call this when starting a completely new game
+    const { coinManager } = get();
+    if (coinManager) {
+      coinManager.hardReset(); // Complete reset for new game
+    }
+    
+    set({
+      totalCoinsCollected: 0,
+      totalPowerCoinsCollected: 0,
+      totalBonusMultiplierCoinsCollected: 0,
+      totalExtraLifeCoinsCollected: 0,
     });
   },
 

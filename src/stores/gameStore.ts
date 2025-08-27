@@ -61,6 +61,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     coinStore.resetCoinState();
     coinStore.resetEffects();
     coinStore.resetLevelCoinCounters();
+    coinStore.resetTotalCoinCounters(); // Reset total counters only on new game
     monsterStore.resetMonsters();
     // audioStore.resetAudioSettings(); // Don't reset audio settings - they should persist
     inputStore.resetInput();

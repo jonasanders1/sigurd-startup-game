@@ -46,7 +46,23 @@ export class CoinManager {
     log.debug("CoinManager initialized");
   }
 
+  // Soft reset - preserve spawn tracking across deaths/levels
   reset(): void {
+    this.coins = [];
+    this.firebombCount = 0;
+    this.powerModeActive = false;
+    this.powerModeEndTime = 0;
+    this.activeEffects.clear();
+    // DON'T clear triggeredSpawnConditions - preserve across deaths/levels
+    // DON'T reset lastProcessedScore - preserve across deaths/levels  
+    // DON'T reset lastScoreCheck - preserve across deaths/levels
+    // DON'T reset bombAndMonsterPoints - preserve across deaths/levels
+    this.monsterKillCount = 0;
+    // Don't reset pCoinColorIndex - let it persist across sessions
+  }
+
+  // Hard reset - complete reset for new game
+  hardReset(): void {
     this.coins = [];
     this.firebombCount = 0;
     this.powerModeActive = false;
