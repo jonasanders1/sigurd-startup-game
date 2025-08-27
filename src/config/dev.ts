@@ -21,10 +21,10 @@ interface LevelHistoryMock {
 }
 
 export const DEV_CONFIG = {
-  ENABLED: false, // Set to false to disable dev mode
+  ENABLED: true, // Set to false to disable dev mode
 
   // Game state configuration
-  TARGET_STATE: "GAME_OVER", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
+  TARGET_STATE: "VICTORY", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
   TARGET_LEVEL: 3, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   // Debug features
@@ -48,7 +48,7 @@ export const DEV_CONFIG = {
         correctOrderCount: 15,
         totalBombs: 15,
         score: 12500,
-        bonus: 3000,
+        bonus: 30000,
         hasBonus: true,
         coinsCollected: 2,
         powerModeActivations: 2,
@@ -64,7 +64,7 @@ export const DEV_CONFIG = {
         correctOrderCount: 20,
         totalBombs: 20,
         score: 18500,
-        bonus: 5000,
+        bonus: 50000,
         hasBonus: true,
         coinsCollected: 62,
         powerModeActivations: 3,
