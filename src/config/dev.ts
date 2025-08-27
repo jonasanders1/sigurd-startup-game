@@ -21,7 +21,7 @@ interface LevelHistoryMock {
 }
 
 export const DEV_CONFIG = {
-  ENABLED: true, // Set to false to disable dev mode
+  ENABLED: false, // Set to false to disable dev mode
 
   // Game state configuration
   TARGET_STATE: "VICTORY", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
@@ -39,7 +39,7 @@ export const DEV_CONFIG = {
     correctOrderCount: 35, // Total correct orders across all levels
     multiplier: 2, // Mock multiplier level (1-5)
     multiplierScore: 1200, // Mock points toward next multiplier (0-1800)
-    
+
     // Mock level history for game over screen
     levelHistory: [
       {
@@ -56,7 +56,7 @@ export const DEV_CONFIG = {
         timestamp: Date.now() - 300000,
         lives: 3,
         multiplier: 1,
-        isPartial: false
+        isPartial: false,
       },
       {
         level: 2,
@@ -72,7 +72,7 @@ export const DEV_CONFIG = {
         timestamp: Date.now() - 150000,
         lives: 2,
         multiplier: 2,
-        isPartial: false
+        isPartial: false,
       },
       {
         level: 3,
@@ -88,9 +88,9 @@ export const DEV_CONFIG = {
         timestamp: Date.now() - 10000,
         lives: 0,
         multiplier: 2,
-        isPartial: true // Failed level
-      }
-    ]
+        isPartial: true, // Failed level
+      },
+    ],
   },
 
   COLORS: {
