@@ -44,12 +44,21 @@ export class GameStateManager {
       useStateStore.getState();
     const { setMultiplier } = useScoreStore.getState();
     const { addScore } = useScoreStore.getState();
-    const { resetLevelState } = useLevelStore.getState();
+    const { resetLevelState, addLevelResult } = useLevelStore.getState();
 
     // Reset game state first
     resetGameState();
     // Apply mock data AFTER reset
     addScore(DEV_CONFIG.MOCK_DATA.score);
+
+    // Add mock level history if provided and target state is GAME_OVER or VICTORY
+    if (DEV_CONFIG.MOCK_DATA.levelHistory && 
+        (DEV_CONFIG.TARGET_STATE === 'GAME_OVER' || DEV_CONFIG.TARGET_STATE === 'VICTORY')) {
+      // Clear existing history and add mock data
+      DEV_CONFIG.MOCK_DATA.levelHistory.forEach((levelResult: any) => {
+        addLevelResult(levelResult);
+      });
+    }
 
     // Set lives
     const currentLives = lives;
