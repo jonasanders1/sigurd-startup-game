@@ -60,6 +60,22 @@ export class CoinManager {
     // Don't reset pCoinColorIndex - let it persist across sessions
   }
 
+  // Update spawn points when loading a new level
+  updateSpawnPoints(spawnPoints: CoinSpawnPoint[]): void {
+    this.spawnPoints = spawnPoints;
+    log.debug(`Updated coin spawn points for new level: ${spawnPoints.length} spawn points`);
+  }
+
+  // Clear active coins but preserve score tracking for new level
+  clearActiveCoins(): void {
+    this.coins = [];
+    this.powerModeActive = false;
+    this.powerModeEndTime = 0;
+    this.activeEffects.clear();
+    // Don't clear score tracking or firebomb count - these persist across levels
+    log.debug(`Cleared active coins for new level, preserved score tracking (bombAndMonsterPoints: ${this.bombAndMonsterPoints})`);
+  }
+
   update(
     platforms: Platform[],
     ground: Ground,

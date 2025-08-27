@@ -104,9 +104,19 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     stateStore.setBombs(bombsWithState);
     stateStore.setBombManager(bombManager);
 
-    // Initialize coin manager
-    const coinManager = new CoinManager(mapData.coinSpawnPoints || []);
-    coinStore.setCoinManager(coinManager);
+    // Initialize or update coin manager
+    // Check if we already have a coin manager (preserve score tracking across levels)
+    const existingCoinManager = coinStore.coinManager;
+    if (existingCoinManager) {
+      // Update spawn points for new level but preserve score tracking
+      existingCoinManager.updateSpawnPoints(mapData.coinSpawnPoints || []);
+      // Clear active coins but preserve score tracking
+      existingCoinManager.clearActiveCoins();
+    } else {
+      // First time initialization
+      const coinManager = new CoinManager(mapData.coinSpawnPoints || []);
+      coinStore.setCoinManager(coinManager);
+    }
 
     // Initialize monsters
     monsterStore.initializeMonsters(mapData.monsters);

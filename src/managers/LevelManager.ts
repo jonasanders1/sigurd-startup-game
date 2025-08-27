@@ -77,6 +77,10 @@ export class LevelManager {
       // Cleanup spawn manager before loading new level
       this.monsterSpawnManager.cleanup();
 
+      // IMPORTANT: Start difficulty scaling for this map BEFORE initializing monsters
+      // This ensures monsters get the correct spawn time and start at base speed
+      this.scalingManager.startMap();
+
       // Use the gameStore initializeLevel which properly sets up bombs, monsters, coins, and player
       gameStore.initializeLevel(mapDefinition);
 
@@ -85,9 +89,6 @@ export class LevelManager {
 
       // Reset animation controller state
       this.animationController.reset();
-
-      // Start difficulty scaling for this map
-      this.scalingManager.startMap();
 
       // Load parallax background (non-blocking)
       this.renderManager.loadMapBackground(mapDefinition.name);
