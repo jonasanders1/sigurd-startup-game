@@ -112,7 +112,7 @@ const GameOverScreen: React.FC = () => {
                 <tfoot>
                   <tr className="border-t-2 border-primary">
                     <td colSpan={2} className="py-3 px-3 text-left font-bold text-primary">
-                      Total
+                      Totalt
                     </td>
                     <td className="py-3 px-3 text-right font-bold text-primary text-xl">
                       {totalFinancing.toLocaleString()} kr
@@ -122,10 +122,10 @@ const GameOverScreen: React.FC = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td colSpan={2} className="py-2 px-3 text-left font-bold text-white">
-                      Sum total
+                    <td colSpan={2} className="py-3 px-3 text-left font-bold text-white text-lg">
+                      Total finansiering
                     </td>
-                    <td colSpan={2} className="py-2 px-3 text-right font-bold text-white text-2xl">
+                    <td colSpan={2} className="py-3 px-3 text-right font-bold text-white text-2xl">
                       {(totalFinancing + totalBonus).toLocaleString()} kr
                     </td>
                   </tr>
