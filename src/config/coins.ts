@@ -11,9 +11,9 @@ export const COIN_PHYSICS = {
 
 export const COIN_SPAWNING = {
   // Spawning intervals
-  POWER_COIN_SPAWN_INTERVAL: 3, // Power coin appears after every 3 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 1000, // Bonus multiplier coin appears every 1000 points
-  EXTRA_LIFE_COIN_RATIO: 2, // Extra life coin appears for every 1 bonus multiplier coin
+  POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 3 firebombs
+  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 1000 points
+  EXTRA_LIFE_COIN_RATIO: 5, // Extra life coin appears for every 1 bonus multiplier coin
 } as const;
 
 export const COIN_EFFECTS = {
@@ -21,7 +21,7 @@ export const COIN_EFFECTS = {
   POWER_COIN_DURATION: 7000, // Power coin effect duration in milliseconds (7 seconds)
   POWER_COIN_POINTS: 2000, // Points awarded for collecting power coin
   MONSTER_KILL_POINTS: 100, // Points for killing monsters during power mode
-  
+
   // Other coins
   BONUS_MULTIPLIER_COIN_POINTS: 1000, // Base points for bonus multiplier coin
   EXTRA_LIFE_COIN_POINTS: 1000, // Base points for extra life coin
