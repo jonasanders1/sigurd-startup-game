@@ -27,6 +27,8 @@ const GameOverScreen: React.FC = () => {
     }
   };
 
+  console.log(levelHistory);
+
   return (
     <div className="bg-gradient-to-b rounded-lg text-center max-w-md">
       <h1 className="text-4xl font-bold mb-4 uppercase">konkurs</h1>
