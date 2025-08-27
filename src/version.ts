@@ -5,9 +5,9 @@ export const VERSION = {
   major: 2,
   minor: 8,
   patch: 0,
-  build: 0,
-  timestamp: 1756238617465,
-  hash: 'XUMEZR',
+  build: 1,
+  timestamp: 1756306546959,
+  hash: 'DUS920',
   full: '2.8.0'
 };
 
