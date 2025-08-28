@@ -236,6 +236,10 @@ export class Logger {
             LogCategory.DATA,
           ]),
 
+        // Show current coin spawn conditions status
+        coinConditions: () => this.showCoinSpawnConditions(),
+        coinStatus: () => this.showCoinStatus(),
+
         // Utility
         clear: () => console.clear(),
         help: () => this.showHelp(),
@@ -259,8 +263,95 @@ export class Logger {
           "%cUse gameLog.coinSpawn() to debug coin spawning logic",
           "color: #888; font-size: 12px;"
         );
+        console.log(
+          "%cUse gameLog.coinConditions() to see coin spawn conditions",
+          "color: #888; font-size: 12px;"
+        );
+        console.log(
+          "%cUse gameLog.coinStatus() to see current coin spawning status",
+          "color: #888; font-size: 12px;"
+        );
       }
     }
+  }
+
+  private showCoinSpawnConditions(): void {
+    console.log(
+      "%c🪙 Coin Spawn Conditions Status",
+      "color: #FFD700; font-size: 16px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    
+    // Note: These values would need to be fetched from the actual game state
+    // This is a display-only method that shows the structure
+    console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
+    console.log("  Spawn Condition: Every 9 firebombs collected in correct order");
+    console.log("  Check current status: gameLog.coinSpawn() then collect firebombs");
+    
+    console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
+    console.log("  Spawn Condition: Every 5000 points from coin collection only");
+    console.log("  Check current status: gameLog.coinSpawn() then collect coins");
+    
+    console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
+    console.log("  Spawn Condition: Every 5 B-coins collected");
+    console.log("  Check current status: gameLog.coinSpawn() then collect B-coins");
+    
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
+    console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
+    console.log("  • Use gameLog.data() to see all data-passing logs including spawns");
+    console.log("  • Spawn conditions are logged with 'CoinSpawn:' prefix in data logs");
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+  }
+
+  private showCoinStatus(): void {
+    console.log(
+      "%c🪙 Current Coin Spawning Status",
+      "color: #FFD700; font-size: 16px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    
+    // Try to get current game state from window if available
+    const gameState = (window as any).gameState;
+    const coinManager = (window as any).coinManager;
+    
+    if (gameState && coinManager) {
+      // Show actual current values
+      console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
+      console.log(`  Firebombs collected: ${coinManager.getFirebombCount() || 0}`);
+      console.log(`  Next P-coin at: ${Math.ceil((coinManager.getFirebombCount() || 0) / 9) * 9} firebombs`);
+      console.log(`  Progress: ${(coinManager.getFirebombCount() || 0) % 9}/9`);
+      
+      console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
+      console.log(`  Coin points earned: ${coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 'N/A'}`);
+      console.log(`  Next B-coin at: ${Math.ceil(((coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 0) / 5000)) * 5000} points`);
+      console.log(`  Progress: ${(coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 0) % 5000}/5000`);
+      
+      console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
+      console.log(`  B-coins collected: ${gameState.totalBonusMultiplierCoinsCollected || 0}`);
+      console.log(`  Next M-coin at: ${Math.ceil(((gameState.totalBonusMultiplierCoinsCollected || 0) / 5)) * 5} B-coins`);
+      console.log(`  Progress: ${(gameState.totalBonusMultiplierCoinsCollected || 0) % 5}/5`);
+    } else {
+      // Fallback to general info
+      console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
+      console.log("  Status: Unknown (game not running or coinManager not accessible)");
+      console.log("  Use gameLog.coinSpawn() to see real-time status");
+      
+      console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
+      console.log("  Status: Unknown (game not running or coinManager not accessible)");
+      console.log("  Use gameLog.coinSpawn() to see real-time status");
+      
+      console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
+      console.log("  Status: Unknown (game not running or coinManager not accessible)");
+      console.log("  Use gameLog.coinSpawn() to see real-time status");
+    }
+    
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
+    console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
+    console.log("  • Use gameLog.coinConditions() to see spawn condition rules");
+    console.log("  • Use gameLog.data() to see all data-passing logs");
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
   }
 
   private showHelp(): void {
@@ -271,15 +362,17 @@ export class Logger {
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
 
     console.log("%c🎯 Quick Filters:", "color: #FFD700; font-weight: bold;");
-    console.log("  gameLog.player()    - Show only player logs");
-    console.log("  gameLog.audio()     - Show only audio logs");
-    console.log("  gameLog.bombs()     - Show bomb progression");
-    console.log("  gameLog.coins()     - Show coin collection");
-    console.log("  gameLog.coinSpawn() - Show coin spawn debugging");
-    console.log("  gameLog.gameplay()  - Show all gameplay logs");
-    console.log("  gameLog.technical() - Show technical logs");
-    console.log("  gameLog.coin()      - Show only coin logs (singular)");
-    console.log("  gameLog.bomb()      - Show only bomb logs (singular)");
+    console.log("  gameLog.player()        - Show only player logs");
+    console.log("  gameLog.audio()         - Show only audio logs");
+    console.log("  gameLog.bombs()         - Show bomb progression");
+    console.log("  gameLog.coins()         - Show coin collection");
+    console.log("  gameLog.coinSpawn()     - Show coin spawn debugging");
+    console.log("  gameLog.coinConditions()- Show coin spawn conditions info");
+    console.log("  gameLog.coinStatus()    - Show current coin spawning status");
+    console.log("  gameLog.gameplay()      - Show all gameplay logs");
+    console.log("  gameLog.technical()     - Show technical logs");
+    console.log("  gameLog.coin()          - Show only coin logs (singular)");
+    console.log("  gameLog.bomb()          - Show only bomb logs (singular)");
 
     console.log(
       "%c\n🔧 Category Control:",
