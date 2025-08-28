@@ -500,6 +500,7 @@ export class GameStateManager {
     this.resetBonusTransition();
 
     // Reset the game (this now also loads the first level)
+    log.data('CoinSpawn: Game restart - full reset, all coin spawn counters cleared');
     gameState.resetGame();
 
     // Show countdown before starting
@@ -582,6 +583,7 @@ export class GameStateManager {
 
     log.info("Quitting to main menu");
     // Reset the game
+    log.data('CoinSpawn: Quit to menu - full reset, all coin spawn counters cleared');
     gameState.resetGame();
     // Set to menu state with start menu
     this.setState(GameState.MENU, MenuType.START);

@@ -162,6 +162,7 @@ export class GameManager {
     } else {
       // Normal game start
       const gameState = useGameStore.getState();
+      log.data('CoinSpawn: Normal game start - full reset, all coin spawn counters cleared');
       gameState.resetGame();
 
       if ("setGameStartTime" in gameState) {

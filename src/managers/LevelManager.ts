@@ -254,7 +254,7 @@ export class LevelManager {
   public proceedToNextLevel(): void {
     const { nextLevel, currentLevel, gameStateManager } =
       useStateStore.getState();
-    const { resetEffects, resetCoinState, resetLevelCoinCounters } =
+    const { resetEffects, softResetCoinState, resetLevelCoinCounters } =
       useCoinStore.getState();
 
     // Stop power-up melody if active
@@ -263,11 +263,11 @@ export class LevelManager {
     // Check if there are more levels BEFORE incrementing
     const nextLevelNumber = currentLevel + 1;
     if (nextLevelNumber <= mapDefinitions.length) {
-      // Reset coin effects and state
+      // Reset coin effects but preserve spawn counters
       resetEffects();
-      resetCoinState();
+      softResetCoinState();  // Use soft reset to preserve counters
       resetLevelCoinCounters(); // Reset level-specific counters for the new level
-      log.debug("Coins reset when proceeding to next level");
+      log.level("Proceeding to next level with preserved coin spawn counters");
 
       // Increment level only once
       nextLevel();
@@ -296,9 +296,10 @@ export class LevelManager {
   }
 
   public respawnPlayer(): void {
+    log.data('CoinSpawn: Player respawn - preserving coin spawn counters');
     const { currentMap } = useLevelStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
-    const { resetCoinState } = useCoinStore.getState();
+    const { coinManager } = useCoinStore.getState();
     const { updateMonsters } = useMonsterStore.getState();
 
     // Stop power-up melody if active
@@ -312,9 +313,16 @@ export class LevelManager {
       this.scalingManager.resetOnDeath();
       log.debug("Difficulty reset after player death");
 
-      // Reset coins
-      resetCoinState();
-      log.debug("Coins reset after player death");
+      // DO NOT reset coin spawn counters when player dies (only clear active coins)
+      // The counters should persist across deaths according to requirements
+      if (coinManager) {
+        // Just clear the active coins but preserve all counters
+        coinManager.clearActiveCoins();
+      }
+      // Also update the coin store to clear active coins but preserve counts
+      const { setCoins } = useCoinStore.getState();
+      setCoins([]);
+      log.data("CoinSpawn: Player death - active coins cleared, spawn counters preserved");
 
       // Reset player position
       this.playerManager.resetPlayer(

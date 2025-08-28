@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Coin, Monster } from "../../types/interfaces";
 import { CoinManager } from "../../managers/coinManager";
 import { GAME_CONFIG } from "../../types/constants";
+import { COIN_SPAWNING } from "../../config/coins";
 import { log } from "../../lib/logger";
 import { useScoreStore } from "../game/scoreStore";
 import { useStateStore } from "../game/stateStore";
@@ -31,6 +32,7 @@ interface CoinActions {
   collectCoin: (coin: Coin) => void;
   onFirebombCollected: () => void;
   resetCoinState: () => void;
+  softResetCoinState: () => void;
   resetLevelCoinCounters: () => void;
   updateMonsterStates: (monsters: Monster[]) => void;
   resetEffects: () => void;
@@ -190,6 +192,14 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     log.coin(
       `Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`
     );
+    
+    // Log coin collection for spawn debugging
+    log.data('CoinSpawn: Coin collected', {
+      coinType: coin.type,
+      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
+      nextMCoinAt: Math.ceil(newTotalBonusMultiplierCoinsCollected / COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO) * COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO,
+      willSpawnMCoin: newTotalBonusMultiplierCoinsCollected > 0 && newTotalBonusMultiplierCoinsCollected % COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO === 0
+    });
   },
 
   onFirebombCollected: () => {
@@ -203,13 +213,13 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     });
   },
 
+  // Full reset for game over
   resetCoinState: () => {
     const { coinManager } = get();
     if (coinManager) {
-      coinManager.reset();
+      coinManager.reset();  // Full reset
     }
 
-    // Don't reset level-specific counters here - they accumulate across respawns
     set({
       coins: [],
       activeEffects: {
@@ -221,6 +231,39 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalPowerCoinsCollected: 0,
       totalBonusMultiplierCoinsCollected: 0,
       totalExtraLifeCoinsCollected: 0,
+    });
+    
+    log.data('CoinStore: Full reset (game over) - all coin state cleared');
+  },
+
+  // Soft reset for level transitions - preserves spawn counters
+  softResetCoinState: () => {
+    const { coinManager } = get();
+    if (coinManager) {
+      coinManager.softReset();  // Soft reset preserves counters
+    }
+
+    // Preserve the counts that should persist across levels
+    const currentState = get();
+    
+    set({
+      coins: [],
+      activeEffects: {
+        powerMode: false,
+        powerModeEndTime: 0,
+      },
+      // PRESERVE these counts across levels:
+      firebombCount: coinManager?.getFirebombCount() || currentState.firebombCount,
+      totalCoinsCollected: currentState.totalCoinsCollected,
+      totalPowerCoinsCollected: currentState.totalPowerCoinsCollected,
+      totalBonusMultiplierCoinsCollected: currentState.totalBonusMultiplierCoinsCollected,
+      totalExtraLifeCoinsCollected: currentState.totalExtraLifeCoinsCollected,
+    });
+    
+    log.data('CoinStore: Soft reset (level transition) - preserving spawn counters:', {
+      firebombCount: get().firebombCount,
+      totalBonusMultiplierCoinsCollected: get().totalBonusMultiplierCoinsCollected,
+      totalCoinsCollected: get().totalCoinsCollected
     });
   },
 

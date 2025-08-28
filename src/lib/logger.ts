@@ -228,6 +228,14 @@ export class Logger {
         data: () => this.showOnly(LogCategory.DATA),
         asset: () => this.showOnly(LogCategory.ASSET),
 
+        // Coin spawning specific filter (shows coin + spawn + data logs)
+        coinSpawn: () =>
+          this.enableCategories([
+            LogCategory.COIN,
+            LogCategory.SPAWN,
+            LogCategory.DATA,
+          ]),
+
         // Utility
         clear: () => console.clear(),
         help: () => this.showHelp(),
@@ -247,6 +255,10 @@ export class Logger {
           "%cYou can also use log.data() for data-passing logs",
           "color: #888; font-size: 12px;"
         );
+        console.log(
+          "%cUse gameLog.coinSpawn() to debug coin spawning logic",
+          "color: #888; font-size: 12px;"
+        );
       }
     }
   }
@@ -263,6 +275,7 @@ export class Logger {
     console.log("  gameLog.audio()     - Show only audio logs");
     console.log("  gameLog.bombs()     - Show bomb progression");
     console.log("  gameLog.coins()     - Show coin collection");
+    console.log("  gameLog.coinSpawn() - Show coin spawn debugging");
     console.log("  gameLog.gameplay()  - Show all gameplay logs");
     console.log("  gameLog.technical() - Show technical logs");
     console.log("  gameLog.coin()      - Show only coin logs (singular)");
