@@ -91,7 +91,7 @@ export class ScoreManager {
 
   public handleMonsterKill(monster: any): void {
     const { multiplier } = useScoreStore.getState();
-    const { activeEffects, coinManager } = useCoinStore.getState();
+    const { activeEffects } = useCoinStore.getState();
 
     // Calculate points using progressive bonus system
     const points = this.calculateMonsterKillPoints(multiplier);
@@ -104,12 +104,11 @@ export class ScoreManager {
       monster.y + monster.height / 2
     );
 
-    // Notify coin manager about points earned
-    if (activeEffects) {
-      coinManager.onPointsEarned(points, false);
-    }
+    // NOTE: Monster kill points should NOT count towards B-coin spawning
+    // Only coin collection points should count
+    // Therefore, we don't call coinManager.onPointsEarned for monster kills
 
-    log.debug(`Monster killed during power mode: ${points} points`);
+    log.debug(`Monster killed during power mode: ${points} points (not counted for B-coin spawning)`);
   }
 
   public handleBonusPoints(bonusPoints: number): void {
