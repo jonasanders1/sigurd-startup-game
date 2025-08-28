@@ -596,10 +596,11 @@ export class CoinManager {
     });
   }
 
-  collectCoin(coin: Coin, gameState?: Record<string, unknown>): void {
+  collectCoin(coin: Coin, gameState?: Record<string, unknown>): number {
     coin.isCollected = true;
     log.debug(`Collected ${coin.type} coin`);
 
+    let pointsEarned = 0;  // Track points to return
     const coinConfig = COIN_TYPES[coin.type];
     if (coinConfig && gameState) {
       log.debug(
@@ -607,7 +608,7 @@ export class CoinManager {
       );
 
       // Calculate points earned from this coin
-      let pointsEarned = coinConfig.points;
+      pointsEarned = coinConfig.points;
 
       // Special handling for P-coin - points based on current color
       if (coin.type === CoinType.POWER) {
@@ -801,6 +802,9 @@ export class CoinManager {
         this.activatePowerMode();
       }
     }
+    
+    // Return the points earned so the caller can add them to score correctly
+    return pointsEarned;
   }
 
   private checkEffectsEnd(gameState?: Record<string, unknown>): void {

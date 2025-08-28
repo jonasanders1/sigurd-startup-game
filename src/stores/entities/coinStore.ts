@@ -107,7 +107,8 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     });
 
     // Pass the game state to coinManager so effects can be applied
-    coinManager.collectCoin(coin, gameState);
+    // CoinManager returns the calculated points
+    const pointsEarned = coinManager.collectCoin(coin, gameState);
 
     log.coin(`Coin store: Coin manager collectCoin completed`);
 
@@ -166,20 +167,19 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       levelExtraLifeCoinsCollected: newLevelExtraLifeCoinsCollected,
     });
 
-    // Handle coin-specific effects by calling the individual stores
+    // Add the calculated points to score (coinManager already calculated with multiplier)
     const scoreStore = useScoreStore.getState();
     const stateStore = useStateStore.getState();
+    
+    if (pointsEarned > 0) {
+      scoreStore.addScore(pointsEarned);
+      log.coin(`Added ${pointsEarned} points to score`);
+    }
 
-    if (coin.type === "POWER") {
-      // Add points for POWER coin
-      scoreStore.addScore(GAME_CONFIG.POWER_COIN_POINTS);
-    } else if (coin.type === "BONUS_MULTIPLIER") {
-      // Handle BONUS_MULTIPLIER coin effects
-      const currentMultiplier = scoreStore.multiplier;
-      const points = 1000 * currentMultiplier;
-      scoreStore.addScore(points);
-
+    // Handle special effects that aren't point-related
+    if (coin.type === "BONUS_MULTIPLIER") {
       // Increase multiplier if not at max
+      const currentMultiplier = scoreStore.multiplier;
       if (currentMultiplier < GAME_CONFIG.MAX_MULTIPLIER) {
         // Add enough points to reach the next multiplier threshold
         const { MULTIPLIER_THRESHOLDS } = GAME_CONFIG;
@@ -193,11 +193,6 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         }
       }
     } else if (coin.type === "EXTRA_LIFE") {
-      // Handle EXTRA_LIFE coin effects
-      const currentMultiplier = scoreStore.multiplier;
-      const points = GAME_CONFIG.EXTRA_LIFE_COIN_POINTS * currentMultiplier;
-      scoreStore.addScore(points);
-
       // Add extra life
       stateStore.addLife();
       log.player(`Extra life added via coin store!`);
