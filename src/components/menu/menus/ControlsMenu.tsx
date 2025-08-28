@@ -63,7 +63,10 @@ const ControlsMenu = () => {
               key={index}
               className="bg-card rounded-lg p-4 border border-white/20"
             >
-              <div className="flex items-center justify-center gap-3 mb-2">
+              <p className="text-white text-sm text-center mb-3">
+                {control.description}
+              </p>
+              <div className="flex items-center justify-center gap-3">
                 <div className="flex gap-2">
                   {control.wasdKeys && (
                     <>
@@ -88,9 +91,6 @@ const ControlsMenu = () => {
                   ))}
                 </div>
               </div>
-              <p className="text-white text-sm text-center">
-                {control.description}
-              </p>
             </div>
           ))}
         </div>
