@@ -104,14 +104,23 @@ export class ScoreManager {
       monster.y + monster.height / 2
     );
 
-    // Monster kill points are now included in total score for B-coin spawning
+    // Track monster kill points for logging (B-coin spawning uses total score)
+    const { coinManager } = useCoinStore.getState();
+    if (coinManager) {
+      coinManager.onPointsEarned(points, false);
+    }
     
     log.debug(`Monster killed during power mode: ${points} points`);
   }
 
   public handleBonusPoints(bonusPoints: number): void {
     this.addScore(bonusPoints);
-    // Bonus points are now included in total score for B-coin spawning
+    
+    // Track bonus points for logging (B-coin spawning uses total score)
+    const { coinManager } = useCoinStore.getState();
+    if (coinManager) {
+      coinManager.onPointsEarned(bonusPoints, true);
+    }
   }
 
   public getScore(): number {

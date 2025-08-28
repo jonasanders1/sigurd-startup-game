@@ -33,6 +33,8 @@ export class CoinManager {
   private triggeredSpawnConditions: Set<string> = new Set(); // Track which spawn conditions have been triggered
   private lastProcessedScore: number = 0; // Track the last score threshold that was processed
   private lastScoreCheck: number = 0; // Track the last score threshold we checked for B-coin spawning
+  private bombAndMonsterPoints: number = 0; // Track for logging purposes only
+  private coinPoints: number = 0; // Track for logging purposes only  
   private monsterKillCount: number = 0; // Track monsters killed in current power mode session
   private pCoinColorIndex: number = 0; // Track current P-coin color index
 
@@ -55,6 +57,8 @@ export class CoinManager {
     this.triggeredSpawnConditions.clear();
     this.lastProcessedScore = 0;
     this.lastScoreCheck = 0;
+    this.bombAndMonsterPoints = 0;
+    this.coinPoints = 0;
     this.monsterKillCount = 0;
     // Don't reset pCoinColorIndex - let it persist across sessions
     log.data('CoinManager: Full reset (game over) - all counters cleared');
@@ -70,9 +74,12 @@ export class CoinManager {
     // - firebombCount (for P-coin spawning)
     // - triggeredSpawnConditions (prevents duplicate spawns)
     // - lastProcessedScore, lastScoreCheck (for B-coin threshold tracking)
+    // - coinPoints, bombAndMonsterPoints (for logging/debugging)
     log.data(`CoinManager: Soft reset (level transition) - preserving counters:`, {
       firebombCount: this.firebombCount,
-      lastScoreCheck: this.lastScoreCheck
+      lastScoreCheck: this.lastScoreCheck,
+      coinPointsTracking: this.coinPoints,
+      bombAndMonsterPointsTracking: this.bombAndMonsterPoints
     });
   }
 
@@ -91,7 +98,9 @@ export class CoinManager {
     // Don't clear score tracking or firebomb count - these persist across levels
     log.data(`CoinManager: Cleared active coins for new level, preserved spawn tracking:`, {
       firebombCount: this.firebombCount,
-      lastScoreCheck: this.lastScoreCheck
+      lastScoreCheck: this.lastScoreCheck,
+      coinPointsTracking: this.coinPoints,
+      bombAndMonsterPointsTracking: this.bombAndMonsterPoints
     });
   }
 
@@ -203,6 +212,37 @@ export class CoinManager {
     this.checkSpawnConditionsOnFirebombChange();
   }
 
+  // Track points for logging purposes only (B-coin spawning uses total score)
+  onPointsEarned(points: number, isBonus: boolean = false): void {
+    if (!isBonus) {
+      const previousPoints = this.bombAndMonsterPoints;
+      this.bombAndMonsterPoints += points;
+      
+      log.data('CoinSpawn: Points earned (bombs/monsters)', {
+        pointsEarned: points,
+        previousTotal: previousPoints,
+        newTotal: this.bombAndMonsterPoints,
+        isBonus: false
+      });
+    } else {
+      log.data('CoinSpawn: Bonus points earned', { 
+        points,
+        isBonus: true 
+      });
+    }
+  }
+
+  // Track coin collection points for logging purposes only
+  onCoinPointsEarned(points: number): void {
+    const previousPoints = this.coinPoints;
+    this.coinPoints += points;
+    
+    log.data('CoinSpawn: Coin collection points', {
+      pointsEarned: points,
+      previousCoinPoints: previousPoints,
+      newCoinPoints: this.coinPoints
+    });
+  }
 
 
   // Check B-coin spawn conditions based on total score
@@ -227,7 +267,13 @@ export class CoinManager {
       currentThreshold,
       lastThreshold,
       lastScoreCheck: this.lastScoreCheck,
-      willSpawn: currentThreshold > lastThreshold && currentThreshold >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL
+      willSpawn: currentThreshold > lastThreshold && currentThreshold >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+      // Show tracking values for debugging
+      tracking: {
+        coinPoints: this.coinPoints,
+        bombAndMonsterPoints: this.bombAndMonsterPoints,
+        note: 'Using totalScore for spawn decision, tracking values shown for debugging'
+      }
     });
 
     // If we've crossed a new threshold, spawn a coin
@@ -253,7 +299,13 @@ export class CoinManager {
         totalScore,
         currentThreshold,
         lastThreshold,
-        spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL
+        spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+        // Show tracking breakdown for debugging
+        pointBreakdown: {
+          coinPoints: this.coinPoints,
+          bombAndMonsterPoints: this.bombAndMonsterPoints,
+          totalUsedForSpawn: totalScore
+        }
       });
 
       // Mark this spawn condition as triggered
@@ -550,12 +602,16 @@ export class CoinManager {
         pointsEarned = coinConfig.points * currentMultiplier;
       }
 
-      // Log coin collection points
+      // Track and log coin collection points (for logging only, B-coin uses total score)
+      this.onCoinPointsEarned(pointsEarned);
+      
       log.data('CoinSpawn: Coin collected', {
         coinType: coin.type,
         pointsEarned,
         multiplier: (gameState.multiplier as number) || 1,
-        totalScore: (gameState.score as number) || 0
+        totalScore: (gameState.score as number) || 0,
+        coinPointsTracking: this.coinPoints,
+        bombAndMonsterPointsTracking: this.bombAndMonsterPoints
       });
 
       // Show floating text for points earned
