@@ -42,10 +42,20 @@ export class CoinManager {
   // Pause state tracking
   private isPaused: boolean = false;
   private pauseStartTime: number = 0;
+  
+  // Logging state tracking to prevent spam
+  private lastLoggedCoinPoints: number = -1;
+  private lastLoggedBonusCount: number = -1;
+  private lastLoggedFirebombCount: number = -1;
 
   constructor(spawnPoints: CoinSpawnPoint[] = []) {
     this.spawnPoints = spawnPoints;
     log.debug("CoinManager initialized");
+    
+    // Set up event listener for forced status logging
+    if (typeof window !== "undefined") {
+      window.addEventListener("forceLogCoinStatus", () => this.logCurrentSpawnStatus());
+    }
     
     // Log all coin spawn configurations for debugging
     const pcoinSpawnPoints = spawnPoints.filter(p => p.type === 'POWER');
@@ -98,6 +108,10 @@ export class CoinManager {
     this.coinPoints = 0;
     this.monsterKillCount = 0;
     // Don't reset pCoinColorIndex - let it persist across sessions
+    // Reset logging tracking
+    this.lastLoggedCoinPoints = -1;
+    this.lastLoggedBonusCount = -1;
+    this.lastLoggedFirebombCount = -1;
     log.data("CoinManager: Full reset (game over) - all counters cleared");
   }
 
@@ -128,6 +142,48 @@ export class CoinManager {
     log.debug(
       `Updated coin spawn points for new level: ${spawnPoints.length} spawn points`
     );
+  }
+  
+  // Force log current spawn status (called via browser console)
+  private logCurrentSpawnStatus(): void {
+    const bonusCount = useStateStore.getState().totalBonusMultiplierCoinsCollected || 0;
+    
+    // Calculate next spawn thresholds
+    const nextPCoinAt = this.firebombCount === 0 ? 
+      COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL :
+      Math.ceil(this.firebombCount / COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL) * COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL;
+    
+    const nextBCoinAt = this.coinPoints < GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL ? 
+      GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL :
+      (Math.floor(this.coinPoints / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) + 1) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
+    
+    const nextMCoinAt = bonusCount === 0 ? 
+      GAME_CONFIG.EXTRA_LIFE_COIN_RATIO :
+      Math.ceil(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
+    
+    log.data("CoinSpawn: Current Status (Forced)", {
+      "P-Coin Progress": {
+        firebombCount: this.firebombCount,
+        nextSpawnAt: nextPCoinAt,
+        firebombsNeeded: nextPCoinAt - this.firebombCount,
+        progress: `${this.firebombCount % COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL} / ${COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL}`,
+        spawnedSoFar: Math.floor(this.firebombCount / COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL)
+      },
+      "B-Coin Progress": {
+        coinPoints: this.coinPoints,
+        nextSpawnAt: nextBCoinAt,
+        pointsNeeded: nextBCoinAt - this.coinPoints,
+        progress: `${this.coinPoints % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL} / ${GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}`,
+        spawnedSoFar: Math.floor(this.coinPoints / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL)
+      },
+      "M-Coin Progress": {
+        bonusCoinsCollected: bonusCount,
+        nextSpawnAt: nextMCoinAt,
+        bcoinsNeeded: nextMCoinAt - bonusCount,
+        progress: `${bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO} / ${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}`,
+        spawnedSoFar: Math.floor(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO)
+      }
+    });
   }
 
   // Clear active coins but preserve score tracking for new level
@@ -414,19 +470,23 @@ export class CoinManager {
           combinedState as unknown as GameStateInterface
         );
         
-        // Enhanced P-coin spawn condition logging
-        const nextPCoinAt = Math.ceil(this.firebombCount / COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL) * COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL;
-        const firebombsNeeded = nextPCoinAt - this.firebombCount;
-        
-        log.data("CoinSpawn: P-coin spawn condition check", {
-          coinType: coinConfig.type,
-          firebombCount: this.firebombCount,
-          spawnInterval: COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL,
-          nextPCoinAt: this.firebombCount === 0 ? COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL : nextPCoinAt,
-          firebombsNeeded: willSpawn ? 0 : firebombsNeeded,
-          willSpawn,
-          reason: willSpawn ? "Threshold reached!" : `Need ${firebombsNeeded} more firebomb${firebombsNeeded === 1 ? '' : 's'}`
-        });
+        // Enhanced P-coin spawn condition logging (only when firebomb count changes)
+        if (this.firebombCount !== this.lastLoggedFirebombCount) {
+          this.lastLoggedFirebombCount = this.firebombCount;
+          const nextPCoinAt = Math.ceil(this.firebombCount / COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL) * COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL;
+          const firebombsNeeded = nextPCoinAt - this.firebombCount;
+          
+          log.data("CoinSpawn: P-coin spawn condition check", {
+            coinType: coinConfig.type,
+            firebombCount: this.firebombCount,
+            spawnInterval: COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL,
+            nextPCoinAt: this.firebombCount === 0 ? COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL : nextPCoinAt,
+            firebombsNeeded: willSpawn ? 0 : firebombsNeeded,
+            willSpawn,
+            progress: `${this.firebombCount % COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL} / ${COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL}`,
+            reason: willSpawn ? "Threshold reached!" : `Need ${firebombsNeeded} more firebomb${firebombsNeeded === 1 ? '' : 's'}`
+          });
+        }
 
         if (willSpawn) {
           // Create a unique key for this spawn condition
@@ -495,35 +555,45 @@ export class CoinManager {
           coinPoints: this.coinPoints,
         };
 
-        // Enhanced debug logging for B-coin
+        // Enhanced debug logging for B-coin (only when coin points change)
         if (coinConfig.type === "BONUS_MULTIPLIER") {
-          log.data("CoinSpawn: B-coin checking spawn conditions", {
-            coinPoints: this.coinPoints,
-            lastScoreCheck: this.lastScoreCheck,
-            currentThreshold: Math.floor(this.coinPoints / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
-            lastThreshold: Math.floor(this.lastScoreCheck / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
-            spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
-            spawnConditionString: coinConfig.spawnCondition.toString(),
-            willCheckThreshold: coinConfig.spawnCondition.toString().includes("coinPoints")
-          });
+          if (this.coinPoints !== this.lastLoggedCoinPoints) {
+            this.lastLoggedCoinPoints = this.coinPoints;
+            log.data("CoinSpawn: B-coin checking spawn conditions", {
+              coinPoints: this.coinPoints,
+              lastScoreCheck: this.lastScoreCheck,
+              currentThreshold: Math.floor(this.coinPoints / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+              lastThreshold: Math.floor(this.lastScoreCheck / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+              spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+              nextBCoinAt: this.coinPoints < GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL ? 
+                         GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL :
+                         (Math.floor(this.coinPoints / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) + 1) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+              progress: `${this.coinPoints % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL} / ${GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}`
+            });
+          }
         }
 
-        // Enhanced debug logging for EXTRA_LIFE coin
+        // Enhanced debug logging for EXTRA_LIFE coin (only when bonus count changes)
         if (coinConfig.type === "EXTRA_LIFE") {
           const bonusCount = (combinedState as any).totalBonusMultiplierCoinsCollected || 0;
-          const nextMCoinAt = Math.ceil(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
-          const bcoinsNeeded = bonusCount === 0 ? GAME_CONFIG.EXTRA_LIFE_COIN_RATIO : (nextMCoinAt - bonusCount);
           
-          log.data("CoinSpawn: M-coin spawn condition check", {
-            totalBonusMultiplierCoinsCollected: bonusCount,
-            ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
-            nextMCoinAt: nextMCoinAt || GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
-            bcoinsNeeded,
-            willSpawn: bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0,
-            reason: bonusCount === 0 ? "No B-coins collected yet" :
-                   bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0 ? "Threshold reached!" :
-                   `Need ${bcoinsNeeded} more B-coin${bcoinsNeeded === 1 ? '' : 's'}`
-          });
+          if (bonusCount !== this.lastLoggedBonusCount) {
+            this.lastLoggedBonusCount = bonusCount;
+            const nextMCoinAt = Math.ceil(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
+            const bcoinsNeeded = bonusCount === 0 ? GAME_CONFIG.EXTRA_LIFE_COIN_RATIO : (nextMCoinAt - bonusCount);
+            
+            log.data("CoinSpawn: M-coin spawn condition check", {
+              totalBonusMultiplierCoinsCollected: bonusCount,
+              ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
+              nextMCoinAt: nextMCoinAt || GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
+              bcoinsNeeded,
+              willSpawn: bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0,
+              progress: `${bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO} / ${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}`,
+              reason: bonusCount === 0 ? "No B-coins collected yet" :
+                     bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0 ? "Threshold reached!" :
+                     `Need ${bcoinsNeeded} more B-coin${bcoinsNeeded === 1 ? '' : 's'}`
+            });
+          }
         }
 
         if (

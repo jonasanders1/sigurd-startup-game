@@ -238,6 +238,9 @@ export class Logger {
 
         // Show current coin spawn conditions status
         coinConditions: () => this.showCoinSpawnConditions(),
+        
+        // Force log current coin spawn status
+        coinStatus: () => this.forceLogCoinStatus(),
 
         // Utility
         clear: () => console.clear(),
@@ -281,22 +284,33 @@ export class Logger {
     // This is a display-only method that shows the structure
     console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
     console.log("  Spawn Condition: Every 9 firebombs collected in correct order");
-    console.log("  Check current status: gameLog.coinSpawn() then collect firebombs");
+    console.log("  Check current status: gameLog.coinStatus()");
     
     console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
     console.log("  Spawn Condition: Every 5000 points from coin collection only");
-    console.log("  Check current status: gameLog.coinSpawn() then collect coins");
+    console.log("  Check current status: gameLog.coinStatus()");
     
     console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
     console.log("  Spawn Condition: Every 5 B-coins collected");
-    console.log("  Check current status: gameLog.coinSpawn() then collect B-coins");
+    console.log("  Check current status: gameLog.coinStatus()");
     
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
     console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
-    console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
+    console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks (only on value changes)");
+    console.log("  • Use gameLog.coinStatus() to force log current spawn status");
     console.log("  • Use gameLog.data() to see all data-passing logs including spawns");
-    console.log("  • Spawn conditions are logged with 'CoinSpawn:' prefix in data logs");
+    console.log("  • Spawn conditions are now only logged when values change, not every frame");
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+  }
+  
+  private forceLogCoinStatus(): void {
+    // This will trigger the CoinManager to log current status
+    // We emit a custom event that the CoinManager can listen to
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("forceLogCoinStatus"));
+      console.log("%c🔍 Requesting current coin spawn status...", "color: #4ECDC4;");
+      console.log("%cNote: If no logs appear, ensure the game is running and CoinManager is initialized", "color: #888;");
+    }
   }
 
   private showHelp(): void {
@@ -311,8 +325,9 @@ export class Logger {
     console.log("  gameLog.audio()         - Show only audio logs");
     console.log("  gameLog.bombs()         - Show bomb progression");
     console.log("  gameLog.coins()         - Show coin collection");
-    console.log("  gameLog.coinSpawn()     - Show coin spawn debugging");
+    console.log("  gameLog.coinSpawn()     - Show coin spawn debugging (on value changes)");
     console.log("  gameLog.coinConditions()- Show coin spawn conditions info");
+    console.log("  gameLog.coinStatus()    - Force log current spawn progress");
     console.log("  gameLog.gameplay()      - Show all gameplay logs");
     console.log("  gameLog.technical()     - Show technical logs");
     console.log("  gameLog.coin()          - Show only coin logs (singular)");
