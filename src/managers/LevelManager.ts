@@ -296,7 +296,7 @@ export class LevelManager {
   }
 
   public respawnPlayer(): void {
-    log.data('CoinSpawn: Player respawn - preserving coin spawn counters');
+    log.data('CoinSpawn: Player respawn - resetting firebomb count, preserving other counters');
     const { currentMap } = useLevelStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
     const { coinManager } = useCoinStore.getState();
@@ -313,16 +313,18 @@ export class LevelManager {
       this.scalingManager.resetOnDeath();
       log.debug("Difficulty reset after player death");
 
-      // DO NOT reset coin spawn counters when player dies (only clear active coins)
-      // The counters should persist across deaths according to requirements
+      // Reset firebomb count when player dies but preserve other coin spawn counters
+      // The firebomb count resets to ensure player must collect 9 correct bombs again
       if (coinManager) {
-        // Just clear the active coins but preserve all counters
+        // Clear the active coins
         coinManager.clearActiveCoins();
+        // Reset the firebomb count (for P-coin spawning)
+        coinManager.resetFirebombCount();
       }
       // Also update the coin store to clear active coins but preserve counts
       const { setCoins } = useCoinStore.getState();
       setCoins([]);
-      log.data("CoinSpawn: Player death - active coins cleared, spawn counters preserved");
+      log.data("CoinSpawn: Player death - active coins cleared, firebomb count reset to 0");
 
       // Reset player position
       this.playerManager.resetPlayer(
