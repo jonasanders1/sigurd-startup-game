@@ -277,11 +277,10 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every BONUS_COIN_SPAWN_INTERVAL points
-      // Use bombAndMonsterPoints if available, otherwise fall back to total score
-      const score =
-        (gameState as any).bombAndMonsterPoints || gameState.score || 0;
-      return score > 0 && score % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0;
+      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from COINS ONLY
+      // Use coinPoints to track points earned from coin collection
+      const coinPoints = (gameState as any).coinPoints || 0;
+      return coinPoints > 0 && coinPoints % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0;
     },
     maxActive: 1,
   },

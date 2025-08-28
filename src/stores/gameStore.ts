@@ -58,7 +58,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     playerStore.resetPlayer();
     levelStore.resetLevelState();
     levelStore.resetLevelHistory();
-    coinStore.resetCoinState();
+    coinStore.fullResetCoinState(); // Use full reset for GAME_OVER
     coinStore.resetEffects();
     coinStore.resetLevelCoinCounters();
     monsterStore.resetMonsters();

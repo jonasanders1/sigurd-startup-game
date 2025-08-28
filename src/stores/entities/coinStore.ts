@@ -31,6 +31,7 @@ interface CoinActions {
   collectCoin: (coin: Coin) => void;
   onFirebombCollected: () => void;
   resetCoinState: () => void;
+  fullResetCoinState: () => void; // New method for full reset on GAME_OVER
   resetLevelCoinCounters: () => void;
   updateMonsterStates: (monsters: Monster[]) => void;
   resetEffects: () => void;
@@ -206,10 +207,33 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
   resetCoinState: () => {
     const { coinManager } = get();
     if (coinManager) {
-      coinManager.reset();
+      // Use soft reset for level transitions (preserves counters)
+      coinManager.softReset();
     }
 
-    // Don't reset level-specific counters here - they accumulate across respawns
+    // Clear active coins but preserve total counters for cross-level persistence
+    set({
+      coins: [],
+      activeEffects: {
+        powerMode: false,
+        powerModeEndTime: 0,
+      },
+      // Keep firebombCount from coinManager (don't reset it)
+      firebombCount: coinManager?.getFirebombCount() || 0,
+      // Don't reset these total counters - they persist across levels
+      // totalCoinsCollected, totalPowerCoinsCollected, 
+      // totalBonusMultiplierCoinsCollected, totalExtraLifeCoinsCollected 
+      // remain unchanged
+    });
+  },
+
+  // New method for full reset on GAME_OVER
+  fullResetCoinState: () => {
+    const { coinManager } = get();
+    if (coinManager) {
+      coinManager.reset(); // Full reset
+    }
+
     set({
       coins: [],
       activeEffects: {
@@ -221,6 +245,10 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalPowerCoinsCollected: 0,
       totalBonusMultiplierCoinsCollected: 0,
       totalExtraLifeCoinsCollected: 0,
+      levelCoinsCollected: 0,
+      levelPowerCoinsCollected: 0,
+      levelBonusMultiplierCoinsCollected: 0,
+      levelExtraLifeCoinsCollected: 0,
     });
   },
 
