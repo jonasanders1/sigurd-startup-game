@@ -47,14 +47,40 @@ export class CoinManager {
     this.spawnPoints = spawnPoints;
     log.debug("CoinManager initialized");
     
-    // Log B-coin configuration for debugging
+    // Log all coin spawn configurations for debugging
+    const pcoinSpawnPoints = spawnPoints.filter(p => p.type === 'POWER');
     const bcoinSpawnPoints = spawnPoints.filter(p => p.type === 'BONUS_MULTIPLIER');
-    log.data("CoinSpawn: B-coin configuration", {
-      spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
-      bcoinSpawnPointsCount: bcoinSpawnPoints.length,
-      bcoinSpawnPoints: bcoinSpawnPoints.map(p => ({x: p.x, y: p.y})),
-      expectedSpawnsAt: [5000, 10000, 15000, 20000, 25000],
-      note: "B-coins spawn every 5000 points from coin collection only"
+    const mcoinSpawnPoints = spawnPoints.filter(p => p.type === 'EXTRA_LIFE');
+    
+    log.data("CoinSpawn: Initialize - All coin spawn conditions", {
+      "P-Coin (Power)": {
+        condition: "Every 9 firebombs collected in correct order",
+        spawnInterval: COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL,
+        spawnPointsCount: pcoinSpawnPoints.length,
+        spawnPoints: pcoinSpawnPoints.map(p => ({x: p.x, y: p.y})),
+        expectedSpawnsAt: [9, 18, 27, 36, 45].map(n => `${n} firebombs`),
+        color: "Dynamic (red to purple gradient based on time left)",
+        effects: "Power mode - invincibility and monster destruction"
+      },
+      "B-Coin (Bonus Multiplier)": {
+        condition: "Every 5000 points from coin collection only",
+        spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+        spawnPointsCount: bcoinSpawnPoints.length,
+        spawnPoints: bcoinSpawnPoints.map(p => ({x: p.x, y: p.y})),
+        expectedSpawnsAt: [5000, 10000, 15000, 20000, 25000],
+        color: "#e9b300 (yellow-orange)",
+        effects: "2x score multiplier for 10 seconds"
+      },
+      "M-Coin (Extra Life)": {
+        condition: "Every 5 B-coins collected",
+        ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
+        spawnPointsCount: mcoinSpawnPoints.length,
+        spawnPoints: mcoinSpawnPoints.map(p => ({x: p.x, y: p.y})),
+        expectedSpawnsAt: [5, 10, 15, 20, 25].map(n => `${n} B-coins`),
+        color: "#ef4444 (red)",
+        effects: "+1 extra life"
+      },
+      usage: "Run gameLog.coinSpawn() to see real-time spawn checks, or gameLog.coinConditions() for this summary"
     });
   }
 
@@ -384,16 +410,34 @@ export class CoinManager {
           firebombCount: this.firebombCount,
         };
 
-        if (
-          coinConfig.spawnCondition(
-            combinedState as unknown as GameStateInterface
-          )
-        ) {
+        const willSpawn = coinConfig.spawnCondition(
+          combinedState as unknown as GameStateInterface
+        );
+        
+        // Enhanced P-coin spawn condition logging
+        const nextPCoinAt = Math.ceil(this.firebombCount / COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL) * COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL;
+        const firebombsNeeded = nextPCoinAt - this.firebombCount;
+        
+        log.data("CoinSpawn: P-coin spawn condition check", {
+          coinType: coinConfig.type,
+          firebombCount: this.firebombCount,
+          spawnInterval: COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL,
+          nextPCoinAt: this.firebombCount === 0 ? COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL : nextPCoinAt,
+          firebombsNeeded: willSpawn ? 0 : firebombsNeeded,
+          willSpawn,
+          reason: willSpawn ? "Threshold reached!" : `Need ${firebombsNeeded} more firebomb${firebombsNeeded === 1 ? '' : 's'}`
+        });
+
+        if (willSpawn) {
           // Create a unique key for this spawn condition
           const spawnKey = `${coinConfig.type}_${this.firebombCount}`;
 
           // Check if we've already triggered this spawn condition
           if (this.triggeredSpawnConditions.has(spawnKey)) {
+            log.data("CoinSpawn: P-coin already spawned for this threshold", {
+              spawnKey,
+              firebombCount: this.firebombCount
+            });
             return; // Already triggered this spawn condition
           }
 
@@ -404,6 +448,7 @@ export class CoinManager {
             firebombCount: this.firebombCount,
             spawnKey,
             spawnInterval: COIN_SPAWNING.POWER_COIN_SPAWN_INTERVAL,
+            note: "Creating P-coin now"
           });
 
           // Mark this spawn condition as triggered
@@ -463,13 +508,22 @@ export class CoinManager {
           });
         }
 
-        // Debug logging for EXTRA_LIFE coin
+        // Enhanced debug logging for EXTRA_LIFE coin
         if (coinConfig.type === "EXTRA_LIFE") {
-          log.debug(
-            `EXTRA_LIFE checking spawn condition, bonusCount: ${
-              (combinedState as any).totalBonusMultiplierCoinsCollected
-            }`
-          );
+          const bonusCount = (combinedState as any).totalBonusMultiplierCoinsCollected || 0;
+          const nextMCoinAt = Math.ceil(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) * GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
+          const bcoinsNeeded = bonusCount === 0 ? GAME_CONFIG.EXTRA_LIFE_COIN_RATIO : (nextMCoinAt - bonusCount);
+          
+          log.data("CoinSpawn: M-coin spawn condition check", {
+            totalBonusMultiplierCoinsCollected: bonusCount,
+            ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
+            nextMCoinAt: nextMCoinAt || GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
+            bcoinsNeeded,
+            willSpawn: bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0,
+            reason: bonusCount === 0 ? "No B-coins collected yet" :
+                   bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0 ? "Threshold reached!" :
+                   `Need ${bcoinsNeeded} more B-coin${bcoinsNeeded === 1 ? '' : 's'}`
+          });
         }
 
         if (
@@ -477,14 +531,7 @@ export class CoinManager {
             combinedState as unknown as GameStateInterface
           )
         ) {
-          // Debug logging for EXTRA_LIFE coin
-          if (coinConfig.type === "EXTRA_LIFE") {
-            log.debug(
-              `EXTRA_LIFE spawn condition met! bonusCount: ${
-                (combinedState as any).totalBonusMultiplierCoinsCollected
-              }`
-            );
-          }
+          // Spawn condition met - proceed with spawning logic
 
           // Create a unique key for this spawn condition based on the current state
           let spawnKey = `${coinConfig.type}`;
@@ -611,13 +658,9 @@ export class CoinManager {
             this.spawnCoin(coinConfig.type as CoinType, spawnX, spawnY);
           }
         } else {
-          // Debug logging for EXTRA_LIFE coin when condition is not met
+          // Additional debug logging only for coins that weren't already logged
           if (coinConfig.type === "EXTRA_LIFE") {
-            log.debug(
-              `EXTRA_LIFE spawn condition NOT met, bonusCount: ${
-                (combinedState as any).totalBonusMultiplierCoinsCollected
-              }`
-            );
+            // Already logged in the check above, no need to duplicate
           }
         }
       }
