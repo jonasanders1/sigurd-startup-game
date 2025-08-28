@@ -277,13 +277,13 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from ANY source (except end-of-map bonus)
-      // Use the total score, not just coin points
-      const totalScore = gameState.score || 0;
+      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from firebomb collection ONLY
+      // This prevents B-coin collection from triggering more B-coins
+      const firebombPoints = (gameState as any).firebombPoints || 0;
       
       // Check if we've reached a threshold (not using modulo since that fails for incremental points)
       // This is handled properly in checkBcoinSpawnConditions method
-      return totalScore >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
+      return firebombPoints >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
     },
     maxActive: 1,
   },

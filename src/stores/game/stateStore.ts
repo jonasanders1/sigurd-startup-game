@@ -267,15 +267,14 @@ export const useStateStore = create<StateStore>((set, get) => ({
     // Add points to multiplier system
     scoreStore.addMultiplierScore(scoreCalculation.actualPoints);
 
-    // Notify coin manager about points earned from bombs
-    // Note: These points should NOT count for B-coin spawning
-    // Only coin collection points count for B-coin spawning
+    // Notify coin manager about firebomb points earned
+    // These points WILL count for B-coin spawning (per user requirement)
     const coinStore = useCoinStore.getState();
     if (coinStore.coinManager) {
-      // We still track bomb points separately for other purposes
-      coinStore.coinManager.onPointsEarned(
-        scoreCalculation.actualPoints,
-        false
+      // Track firebomb points for B-coin spawning
+      // This includes both correct (200 base) and incorrect (100 base) bombs
+      coinStore.coinManager.onFirebombPointsEarned(
+        scoreCalculation.actualPoints
       );
     }
 
