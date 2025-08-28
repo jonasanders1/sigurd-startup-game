@@ -104,22 +104,14 @@ export class ScoreManager {
       monster.y + monster.height / 2
     );
 
-    // NOTE: Monster kill points should NOT count towards B-coin spawning
-    // Only coin collection points should count
-    // Therefore, we don't call coinManager.onPointsEarned for monster kills
-
-    log.debug(`Monster killed during power mode: ${points} points (not counted for B-coin spawning)`);
+    // Monster kill points are now included in total score for B-coin spawning
+    
+    log.debug(`Monster killed during power mode: ${points} points`);
   }
 
   public handleBonusPoints(bonusPoints: number): void {
-    const { activeEffects, coinManager } = useCoinStore.getState();
-
     this.addScore(bonusPoints);
-
-    // Notify coin manager about bonus points (should not trigger B-coin spawning)
-    if (activeEffects) {
-      coinManager.onPointsEarned(bonusPoints, true);
-    }
+    // Bonus points are now included in total score for B-coin spawning
   }
 
   public getScore(): number {

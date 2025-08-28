@@ -277,13 +277,12 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from coin collection only
-      // Use coinPoints to track points earned from collecting coins
-      const coinPoints = (gameState as any).coinPoints || 0;
+      // Spawn every BONUS_COIN_SPAWN_INTERVAL points (total score)
+      const score = gameState.score || 0;
       
       // Check if we've reached a threshold (not using modulo since that fails for incremental points)
       // This is handled properly in checkBcoinSpawnConditions method
-      return coinPoints >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
+      return score >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
     },
     maxActive: 1,
   },

@@ -241,10 +241,7 @@ export class LevelManager {
       this.audioManager.playSound(AudioEvent.BONUS_SCREEN);
       addRawScore(bonusPoints); // Use addRawScore to avoid multiplying bonus
 
-      // Notify coin manager about bonus points
-      if (coinManager) {
-        coinManager.onPointsEarned(bonusPoints, true);
-      }
+      // Bonus points are now added to total score, which is used for B-coin spawning
     } else {
       // No bonus, go directly to next level
       this.proceedToNextLevel();

@@ -59,13 +59,7 @@ export const createBombSlice: StateCreator<BombSlice> = (set, get) => ({
       (api as { addMultiplierScore: (points: number) => void }).addMultiplierScore(scoreCalculation.actualPoints);
     }
 
-    // Notify coin manager about points earned (not bonus)
-    if ("coinManager" in api && (api as { coinManager?: { onPointsEarned: (points: number, isBonus: boolean) => void } }).coinManager) {
-      (api as { coinManager: { onPointsEarned: (points: number, isBonus: boolean) => void } }).coinManager.onPointsEarned(
-        scoreCalculation.actualPoints,
-        false
-      );
-    }
+    // Points are now automatically tracked via total score for B-coin spawning
     
     // Log the score (only for firebombs or high scores to reduce spam)
     if (isFirebomb || scoreCalculation.actualPoints >= 400) {
