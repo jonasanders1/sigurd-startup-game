@@ -29,6 +29,10 @@ interface CoinState {
 interface CoinActions {
   setCoins: (coins: Coin[]) => void;
   setCoinManager: (manager: CoinManager) => void;
+  setFirebombCount: (count: number) => void;
+  clearActiveCoins: () => void;
+  onPointsEarned: (points: number, isBonus: boolean) => void;
+  calculateMonsterKillPoints: (multiplier: number) => number;
   collectCoin: (coin: Coin) => void;
   onFirebombCollected: () => void;
   resetCoinState: () => void;
@@ -78,6 +82,33 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
 
   setCoinManager: (manager: CoinManager) => {
     set({ coinManager: manager });
+  },
+
+  setFirebombCount: (count: number) => {
+    set({ firebombCount: count });
+  },
+
+  clearActiveCoins: () => {
+    const { coinManager } = get();
+    if (coinManager) {
+      coinManager.clearActiveCoins();
+    }
+    set({ coins: [] });
+  },
+
+  onPointsEarned: (points: number, isBonus: boolean = false) => {
+    const { coinManager } = get();
+    if (coinManager) {
+      coinManager.onPointsEarned(points, isBonus);
+    }
+  },
+
+  calculateMonsterKillPoints: (multiplier: number): number => {
+    const { coinManager } = get();
+    if (coinManager) {
+      return coinManager.calculateMonsterKillPoints(multiplier);
+    }
+    return 0; // Fallback if no coin manager available
   },
 
   collectCoin: (coin: Coin) => {

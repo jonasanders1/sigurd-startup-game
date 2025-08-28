@@ -1266,6 +1266,20 @@ export class CoinManager {
     return this.firebombCount;
   }
 
+  // Reset firebomb count when player dies (loses a life)
+  resetFirebombCount(): void {
+    const previousCount = this.firebombCount;
+    this.firebombCount = 0;
+    
+    log.coin(`Firebomb count reset after player death: ${previousCount} → 0`);
+    log.data("CoinSpawn: Firebomb count reset", {
+      previousCount,
+      newCount: 0,
+      reason: "Player lost a life",
+      note: "Player must collect 9 correct bombs again for P-coin spawn"
+    });
+  }
+
   getAllCoins(): Coin[] {
     return [...this.coins];
   }

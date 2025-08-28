@@ -46,12 +46,9 @@ export class ScoreManager {
   }
 
   public calculateMonsterKillPoints(multiplier: number): number {
-    // Use the score store for multiplier and fallback to default calculation
-    const { activeEffects, coinManager } = useCoinStore.getState();
-
-    if (activeEffects) {
-      return coinManager.calculateMonsterKillPoints(multiplier);
-    }
+    // Use the coin store for monster kill point calculation
+    const { calculateMonsterKillPoints } = useCoinStore.getState();
+    return calculateMonsterKillPoints(multiplier);
   }
 
   public showFloatingText(
@@ -112,14 +109,12 @@ export class ScoreManager {
   }
 
   public handleBonusPoints(bonusPoints: number): void {
-    const { activeEffects, coinManager } = useCoinStore.getState();
+    const { onPointsEarned } = useCoinStore.getState();
 
     this.addScore(bonusPoints);
 
     // Notify coin manager about bonus points (should not trigger B-coin spawning)
-    if (activeEffects) {
-      coinManager.onPointsEarned(bonusPoints, true);
-    }
+    onPointsEarned(bonusPoints, true);
   }
 
   public getScore(): number {

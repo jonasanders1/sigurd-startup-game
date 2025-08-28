@@ -207,25 +207,25 @@ export class LevelManager {
     resetCoinState();
     log.debug("Coins reset when map is cleared");
 
-          // Record the level result
-      if (currentMap) {
-        const levelResult = {
-          level: currentLevel,
-          mapName: currentMap.name,
-          correctOrderCount: correctOrderCount,
-          effectiveCount: effectiveCount,
-          totalBombs: collectedBombs.length,
-          score: levelScore,  // Use levelScore for this level's earnings only
-          bonus: bonusPoints,
-          hasBonus: bonusPoints > 0,
-          coinsCollected: coinsCollected,
-          powerModeActivations: powerModeActivations,
-          completionTime: completionTime,
-          timestamp: Date.now(),
-          lives: lives,
-          multiplier: multiplier,
-          isPartial: false,
-        };
+    // Record the level result
+    if (currentMap) {
+      const levelResult = {
+        level: currentLevel,
+        mapName: currentMap.name,
+        correctOrderCount: correctOrderCount,
+        effectiveCount: effectiveCount,
+        totalBombs: collectedBombs.length,
+        score: levelScore, // Use levelScore for this level's earnings only
+        bonus: bonusPoints,
+        hasBonus: bonusPoints > 0,
+        coinsCollected: coinsCollected,
+        powerModeActivations: powerModeActivations,
+        completionTime: completionTime,
+        timestamp: Date.now(),
+        lives: lives,
+        multiplier: multiplier,
+        isPartial: false,
+      };
       addLevelResult(levelResult);
 
       // Send map completion data
@@ -242,9 +242,8 @@ export class LevelManager {
       addRawScore(bonusPoints); // Use addRawScore to avoid multiplying bonus
 
       // Notify coin manager about bonus points
-      if (coinManager) {
-        coinManager.onPointsEarned(bonusPoints, true);
-      }
+      const { onPointsEarned } = useCoinStore.getState();
+      onPointsEarned(bonusPoints, true);
     } else {
       // No bonus, go directly to next level
       this.proceedToNextLevel();
@@ -265,7 +264,7 @@ export class LevelManager {
     if (nextLevelNumber <= mapDefinitions.length) {
       // Reset coin effects but preserve spawn counters
       resetEffects();
-      softResetCoinState();  // Use soft reset to preserve counters
+      softResetCoinState(); // Use soft reset to preserve counters
       resetLevelCoinCounters(); // Reset level-specific counters for the new level
       log.level("Proceeding to next level with preserved coin spawn counters");
 
@@ -296,10 +295,11 @@ export class LevelManager {
   }
 
   public respawnPlayer(): void {
-    log.data('CoinSpawn: Player respawn - preserving coin spawn counters');
+    log.data(
+      "CoinSpawn: Player respawn - resetting firebomb count, preserving other counters"
+    );
     const { currentMap } = useLevelStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
-    const { coinManager } = useCoinStore.getState();
     const { updateMonsters } = useMonsterStore.getState();
 
     // Stop power-up melody if active
@@ -313,16 +313,17 @@ export class LevelManager {
       this.scalingManager.resetOnDeath();
       log.debug("Difficulty reset after player death");
 
-      // DO NOT reset coin spawn counters when player dies (only clear active coins)
-      // The counters should persist across deaths according to requirements
-      if (coinManager) {
-        // Just clear the active coins but preserve all counters
-        coinManager.clearActiveCoins();
-      }
-      // Also update the coin store to clear active coins but preserve counts
-      const { setCoins } = useCoinStore.getState();
-      setCoins([]);
-      log.data("CoinSpawn: Player death - active coins cleared, spawn counters preserved");
+      // Reset firebomb count when player dies but preserve other coin spawn counters
+      // The firebomb count resets to ensure player must collect 9 correct bombs again
+      const { clearActiveCoins, coinManager } = useCoinStore.getState();
+
+      // Clear active coins and reset firebomb count
+      clearActiveCoins();
+      // setFirebombCount(0);
+
+      // Also reset the coin manager's internal firebomb count if available
+
+      coinManager.resetFirebombCount();
 
       // Reset player position
       this.playerManager.resetPlayer(
