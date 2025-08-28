@@ -6,6 +6,7 @@ import { COIN_SPAWNING } from "../../config/coins";
 import { log } from "../../lib/logger";
 import { useScoreStore } from "../game/scoreStore";
 import { useStateStore } from "../game/stateStore";
+import { useRenderStore } from "../gameStore";
 
 interface CoinState {
   coins: Coin[];
@@ -88,12 +89,25 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
 
     // Get the current game state to pass to coinManager.collectCoin
     const currentState = get();
+    const scoreState = useScoreStore.getState();
+    const renderState = useRenderStore.getState();
+    
+    // Create combined game state with all necessary properties
+    const gameState = {
+      ...currentState,
+      multiplier: scoreState.multiplier,
+      score: scoreState.score,
+      addFloatingText: renderState.addFloatingText,
+    } as Record<string, unknown>;
+    
+    log.data('CoinSpawn: Passing gameState to collectCoin', {
+      multiplier: scoreState.multiplier,
+      hasCoinManager: !!coinManager,
+      coinType: coin.type
+    });
 
     // Pass the game state to coinManager so effects can be applied
-    coinManager.collectCoin(
-      coin,
-      currentState as unknown as Record<string, unknown>
-    );
+    coinManager.collectCoin(coin, gameState);
 
     log.coin(`Coin store: Coin manager collectCoin completed`);
 
