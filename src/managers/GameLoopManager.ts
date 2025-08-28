@@ -172,9 +172,14 @@ export class GameLoopManager {
 
     if (ground && coinManager) {
       // Check spawn conditions for all coin types
-      coinManager.checkSpawnConditions(
-        getGameState() as unknown as Record<string, unknown>
-      );
+      const gameState = getGameState() as unknown as Record<string, unknown>;
+      
+      // Log every 60 frames (approximately once per second at 60fps) to avoid spam
+      if (Math.floor(Date.now() / 1000) % 5 === 0 && Date.now() % 1000 < 20) {
+        console.debug(`[GameLoop] Checking coin spawns - Score: ${gameState.score}, Multiplier: ${gameState.multiplier}`);
+      }
+      
+      coinManager.checkSpawnConditions(gameState);
 
       // Let CoinManager handle all coin physics updates
       coinManager.update(platforms, ground, getGameState());

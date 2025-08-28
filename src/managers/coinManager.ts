@@ -60,6 +60,15 @@ export class CoinManager {
     // Don't reset pCoinColorIndex - let it persist across sessions
   }
 
+  // Getters for debug display
+  getFirebombCount(): number {
+    return this.firebombCount;
+  }
+
+  getBombAndMonsterPoints(): number {
+    return this.bombAndMonsterPoints;
+  }
+
   // Update spawn points when loading a new level
   updateSpawnPoints(spawnPoints: CoinSpawnPoint[]): void {
     this.spawnPoints = spawnPoints;
@@ -165,7 +174,12 @@ export class CoinManager {
 
   onFirebombCollected(): void {
     this.firebombCount++;
-    log.debug(`Firebomb count: ${this.firebombCount}`);
+    
+    log.debug("=== FIREBOMB COLLECTED ===");
+    log.debug(`  New firebomb count: ${this.firebombCount}
+  P-coin spawn interval: ${GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL}
+  Will trigger P-coin: ${this.firebombCount > 0 && this.firebombCount % GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL === 0}
+  Active P-coins: ${this.coins.filter(c => c.type === CoinType.POWER).length}`);
 
     // Check spawn conditions immediately when firebomb count changes
     this.checkSpawnConditionsOnFirebombChange();
@@ -174,13 +188,22 @@ export class CoinManager {
   // Track points from bombs and monsters (excluding bonus points)
   onPointsEarned(points: number, isBonus: boolean = false): void {
     if (!isBonus) {
+      const previousPoints = this.bombAndMonsterPoints;
       this.bombAndMonsterPoints += points;
-      log.debug(
-        `Points earned: ${points}, total bomb/monster points: ${this.bombAndMonsterPoints}`
-      );
+      
+      log.debug("=== POINTS EARNED (BOMB/MONSTER) ===");
+      log.debug(`  Points added: ${points}
+  Previous total: ${previousPoints}
+  New total: ${this.bombAndMonsterPoints}
+  B-coin spawn interval: ${GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}
+  Next B-coin threshold: ${Math.ceil(this.bombAndMonsterPoints / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) * GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}
+  Active B-coins: ${this.coins.filter(c => c.type === CoinType.BONUS_MULTIPLIER).length}`);
 
       // Check for B-coin spawn conditions immediately when points are earned
       this.checkBcoinSpawnConditions();
+    } else {
+      log.debug(`=== BONUS POINTS EARNED ===`);
+      log.debug(`  Points: ${points} (not counted for coin spawning)`);
     }
   }
 
@@ -198,6 +221,15 @@ export class CoinManager {
       Math.floor(this.lastScoreCheck / GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL) *
       GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
 
+    log.debug("=== CHECKING B-COIN SPAWN ON POINT EARN ===");
+    log.debug(`  Bomb/Monster points: ${this.bombAndMonsterPoints}
+  Last check: ${this.lastScoreCheck}
+  Current threshold: ${currentThreshold}
+  Last threshold: ${lastThreshold}
+  Spawn interval: ${GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}
+  Threshold crossed: ${currentThreshold > lastThreshold && currentThreshold >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}
+  Active B-coins: ${this.coins.filter(c => c.type === CoinType.BONUS_MULTIPLIER).length}`);
+
     // If we've crossed a new threshold, spawn a coin
     if (
       currentThreshold > lastThreshold &&
@@ -208,13 +240,13 @@ export class CoinManager {
       // Check if we've already triggered this spawn condition
       if (this.triggeredSpawnConditions.has(spawnKey)) {
         log.debug(
-          `B-coin spawn condition already triggered for threshold ${currentThreshold}`
+          `  ✗ B-coin spawn already triggered for threshold ${currentThreshold}`
         );
         return;
       }
 
       log.debug(
-        `B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold} (bomb/monster points: ${this.bombAndMonsterPoints})`
+        `  ✓ B-COIN WILL SPAWN! Threshold crossed: ${lastThreshold} -> ${currentThreshold}`
       );
 
       // Mark this spawn condition as triggered
@@ -243,6 +275,12 @@ export class CoinManager {
 
   // Check spawn conditions when firebomb count changes (for firebomb-based spawns)
   private checkSpawnConditionsOnFirebombChange(): void {
+    log.debug("=== CHECKING P-COIN SPAWN ON FIREBOMB CHANGE ===");
+    log.debug(`  Firebomb count: ${this.firebombCount}
+  Required interval: ${GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL}
+  Should spawn P-coin: ${this.firebombCount > 0 && this.firebombCount % GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL === 0}
+  Active P-coins: ${this.coins.filter(c => c.type === CoinType.POWER).length}`);
+
     Object.values(COIN_TYPES).forEach((coinConfig) => {
       // Only check spawn conditions that depend on firebomb count (P-coin)
       if (
@@ -252,6 +290,8 @@ export class CoinManager {
         const combinedState = {
           firebombCount: this.firebombCount,
         };
+
+        log.debug(`  Checking ${coinConfig.type} spawn condition...`);
 
         if (
           coinConfig.spawnCondition(
@@ -263,11 +303,12 @@ export class CoinManager {
 
           // Check if we've already triggered this spawn condition
           if (this.triggeredSpawnConditions.has(spawnKey)) {
+            log.debug(`  ✗ P-coin spawn already triggered for key: ${spawnKey}`);
             return; // Already triggered this spawn condition
           }
 
           log.debug(
-            `P-coin spawn condition met (firebombCount: ${this.firebombCount}, key: ${spawnKey})`
+            `  ✓ P-COIN WILL SPAWN! (firebombCount: ${this.firebombCount}, key: ${spawnKey})`
           );
 
           // Mark this spawn condition as triggered
@@ -300,6 +341,16 @@ export class CoinManager {
 
   // Check spawn conditions for other types (score-based, time-based, etc.)
   checkSpawnConditions(gameState: Record<string, unknown>): void {
+    // Log current game state for debugging
+    log.debug("=== CHECKING COIN SPAWN CONDITIONS ===");
+    log.debug(`Current game state:
+      - Total Score: ${gameState.score || 0}
+      - Bomb/Monster Points: ${this.bombAndMonsterPoints}
+      - Firebomb Count: ${this.firebombCount}
+      - Bonus Coins Collected: ${gameState.totalBonusMultiplierCoinsCollected || 0}
+      - Active Coins: ${this.coins.map(c => c.type).join(', ') || 'none'}
+      - Triggered Conditions: ${Array.from(this.triggeredSpawnConditions).join(', ') || 'none'}`);
+
     Object.values(COIN_TYPES).forEach((coinConfig) => {
       // Skip firebomb-based spawns as they're handled separately
       if (
@@ -313,9 +364,21 @@ export class CoinManager {
           bombAndMonsterPoints: this.bombAndMonsterPoints,
         };
         
-        // Debug logging for EXTRA_LIFE coin
+        // Debug logging for each coin type check
+        log.debug(`\nChecking ${coinConfig.type} spawn condition:`);
+        
+        // Log specific conditions for each coin type
         if (coinConfig.type === "EXTRA_LIFE") {
-          log.debug(`EXTRA_LIFE checking spawn condition, bonusCount: ${(combinedState as any).totalBonusMultiplierCoinsCollected}`);
+          const bonusCount = (combinedState as any).totalBonusMultiplierCoinsCollected || 0;
+          log.debug(`  - Bonus coins collected: ${bonusCount}
+  - Required ratio: ${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}
+  - Should spawn: ${bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0}
+  - Max active check: ${this.coins.filter(c => c.type === CoinType.EXTRA_LIFE).length} / ${coinConfig.maxActive}`);
+        } else if (coinConfig.type === "BONUS_MULTIPLIER") {
+          log.debug(`  - Bomb/Monster points: ${this.bombAndMonsterPoints}
+  - Spawn interval: ${GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL}
+  - Should spawn: ${this.bombAndMonsterPoints > 0 && this.bombAndMonsterPoints % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0}
+  - Max active check: ${this.coins.filter(c => c.type === CoinType.BONUS_MULTIPLIER).length} / ${coinConfig.maxActive}`);
         }
 
         if (
@@ -323,10 +386,7 @@ export class CoinManager {
             combinedState as unknown as GameStateInterface
           )
         ) {
-          // Debug logging for EXTRA_LIFE coin
-          if (coinConfig.type === "EXTRA_LIFE") {
-            log.debug(`EXTRA_LIFE spawn condition met! bonusCount: ${(combinedState as any).totalBonusMultiplierCoinsCollected}`);
-          }
+          log.debug(`  ✓ ${coinConfig.type} spawn condition MET!`);
           
           // Create a unique key for this spawn condition based on the current state
           let spawnKey = `${coinConfig.type}`;
@@ -352,9 +412,12 @@ export class CoinManager {
               ) {
                 spawnKey = `${coinConfig.type}_${currentThreshold}`;
                 log.debug(
-                  `B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold} (bomb/monster points: ${this.bombAndMonsterPoints})`
+                  `  ✓ B-coin threshold crossed: ${lastThreshold} -> ${currentThreshold}`
                 );
               } else {
+                log.debug(
+                  `  ✗ B-coin threshold NOT crossed: current=${currentThreshold}, last=${lastThreshold}`
+                );
                 return; // Skip this spawn condition
               }
 
@@ -376,17 +439,18 @@ export class CoinManager {
               GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
             spawnKey = `${coinConfig.type}_${threshold}`;
             log.debug(
-              `E-coin spawn check: bonusCount=${bonusCount}, threshold=${threshold}, ratio=${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO}, shouldSpawn=${bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0}`
+              `  E-coin spawn key calculation: bonusCount=${bonusCount}, threshold=${threshold}`
             );
           }
 
           // Check if we've already triggered this spawn condition
           if (this.triggeredSpawnConditions.has(spawnKey)) {
+            log.debug(`  ✗ Spawn condition already triggered for key: ${spawnKey}`);
             return; // Already triggered this spawn condition
           }
 
           log.debug(
-            `Spawn condition met for ${coinConfig.type} coin (key: ${spawnKey})`
+            `  ✓ NEW SPAWN: ${coinConfig.type} coin will be spawned! (key: ${spawnKey})`
           );
 
           // Mark this spawn condition as triggered
@@ -434,12 +498,22 @@ export class CoinManager {
 
   collectCoin(coin: Coin, gameState?: Record<string, unknown>): void {
     coin.isCollected = true;
-    log.debug(`Collected ${coin.type} coin`);
+    
+    log.debug("=== COIN COLLECTED ===");
+    log.debug(`  Type: ${coin.type}
+  Position: (${Math.round(coin.x)}, ${Math.round(coin.y)})
+  Game State Before Collection:
+    - Score: ${gameState?.score || 0}
+    - Multiplier: ${gameState?.multiplier || 1}
+    - Lives: ${gameState?.lives || 0}
+    - Firebomb Count: ${this.firebombCount}
+    - Bomb/Monster Points: ${this.bombAndMonsterPoints}
+    - Bonus Coins Collected: ${gameState?.totalBonusMultiplierCoinsCollected || 0}`);
 
     const coinConfig = COIN_TYPES[coin.type];
     if (coinConfig && gameState) {
       log.debug(
-        `Processing ${coin.type} coin with ${coinConfig.effects.length} effects`
+        `  Processing ${coinConfig.effects.length} effect(s) for ${coin.type} coin`
       );
 
       // Calculate points earned from this coin
@@ -453,18 +527,37 @@ export class CoinManager {
         pointsEarned = colorData.points * currentMultiplier;
 
         log.debug(
-          `P-coin collected: ${colorData.name} color, ${colorData.points} × ${currentMultiplier} = ${pointsEarned} points`
+          `  P-coin Details:
+    - Color: ${colorData.name}
+    - Base Points: ${colorData.points}
+    - Multiplier: ${currentMultiplier}
+    - Total Points: ${pointsEarned}
+    - Power Duration: ${colorData.duration}ms`
         );
       }
       // Special handling for B-coin (Bonus Multiplier) - points = 1000 * current multiplier
       else if (coin.type === CoinType.BONUS_MULTIPLIER) {
         const currentMultiplier = (gameState.multiplier as number) || 1;
         pointsEarned = 1000 * currentMultiplier;
+        log.debug(
+          `  B-coin Details:
+    - Base Points: 1000
+    - Multiplier: ${currentMultiplier}
+    - Total Points: ${pointsEarned}
+    - Will increase multiplier by 1`
+        );
       }
       // Special handling for E-coin (Extra Life) - add extra life and award points
       else if (coin.type === CoinType.EXTRA_LIFE) {
         const currentMultiplier = (gameState.multiplier as number) || 1;
         pointsEarned = coinConfig.points * currentMultiplier;
+        log.debug(
+          `  E-coin Details:
+    - Base Points: ${coinConfig.points}
+    - Multiplier: ${currentMultiplier}
+    - Total Points: ${pointsEarned}
+    - Will add 1 extra life`
+        );
       }
 
       // Show floating text for points earned

@@ -18,6 +18,7 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
 import { VERSION_STRING, getVersion } from "../version";
 import ControlsMenu from "./menu/menus/ControlsMenu";
+import { CoinDebugDisplay } from "./debug/CoinDebugDisplay";
 
 const MainGame: React.FC = () => {
   // Fix: Use the store hooks properly to subscribe to state changes
@@ -47,10 +48,14 @@ const MainGame: React.FC = () => {
 
       {/* Dev indicator */}
       {DEV_CONFIG.ENABLED && (
-        <div className="text-white text-2xl absolute top-1 left-1 bg-red-500 rounded-full p-1 flex items-center justify-center gap-1 z-50">
-          <span className="text-xs font-bold uppercase">Dev</span>
-          <Circle className="w-4 h-4" fill="white" />
-        </div>
+        <>
+          <div className="text-white text-2xl absolute top-1 left-1 bg-red-500 rounded-full p-1 flex items-center justify-center gap-1 z-50">
+            <span className="text-xs font-bold uppercase">Dev</span>
+            <Circle className="w-4 h-4" fill="white" />
+          </div>
+          {/* Coin Debug Display - Only shown in dev mode */}
+          <CoinDebugDisplay />
+        </>
       )}
 
       {/* Version display */}
