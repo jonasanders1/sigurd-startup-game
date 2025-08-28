@@ -349,6 +349,7 @@ export class CoinManager {
       spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
       willSpawn: currentThreshold > lastThreshold && currentThreshold >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
       triggeredConditions: Array.from(this.triggeredSpawnConditions).filter(key => key.startsWith("BONUS_MULTIPLIER"))
+    });
 
     // Check for ALL thresholds that were crossed (handle multiple threshold crossings)
     if (
@@ -386,9 +387,9 @@ export class CoinManager {
         log.data("CoinSpawn: B-coin spawning triggered", {
           firebombPoints: this.firebombPoints,
           threshold,
-        spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
+          spawnInterval: GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL,
           spawnKey,
-      });
+        });
 
       // Mark this spawn condition as triggered
       this.triggeredSpawnConditions.add(spawnKey);
