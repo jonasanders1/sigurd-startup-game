@@ -374,7 +374,6 @@ export class CoinManager {
       log.coin(
           `✨ B-coin threshold crossed: ${threshold} (total score: ${totalScore})`
       );
-        totalScore = useScoreStore.getState().score;
         log.data("CoinSpawn: B-coin spawning triggered", {
           totalScore: totalScore,
           threshold,
@@ -406,8 +405,7 @@ export class CoinManager {
       }
 
       // Update the last score we checked
-      const totalScore = useScoreStore.getState().score;
-      this.lastScoreCheck = totalScore;
+      this.lastScoreCheck = useScoreStore.getState().score;
     }
   }
 
@@ -643,13 +641,12 @@ export class CoinManager {
               }
 
               // Update the last score we checked
-              const totalScore = useScoreStore.getState().score;
-              this.lastScoreCheck = totalScore;
+              this.lastScoreCheck = useScoreStore.getState().score;
             }
-          }
 
           // For bonus multiplier-based spawns (EXTRA_LIFE)
           if (
+            coinConfig.spawnCondition &&
             coinConfig.spawnCondition
               .toString()
               .includes("totalBonusMultiplierCoinsCollected")
