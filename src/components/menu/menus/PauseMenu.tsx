@@ -1,46 +1,30 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
+import { useStateStore } from "../../../stores/gameStore";
+
 import { Play, Settings, Home, RotateCcw } from "lucide-react";
 
 const PauseMenu: React.FC = () => {
-  const { setState, setMenuType, resetGame } = useGameStore();
+  const { gameStateManager } = useStateStore.getState();
 
   const resumeGame = () => {
-    // Show countdown before resuming
-    setMenuType(MenuType.COUNTDOWN);
-    setState(GameState.COUNTDOWN);
-
-    // After 3 seconds, start the game
-    setTimeout(() => {
-      setState(GameState.PLAYING);
-    }, 3000);
+    // Use centralized resume transition
+    gameStateManager?.resumeGame();
   };
 
   const openSettings = () => {
-    setMenuType(MenuType.SETTINGS);
+    // Use centralized settings transition
+    gameStateManager?.openSettings();
   };
 
   const quitToMenu = () => {
-    resetGame();
-    setState(GameState.MENU);
-    setMenuType(MenuType.START);
+    // Use centralized quit to menu transition
+    gameStateManager?.quitToMenu();
   };
 
   const restartGame = () => {
-    // Reset everything back to level 1
-    const { resetGame } = useGameStore.getState();
-    resetGame();
-
-    // Set state to MENU to trigger level reload in GameManager
-    setState(GameState.MENU);
-    setMenuType(MenuType.COUNTDOWN);
-
-    // After 3 seconds, start the game
-    setTimeout(() => {
-      setState(GameState.PLAYING);
-    }, 3000);
+    // Use centralized restart transition
+    gameStateManager?.restartGame();
   };
 
   return (

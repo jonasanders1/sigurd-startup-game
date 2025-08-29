@@ -21,9 +21,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
     canvas.width = GAME_CONFIG.CANVAS_WIDTH;
     canvas.height = GAME_CONFIG.CANVAS_HEIGHT;
 
-
-
-    // Initialize game manager
+    // Initialize game manager and start
+    // Note: All loading is now handled by LoadingManager before this component is rendered
     gameManagerRef.current = new GameManager(canvas);
     gameManagerRef.current.start();
 
@@ -78,11 +77,22 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
 
   return (
     <div className="relative">
-    <canvas
-      ref={canvasRef}
+      <canvas
+        ref={canvasRef}
         className={`shadow-black/10 shadow-lg rounded-lg ${className}`}
-      style={canvasStyle}
-    />
+        style={canvasStyle}
+      />
+      {/* Loading overlay while waiting for audio settings */}
+      {/* {isWaitingForAudioSettings && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 rounded-lg">
+          <div className="text-white text-center">
+            <div className="text-lg font-bold mb-2">Laster lydinnstillinger...</div>
+            <div className="text-sm text-gray-300">
+              Vennligst vent mens spillet lastes inn
+            </div>
+          </div>
+        </div>
+      )} */}
     </div>
   );
 };

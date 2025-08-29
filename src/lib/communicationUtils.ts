@@ -1,4 +1,22 @@
 import { log } from "./logger";
+import { useAudioStore } from "../stores/systems/audioStore";
+
+export interface LevelStartData {
+  level: number;
+  mapName: string;
+  timestamp: number;
+}
+
+export interface LevelFailureData {
+  level: number;
+  mapName: string;
+  score: number;
+  bombs?: number;
+  correctOrders?: number;
+  lives: number;
+  multiplier: number;
+  timestamp?: number;
+}
 
 export interface MapCompletionData {
   mapName: string;
@@ -21,7 +39,7 @@ export interface LevelHistoryEntry {
   mapName: string;
   score: number;
   bonus: number;
-  completionTime: number;
+  completionTime?: number; // Optional - not included for partial/incomplete levels
   coinsCollected: number;
   powerModeActivations: number;
   timestamp: number;
@@ -29,6 +47,7 @@ export interface LevelHistoryEntry {
   totalBombs: number;
   lives: number;
   multiplier: number;
+  isPartial?: boolean; // True for failed/incomplete levels
 }
 
 export interface GameCompletionData {
@@ -53,6 +72,16 @@ export interface GameCompletionData {
   userId?: string;
 }
 
+export interface AudioSettingsUpdateData {
+  masterVolume: number;
+  musicVolume: number;
+  sfxVolume: number;
+  masterMuted: boolean;
+  musicMuted: boolean;
+  sfxMuted: boolean;
+  timestamp: number;
+}
+
 export const sendScoreToHost = (
   score: number,
   map: string,
@@ -69,17 +98,9 @@ export const sendScoreToHost = (
     multiplier,
   };
 
-  log.dataPassing("Sending score to host:", scoreData);
+  log.data("Sending score to host:", scoreData);
 
-  // Send current score update
-  const scoreEvent = new CustomEvent("scoreUpdate", {
-    detail: { score },
-    bubbles: true,
-    composed: true,
-  });
-  window.dispatchEvent(scoreEvent);
-
-  // Send detailed score data
+  // Send detailed score data only (removed scoreUpdate event)
   const detailedScoreEvent = new CustomEvent("game:score-updated", {
     detail: scoreData,
     bubbles: true,
@@ -88,8 +109,41 @@ export const sendScoreToHost = (
   window.dispatchEvent(detailedScoreEvent);
 };
 
+export const sendLevelStart = (level: number, mapName: string) => {
+  const levelStartData: LevelStartData = {
+    level,
+    mapName,
+    timestamp: Date.now(),
+  };
+
+  log.data("Sending level start to host:", levelStartData);
+
+  const event = new CustomEvent("game:level-started", {
+    detail: levelStartData,
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
+};
+
+export const sendLevelFailure = (data: LevelFailureData) => {
+  const failureData = {
+    ...data,
+    timestamp: data.timestamp || Date.now(),
+  };
+
+  log.data("Sending level failure to host:", failureData);
+
+  const event = new CustomEvent("game:level-failed", {
+    detail: failureData,
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
+};
+
 export const sendGameReady = () => {
-  log.dataPassing("Game ready signal sent to host");
+  log.data("Game ready signal sent to host");
   const event = new CustomEvent("game:ready", {
     detail: { timestamp: Date.now() },
     bubbles: true,
@@ -99,7 +153,7 @@ export const sendGameReady = () => {
 };
 
 export const sendGameStateUpdate = (state: string, map?: string) => {
-  log.dataPassing("Game state update sent to host:", { state, map });
+  log.data("Game state update sent to host:", { state, map });
   const event = new CustomEvent("game:state-updated", {
     detail: { state, map, timestamp: Date.now() },
     bubbles: true,
@@ -109,7 +163,7 @@ export const sendGameStateUpdate = (state: string, map?: string) => {
 };
 
 export const sendMapCompletionData = (data: MapCompletionData) => {
-  log.dataPassing("Sending map completion data to host:", data);
+  log.data("Sending map completion data to host:", data);
   const event = new CustomEvent("game:map-completed", {
     detail: data,
     bubbles: true,
@@ -119,9 +173,37 @@ export const sendMapCompletionData = (data: MapCompletionData) => {
 };
 
 export const sendGameCompletionData = (data: GameCompletionData) => {
-  log.dataPassing("Sending game completion data to host:", data);
+  log.data("Sending game completion data to host:", data);
   const event = new CustomEvent("game:completed", {
     detail: data,
+    bubbles: true,
+    composed: true,
+  });
+  window.dispatchEvent(event);
+};
+
+export const sendAudioSettingsUpdate = (
+  masterVolume: number,
+  musicVolume: number,
+  sfxVolume: number,
+  masterMuted: boolean,
+  musicMuted: boolean,
+  sfxMuted: boolean
+) => {
+  const audioSettingsData: AudioSettingsUpdateData = {
+    masterVolume,
+    musicVolume,
+    sfxVolume,
+    masterMuted,
+    musicMuted,
+    sfxMuted,
+    timestamp: Date.now(),
+  };
+
+  log.data("Sending audio settings update to host:", audioSettingsData);
+
+  const event = new CustomEvent("game:audio-settings-updated", {
+    detail: audioSettingsData,
     bubbles: true,
     composed: true,
   });
@@ -165,5 +247,148 @@ export const calculateGameStats = (
     totalPowerModeActivations,
     averageCompletionTime: Math.round(averageCompletionTime),
     totalPlayTime: Math.round(totalPlayTime / 1000), // Convert to seconds
+  };
+};
+
+// New function to wait for game save confirmation
+export const waitForGameSaveConfirmation = (): Promise<void> => {
+  return new Promise((resolve) => {
+    log.data("Waiting for game:run-saved event from host");
+    
+    const handleGameSaved = () => {
+      log.data("Received game:run-saved event from host");
+      window.removeEventListener("game:run-saved", handleGameSaved);
+      resolve();
+    };
+    
+    window.addEventListener("game:run-saved", handleGameSaved);
+    
+    // Add a timeout as a fallback (30 seconds)
+    setTimeout(() => {
+      log.warn("Timeout waiting for game:run-saved event, proceeding anyway");
+      window.removeEventListener("game:run-saved", handleGameSaved);
+      resolve();
+    }, 30000);
+  });
+};
+
+// Track if audio settings have been received
+let audioSettingsReceived = false;
+let pendingAudioSettings: AudioSettingsUpdateData | null = null;
+
+// Set up early listener for audio settings (in case they arrive before game is ready)
+if (typeof window !== "undefined") {
+  const earlyAudioSettingsHandler = (event: CustomEvent<AudioSettingsUpdateData>) => {
+    if (!audioSettingsReceived) {
+      log.data("Received early audio settings from host (before game initialization)");
+      pendingAudioSettings = event.detail;
+      audioSettingsReceived = true;
+    }
+  };
+  
+  window.addEventListener("game:load-audio-settings", earlyAudioSettingsHandler as EventListener);
+}
+
+// Function to wait for audio settings from the host
+export const waitForAudioSettings = (): Promise<void> => {
+  return new Promise((resolve) => {
+    // Check if we already received the settings before this was called
+    if (audioSettingsReceived && pendingAudioSettings) {
+      log.data("Audio settings already received, applying immediately");
+      
+      const { updateAudioSettings } = useAudioStore.getState();
+      updateAudioSettings({
+        masterVolume: pendingAudioSettings.masterVolume,
+        musicVolume: pendingAudioSettings.musicVolume,
+        sfxVolume: pendingAudioSettings.sfxVolume,
+        masterMuted: pendingAudioSettings.masterMuted,
+        musicMuted: pendingAudioSettings.musicMuted,
+        sfxMuted: pendingAudioSettings.sfxMuted,
+      });
+      
+      pendingAudioSettings = null; // Clear pending settings
+      resolve();
+      return;
+    }
+    
+    log.data("Waiting for audio settings from host...");
+    
+    let isResolved = false;
+    
+    const handleLoadAudioSettings = (event: CustomEvent<AudioSettingsUpdateData>) => {
+      if (isResolved) return; // Prevent multiple resolutions
+      
+      const audioSettings = event.detail;
+      
+      log.data("Received audio settings from host:", audioSettings);
+      
+      // Update the game's audio store with the received settings
+      const { updateAudioSettings } = useAudioStore.getState();
+      
+      updateAudioSettings({
+        masterVolume: audioSettings.masterVolume,
+        musicVolume: audioSettings.musicVolume,
+        sfxVolume: audioSettings.sfxVolume,
+        masterMuted: audioSettings.masterMuted,
+        musicMuted: audioSettings.musicMuted,
+        sfxMuted: audioSettings.sfxMuted,
+      });
+      
+      log.data("Audio settings updated successfully");
+      
+      // Mark as received
+      audioSettingsReceived = true;
+      
+      // Clean up and resolve
+      window.removeEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+      isResolved = true;
+      resolve();
+    };
+    
+    // Listen for audio settings from the host
+    window.addEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+    
+    // Add a timeout fallback (5 seconds)
+    setTimeout(() => {
+      if (!isResolved) {
+        log.warn("Timeout waiting for audio settings from host, using defaults");
+        window.removeEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+        isResolved = true;
+        resolve();
+      }
+    }, 5000);
+  });
+};
+
+// Function to listen for audio settings from the host (for ongoing updates)
+export const initializeAudioSettingsListener = () => {
+  const handleLoadAudioSettings = (event: CustomEvent<AudioSettingsUpdateData>) => {
+    const audioSettings = event.detail;
+    
+    log.data("Received audio settings update from host:", audioSettings);
+    
+    // Update the game's audio store with the received settings
+    const { updateAudioSettings } = useAudioStore.getState();
+    
+    updateAudioSettings({
+      masterVolume: audioSettings.masterVolume,
+      musicVolume: audioSettings.musicVolume,
+      sfxVolume: audioSettings.sfxVolume,
+      masterMuted: audioSettings.masterMuted,
+      musicMuted: audioSettings.musicMuted,
+      sfxMuted: audioSettings.sfxMuted,
+    });
+    
+    log.data("Audio settings updated successfully");
+  };
+  
+  // Listen for audio settings from the host
+  window.addEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
+  
+  log.data("Audio settings listener initialized for ongoing updates");
+  
+  // Return cleanup function
+  return () => {
+    window.removeEventListener("game:load-audio-settings", handleLoadAudioSettings as EventListener);
   };
 };

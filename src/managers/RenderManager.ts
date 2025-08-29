@@ -7,7 +7,7 @@ import {
   Coin,
   FloatingText,
 } from "../types/interfaces";
-import { COLORS } from "../types/constants";
+import { COLORS, DEV_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
 import { bombSprite, BombSpriteInstance } from "../entities/Bomb";
 import { SpriteInstance } from "../lib/SpriteInstance";
@@ -16,6 +16,7 @@ import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
+import { MonsterType } from "@/types/enums";
 
 interface CoinManagerInterface {
   getPcoinCurrentColor: (coin: Coin) => string;
@@ -57,16 +58,11 @@ export class RenderManager {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
-    // Update background based on player position
-    this.backgroundManager.update(player.x, player.y);
-
     // Render background first
     this.renderBackground();
 
     // Render game elements on top
-    if (ground) {
-      this.renderGround(ground);
-    }
+    this.renderGround(ground);
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
     this.renderCoins(coins, coinManager);
@@ -75,23 +71,16 @@ export class RenderManager {
     this.renderFloatingTexts(floatingTexts, deltaTime);
   }
 
-  private clearCanvas(): void {
-    this.ctx.fillStyle = COLORS.BACKGROUND;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
   private renderBackground(): void {
-    if (GAME_CONFIG.USE_SPRITES && GAME_CONFIG.PARALLAX_ENABLED) {
-      // Use background when sprites and parallax are enabled
-      this.backgroundManager.render(this.ctx);
-    } else {
-      // Fallback to solid background when sprites or parallax are disabled
-      this.clearCanvas();
-    }
+    this.backgroundManager.render(this.ctx);
   }
 
   private renderGround(ground: Ground): void {
-    this.ctx.fillStyle = ground.color;
+    if (GAME_CONFIG.USE_SPRITES) {
+      this.ctx.fillStyle = ground.color;
+    } else {
+      this.ctx.fillStyle = DEV_CONFIG.COLORS.GROUND;
+    }
     this.ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
   }
 
@@ -108,8 +97,13 @@ export class RenderManager {
 
   private renderPlatforms(platforms: Platform[]): void {
     platforms.forEach((platform) => {
-      this.ctx.fillStyle = platform.color;
-      this.ctx.strokeStyle = platform.borderColor;
+      if (GAME_CONFIG.USE_SPRITES) {
+        this.ctx.fillStyle = platform.color;
+        this.ctx.strokeStyle = platform.borderColor;
+      } else {
+        this.ctx.fillStyle = DEV_CONFIG.COLORS.PLATFORM;
+        this.ctx.strokeStyle = DEV_CONFIG.COLORS.PLATFORM;
+      }
 
       // Draw rounded rectangle
       const radius = 4; // Corner radius
@@ -221,24 +215,59 @@ export class RenderManager {
         2 * Math.PI
       );
       this.ctx.fill();
+      this.ctx.restore();
 
+      this.ctx.save();
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2 + 1,
+        coin.y + coin.height / 2 + 1,
+        coin.width / 2,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+      this.ctx.restore();
+
+      // Coin body with pulsing effect
+      const pulse = Math.sin(Date.now() / 200) * 0.1 + 1;
+      this.ctx.fillStyle = color;
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2,
+        (coin.width / 2) * pulse,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+
+      // Inner circle
+      this.ctx.fillStyle = "rgba(2, 2, 2, 0.3)";
+      this.ctx.beginPath();
+      this.ctx.arc(
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2,
+        coin.width / 2.5,
+        0,
+        Math.PI * 2
+      );
+      this.ctx.fill();
+
+      let coinSymbol = "C";
+      if (coin.type === "POWER") {
+        coinSymbol = "P";
+      } else if (coin.type === "BONUS_MULTIPLIER") {
+        coinSymbol = "B";
+      } else if (coin.type === "EXTRA_LIFE") {
+        coinSymbol = "M";
+      }
       // Add coin type indicator
       this.ctx.fillStyle = "#fff";
       this.ctx.font = "14px JetBrains Mono";
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
-
-      let coinSymbol = "C";
-      if (coin.type === "POWER") {
-        coinSymbol = "P";
-        this.ctx.fillStyle = "#000";
-      } else if (coin.type === "BONUS_MULTIPLIER") {
-        coinSymbol = "B";
-        this.ctx.fillStyle = "#fff";
-      } else if (coin.type === "EXTRA_LIFE") {
-        coinSymbol = "M";
-        this.ctx.fillStyle = "#fff";
-      }
 
       this.ctx.fillText(
         coinSymbol,
@@ -253,19 +282,8 @@ export class RenderManager {
 
     monsters.forEach((monster, index) => {
       if (!monster.isActive) {
-        log.debug(`Monster ${index} is not active, skipping`);
         return; // Don't render inactive monsters
       }
-
-      // log.debug(`Rendering monster ${index}:`, {
-      //   type: monster.type,
-      //   x: monster.x,
-      //   y: monster.y,
-      //   color: monster.color,
-      //   isActive: monster.isActive,
-      //   isFrozen: monster.isFrozen,
-      //   isBlinking: monster.isBlinking,
-      // });
 
       // Handle blinking effect for monsters about to unfreeze
       let monsterColor = monster.color;
@@ -280,13 +298,144 @@ export class RenderManager {
         monsterColor = COLORS.MONSTER_FROZEN;
       }
 
+      // Draw subtle shadow first (similar to coins)
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      this.ctx.beginPath();
+      this.ctx.roundRect(
+        monster.x,
+        monster.y,
+        monster.width + 1,
+        monster.height + 1,
+        4
+      );
+      this.ctx.fill();
+
       this.ctx.fillStyle = monsterColor;
-      this.ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
+
+      // Draw rounded rectangle for monster
+      const radius = 4;
+      const x = monster.x;
+      const y = monster.y;
+      const width = monster.width;
+      const height = monster.height;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + radius, y);
+      this.ctx.lineTo(x + width - radius, y);
+      this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      this.ctx.lineTo(x + width, y + height - radius);
+      this.ctx.quadraticCurveTo(
+        x + width,
+        y + height,
+        x + width - radius,
+        y + height
+      );
+      this.ctx.lineTo(x + radius, y + height);
+      this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      this.ctx.lineTo(x, y + radius);
+      this.ctx.quadraticCurveTo(x, y, x + radius, y);
+      this.ctx.closePath();
+      this.ctx.fill();
+
+      // Add body highlights for more dimension
+      this.ctx.fillStyle = `rgba(0, 0, 0, 0.15)`; // Semi-transparent white highlight
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + radius + 2, y + 2);
+      this.ctx.lineTo(x + width - radius - 2, y + 2);
+      this.ctx.quadraticCurveTo(
+        x + width - 2,
+        y + 2,
+        x + width - 2,
+        y + radius + 2
+      );
+      this.ctx.lineTo(x + width - 2, y + height - radius - 2);
+      this.ctx.quadraticCurveTo(
+        x + width - 2,
+        y + height - 2,
+        x + width - radius - 2,
+        y + height - 2
+      );
+      this.ctx.lineTo(x + radius + 2, y + height - 2);
+      this.ctx.quadraticCurveTo(
+        x + 2,
+        y + height - 2,
+        x + 2,
+        y + height - radius - 2
+      );
+      this.ctx.lineTo(x + 2, y + radius + 2);
+      this.ctx.quadraticCurveTo(x + 2, y + 2, x + radius + 2, y + 2);
+      this.ctx.closePath();
+      this.ctx.fill();
 
       // Draw monster eyes
-      this.ctx.fillStyle = "#000";
-      this.ctx.fillRect(monster.x + 2, monster.y + 2, 2, 2);
-      this.ctx.fillRect(monster.x + monster.width - 4, monster.y + 2, 2, 2);
+      const eyeY = monster.y + 8;
+      const leftEyeX = monster.x + monster.width * 0.3;
+      const rightEyeX = monster.x + monster.width * 0.7;
+
+      // Draw eye whites with subtle glow
+      this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      this.ctx.beginPath();
+      this.ctx.arc(leftEyeX, eyeY, 4, 0, 2 * Math.PI);
+      this.ctx.fill();
+      this.ctx.beginPath();
+      this.ctx.arc(rightEyeX, eyeY, 4, 0, 2 * Math.PI);
+      this.ctx.fill();
+
+      // Draw eye pupils with depth
+      this.ctx.fillStyle = "#333";
+      this.ctx.beginPath();
+      this.ctx.arc(leftEyeX, eyeY, 2.5, 0, 2 * Math.PI);
+      this.ctx.fill();
+      this.ctx.beginPath();
+      this.ctx.arc(rightEyeX, eyeY, 2.5, 0, 2 * Math.PI);
+      this.ctx.fill();
+
+      // Add angry eyebrows
+      this.ctx.strokeStyle = "#f";
+      this.ctx.lineWidth = 2;
+      this.ctx.lineCap = "round";
+
+      // Left eyebrow (angled down and inward)
+      this.ctx.beginPath();
+      this.ctx.moveTo(leftEyeX - 3, eyeY - 6);
+      this.ctx.lineTo(leftEyeX + 2, eyeY - 4);
+      this.ctx.stroke();
+
+      // Right eyebrow (angled down and inward)
+      this.ctx.beginPath();
+      this.ctx.moveTo(rightEyeX - 2, eyeY - 4);
+      this.ctx.lineTo(rightEyeX + 3, eyeY - 6);
+      this.ctx.stroke();
+
+      // Add subtle eye outline for definition
+      this.ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+      this.ctx.lineWidth = 0.5;
+      this.ctx.beginPath();
+      this.ctx.arc(leftEyeX, eyeY, 4, 0, 2 * Math.PI);
+      this.ctx.stroke();
+      this.ctx.beginPath();
+      this.ctx.arc(rightEyeX, eyeY, 4, 0, 2 * Math.PI);
+      this.ctx.stroke();
+
+      // Monster mouth - angry and simple
+      this.ctx.fillStyle = "#333";
+      this.ctx.lineWidth = 2;
+      this.ctx.lineCap = "round";
+
+      // Draw angry mouth (simple curved line)
+      const mouthY = monster.y + monster.height - 8;
+      const mouthCenterX = monster.x + monster.width / 2;
+      const mouthWidth = monster.width * 0.4;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(mouthCenterX - mouthWidth / 2, mouthY);
+      this.ctx.quadraticCurveTo(
+        mouthCenterX,
+        mouthY - 3,
+        mouthCenterX + mouthWidth / 2,
+        mouthY
+      );
+      this.ctx.stroke();
     });
 
     // Render respawn indicators for dead monsters
@@ -312,18 +461,37 @@ export class RenderManager {
           const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
           const monsterColor = monster.color || "#ffffff";
 
-          // Draw a pulsating filled rectangle using monster's color
+          // Draw a pulsating filled rounded rectangle using monster's color
           this.ctx.fillStyle = `${monsterColor}${Math.floor(
             pulseIntensity * 1 * 255
           )
             .toString(16)
             .padStart(2, "0")}`;
-          this.ctx.fillRect(
-            spawnPoint.x,
-            spawnPoint.y,
-            monster.width,
-            monster.height
+
+          // Draw rounded rectangle like active monsters
+          const radius = 4;
+          const x = spawnPoint.x;
+          const y = spawnPoint.y;
+          const width = monster.width;
+          const height = monster.height;
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(x + radius, y);
+          this.ctx.lineTo(x + width - radius, y);
+          this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+          this.ctx.lineTo(x + width, y + height - radius);
+          this.ctx.quadraticCurveTo(
+            x + width,
+            y + height,
+            x + width - radius,
+            y + height
           );
+          this.ctx.lineTo(x + radius, y + height);
+          this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+          this.ctx.lineTo(x, y + radius);
+          this.ctx.quadraticCurveTo(x, y, x + radius, y);
+          this.ctx.closePath();
+          this.ctx.fill();
 
           // Draw respawn timer inside the rectangle
           const text = `${secondsRemaining}`;
@@ -369,18 +537,37 @@ export class RenderManager {
           const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
           const monsterColor = tempMonster.color || "#ffffff";
 
-          // Draw a pulsating filled rectangle using monster's color
+          // Draw a pulsating filled rounded rectangle using monster's color
           this.ctx.fillStyle = `${monsterColor}${Math.floor(
             pulseIntensity * 1 * 255
           )
             .toString(16)
             .padStart(2, "0")}`;
-          this.ctx.fillRect(
-            tempMonster.x,
-            tempMonster.y,
-            tempMonster.width,
-            tempMonster.height
+
+          // Draw rounded rectangle like active monsters
+          const radius = 4;
+          const x = tempMonster.x;
+          const y = tempMonster.y;
+          const width = tempMonster.width;
+          const height = tempMonster.height;
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(x + radius, y);
+          this.ctx.lineTo(x + width - radius, y);
+          this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+          this.ctx.lineTo(x + width, y + height - radius);
+          this.ctx.quadraticCurveTo(
+            x + width,
+            y + height,
+            x + width - radius,
+            y + height
           );
+          this.ctx.lineTo(x + radius, y + height);
+          this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+          this.ctx.lineTo(x, y + radius);
+          this.ctx.quadraticCurveTo(x, y, x + radius, y);
+          this.ctx.closePath();
+          this.ctx.fill();
 
           // Draw spawn timer inside the rectangle
           const text = `${secondsRemaining}`;

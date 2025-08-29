@@ -1,12 +1,13 @@
-import { useGameStore } from "../stores/gameStore";
-import { InputKey, GameState } from "../types/enums";
+import { useInputStore } from "../stores/gameStore";
+import { InputKey } from "../types/enums";
+import { log } from "../lib/logger";
 
-class InputManager {
+export class InputManager {
   private keysPressed: Set<string> = new Set();
-  private store = useGameStore.getState();
+  // Remove the cached store reference
   private initialized = false;
 
-  initialize() {
+  public initialize() {
     if (this.initialized) return;
 
     // Add keyboard event listeners
@@ -50,85 +51,56 @@ class InputManager {
   private handleBlur() {
     // Clear all keys when window loses focus
     this.keysPressed.clear();
-    this.store.clearInput();
+    // Get the store when needed
+    const { clearInput } = useInputStore.getState();
+    clearInput();
   }
 
   private updateInputState(key: string, pressed: boolean) {
-    this.store = useGameStore.getState();
+    // Get the store when needed instead of using cached reference
+    const { setInput } = useInputStore.getState();
+    log.input("updateInputState", key, pressed);
 
     switch (key) {
       // Left movement - A or Arrow Left
       case "a":
       case "A":
       case InputKey.LEFT:
-        this.store.setInput("left", pressed);
+        setInput("left", pressed);
         break;
 
       // Right movement - D or Arrow Right
       case "d":
       case "D":
       case InputKey.RIGHT:
-        this.store.setInput("right", pressed);
+        setInput("right", pressed);
         break;
 
       // Jump - W or Arrow Up
       case "w":
       case "W":
       case InputKey.UP:
-        this.store.setInput("jump", pressed);
+        setInput("jump", pressed);
         break;
 
       // Fast Fall - S or Arrow Down
       case "s":
       case "S":
       case InputKey.DOWN:
-        this.store.setInput("fastFall", pressed);
+        setInput("fastFall", pressed);
         break;
 
       // Super Jump - Shift
       case "Shift":
-        this.store.setInput("superJump", pressed);
+        setInput("superJump", pressed);
         break;
 
       // Float - Space or Z
       case InputKey.SPACE:
-      case "z":
-      case "Z":
-        this.store.setInput("float", pressed);
-        break;
-
-      case InputKey.ENTER:
-      case "x":
-      case "X":
-        this.store.setInput("float", pressed);
-        break;
-
-      // case InputKey.ESCAPE:
-      // case InputKey.P:
-      // case 'p':
-      //   if (pressed) {
-      //     this.handlePause();
-      //   }
-      //   break;
-
-      case InputKey.R:
-      case "r":
-        if (pressed) {
-          this.store.setInput("restart", pressed);
-        }
+        setInput("float", pressed);
         break;
     }
   }
-
-  // private handlePause() {
-  //   const { currentState, setState } = useGameStore.getState();
-
-  //   if (currentState === GameState.PLAYING) {
-  //     setState(GameState.PAUSED);
-  //   } else if (currentState === GameState.PAUSED) {
-  //     setState(GameState.PLAYING);
-  //   }
-  // }
 
   private isGameKey(key: string): boolean {
     const gameKeys = [
@@ -148,14 +120,7 @@ class InputManager {
       "W",
       "s",
       "S",
-      "z",
-      "Z",
-      "x",
-      "X",
-      "r",
-      "R",
       "Shift",
-      "p",
     ];
 
     return gameKeys.includes(key);
@@ -167,9 +132,8 @@ class InputManager {
 
   clearKeys() {
     this.keysPressed.clear();
-    this.store.clearInput();
+    // Get the store when needed
+    const { clearInput } = useInputStore.getState();
+    clearInput();
   }
 }
-
-// Export singleton instance
-export const inputManager = new InputManager();

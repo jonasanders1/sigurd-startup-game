@@ -1,232 +1,699 @@
-// Logging utility for the game
-// Can be controlled via environment variables or dev mode
+// Advanced logging utility for the game with powerful filtering capabilities
+// Can be controlled via environment variables, dev mode, or runtime console commands
 
 export enum LogLevel {
-  ERROR = 0,
-  WARN = 1,
-  INFO = 2,
-  DEBUG = 3,
-  TRACE = 4,
-  DATAPASSING = 5, // New level for data passing only
+  OFF = 0,
+  ERROR = 1,
+  WARN = 2,
+  INFO = 3,
+  DEBUG = 4,
+  TRACE = 5,
 }
 
-interface LogConfig {
-  level: LogLevel;
-  enableConsole: boolean;
-  enableDevMode: boolean;
+export enum LogCategory {
+  AUDIO = "audio",
+  PLAYER = "player",
+  MONSTER = "monster",
+  COIN = "coin",
+  BOMB = "bomb",
+  POWER = "power",
+  LEVEL = "level",
+  SCORE = "score",
+  GAME = "game",
+  INPUT = "input",
+  RENDER = "render",
+  PHYSICS = "physics",
+  SPAWN = "spawn",
+  COLLISION = "collision",
+  PERFORMANCE = "performance",
+  DATA = "data",
+  ASSET = "asset",
+  DEBUG = "debug",
 }
+
+interface LogEntry {
+  timestamp: number;
+  level: LogLevel;
+  category: LogCategory;
+  message: string;
+  data?: any[];
+}
+
+interface LoggerConfig {
+  level: LogLevel;
+  enabledCategories: Set<LogCategory>;
+  showTimestamp: boolean;
+  showCategory: boolean;
+  useColors: boolean;
+  buffer: boolean;
+  bufferSize: number;
+}
+
+// Category icons for visual distinction
+const CATEGORY_ICONS: Record<LogCategory, string> = {
+  [LogCategory.AUDIO]: "🎵",
+  [LogCategory.PLAYER]: "👤",
+  [LogCategory.MONSTER]: "👹",
+  [LogCategory.COIN]: "🪙",
+  [LogCategory.BOMB]: "💣",
+  [LogCategory.POWER]: "⚡",
+  [LogCategory.LEVEL]: "🏁",
+  [LogCategory.SCORE]: "📊",
+  [LogCategory.GAME]: "🎮",
+  [LogCategory.INPUT]: "⌨️",
+  [LogCategory.RENDER]: "🎨",
+  [LogCategory.PHYSICS]: "⚙️",
+  [LogCategory.SPAWN]: "✨",
+  [LogCategory.COLLISION]: "💥",
+  [LogCategory.PERFORMANCE]: "📈",
+  [LogCategory.DATA]: "📡",
+  [LogCategory.ASSET]: "📦",
+  [LogCategory.DEBUG]: "🔧",
+};
+
+// Category colors for console output
+const CATEGORY_COLORS: Record<LogCategory, string> = {
+  [LogCategory.AUDIO]: "#FF6B6B", // Red
+  [LogCategory.PLAYER]: "#4ECDC4", // Teal
+  [LogCategory.MONSTER]: "#8B4513", // Brown
+  [LogCategory.COIN]: "#FFD700", // Gold
+  [LogCategory.BOMB]: "#FF4500", // Orange Red
+  [LogCategory.POWER]: "#9370DB", // Medium Purple
+  [LogCategory.LEVEL]: "#32CD32", // Lime Green
+  [LogCategory.SCORE]: "#1E90FF", // Dodger Blue
+  [LogCategory.GAME]: "#FF69B4", // Hot Pink
+  [LogCategory.INPUT]: "#708090", // Slate Gray
+  [LogCategory.RENDER]: "#FF1493", // Deep Pink
+  [LogCategory.PHYSICS]: "#4169E1", // Royal Blue
+  [LogCategory.SPAWN]: "#00CED1", // Dark Turquoise
+  [LogCategory.COLLISION]: "#DC143C", // Crimson
+  [LogCategory.PERFORMANCE]: "#228B22", // Forest Green
+  [LogCategory.DATA]: "#4682B4", // Steel Blue
+  [LogCategory.ASSET]: "#D2691E", // Chocolate
+  [LogCategory.DEBUG]: "#696969", // Dim Gray
+};
 
 export class Logger {
-  private logLevel: LogLevel = LogLevel.INFO;
-  private lastLogTime: Map<string, number> = new Map();
-  private logThrottle: Map<string, number> = new Map();
+  private config: LoggerConfig;
+  private logBuffer: LogEntry[] = [];
+  private throttleTimers: Map<string, number> = new Map();
 
-  constructor(level: LogLevel = LogLevel.INFO) {
-    // Read log level from environment variable
+  constructor() {
+    // Initialize with default config
+    this.config = {
+      level: this.getInitialLogLevel(),
+      enabledCategories: new Set(Object.values(LogCategory)),
+      showTimestamp: false,
+      showCategory: true,
+      useColors: true,
+      buffer: false,
+      bufferSize: 1000,
+    };
+
+    // Parse enabled categories from environment
+    this.parseEnabledCategories();
+
+    // Setup browser console commands
+    this.setupConsoleCommands();
+  }
+
+  private getInitialLogLevel(): LogLevel {
     const envLogLevel = import.meta.env?.VITE_LOG_LEVEL;
     if (envLogLevel) {
       switch (envLogLevel.toLowerCase()) {
-        case 'error':
-          this.logLevel = LogLevel.ERROR;
-          break;
-        case 'warn':
-          this.logLevel = LogLevel.WARN;
-          break;
-        case 'info':
-          this.logLevel = LogLevel.INFO;
-          break;
-        case 'debug':
-          this.logLevel = LogLevel.DEBUG;
-          break;
-        case 'trace':
-          this.logLevel = LogLevel.TRACE;
-          break;
-        case 'datapassing':
-          this.logLevel = LogLevel.DATAPASSING;
-          break;
+        case "off":
+          return LogLevel.OFF;
+        case "error":
+          return LogLevel.ERROR;
+        case "warn":
+          return LogLevel.WARN;
+        case "info":
+          return LogLevel.INFO;
+        case "debug":
+          return LogLevel.DEBUG;
+        case "trace":
+          return LogLevel.TRACE;
         default:
-          this.logLevel = level;
+          return LogLevel.INFO;
       }
-    } else {
-      this.logLevel = level;
+    }
+    return import.meta.env?.DEV ? LogLevel.DEBUG : LogLevel.INFO;
+  }
+
+  private parseEnabledCategories(): void {
+    const envCategories = import.meta.env?.VITE_LOG_CATEGORIES;
+    if (envCategories) {
+      if (envCategories === "none") {
+        this.config.enabledCategories.clear();
+      } else if (envCategories !== "all") {
+        const categories = envCategories
+          .split(",")
+          .map((c: string) => c.trim().toLowerCase());
+        this.config.enabledCategories = new Set(
+          categories
+            .map((c) => Object.values(LogCategory).find((cat) => cat === c))
+            .filter(Boolean) as LogCategory[]
+        );
+      }
     }
   }
 
-  setLogLevel(level: LogLevel): void {
-    this.logLevel = level;
+  private setupConsoleCommands(): void {
+    if (typeof window !== "undefined") {
+      // Expose logger instance for console access
+      (window as any).gameLog = {
+        // Enable/disable categories
+        enable: (category: string) =>
+          this.enableCategory(category as LogCategory),
+        disable: (category: string) =>
+          this.disableCategory(category as LogCategory),
+        only: (category: string) => this.showOnly(category as LogCategory),
+        all: () => this.enableAll(),
+        none: () => this.disableAll(),
+
+        // Log level control
+        setLevel: (level: string) => this.setLogLevel(level),
+
+        // View configuration
+        showConfig: () => this.showConfig(),
+        categories: () => this.listCategories(),
+
+        // Filtering presets
+        player: () => this.showOnly(LogCategory.PLAYER),
+        audio: () => this.showOnly(LogCategory.AUDIO),
+        bombs: () =>
+          this.enableCategories([
+            LogCategory.BOMB,
+            LogCategory.PLAYER,
+            LogCategory.SCORE,
+          ]),
+        coins: () =>
+          this.enableCategories([
+            LogCategory.COIN,
+            LogCategory.PLAYER,
+            LogCategory.SCORE,
+          ]),
+        gameplay: () =>
+          this.enableCategories([
+            LogCategory.PLAYER,
+            LogCategory.MONSTER,
+            LogCategory.COIN,
+            LogCategory.BOMB,
+            LogCategory.POWER,
+            LogCategory.SCORE,
+          ]),
+        technical: () =>
+          this.enableCategories([
+            LogCategory.RENDER,
+            LogCategory.PHYSICS,
+            LogCategory.PERFORMANCE,
+            LogCategory.SPAWN,
+            LogCategory.COLLISION,
+          ]),
+
+        // Category-specific filters (singular names as aliases)
+        coin: () => this.showOnly(LogCategory.COIN),
+        bomb: () => this.showOnly(LogCategory.BOMB),
+        monster: () => this.showOnly(LogCategory.MONSTER),
+        power: () => this.showOnly(LogCategory.POWER),
+        level: () => this.showOnly(LogCategory.LEVEL),
+        score: () => this.showOnly(LogCategory.SCORE),
+        game: () => this.showOnly(LogCategory.GAME),
+        input: () => this.showOnly(LogCategory.INPUT),
+        render: () => this.showOnly(LogCategory.RENDER),
+        physics: () => this.showOnly(LogCategory.PHYSICS),
+        spawn: () => this.showOnly(LogCategory.SPAWN),
+        collision: () => this.showOnly(LogCategory.COLLISION),
+        performance: () => this.showOnly(LogCategory.PERFORMANCE),
+        data: () => this.showOnly(LogCategory.DATA),
+        asset: () => this.showOnly(LogCategory.ASSET),
+
+        // Coin spawning specific filter (shows coin + spawn + data logs)
+        coinSpawn: () =>
+          this.enableCategories([
+            LogCategory.COIN,
+            LogCategory.SPAWN,
+            LogCategory.DATA,
+          ]),
+
+        // Show current coin spawn conditions status
+        coinConditions: () => this.showCoinSpawnConditions(),
+        coinStatus: () => this.showCoinStatus(),
+
+        // Utility
+        clear: () => console.clear(),
+        help: () => this.showHelp(),
+      };
+
+      // Log the availability of console commands
+      if (import.meta.env?.DEV) {
+        console.log(
+          "%c🎮 Game Logger Ready!",
+          "color: #4ECDC4; font-size: 14px; font-weight: bold;"
+        );
+        console.log(
+          "%cType gameLog.help() for available commands",
+          "color: #888; font-size: 12px;"
+        );
+        console.log(
+          "%cYou can also use log.data() for data-passing logs",
+          "color: #888; font-size: 12px;"
+        );
+        console.log(
+          "%cUse gameLog.coinSpawn() to debug coin spawning logic",
+          "color: #888; font-size: 12px;"
+        );
+        console.log(
+          "%cUse gameLog.coinConditions() to see coin spawn conditions",
+          "color: #888; font-size: 12px;"
+        );
+        console.log(
+          "%cUse gameLog.coinStatus() to see current coin spawning status",
+          "color: #888; font-size: 12px;"
+        );
+      }
+    }
   }
 
-  // Throttled logging - only log once per specified interval
-  private shouldLog(key: string, throttleMs: number = 1000): boolean {
-    const now = Date.now();
-    const lastTime = this.lastLogTime.get(key) || 0;
+  private showCoinSpawnConditions(): void {
+    console.log(
+      "%c🪙 Coin Spawn Conditions Status",
+      "color: #FFD700; font-size: 16px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
     
-    if (now - lastTime >= throttleMs) {
-      this.lastLogTime.set(key, now);
-      return true;
-    }
-    return false;
+    // Note: These values would need to be fetched from the actual game state
+    // This is a display-only method that shows the structure
+    console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
+    console.log("  Spawn Condition: Every 9 firebombs collected in correct order");
+    console.log("  Check current status: gameLog.coinSpawn() then collect firebombs");
+    
+    console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
+    console.log("  Spawn Condition: Every 5000 points from coin collection only");
+    console.log("  Check current status: gameLog.coinSpawn() then collect coins");
+    
+    console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
+    console.log("  Spawn Condition: Every 5 B-coins collected");
+    console.log("  Check current status: gameLog.coinSpawn() then collect B-coins");
+    
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
+    console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
+    console.log("  • Use gameLog.data() to see all data-passing logs including spawns");
+    console.log("  • Spawn conditions are logged with 'CoinSpawn:' prefix in data logs");
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
   }
 
-  // Game state events (important events that should always be logged)
-  game(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`🎮 ${message}`, ...args);
+  private showCoinStatus(): void {
+    console.log(
+      "%c🪙 Current Coin Spawning Status",
+      "color: #FFD700; font-size: 16px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    
+    // Try to get current game state from window if available
+    const gameState = (window as any).gameState;
+    const coinManager = (window as any).coinManager;
+    
+    if (gameState && coinManager) {
+      // Show actual current values
+      console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
+      console.log(`  Firebombs collected: ${coinManager.getFirebombCount() || 0}`);
+      console.log(`  Next P-coin at: ${Math.ceil((coinManager.getFirebombCount() || 0) / 9) * 9} firebombs`);
+      console.log(`  Progress: ${(coinManager.getFirebombCount() || 0) % 9}/9`);
+      
+      console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
+      console.log(`  Coin points earned: ${coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 'N/A'}`);
+      console.log(`  Next B-coin at: ${Math.ceil(((coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 0) / 5000)) * 5000} points`);
+      console.log(`  Progress: ${(coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 0) % 5000}/5000`);
+      
+      console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
+      console.log(`  B-coins collected: ${gameState.totalBonusMultiplierCoinsCollected || 0}`);
+      console.log(`  Next M-coin at: ${Math.ceil(((gameState.totalBonusMultiplierCoinsCollected || 0) / 5)) * 5} B-coins`);
+      console.log(`  Progress: ${(gameState.totalBonusMultiplierCoinsCollected || 0) % 5}/5`);
+    } else {
+      // Fallback to general info
+      console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
+      console.log("  Status: Unknown (game not running or coinManager not accessible)");
+      console.log("  Use gameLog.coinSpawn() to see real-time status");
+      
+      console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
+      console.log("  Status: Unknown (game not running or coinManager not accessible)");
+      console.log("  Use gameLog.coinSpawn() to see real-time status");
+      
+      console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
+      console.log("  Status: Unknown (game not running or coinManager not accessible)");
+      console.log("  Use gameLog.coinSpawn() to see real-time status");
+    }
+    
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
+    console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
+    console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
+    console.log("  • Use gameLog.coinConditions() to see spawn condition rules");
+    console.log("  • Use gameLog.data() to see all data-passing logs");
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+  }
+
+  private showHelp(): void {
+    console.log(
+      "%c📚 Game Logger Commands",
+      "color: #4ECDC4; font-size: 16px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+
+    console.log("%c🎯 Quick Filters:", "color: #FFD700; font-weight: bold;");
+    console.log("  gameLog.player()        - Show only player logs");
+    console.log("  gameLog.audio()         - Show only audio logs");
+    console.log("  gameLog.bombs()         - Show bomb progression");
+    console.log("  gameLog.coins()         - Show coin collection");
+    console.log("  gameLog.coinSpawn()     - Show coin spawn debugging");
+    console.log("  gameLog.coinConditions()- Show coin spawn conditions info");
+    console.log("  gameLog.coinStatus()    - Show current coin spawning status");
+    console.log("  gameLog.gameplay()      - Show all gameplay logs");
+    console.log("  gameLog.technical()     - Show technical logs");
+    console.log("  gameLog.coin()          - Show only coin logs (singular)");
+    console.log("  gameLog.bomb()          - Show only bomb logs (singular)");
+
+    console.log(
+      "%c\n🔧 Category Control:",
+      "color: #FFD700; font-weight: bold;"
+    );
+    console.log('  gameLog.enable("audio")     - Enable a category');
+    console.log('  gameLog.disable("audio")    - Disable a category');
+    console.log('  gameLog.only("player")      - Show only one category');
+    console.log("  gameLog.all()               - Enable all categories");
+    console.log("  gameLog.none()              - Disable all categories");
+    console.log("  gameLog.categories()        - List all categories");
+
+    console.log("%c\n📊 Log Level:", "color: #FFD700; font-weight: bold;");
+    console.log(
+      '  gameLog.setLevel("debug")   - Set log level (off/error/warn/info/debug/trace)'
+    );
+
+    console.log("%c\n🔍 Utility:", "color: #FFD700; font-weight: bold;");
+    console.log("  gameLog.showConfig()        - Show current configuration");
+    console.log("  gameLog.clear()             - Clear console");
+    console.log("  gameLog.help()              - Show this help");
+
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+  }
+
+  private listCategories(): void {
+    console.log(
+      "%c📂 Available Categories",
+      "color: #4ECDC4; font-size: 14px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+
+    Object.values(LogCategory).forEach((category) => {
+      const icon = CATEGORY_ICONS[category];
+      const enabled = this.config.enabledCategories.has(category);
+      const status = enabled ? "✅" : "❌";
+      console.log(`  ${status} ${icon} ${category}`);
+    });
+  }
+
+  private showConfig(): void {
+    console.log(
+      "%c⚙️ Logger Configuration",
+      "color: #4ECDC4; font-size: 14px; font-weight: bold;"
+    );
+    console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
+    console.log(`  Log Level: ${LogLevel[this.config.level]}`);
+    console.log(
+      `  Enabled Categories: ${this.config.enabledCategories.size}/${
+        Object.values(LogCategory).length
+      }`
+    );
+    console.log(`  Show Timestamp: ${this.config.showTimestamp}`);
+    console.log(`  Show Category: ${this.config.showCategory}`);
+    console.log(`  Use Colors: ${this.config.useColors}`);
+  }
+
+  // Category management methods
+  public enableCategory(category: LogCategory): void {
+    this.config.enabledCategories.add(category);
+    console.log(`✅ Enabled category: ${category}`);
+  }
+
+  public disableCategory(category: LogCategory): void {
+    this.config.enabledCategories.delete(category);
+    console.log(`❌ Disabled category: ${category}`);
+  }
+
+  public showOnly(category: LogCategory): void {
+    this.config.enabledCategories.clear();
+    this.config.enabledCategories.add(category);
+    console.log(`🎯 Showing only: ${category}`);
+  }
+
+  public enableCategories(categories: LogCategory[]): void {
+    this.config.enabledCategories.clear();
+    categories.forEach((cat) => this.config.enabledCategories.add(cat));
+    console.log(`✅ Enabled categories: ${categories.join(", ")}`);
+  }
+
+  public enableAll(): void {
+    Object.values(LogCategory).forEach((cat) =>
+      this.config.enabledCategories.add(cat)
+    );
+    console.log("✅ All categories enabled");
+  }
+
+  public disableAll(): void {
+    this.config.enabledCategories.clear();
+    console.log("❌ All categories disabled");
+  }
+
+  public setLogLevel(level: string): void {
+    const levelMap: Record<string, LogLevel> = {
+      off: LogLevel.OFF,
+      error: LogLevel.ERROR,
+      warn: LogLevel.WARN,
+      info: LogLevel.INFO,
+      debug: LogLevel.DEBUG,
+      trace: LogLevel.TRACE,
+    };
+
+    const newLevel = levelMap[level.toLowerCase()];
+    if (newLevel !== undefined) {
+      this.config.level = newLevel;
+      console.log(`📊 Log level set to: ${LogLevel[newLevel]}`);
+    } else {
+      console.warn(`Invalid log level: ${level}`);
     }
   }
 
-  // Game flow events (level start, completion, etc.)
-  flow(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`🌊 ${message}`, ...args);
-    }
-  }
+  // Core logging method
+  private log(
+    level: LogLevel,
+    category: LogCategory,
+    message: string,
+    ...args: any[]
+  ): void {
+    // Check if should log
+    if (this.config.level === LogLevel.OFF) return;
+    if (level > this.config.level) return;
+    if (!this.config.enabledCategories.has(category)) return;
 
-  // Player actions (collecting items, dying, etc.)
-  player(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`👤 ${message}`, ...args);
-    }
-  }
+    // Create log entry
+    const entry: LogEntry = {
+      timestamp: Date.now(),
+      level,
+      category,
+      message,
+      data: args.length > 0 ? args : undefined,
+    };
 
-  // Monster events (spawning, dying, behavior changes)
-  monster(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`👹 ${message}`, ...args);
-    }
-  }
-
-  // Coin events (spawning, collecting)
-  coin(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`🪙 ${message}`, ...args);
-    }
-  }
-
-  // Bomb events (collecting, completing)
-  bomb(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`💣 ${message}`, ...args);
-    }
-  }
-
-  // Power mode events
-  power(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`⚡ ${message}`, ...args);
-    }
-  }
-
-  // Data passing events (data sent to external website)
-  dataPassing(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.DATAPASSING) {
-      console.log(`📡 ${message}`, ...args);
-    }
-  }
-
-  // Pause/resume events (throttled to avoid spam)
-  pause(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      const key = 'pause';
-      if (this.shouldLog(key, 500)) { // Only log pause events every 500ms
-        console.log(`⏸️ ${message}`, ...args);
+    // Buffer if enabled
+    if (this.config.buffer) {
+      this.logBuffer.push(entry);
+      if (this.logBuffer.length > this.config.bufferSize) {
+        this.logBuffer.shift();
       }
     }
+
+    // Format and output
+    this.output(entry);
   }
 
-  // Scaling events (throttled to avoid spam)
-  scaling(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      const key = 'scaling';
-      if (this.shouldLog(key, 2000)) { // Only log scaling events every 2 seconds
-        console.log(`📈 ${message}`, ...args);
-      }
+  private output(entry: LogEntry): void {
+    const icon = CATEGORY_ICONS[entry.category];
+    const color = CATEGORY_COLORS[entry.category];
+
+    let prefix = "";
+
+    if (this.config.showTimestamp) {
+      const time = new Date(entry.timestamp)
+        .toISOString()
+        .split("T")[1]
+        .split(".")[0];
+      prefix += `[${time}] `;
+    }
+
+    if (this.config.showCategory) {
+      prefix += `${icon} `;
+    }
+
+    const logMethod = this.getConsoleMethod(entry.level);
+
+    if (this.config.useColors && color) {
+      logMethod(
+        `%c${prefix}${entry.message}`,
+        `color: ${color}; font-weight: ${
+          entry.level <= LogLevel.WARN ? "bold" : "normal"
+        };`,
+        ...(entry.data || [])
+      );
+    } else {
+      logMethod(`${prefix}${entry.message}`, ...(entry.data || []));
     }
   }
 
-  // Debug info (only when debug level is enabled)
-  debug(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`🔧 ${message}`, ...args);
+  private getConsoleMethod(level: LogLevel): (...args: any[]) => void {
+    switch (level) {
+      case LogLevel.ERROR:
+        return console.error;
+      case LogLevel.WARN:
+        return console.warn;
+      default:
+        return console.log;
     }
   }
 
-  // Audio events
-  audio(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`🎵 ${message}`, ...args);
+  // Throttled logging
+  public throttled(
+    category: LogCategory,
+    key: string,
+    message: string,
+    intervalMs: number = 1000,
+    ...args: any[]
+  ): void {
+    const now = Date.now();
+    const lastTime = this.throttleTimers.get(key) || 0;
+
+    if (now - lastTime >= intervalMs) {
+      this.throttleTimers.set(key, now);
+      this.log(LogLevel.INFO, category, message, ...args);
     }
   }
 
-  // Error events
-  error(message: string, ...args: any[]): void {
-    if (this.logLevel >= LogLevel.ERROR) {
-      console.error(`❌ ${message}`, ...args);
-    }
+  // Public logging methods for each category
+  public audio(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.AUDIO, message, ...args);
   }
 
-  // Warning events
-  warn(message: string, ...args: any[]): void {
-    if (this.logLevel >= LogLevel.WARN) {
-      console.warn(`⚠️ ${message}`, ...args);
-    }
+  public player(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.PLAYER, message, ...args);
   }
 
-  // Info events
-  info(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`ℹ️ ${message}`, ...args);
-    }
+  public monster(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.MONSTER, message, ...args);
   }
 
-  // Trace events (only when trace level is enabled)
-  trace(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.TRACE) {
-      console.log(`🔍 ${message}`, ...args);
-    }
+  public coin(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.COIN, message, ...args);
   }
 
-  // Dev mode events (only when DEV_CONFIG.ENABLED is true)
-  dev(message: string, ...args: any[]): void {
-    // Only log dev messages when explicitly enabled
-    // This prevents spam when DEV_CONFIG.ENABLED is false
-    if (import.meta.env?.DEV && (window as any).__DEV_LOGGING_ENABLED__) {
-      console.log(`🔧 ${message}`, ...args);
-    }
+  public bomb(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.BOMB, message, ...args);
   }
 
-  // Score events
-  score(message: string, ...args: any[]): void {
-    if (this.logLevel === LogLevel.INFO || this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.TRACE) {
-      console.log(`📊 ${message}`, ...args);
-    }
+  public power(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.POWER, message, ...args);
   }
 
-  // Clear throttled log timestamps
-  clearThrottle(): void {
-    this.lastLogTime.clear();
+  public level(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.LEVEL, message, ...args);
   }
 
-  // Method to disable all logging
-  disable(): void {
-    this.logLevel = LogLevel.ERROR;
+  public score(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.SCORE, message, ...args);
   }
 
-  // Method to enable logging
-  enable(): void {
-    this.logLevel = LogLevel.INFO;
+  public game(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.GAME, message, ...args);
   }
 
-  // Method to set log level
-  setLevel(level: LogLevel): void {
-    this.logLevel = level;
+  public input(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.INPUT, message, ...args);
+  }
+
+  public render(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.RENDER, message, ...args);
+  }
+
+  public physics(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.PHYSICS, message, ...args);
+  }
+
+  public spawn(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.SPAWN, message, ...args);
+  }
+
+  public collision(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.COLLISION, message, ...args);
+  }
+
+  public performance(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.PERFORMANCE, message, ...args);
+  }
+
+  public data(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.DATA, message, ...args);
+  }
+
+  public asset(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.ASSET, message, ...args);
+  }
+
+  public debug(message: string, ...args: any[]): void {
+    this.log(LogLevel.DEBUG, LogCategory.DEBUG, message, ...args);
+  }
+
+  // Level-specific methods
+  public error(message: string, ...args: any[]): void {
+    this.log(LogLevel.ERROR, LogCategory.GAME, message, ...args);
+  }
+
+  public warn(message: string, ...args: any[]): void {
+    this.log(LogLevel.WARN, LogCategory.GAME, message, ...args);
+  }
+
+  public info(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.GAME, message, ...args);
+  }
+
+  public trace(message: string, ...args: any[]): void {
+    this.log(LogLevel.TRACE, LogCategory.DEBUG, message, ...args);
+  }
+
+  // Compatibility methods for existing code
+  public flow(message: string, ...args: any[]): void {
+    this.level(message, ...args);
+  }
+
+  public scaling(message: string, ...args: any[]): void {
+    this.performance(message, ...args);
+  }
+
+  public pause(message: string, ...args: any[]): void {
+    this.game(message, ...args);
+  }
+
+  public dataPassing(message: string, ...args: any[]): void {
+    this.data(message, ...args);
+  }
+
+  public dev(message: string, ...args: any[]): void {
+    this.debug(message, ...args);
   }
 }
 
 // Export singleton instance
 export const logger = new Logger();
 
-// Export convenience methods
+// Export convenience methods for backward compatibility
 export const log = {
   error: (message: string, ...args: unknown[]) =>
     logger.error(message, ...args),
@@ -236,14 +703,56 @@ export const log = {
     logger.debug(message, ...args),
   trace: (message: string, ...args: unknown[]) =>
     logger.trace(message, ...args),
+
+  // Category-specific methods
   game: (message: string, ...args: unknown[]) => logger.game(message, ...args),
-  dev: (message: string, ...args: unknown[]) => logger.dev(message, ...args),
   audio: (message: string, ...args: unknown[]) =>
     logger.audio(message, ...args),
+  player: (message: string, ...args: unknown[]) =>
+    logger.player(message, ...args),
+  monster: (message: string, ...args: unknown[]) =>
+    logger.monster(message, ...args),
   coin: (message: string, ...args: unknown[]) => logger.coin(message, ...args),
   bomb: (message: string, ...args: unknown[]) => logger.bomb(message, ...args),
+  power: (message: string, ...args: unknown[]) =>
+    logger.power(message, ...args),
+  level: (message: string, ...args: unknown[]) =>
+    logger.level(message, ...args),
   score: (message: string, ...args: unknown[]) =>
     logger.score(message, ...args),
+  input: (message: string, ...args: unknown[]) =>
+    logger.input(message, ...args),
+  render: (message: string, ...args: unknown[]) =>
+    logger.render(message, ...args),
+  physics: (message: string, ...args: unknown[]) =>
+    logger.physics(message, ...args),
+  spawn: (message: string, ...args: unknown[]) =>
+    logger.spawn(message, ...args),
+  collision: (message: string, ...args: unknown[]) =>
+    logger.collision(message, ...args),
+  performance: (message: string, ...args: unknown[]) =>
+    logger.performance(message, ...args),
+  data: (message: string, ...args: unknown[]) => logger.data(message, ...args),
+  asset: (message: string, ...args: unknown[]) =>
+    logger.asset(message, ...args),
+
+  // Compatibility aliases
+  dev: (message: string, ...args: unknown[]) => logger.dev(message, ...args),
+  flow: (message: string, ...args: unknown[]) => logger.flow(message, ...args),
+  scaling: (message: string, ...args: unknown[]) =>
+    logger.scaling(message, ...args),
+  pause: (message: string, ...args: unknown[]) =>
+    logger.pause(message, ...args),
   dataPassing: (message: string, ...args: unknown[]) =>
     logger.dataPassing(message, ...args),
 };
+
+// Expose log to window for console access
+if (typeof window !== "undefined") {
+  (window as any).log = log;
+}
+
+// Type definitions for better IDE support
+export type LogMethod = (message: string, ...args: unknown[]) => void;
+export type LoggerInstance = typeof logger;
+export type LogExports = typeof log;

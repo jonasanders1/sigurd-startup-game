@@ -53,6 +53,10 @@ export class AnimationController {
       if (isGrounded) {
         this.mapClearedFallComplete = true;
       }
+    } else if (gameState !== "MAP_CLEARED" && this.isMapCleared) {
+      // Reset MAP_CLEARED state when transitioning to a different state
+      this.isMapCleared = false;
+      this.mapClearedFallComplete = false;
     }
 
     // Check if landing animation finished

@@ -2,39 +2,39 @@ import { SpriteInstance } from "../lib/SpriteInstance";
 import { loadSpriteImage } from "../config/assets";
 
 const idleFrames = [
-  loadSpriteImage("sigurd-idle/sigurd-idle1.png"),
-  loadSpriteImage("sigurd-idle/sigurd-idle2.png"),
-  loadSpriteImage("sigurd-idle/sigurd-idle3.png"),
-  loadSpriteImage("sigurd-idle/sigurd-idle4.png"),
+  loadSpriteImage("sprites/sigurd/sigurd-idle/sigurd-idle1.png"),
+  loadSpriteImage("sprites/sigurd/sigurd-idle/sigurd-idle2.png"),
+  loadSpriteImage("sprites/sigurd/sigurd-idle/sigurd-idle3.png"),
+  loadSpriteImage("sprites/sigurd/sigurd-idle/sigurd-idle4.png"),
 ];
 
 const runFrames = [
-  loadSpriteImage("running/run1.png"),
-  loadSpriteImage("running/run2.png"),
-  loadSpriteImage("running/run3.png"),
+  loadSpriteImage("sprites/sigurd/running/run1.png"),
+  loadSpriteImage("sprites/sigurd/running/run2.png"),
+  loadSpriteImage("sprites/sigurd/running/run3.png"),
 ];
 
 const jumpFrames = [
-  loadSpriteImage("jumping/jump1.png"),
-  loadSpriteImage("jumping/jump2.png"),
-  loadSpriteImage("jumping/jump3.png"),
+  loadSpriteImage("sprites/sigurd/jumping/jump1.png"),
+  loadSpriteImage("sprites/sigurd/jumping/jump2.png"),
+  loadSpriteImage("sprites/sigurd/jumping/jump3.png"),
 ];
 
 
 
 const completeFrames = [
-  loadSpriteImage("complete/complete1.png"),
-  loadSpriteImage("complete/complete2.png"),
-  loadSpriteImage("complete/complete3.png"),
-  loadSpriteImage("complete/complete4.png"),
-  loadSpriteImage("complete/complete5.png"),
+  loadSpriteImage("sprites/sigurd/complete/complete1.png"),
+  loadSpriteImage("sprites/sigurd/complete/complete2.png"),
+  loadSpriteImage("sprites/sigurd/complete/complete3.png"),
+  loadSpriteImage("sprites/sigurd/complete/complete4.png"),
+  loadSpriteImage("sprites/sigurd/complete/complete5.png"),
 ];
 
-const floatStationaryFrames = [loadSpriteImage("float/float1.png")];
+const floatStationaryFrames = [loadSpriteImage("sprites/sigurd/float/float1.png")];
 
-const floatDirectionalFrames = [loadSpriteImage("float-dir/float-dir1.png")];
+const floatDirectionalFrames = [loadSpriteImage("sprites/sigurd/float-dir/float-dir1.png")];
 
-const landingFrames = [loadSpriteImage("landing/landing1.png")];
+const landingFrames = [loadSpriteImage("sprites/sigurd/landing/landing1.png")];
 
 const playerAnimations = [
   {

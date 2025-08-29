@@ -1,16 +1,18 @@
 import React from "react";
 import ShortcutControls from "../ShortcutControls";
-import { useGameStore } from "../../stores/gameStore";
+import { useGameStore, useStateStore } from "../../stores/gameStore";
 import { GameState } from "@/types/enums";
 
 const Menu = ({
   children,
   transparent,
+  showShortcuts = true,
 }: {
   children: React.ReactNode;
   transparent?: boolean;
+  showShortcuts?: boolean;
 }) => {
-  const { currentState } = useGameStore();
+  const { currentState } = useStateStore();
 
   return (
     <div
@@ -19,7 +21,11 @@ const Menu = ({
       }`}
     >
       {children}
-      {currentState !== GameState.PLAYING && <ShortcutControls />}
+      {currentState !== GameState.PLAYING &&
+        currentState !== GameState.COUNTDOWN &&
+        currentState !== GameState.GAME_OVER &&
+        currentState !== GameState.VICTORY &&
+        showShortcuts && <ShortcutControls />}
     </div>
   );
 };

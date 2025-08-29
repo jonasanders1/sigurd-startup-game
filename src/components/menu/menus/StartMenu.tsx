@@ -1,8 +1,8 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
-import { GameState, MenuType } from "../../../types/enums";
-import { Maximize, Minimize, Play, Settings } from "lucide-react";
+import { useStateStore } from "../../../stores/gameStore";
+
+import { Joystick, Maximize, Minimize, Play, Settings } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -12,24 +12,23 @@ import {
 import { useFullscreen } from "../../../hooks/useFullscreen";
 
 const StartMenu: React.FC = () => {
-  const { setState, setMenuType } = useGameStore();
+  const { gameStateManager } = useStateStore.getState();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const startGame = () => {
-    // First hide the start menu
-    setMenuType(MenuType.COUNTDOWN);
-    // Then set countdown state
-    setState(GameState.COUNTDOWN);
-
-    // After 3 seconds, start the game
-    setTimeout(() => {
-      setState(GameState.PLAYING);
-    }, 3000);
+    // Use centralized state transition
+    gameStateManager?.startNewGame();
   };
 
   const openSettings = () => {
-    setMenuType(MenuType.SETTINGS);
+    // Use centralized settings transition
+    gameStateManager?.openSettings();
+  };
+
+  const openControls = () => {
+    // Use centralized controls transition
+    gameStateManager?.openControls();
   };
 
   const handleFullscreenToggle = () => {
@@ -100,6 +99,14 @@ const StartMenu: React.FC = () => {
         >
           <Settings size={20} />
           Innstillinger
+        </Button>
+        <Button
+          onClick={openControls}
+          variant="outline"
+          className="w-full border-secondary text-muted-foreground hover:bg-secondary hover:text-white font-bold py-3 text-lg transition-all duration-200 uppercase flex items-center justify-center gap-2"
+        >
+          <Joystick size={20} />
+          Kontroller
         </Button>
       </div>
     </div>

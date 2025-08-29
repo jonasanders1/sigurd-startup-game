@@ -10,16 +10,19 @@ import {
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { ScalingManager } from "../managers/ScalingManager";
+import { useScoreStore } from "../stores/gameStore";
+import { useAudioStore } from "../stores/systems/audioStore";
+import { log } from "../lib/logger";
 
 // Define coin effects
 export const COIN_EFFECTS = {
   POWER_MODE: {
     type: "POWER_MODE",
-    duration: GAME_CONFIG.POWER_COIN_DURATION, // Default duration (will be overridden)
+    duration: GAME_CONFIG.POWER_COIN_DURATION as number, // Default duration (will be overridden)
     points: GAME_CONFIG.POWER_COIN_POINTS,
     apply: (gameState: GameStateInterface, coin?: any) => {
       // Calculate duration based on coin color if available
-      let duration = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
+      let duration: number = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
 
       if (coin && coin.spawnTime !== undefined) {
         // Get the color data for this specific coin
@@ -32,7 +35,7 @@ export const COIN_EFFECTS = {
             const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
             duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
           } catch (error) {
-            console.warn(
+            log.warn(
               "Failed to get P-coin color data, using default duration:",
               error
             );
@@ -61,30 +64,34 @@ export const COIN_EFFECTS = {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.pauseForPowerMode();
       } catch (error) {
-        console.log(
+        log.debug(
           "Could not pause difficulty scaling (ScalingManager not available)"
         );
       }
 
       // Start power-up melody with the correct duration
-      if (gameState.audioManager && typeof gameState.audioManager.startPowerUpMelodyWithDuration === 'function') {
-        console.log(`Starting PowerUp melody from coin effect for ${duration}ms`);
-        console.log(`AudioManager available:`, gameState.audioManager);
-        gameState.audioManager.startPowerUpMelodyWithDuration(duration);
+      // Get audioManager from the audioStore instead of gameState
+      const audioStore = useAudioStore.getState();
+      if (audioStore.audioManager && typeof audioStore.audioManager.startPowerUpMelodyWithDuration === 'function') {
+        log.audio(`Starting PowerUp melody from coin effect for ${duration}ms`);
+        log.debug(`AudioManager available:`, audioStore.audioManager);
+        audioStore.audioManager.startPowerUpMelodyWithDuration(duration);
       } else {
-        console.warn("AudioManager not available for PowerUp melody");
-        console.log(`GameState audioManager:`, gameState.audioManager);
-        console.log(`GameState keys:`, Object.keys(gameState));
+        log.warn("AudioManager not available for PowerUp melody");
+        log.debug(`AudioStore audioManager:`, audioStore.audioManager);
+        log.debug(`AudioStore keys:`, Object.keys(audioStore));
       }
     },
     remove: (gameState: GameStateInterface) => {
-      console.log("Removing POWER_MODE effect, stopping PowerUp melody");
+      log.audio("Removing POWER_MODE effect, stopping PowerUp melody");
       
       // Stop power-up melody when effect ends
-      if (gameState.audioManager && typeof gameState.audioManager.stopPowerUpMelody === 'function') {
-        gameState.audioManager.stopPowerUpMelody();
+      // Get audioManager from the audioStore instead of gameState
+      const audioStore = useAudioStore.getState();
+      if (audioStore.audioManager && typeof audioStore.audioManager.stopPowerUpMelody === 'function') {
+        audioStore.audioManager.stopPowerUpMelody();
       } else {
-        console.warn("AudioManager not available to stop PowerUp melody");
+        log.warn("AudioManager not available to stop PowerUp melody");
       }
       
       // Unfreeze monsters (safely handle undefined monsters)
@@ -100,7 +107,7 @@ export const COIN_EFFECTS = {
         const scalingManager = ScalingManager.getInstance();
         scalingManager.resumeFromPowerMode();
       } catch (error) {
-        console.log(
+        log.debug(
           "Could not resume difficulty scaling (ScalingManager not available)"
         );
       }
@@ -111,9 +118,12 @@ export const COIN_EFFECTS = {
     type: "BONUS_MULTIPLIER",
     points: 0, // Points will be calculated dynamically
     apply: (gameState: GameStateInterface) => {
+      // Get the score store to add points
+      const scoreStore = useScoreStore.getState();
+      
       // Give points based on current multiplier (1000 * multiplier)
       const points = 1000 * gameState.multiplier;
-      gameState.addScore(points);
+      scoreStore.addScore(points);
 
       // Increase multiplier
       if (gameState.multiplier < GAME_CONFIG.MAX_MULTIPLIER) {
@@ -254,8 +264,8 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.POWER,
     effects: [COIN_EFFECTS.POWER_MODE],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every 9 firebombs collected in correct order
-      return gameState.firebombCount % 9 === 0;
+      // Spawn every POWER_COIN_SPAWN_INTERVAL firebombs collected in correct order
+      return gameState.firebombCount % GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL === 0;
     },
     maxActive: 1,
   },
@@ -267,11 +277,13 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every BONUS_COIN_SPAWN_INTERVAL points
-      // Use bombAndMonsterPoints if available, otherwise fall back to total score
-      const score =
-        (gameState as any).bombAndMonsterPoints || gameState.score || 0;
-      return score > 0 && score % GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL === 0;
+      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from firebomb collection ONLY
+      // This prevents B-coin collection from triggering more B-coins
+      const firebombPoints = (gameState as any).firebombPoints || 0;
+      
+      // Check if we've reached a threshold (not using modulo since that fails for incremental points)
+      // This is handled properly in checkBcoinSpawnConditions method
+      return firebombPoints >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
     },
     maxActive: 1,
   },

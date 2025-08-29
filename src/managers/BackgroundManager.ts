@@ -1,7 +1,7 @@
-import { GAME_CONFIG } from "../types/constants";
-import { ASSET_PATHS } from "../config/assets";
 import { logger } from "../lib/logger";
 import { getBackgroundImagePath } from "../config/assets";
+import { RENDERING_CONFIG } from "@/config/game";
+import { DEV_CONFIG } from "@/config/dev";
 
 interface BackgroundImage {
   image: HTMLImageElement;
@@ -10,6 +10,7 @@ interface BackgroundImage {
 
 // Map human-readable map names to custom background image files
 const MAP_NAME_TO_BACKGROUND_MAP: Record<string, string> = {
+  garasjen: "garasjen",
   "startup lab": "startup-lab",
   nav: "nav",
   skatteetaten: "skatteetaten",
@@ -47,7 +48,7 @@ export class BackgroundManager {
 
     // Start loading in background - doesn't block game loop
     this.loadBackgroundAsync(mapName).catch((error) => {
-      console.error("BackgroundManager: Failed to load background:", error);
+      logger.error("BackgroundManager: Failed to load background:", error);
       this.isLoading = false;
     });
   }
@@ -58,7 +59,7 @@ export class BackgroundManager {
 
       const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
       if (!themeName) {
-        console.warn(
+        logger.warn(
           `BackgroundManager: No background image found for map: ${mapName}, using fallback`
         );
         this.isLoading = false;
@@ -74,9 +75,9 @@ export class BackgroundManager {
       };
 
       this.isLoading = false;
-      logger.flow(`Background loaded: ${mapName}`);
+      logger.asset(`Background loaded: ${mapName}`);
     } catch (error) {
-      console.error(
+      logger.error(
         "BackgroundManager: Failed to load background image:",
         error
       );
@@ -93,13 +94,15 @@ export class BackgroundManager {
     });
   }
 
-  update(playerX: number, playerY: number): void {
-    // No parallax movement needed for static backgrounds
-    // This method is kept for compatibility but doesn't do anything
-  }
-
   render(ctx: CanvasRenderingContext2D): void {
-    if (!this.currentBackground || !this.currentBackground.isLoaded) {
+    // Import RENDERING_CONFIG at the top of the file:
+    // import { RENDERING_CONFIG } from "../config/game";
+
+    if (
+      !this.currentBackground ||
+      !this.currentBackground.isLoaded ||
+      !RENDERING_CONFIG.USE_SPRITES
+    ) {
       // Show loading state
       if (this.isLoading) {
         this.renderLoading(ctx);
@@ -149,12 +152,7 @@ export class BackgroundManager {
   }
 
   private renderFallback(ctx: CanvasRenderingContext2D): void {
-    // Create a simple gradient background as fallback
-    const gradient = ctx.createLinearGradient(0, 0, 0, this.canvasHeight);
-    gradient.addColorStop(0, "#87CEEB"); // Sky blue
-    gradient.addColorStop(1, "#4682B4"); // Steel blue
-
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = DEV_CONFIG.COLORS.BACKGROUND;
     ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
   }
 
@@ -187,7 +185,7 @@ export class BackgroundManager {
 
   // Preload all background images to prevent flashing
   static async preloadAllBackgrounds(): Promise<void> {
-    logger.flow("Starting background preloading...");
+    logger.asset("Starting background preloading...");
     const backgrounds = Object.keys(MAP_NAME_TO_BACKGROUND_MAP);
     let loadedCount = 0;
 
@@ -209,7 +207,7 @@ export class BackgroundManager {
         loadedCount++;
         // Only log every 2nd background to reduce spam
         if (loadedCount % 2 === 0 || loadedCount === backgrounds.length) {
-          logger.flow(
+          logger.asset(
             `Preloaded ${loadedCount}/${backgrounds.length} backgrounds`
           );
         }
@@ -219,7 +217,7 @@ export class BackgroundManager {
     });
 
     await Promise.all(preloadPromises);
-    logger.flow(
+    logger.asset(
       `Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`
     );
   }

@@ -1,5 +1,5 @@
 import { Monster } from "../types/interfaces";
-import { logger } from "../lib/logger";
+import { logger, LogCategory } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 
 export interface RespawnConfig {
@@ -22,6 +22,8 @@ export class OptimizedRespawnManager {
   private lastUpdateTime: number = 0;
   private updateInterval: number = 500; // Update every 500ms instead of every frame
   private paused: boolean = false;
+  private pauseStartTime: number = 0;
+  private totalPausedTime: number = 0;
 
   private constructor() {
     this.respawnConfig = this.getDefaultRespawnConfig();
@@ -60,6 +62,12 @@ export class OptimizedRespawnManager {
 
   // ===== MONSTER MANAGEMENT =====
   public killMonster(monster: Monster): void {
+    // Validate monster object
+    if (!monster || !monster.type) {
+      logger.error("killMonster called with invalid monster object");
+      return;
+    }
+
     if (monster.isDead) {
       logger.debug(`Monster already dead, skipping kill: ${monster.type}`);
       return;
@@ -73,9 +81,10 @@ export class OptimizedRespawnManager {
     // Mark monster as dead
     monster.isDead = true;
     monster.isActive = false;
-    monster.deathTime = Date.now();
+    const adjustedNow = Date.now() - this.totalPausedTime;
+    monster.deathTime = adjustedNow;
     monster.respawnTime =
-      monster.deathTime + this.getRespawnDelay(monster.type);
+      adjustedNow + this.getRespawnDelay(monster.type);
 
     // Add to dead monsters list (sorted by respawn time for efficient processing)
     const deadMonster: DeadMonster = {
@@ -124,11 +133,12 @@ export class OptimizedRespawnManager {
     }
 
     const monstersToRespawn: Monster[] = [];
+    const adjustedCurrentTime = currentTime - this.totalPausedTime;
 
     // Process respawns (since array is sorted, we can process from the beginning)
     while (
       this.deadMonsters.length > 0 &&
-      this.deadMonsters[0].respawnTime <= currentTime
+      this.deadMonsters[0].respawnTime <= adjustedCurrentTime
     ) {
       const deadMonster = this.deadMonsters.shift()!;
       const respawnedMonster = this.respawnMonster(deadMonster.monster);
@@ -148,13 +158,25 @@ export class OptimizedRespawnManager {
 
   // ===== PAUSE MANAGEMENT =====
   public pause(): void {
-    this.paused = true;
-    logger.pause("Respawn system paused");
+    // Only log if we weren't already paused
+    if (!this.paused) {
+      this.paused = true;
+      this.pauseStartTime = Date.now();
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, "respawn_paused", "Respawn system paused", 5000);
+    }
   }
 
   public resume(): void {
-    this.paused = false;
-    logger.pause("Respawn system resumed");
+    // Only log if we were actually paused
+    if (this.paused) {
+      this.paused = false;
+      this.totalPausedTime += Date.now() - this.pauseStartTime;
+      // Use throttled logging to prevent spam
+      logger.throttled(LogCategory.GAME, "respawn_resumed", "Respawn system resumed", 5000);
+    } else {
+      this.paused = false;
+    }
   }
 
   public isPaused(): boolean {
@@ -247,7 +269,10 @@ export class OptimizedRespawnManager {
   public reset(): void {
     this.deadMonsters = [];
     this.lastUpdateTime = 0;
-    logger.debug("OptimizedRespawnManager: Reset - cleared all dead monsters");
+    this.paused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
+    logger.debug("OptimizedRespawnManager: Reset - cleared all dead monsters and pause state");
   }
 
   public setUpdateInterval(intervalMs: number): void {
@@ -260,5 +285,8 @@ export class OptimizedRespawnManager {
   public cleanup(): void {
     this.deadMonsters = [];
     this.lastUpdateTime = 0;
+    this.paused = false;
+    this.pauseStartTime = 0;
+    this.totalPausedTime = 0;
   }
 }

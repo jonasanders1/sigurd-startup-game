@@ -71,8 +71,129 @@ const centerPoint = (offsetWidth: number, offsetHeight: number) => {
   };
 };
 
-// Level 1 - Startup Lab - Norge
+// Level 1 - Garage
 export const level1Map: MapDefinition = {
+  id: "level1",
+  name: "garasjen",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  background: "garasjen",
+  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
+  spawnIndicatorColor: "#ff9ff3", // Pink for blue background
+
+  groupSequence: [1, 2, 3, 4, 5, 6],
+
+  ground: {
+    x: 0,
+    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: 40,
+    color: "#4c6986",
+  },
+
+  platforms: [
+    // Floating platforms in spiral pattern
+    createPlatform(125, 170, { width: 150, height: 15 }, "#ebb185"),
+    createPlatform(525, 170, { width: 150, height: 15 }, "#ebb185"),
+
+    createPlatform(0, 270, { width: 50, height: 15 }, "#ebb185"),
+    createPlatform(750, 270, { width: 50, height: 15 }, "#ebb185"),
+
+    createPlatform(100, 400, { width: 200, height: 15 }, "#ebb185"),
+    createPlatform(500, 400, { width: 200, height: 15 }, "#ebb185"),
+  ],
+
+  bombs: [
+    createBomb(260, 525, 1, 1),
+    createBomb(210, 525, 2, 1),
+    createBomb(160, 525, 3, 1),
+
+    createBomb(510, 525, 4, 2),
+    createBomb(560, 525, 5, 2),
+    createBomb(610, 525, 6, 2),
+    createBomb(660, 525, 7, 2),
+
+    createBomb(260, 368, 8, 3),
+    createBomb(210, 368, 9, 3),
+    createBomb(160, 368, 10, 3),
+    createBomb(110, 368, 11, 3),
+
+    createBomb(10, 240, 12, 4),
+
+    createBomb(140, 138, 13, 5),
+    createBomb(190, 138, 14, 5),
+    createBomb(240, 138, 15, 5),
+
+    createBomb(510, 368, 16, 6),
+    createBomb(560, 368, 17, 6),
+    createBomb(610, 368, 18, 6),
+    createBomb(660, 368, 19, 6),
+
+    createBomb(765, 240, 20, 7),
+
+    createBomb(640, 138, 21, 8),
+    createBomb(590, 138, 22, 8),
+    createBomb(540, 138, 23, 8),
+  ],
+
+  monsters: [
+    createHorizontalPatrolMonster(125, 170, 150, "left"),
+    createHorizontalPatrolMonster(525, 170, 150, "right"),
+
+    createHorizontalPatrolMonster(100, 400, 200, "right"),
+    createHorizontalPatrolMonster(500, 400, 200, "left"),
+  ],
+
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 10000,
+      createMonster: () => createChaserMonster(500, 500, 1),
+    },
+    {
+      spawnDelay: 13000,
+      createMonster: () => createAmbusherMonster(600, 100, 1),
+    },
+  ],
+
+  coinSpawnPoints: [
+    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
+    {
+      x: 300,
+      y: 100,
+      type: CoinType.POWER,
+      spawnAngle: 65,
+    },
+    {
+      x: centerX(GAME_CONFIG.COIN_SIZE),
+      y: centerY(GAME_CONFIG.COIN_SIZE),
+      type: CoinType.POWER,
+      spawnAngle: -55,
+    },
+    {
+      x: 190,
+      y: 100,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 590,
+      y: 100,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 190,
+      y: 100,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 590,
+      y: 100,
+      type: CoinType.EXTRA_LIFE,
+    },
+  ],
+};
+
+// Level 2 - Startup Lab - Norge
+export const level2Map: MapDefinition = {
   id: "level1",
   name: "startup lab",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -155,11 +276,7 @@ export const level1Map: MapDefinition = {
       type: CoinType.POWER,
       spawnAngle: 135,
     },
-    // {
-    //   x: centerX(GAME_CONFIG.COIN_SIZE),
-    //   y: 75,
-    //   type: CoinType.BONUS_MULTIPLIER,
-    // },
+
     {
       x: 200,
       y: 75,
@@ -183,7 +300,6 @@ export const level1Map: MapDefinition = {
   ],
 
   monsterSpawnPoints: [
-    // // Test monster - spawns immediately
     {
       spawnDelay: 4000,
       createMonster: () =>
@@ -196,11 +312,7 @@ export const level1Map: MapDefinition = {
           1.0 // speed
         ),
     },
-    // // Another test monster - spawns immediately at different location
-    // {
-    //   spawnDelay: 10000, // 10 seconds
-    //   createMonster: () => createFloaterMonster(50, 500, 45, 1),
-    // },
+
     {
       spawnDelay: 5000,
       createMonster: () => createAmbusherMonster(500, 500, 1),
@@ -215,8 +327,8 @@ export const level1Map: MapDefinition = {
   ],
 };
 
-// Level 2 - Innovasjon Norge
-export const level2Map: MapDefinition = {
+// Level 3 - Innovasjon Norge
+export const level3Map: MapDefinition = {
   id: "level2",
   name: "innovasjon norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -351,8 +463,8 @@ export const level2Map: MapDefinition = {
   ],
 };
 
-// Level 3 - Skatteetaten
-export const level3Map: MapDefinition = {
+// Level 4 - Skatteetaten
+export const level4Map: MapDefinition = {
   id: "level3",
   name: "skatteetaten",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -416,7 +528,40 @@ export const level3Map: MapDefinition = {
     createBomb(375, 95, 23, 7),
   ],
 
-  coinSpawnPoints: [],
+  coinSpawnPoints: [
+    {
+      x: centerX(GAME_CONFIG.COIN_SIZE),
+      y: centerY(GAME_CONFIG.COIN_SIZE),
+      type: CoinType.POWER,
+      spawnAngle: -30,
+    },
+    {
+      x: centerX(GAME_CONFIG.COIN_SIZE),
+      y: centerY(GAME_CONFIG.COIN_SIZE),
+      type: CoinType.POWER,
+      spawnAngle: -120,
+    },
+    {
+      x: 180,
+      y: 190,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 595,
+      y: 190,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 180,
+      y: 190,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 595,
+      y: 190,
+      type: CoinType.EXTRA_LIFE,
+    },
+  ],
 
   monsters: [
     // Static monster on horizontal platform
@@ -465,9 +610,9 @@ export const level3Map: MapDefinition = {
   ],
 };
 
-// Level 4 - NAV
-export const level4Map: MapDefinition = {
-  id: "level4",
+// Level 5 - NAV
+export const level5Map: MapDefinition = {
+  id: "level5",
   name: "nav",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
@@ -557,31 +702,51 @@ export const level4Map: MapDefinition = {
   ],
 
   coinSpawnPoints: [
-    // {
-    //   x: 400,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-    //   type: CoinType.POWER,
-    //   spawnAngle: 30,
-    // },
-    // {
-    //   x: 400,
-    //   y: GAME_CONFIG.CANVAS_HEIGHT - 250,
-    //   type: CoinType.POWER,
-    //   spawnAngle: 150,
-    // },
+    {
+      x: centerX(GAME_CONFIG.COIN_SIZE),
+      y: centerY(GAME_CONFIG.COIN_SIZE),
+      type: CoinType.POWER,
+      spawnAngle: -20,
+    },
+    {
+      x: 80,
+      y: 200,
+      type: CoinType.POWER,
+      spawnAngle: 60,
+    },
+    {
+      x: 150,
+      y: 10,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 550,
+      y: 10,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 150,
+      y: 10,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 550,
+      y: 10,
+      type: CoinType.EXTRA_LIFE,
+    },
   ],
   monsterSpawnPoints: [
     // Vertical patrol monster - spawns after 3 seconds
-    {
-      spawnDelay: 4000,
-      createMonster: () =>
-        createFloaterMonster(
-          centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE),
-          65,
-          1
-        ),
-    },
+    // {
+    //   spawnDelay: 4000,
+    //   createMonster: () =>
+    //     createFloaterMonster(
+    //       centerX(GAME_CONFIG.MONSTER_SIZE),
+    //       centerY(GAME_CONFIG.MONSTER_SIZE),
+    //       65,
+    //       1
+    //     ),
+    // },
     {
       spawnDelay: 6000,
       createMonster: () => createFloaterMonster(240, 350, 40, 1),
@@ -599,26 +764,25 @@ export const level4Map: MapDefinition = {
         ),
     },
     {
-      spawnDelay: 4000,
+      spawnDelay: 10000,
       createMonster: () =>
         createAmbusherMonster(
-          50, // startX
-          50, // startY
-          1.2, // speed (reduced from 2)
-          8000 // ambushInterval (increased from 300 to match new base value)
+          725, // startX
+          100, // startY
+          1 // speed (reduced from 2)
         ),
     },
-    {
-      spawnDelay: 4000,
-      createMonster: () =>
-        createChaserMonster(
-          centerX(GAME_CONFIG.MONSTER_SIZE), // startX
-          centerY(GAME_CONFIG.MONSTER_SIZE), // startY
-          3, // Speed
-          0.5 // Directness
-          // updateInterval
-        ),
-    },
+    // {
+    //   spawnDelay: 4000,
+    //   createMonster: () =>
+    //     createChaserMonster(
+    //       centerX(GAME_CONFIG.MONSTER_SIZE), // startX
+    //       centerY(GAME_CONFIG.MONSTER_SIZE), // startY
+    //       3, // Speed
+    //       0.5 // Directness
+    //       // updateInterval
+    //     ),
+    // },
     {
       spawnDelay: 9000,
       createMonster: () =>
@@ -640,8 +804,8 @@ export const level4Map: MapDefinition = {
   ],
 };
 
-// Level 5 - Kommunehuset
-export const level5Map: MapDefinition = {
+// Level 6 - Kommunehuset
+export const level6Map: MapDefinition = {
   id: "level5",
   name: "kommunehuset",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -788,8 +952,8 @@ export const level5Map: MapDefinition = {
   ],
 };
 
-// Level 6 - Alltinn Norge
-export const level6Map: MapDefinition = {
+// Level 7 - Alltinn Norge
+export const level7Map: MapDefinition = {
   id: "level6",
   name: "alltinn norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -1215,7 +1379,7 @@ export const level6Map: MapDefinition = {
   ],
 };
 
-export const level7Map: MapDefinition = {
+export const level8Map: MapDefinition = {
   id: "level7",
   name: "silicone vally",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -1284,6 +1448,7 @@ export const mapDefinitions = [
   level2Map,
   level3Map,
   level4Map,
+  level5Map,
   level5Map,
   // level6Map,
   level7Map,

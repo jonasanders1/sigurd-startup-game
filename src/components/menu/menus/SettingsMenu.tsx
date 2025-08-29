@@ -1,17 +1,22 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
-import { MenuType } from "../../../types/enums";
-import { ArrowLeft } from "lucide-react";
+import {
+  useAudioStore,
+  useGameStore,
+  useStateStore,
+} from "../../../stores/gameStore";
+import { sendAudioSettingsUpdate } from "../../../lib/communicationUtils";
+
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { DEFAULT_AUDIO_SETTINGS } from "../../../config/audio";
 
 const SettingsMenu: React.FC = () => {
-  const { setMenuType, previousMenu } = useGameStore();
-
-  // Get audio settings from AudioManager
-  const audioSettings = useGameStore((state) => state.audioSettings);
-  const updateAudioSettings = useGameStore(
-    (state) => state.updateAudioSettings
-  );
+  const { gameStateManager } = useStateStore.getState();
+  const { audioSettings, updateAudioSettings } = useAudioStore();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [initialSettings, setInitialSettings] = useState<
+    typeof audioSettings | null
+  >(null);
 
   const {
     masterVolume,
@@ -29,19 +34,84 @@ const SettingsMenu: React.FC = () => {
     sfxMuted: false,
   };
 
-  const goBack = () => {
-    // Go back to the previous menu that was stored when opening settings
-    if (previousMenu) {
-      setMenuType(previousMenu);
-    } else {
-      // Fallback to START menu if no previous menu is stored
-      setMenuType(MenuType.START);
+  // Store initial settings on component mount
+  useEffect(() => {
+    if (audioSettings && !initialSettings) {
+      setInitialSettings({ ...audioSettings });
     }
+  }, [audioSettings]);
+
+  // Check if settings have changed from initial state
+  const hasChanges = useMemo(() => {
+    if (!initialSettings) return false;
+
+    return (
+      initialSettings.masterVolume !== masterVolume ||
+      initialSettings.musicVolume !== musicVolume ||
+      initialSettings.sfxVolume !== sfxVolume ||
+      initialSettings.masterMuted !== masterMuted ||
+      initialSettings.musicMuted !== musicMuted ||
+      initialSettings.sfxMuted !== sfxMuted
+    );
+  }, [
+    initialSettings,
+    masterVolume,
+    musicVolume,
+    sfxVolume,
+    masterMuted,
+    musicMuted,
+    sfxMuted,
+  ]);
+
+  const goBack = () => {
+    // Send audio settings to host before closing if there are changes
+    if (hasChanges) {
+      sendAudioSettingsUpdate(
+        masterVolume,
+        musicVolume,
+        sfxVolume,
+        masterMuted,
+        musicMuted,
+        sfxMuted
+      );
+    }
+
+    // Use centralized close settings transition
+    gameStateManager?.closeNestedMenu();
+  };
+
+  const handleUpdateAudio = async () => {
+    setIsUpdating(true);
+
+    // Send audio settings to host for storage
+    sendAudioSettingsUpdate(
+      masterVolume,
+      musicVolume,
+      sfxVolume,
+      masterMuted,
+      musicMuted,
+      sfxMuted
+    );
+
+    // Update initial settings to current values after successful update
+    setInitialSettings({
+      masterVolume,
+      musicVolume,
+      sfxVolume,
+      masterMuted,
+      musicMuted,
+      sfxMuted,
+    });
+
+    // Simulate async operation for visual feedback
+    setTimeout(() => {
+      setIsUpdating(false);
+    }, 800);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full">
-      <div className="flex items-center mb-6 w-[70%] gap-2">
+    <div className="flex flex-col justify-center ">
+      <div className="flex items-center mb-6 gap-2">
         <Button
           onClick={goBack}
           variant="default"
@@ -54,7 +124,7 @@ const SettingsMenu: React.FC = () => {
         </h2>
       </div>
 
-      <div className="space-y-2 w-[70%]">
+      <div className="space-y-2">
         {/* Master Volume */}
         <div className="p-3 bg-card rounded-md">
           <div className="flex justify-between items-center mb-2">
@@ -140,6 +210,44 @@ const SettingsMenu: React.FC = () => {
         </div>
         <div className="text-center text-sm text-gray-400">
           <p>(Trykk på tallene for å mute lyd)</p>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              updateAudioSettings(DEFAULT_AUDIO_SETTINGS);
+            }}
+            className="flex-1 bg-secondary hover:bg-secondary-dark hover:text-white text-white active:scale-[0.98] transition-all duration-300 ease-in-out transform"
+          >
+            Tilbakestill
+          </Button>
+
+          <Button
+            variant="default"
+            onClick={handleUpdateAudio}
+            disabled={!hasChanges || isUpdating}
+            className={`
+              flex-1 transition-all duration-300 ease-in-out transform
+              ${
+                !hasChanges
+                  ? "bg-secondary hover:bg-secondary text-gray-500 cursor-not-allowed opacity-60"
+                  : isUpdating
+                  ? "bg-primary-dark hover:bg-primary-dark"
+                  : "bg-primary hover:bg-primary-dark active:scale-[0.98]"
+              }
+
+            `}
+          >
+            {isUpdating ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Oppdaterer...</span>
+              </div>
+            ) : (
+              "Oppdater lyd"
+            )}
+          </Button>
         </div>
       </div>
     </div>

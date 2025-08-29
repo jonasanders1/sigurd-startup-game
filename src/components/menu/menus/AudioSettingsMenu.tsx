@@ -1,17 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useGameStore } from "../../../stores/gameStore";
-import { MenuType } from "../../../types/enums";
+import { useAudioStore, useStateStore } from "../../../stores/gameStore";
+
 import { ArrowLeft } from "lucide-react";
 
 const AudioSettingsMenu: React.FC = () => {
-  const { setMenuType, previousMenu } = useGameStore();
-  
-  // Get audio settings from AudioManager
-  const audioSettings = useGameStore((state) => state.audioSettings);
-  const updateAudioSettings = useGameStore(
-    (state) => state.updateAudioSettings
-  );
+  const { gameStateManager } = useStateStore.getState();
+  const { audioSettings, updateAudioSettings } = useAudioStore.getState();
 
   const {
     masterVolume,
@@ -30,13 +25,8 @@ const AudioSettingsMenu: React.FC = () => {
   };
 
   const goBack = () => {
-    // Go back to the previous menu that was stored when opening settings
-    if (previousMenu) {
-      setMenuType(previousMenu);
-    } else {
-      // Fallback to START menu if no previous menu is stored
-      setMenuType(MenuType.START);
-    }
+    // Use centralized close settings transition
+    gameStateManager?.closeSettings();
   };
 
   return (

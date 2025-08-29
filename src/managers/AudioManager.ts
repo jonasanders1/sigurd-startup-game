@@ -1,6 +1,7 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { getAudioPath } from "../config/assets";
 import { useGameStore } from "../stores/gameStore";
+import { useAudioStore } from "../stores/systems/audioStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 
@@ -12,7 +13,7 @@ interface WebkitWindow extends Window {
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private backgroundMusicGain: GainNode | null = null;
-  private isBackgroundMusicPlaying = false;
+  private _isBackgroundMusicPlaying = false;
   private backgroundMusicBuffer: AudioBuffer | null = null;
   private backgroundMusicSource: AudioBufferSourceNode | null = null;
 
@@ -81,6 +82,7 @@ export class AudioManager {
         this.playCoinCollectSound();
         break;
       case AudioEvent.POWER_COIN_ACTIVATE:
+        log.audio("Power coin activate sound");
         this.playPowerCoinActivateSound();
         // Note: PowerUp melody is now started by the coin effect system with proper duration
         // No need to start it here as it will be started by startPowerUpMelodyWithDuration
@@ -97,7 +99,7 @@ export class AudioManager {
   }
 
   stopBackgroundMusic(): void {
-    this.isBackgroundMusicPlaying = false;
+    this._isBackgroundMusicPlaying = false;
 
     // Stop the current audio source if playing
     if (this.backgroundMusicSource) {
@@ -108,6 +110,11 @@ export class AudioManager {
       }
       this.backgroundMusicSource = null;
     }
+  }
+
+  // Public getter for background music playing status
+  public get isBackgroundMusicPlaying(): boolean {
+    return this._isBackgroundMusicPlaying;
   }
 
   private playBombCollectSound(): void {
@@ -306,12 +313,12 @@ export class AudioManager {
   private startBackgroundMusic(): void {
     if (
       !this.audioContext ||
-      this.isBackgroundMusicPlaying ||
+      this._isBackgroundMusicPlaying ||
       !this.backgroundMusicBuffer
     )
       return;
 
-    this.isBackgroundMusicPlaying = true;
+    this._isBackgroundMusicPlaying = true;
     this.playBackgroundMusicFile();
   }
 
@@ -320,7 +327,7 @@ export class AudioManager {
       !this.audioContext ||
       !this.backgroundMusicGain ||
       !this.backgroundMusicBuffer ||
-      !this.isBackgroundMusicPlaying
+      !this._isBackgroundMusicPlaying
     )
       return;
 
@@ -334,10 +341,10 @@ export class AudioManager {
 
       // Handle when the audio ends (for non-looping or if loop is disabled)
       this.backgroundMusicSource.onended = () => {
-        if (this.isBackgroundMusicPlaying) {
+        if (this._isBackgroundMusicPlaying) {
           // Restart the music if it should still be playing
           setTimeout(() => {
-            if (this.isBackgroundMusicPlaying) {
+            if (this._isBackgroundMusicPlaying) {
               this.playBackgroundMusicFile();
             }
           }, 100);
@@ -411,7 +418,7 @@ export class AudioManager {
   }
 
   private updateAudioVolumes(): void {
-    const audioSettings = useGameStore.getState().audioSettings;
+    const audioSettings = useAudioStore.getState().audioSettings;
     if (this.backgroundMusicGain) {
       const musicVolume =
         audioSettings.masterMuted || audioSettings.musicMuted
@@ -423,7 +430,7 @@ export class AudioManager {
   }
 
   private getSFXVolume(): number {
-    const audioSettings = useGameStore.getState().audioSettings;
+    const audioSettings = useAudioStore.getState().audioSettings;
     return audioSettings.masterMuted || audioSettings.sfxMuted
       ? 0
       : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);
@@ -459,25 +466,32 @@ export class AudioManager {
     }, duration);
   }
 
-  private pauseBackgroundMusic(): void {
+  // Add this public method
+  public pauseBackgroundMusic(): void {
     if (this.backgroundMusicGain) {
       this.backgroundMusicGain.gain.value = 0;
     }
   }
 
-  private resumeBackgroundMusic(): void {
+  public resumeBackgroundMusic(): void {
     if (this.backgroundMusicGain) {
       // If background music should be playing but source is gone, restart it
-      if (this.isBackgroundMusicPlaying && !this.backgroundMusicSource) {
+      if (this._isBackgroundMusicPlaying && !this.backgroundMusicSource) {
         log.audio("Background music source lost, restarting music");
         this.playBackgroundMusicFile();
       }
-      
+
       // Restore volume based on current settings
       this.updateAudioVolumes();
-      
+
       // Log the resume attempt for debugging
-      log.audio(`resumeBackgroundMusic: isPlaying=${this.isBackgroundMusicPlaying}, hasSource=${this.backgroundMusicSource !== null}, gainValue=${this.backgroundMusicGain.gain.value}`);
+      log.audio(
+        `resumeBackgroundMusic: isPlaying=${
+          this._isBackgroundMusicPlaying
+        }, hasSource=${this.backgroundMusicSource !== null}, gainValue=${
+          this.backgroundMusicGain.gain.value
+        }`
+      );
     }
   }
 
@@ -504,7 +518,7 @@ export class AudioManager {
       // Always try to resume background music when power-up melody ends
       // The GameManager will handle whether it should actually be playing
       this.resumeBackgroundMusic();
-      
+
       log.audio("PowerUp melody stopped, background music resume attempted");
     } else {
       log.audio("stopPowerUpMelody called but melody was not active");
@@ -521,7 +535,7 @@ export class AudioManager {
     // Music is only actually playing if we have a source and the flag is set
     // and power-up melody is not active (which would mute the background music)
     return (
-      this.isBackgroundMusicPlaying &&
+      this._isBackgroundMusicPlaying &&
       this.backgroundMusicSource !== null &&
       !this.powerUpMelodyActive
     );
@@ -533,7 +547,7 @@ export class AudioManager {
       isActive: this.powerUpMelodyActive,
       hasTimeout: this.powerUpMelodyTimeout !== null,
       timeoutId: this.powerUpMelodyTimeout,
-      backgroundMusicPlaying: this.isBackgroundMusicPlaying,
+      backgroundMusicPlaying: this._isBackgroundMusicPlaying,
     };
   }
 }

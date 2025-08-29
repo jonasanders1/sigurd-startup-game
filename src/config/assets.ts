@@ -1,6 +1,8 @@
 // Asset configuration using Vite's import.meta.glob
 // Works in dev, local install, and production (Vercel CDN)
 
+import { log } from '../lib/logger';
+
 // Preload all backgrounds and audio as URLs
 const backgrounds = import.meta.glob(
   '../assets/maps-bg-images/*.png',
@@ -8,7 +10,7 @@ const backgrounds = import.meta.glob(
 ) as Record<string, { default: string }>;
 
 const audioFiles = import.meta.glob(
-  '../assets/audio/*.wav',
+  '../assets/audio/*.{wav,mp3}',
   { eager: true }
 ) as Record<string, { default: string }>;
 
@@ -26,24 +28,24 @@ export const getBackgroundImagePath = (theme: string): string => {
   const cacheKey = `bg-${theme}`;
   if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
-  console.log(`🔍 Looking for background theme: ${theme}`);
-  console.log(`🔍 Available background paths:`, Object.keys(backgrounds));
+  // console.log(`🔍 Looking for background theme: ${theme}`);
+  // console.log(`🔍 Available background paths:`, Object.keys(backgrounds));
 
   // Find by filename (works after Vite build)
   const match = Object.entries(backgrounds).find(([path]) =>
     path.endsWith(`${theme}.png`)
   );
 
-  console.log(`🔍 Match found:`, match);
+  // console.log(`🔍 Match found:`, match);
 
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    console.log(`✅ Background image loaded for ${theme}:`, url);
+    // console.log(`✅ Background image loaded for ${theme}:`, url);
     return url;
   }
 
-  console.warn(`❌ Background image not found for theme: ${theme}`);
+  log.asset(`Background image not found for theme: ${theme}`);
   return '';
 };
 
@@ -52,76 +54,78 @@ export const getAudioPath = (name: string): string => {
   const cacheKey = `audio-${name}`;
   if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
-  console.log(`🔍 Looking for audio file: ${name}`);
-  console.log(`🔍 Available audio paths:`, Object.keys(audioFiles));
+  // console.log(`🔍 Looking for audio file: ${name}`);
+  // console.log(`🔍 Available audio paths:`, Object.keys(audioFiles));
 
   // Find by filename with or without extension
   const match = Object.entries(audioFiles).find(([path]) => {
     const filename = path.split('/').pop() || '';
-    return filename === name || filename === `${name}.wav` || filename.startsWith(name);
+    const nameWithoutExt = filename.replace(/\.(wav|mp3)$/, '');
+    return filename === name || 
+           filename === `${name}.wav` || 
+           filename === `${name}.mp3` || 
+           nameWithoutExt === name ||
+           filename.startsWith(name);
   });
 
-  console.log(`🔍 Audio match found:`, match);
+  // console.log(`🔍 Audio match found:`, match);
 
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    console.log(`✅ Audio file loaded for ${name}:`, url);
+    // console.log(`✅ Audio file loaded for ${name}:`, url);
     return url;
   }
 
-  console.warn(`❌ Audio file not found: ${name}`);
+  log.asset(`Audio file not found: ${name}`);
   return '';
 };
 
 // --- Sprites ---
-export const loadSpriteImage = (path: string): HTMLImageElement => {
+export const getSpriteImagePath = (path: string): string => {
   const cacheKey = `sprite-${path}`;
-  if (assetCache.has(cacheKey)) {
-    const cachedUrl = assetCache.get(cacheKey)!;
-    const img = new Image();
-    img.src = cachedUrl;
-    return img;
-  }
-
-  console.log(`🔍 Looking for sprite: ${path}`);
-  console.log(`🔍 Available sprite paths:`, Object.keys(spriteImages));
+  if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
   // Find by path (e.g., "bomb/bomb1.png")
   const match = Object.entries(spriteImages).find(([filePath]) =>
     filePath.endsWith(path)
   );
 
-  console.log(`🔍 Sprite match found:`, match);
-
   if (match) {
     const url = match[1].default;
     assetCache.set(cacheKey, url);
-    console.log(`✅ Sprite loaded for ${path}:`, url);
-    
-    const img = new Image();
-    img.src = url;
-    return img;
+    return url;
   }
 
-  console.warn(`❌ Sprite not found: ${path}`);
-  // Return a broken image as fallback
+  log.asset(`Sprite not found: ${path}`);
+  return '';
+};
+
+export const loadSpriteImage = (path: string): HTMLImageElement => {
+  const url = getSpriteImagePath(path);
   const img = new Image();
+  
+  if (url) {
+    img.src = url;
+  } else {
+    // Return a broken image as fallback
   img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+  }
+  
   return img;
 };
 
 // --- Debug helper ---
 export const debugAssetPaths = () => {
-  console.log('🔧 Asset Debug');
-  console.log('  Backgrounds loaded:', Object.keys(backgrounds));
-  console.log('  Audio loaded:', Object.keys(audioFiles));
-  console.log('  Sprites loaded:', Object.keys(spriteImages));
-  console.log('  Cache size:', assetCache.size);
-  console.log('  Backgrounds object:', backgrounds);
-  console.log('  Audio files object:', audioFiles);
-  console.log('  Sprites object:', spriteImages);
-  console.log('  Current working directory:', import.meta.url);
+  log.debug('Asset Debug');
+  log.debug('  Backgrounds loaded:', Object.keys(backgrounds));
+  log.debug('  Audio loaded:', Object.keys(audioFiles));
+  log.debug('  Sprites loaded:', Object.keys(spriteImages));
+  log.debug('  Cache size:', assetCache.size);
+  log.debug('  Backgrounds object:', backgrounds);
+  log.debug('  Audio files object:', audioFiles);
+  log.debug('  Sprites object:', spriteImages);
+  log.debug('  Current working directory:', import.meta.url);
 };
 
 // Legacy support functions (for backward compatibility)

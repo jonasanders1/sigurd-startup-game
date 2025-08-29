@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { DEV_CONFIG } from "../../../types/constants";
-import { useGameStore } from "../../../stores/gameStore";
+import { useLevelStore } from "../../../stores/gameStore";
 
 const CountdownOverlay: React.FC = () => {
   const [count, setCount] = useState(3);
-  const { currentMap } = useGameStore();
+  const { currentMap } = useLevelStore();
   useEffect(() => {
     // Only run countdown if not in DEV_MODE
     if (!DEV_CONFIG.ENABLED) {
