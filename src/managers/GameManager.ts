@@ -425,8 +425,8 @@ export class GameManager {
   /**
    * Handle map cleared falling animation
    */
-  private handleMapClearedFall(wasGroundedWhenMapCleared: boolean): void {
-    this.levelManager.handleMapClearedFall(wasGroundedWhenMapCleared);
+  private handleMapClearedFall(wasGroundedWhenMapCleared: boolean, deltaTime?: number): void {
+    this.levelManager.handleMapClearedFall(wasGroundedWhenMapCleared, deltaTime);
   }
 
   /**

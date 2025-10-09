@@ -160,7 +160,7 @@ export const COIN_PHYSICS = {
     hasGravity: false, // We'll handle gravity manually
     bounces: false,
     reflects: false,
-    customUpdate: (coin, platforms, ground) => {
+    customUpdate: (coin, platforms, ground, deltaTime) => {
       const FALL_SPEED = 2;
       const HORIZONTAL_SPEED = 1;
       const LANDING_TOLERANCE = 4; // For detecting when coin lands on platform
@@ -169,7 +169,8 @@ export const COIN_PHYSICS = {
       // If falling
       if (coin.velocityY > 0 || coin.velocityY === undefined) {
         coin.velocityX = 0;
-        coin.velocityY = FALL_SPEED;
+        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+        coin.velocityY = FALL_SPEED * frameMultiplier;
       }
 
       // Check for ground collision
@@ -179,19 +180,23 @@ export const COIN_PHYSICS = {
         // If not already moving horizontally, pick a direction
         if (!coin.groundDirection) {
           coin.groundDirection = Math.random() < 0.5 ? -1 : 1;
-          coin.velocityX = coin.groundDirection * HORIZONTAL_SPEED;
+          const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+          coin.velocityX = coin.groundDirection * HORIZONTAL_SPEED * frameMultiplier;
         }
         // Move horizontally
-        coin.x += coin.velocityX;
+        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+        coin.x += coin.velocityX * frameMultiplier;
         // Bounce off map boundaries
         if (coin.x <= 0) {
           coin.x = 0;
           coin.groundDirection = 1;
-          coin.velocityX = HORIZONTAL_SPEED;
+          const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+          coin.velocityX = HORIZONTAL_SPEED * frameMultiplier;
         } else if (coin.x + coin.width >= GAME_CONFIG.CANVAS_WIDTH) {
           coin.x = GAME_CONFIG.CANVAS_WIDTH - coin.width;
           coin.groundDirection = -1;
-          coin.velocityX = -HORIZONTAL_SPEED;
+          const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+          coin.velocityX = -HORIZONTAL_SPEED * frameMultiplier;
         }
         return;
       }
@@ -216,7 +221,8 @@ export const COIN_PHYSICS = {
           // Pick a random horizontal direction if not already moving
           if (!coin.platformDirection) {
             coin.platformDirection = Math.random() < 0.5 ? -1 : 1;
-            coin.velocityX = coin.platformDirection * HORIZONTAL_SPEED;
+            const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+            coin.velocityX = coin.platformDirection * HORIZONTAL_SPEED * frameMultiplier;
           }
           break;
         }
@@ -224,7 +230,8 @@ export const COIN_PHYSICS = {
 
       if (landedOnPlatform && currentPlatform) {
         // Move horizontally
-        coin.x += coin.velocityX;
+        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+        coin.x += coin.velocityX * frameMultiplier;
         // If at edge, fall off
         if (
           coin.x + coin.width <= currentPlatform.x + EDGE_TOLERANCE ||
@@ -232,13 +239,14 @@ export const COIN_PHYSICS = {
         ) {
           coin.platformDirection = null;
           coin.velocityX = 0;
-          coin.velocityY = FALL_SPEED;
+          coin.velocityY = FALL_SPEED * frameMultiplier;
         }
       } else if (!landedOnPlatform) {
         // If not on platform or ground, fall
         coin.platformDirection = null;
         coin.velocityX = 0;
-        coin.velocityY = FALL_SPEED;
+        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+        coin.velocityY = FALL_SPEED * frameMultiplier;
       }
     },
   },

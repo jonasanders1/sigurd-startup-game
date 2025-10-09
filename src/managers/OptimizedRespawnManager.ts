@@ -223,6 +223,23 @@ export class OptimizedRespawnManager {
     // Clear respawn properties
     monster.deathTime = undefined;
     monster.respawnTime = undefined;
+
+    // Reset individual movement properties that are stored on the monster object
+    // These properties are used by movement classes and need to be cleared on respawn
+    delete (monster as any).updateIntervalMultiplier;
+    delete (monster as any).directnessMultiplier;
+    delete (monster as any).speedMultiplier;
+    delete (monster as any).targetX;
+    delete (monster as any).targetY;
+    delete (monster as any).patrolSide;
+    delete (monster as any).targetPlatformX;
+    delete (monster as any).chaseTargetX;
+    delete (monster as any).chaseTargetY;
+    delete (monster as any).ambushCooldown;
+    delete (monster as any).spawnPauseTime;
+    delete (monster as any).walkLengths;
+    delete (monster as any).currentWalkCount;
+    delete (monster as any).originalSpawnX;
   }
 
   private getRespawnDelay(monsterType: string): number {

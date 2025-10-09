@@ -331,12 +331,32 @@ export class LevelManager {
         currentMap.playerStart.y
       );
 
-      // Reset monsters to starting positions
-      const resetMonsters = currentMap.monsters.map((monster) => ({
-        ...monster,
-        x: (monster as any).patrolStartX || monster.x,
-        direction: 1,
-      }));
+      // Reset monsters to starting positions and clear individual properties
+      const resetMonsters = currentMap.monsters.map((monster) => {
+        const resetMonster = {
+          ...monster,
+          x: (monster as any).patrolStartX || monster.x,
+          direction: 1,
+        };
+
+        // Clear individual movement properties that are stored on the monster object
+        delete (resetMonster as any).updateIntervalMultiplier;
+        delete (resetMonster as any).directnessMultiplier;
+        delete (resetMonster as any).speedMultiplier;
+        delete (resetMonster as any).targetX;
+        delete (resetMonster as any).targetY;
+        delete (resetMonster as any).patrolSide;
+        delete (resetMonster as any).targetPlatformX;
+        delete (resetMonster as any).chaseTargetX;
+        delete (resetMonster as any).chaseTargetY;
+        delete (resetMonster as any).ambushCooldown;
+        delete (resetMonster as any).spawnPauseTime;
+        delete (resetMonster as any).walkLengths;
+        delete (resetMonster as any).currentWalkCount;
+        delete (resetMonster as any).originalSpawnX;
+
+        return resetMonster;
+      });
       updateMonsters(resetMonsters);
 
       // Reset spawn manager and reinitialize spawn points
@@ -357,14 +377,19 @@ export class LevelManager {
     }
   }
 
-  public handleMapClearedFall(wasGroundedWhenMapCleared: boolean): void {
+  public handleMapClearedFall(
+    wasGroundedWhenMapCleared: boolean,
+    deltaTime?: number
+  ): void {
     const { player, updatePlayer } = usePlayerStore.getState();
     const { ground } = useLevelStore.getState();
     // Only apply gravity if player wasn't already grounded
     if (!wasGroundedWhenMapCleared) {
       const updatedPlayer = { ...player };
-      updatedPlayer.velocityY += player.gravity;
-      updatedPlayer.y += updatedPlayer.velocityY;
+      // Apply frame-rate independent gravity
+      const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+      updatedPlayer.velocityY += player.gravity * frameMultiplier;
+      updatedPlayer.y += updatedPlayer.velocityY * frameMultiplier;
 
       // Check for ground collision
 
