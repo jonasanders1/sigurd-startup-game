@@ -152,7 +152,7 @@ export const createChaserMonster = (
   startY: number,
   speed: number = 0.8, // Reduced from 1
   directness: number = 0.2, // Reduced from 1
-  updateInterval: number = 200, // Reduced from 500
+  updateInterval: number = 500,
   spawnDelay: number = 0
 ): Monster => {
   return {

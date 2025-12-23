@@ -34,7 +34,10 @@ export class GameLoopManager {
   private onUpdate?: (deltaTime: number) => void;
   private onCollisions?: () => void;
   private onCheckWinCondition?: () => void;
-  private onMapClearedFall?: (wasGroundedWhenMapCleared: boolean) => void;
+  private onMapClearedFall?: (
+    wasGroundedWhenMapCleared: boolean,
+    deltaTime?: number
+  ) => void;
 
   constructor(
     renderManager: RenderManager,
@@ -60,7 +63,10 @@ export class GameLoopManager {
     onUpdate?: (deltaTime: number) => void;
     onCollisions?: () => void;
     onCheckWinCondition?: () => void;
-    onMapClearedFall?: (wasGroundedWhenMapCleared: boolean) => void;
+    onMapClearedFall?: (
+      wasGroundedWhenMapCleared: boolean,
+      deltaTime?: number
+    ) => void;
   }): void {
     this.onUpdate = callbacks.onUpdate;
     this.onCollisions = callbacks.onCollisions;
@@ -128,7 +134,7 @@ export class GameLoopManager {
     // Update sprite animation for map cleared state
     playerSprite.update(deltaTime);
     // Handle falling animation if needed
-    this.onMapClearedFall?.(false); // Pass the appropriate flag
+    this.onMapClearedFall?.(player.isGrounded, deltaTime); // Pass the actual grounded state and delta time
     // Update animation controller with actual player state
     this.animationController.update(player.isGrounded, 0, false, currentState);
   }
@@ -177,7 +183,7 @@ export class GameLoopManager {
       );
 
       // Let CoinManager handle all coin physics updates
-      coinManager.update(platforms, ground, getGameState());
+      coinManager.update(platforms, ground, getGameState(), deltaTime);
 
       // Update the store with the latest coin state
       useCoinStore.getState().setCoins(coinManager.getCoins());

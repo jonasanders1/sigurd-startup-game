@@ -163,7 +163,8 @@ export class CoinManager {
   update(
     platforms: Platform[],
     ground: Ground,
-    gameState?: GameStateInterface
+    gameState?: GameStateInterface,
+    deltaTime?: number
   ): void {
     // Update coin physics based on coin type
     this.coins.forEach((coin) => {
@@ -171,13 +172,13 @@ export class CoinManager {
 
       const coinConfig = COIN_TYPES[coin.type];
       if (coinConfig) {
-        CoinPhysics.updateCoin(coin, platforms, ground, coinConfig.physics);
+        CoinPhysics.updateCoin(coin, platforms, ground, coinConfig.physics, deltaTime);
       } else {
         // Fallback to legacy behavior
         if (coin.type === CoinType.POWER) {
-          CoinPhysics.updatePowerCoin(coin, platforms, ground);
+          CoinPhysics.updatePowerCoin(coin, platforms, ground, deltaTime);
         } else {
-          CoinPhysics.updateCoin(coin, platforms, ground);
+          CoinPhysics.updateCoin(coin, platforms, ground, undefined, deltaTime);
         }
       }
     });

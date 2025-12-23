@@ -11,18 +11,21 @@ export class CoinPhysics {
     coin: Coin,
     platforms: Platform[],
     ground: Ground,
-    physicsConfig?: CoinPhysicsConfig
+    physicsConfig?: CoinPhysicsConfig,
+    deltaTime?: number
   ): void {
     if (coin.isCollected) return;
 
     if (physicsConfig) {
       // Use the provided physics configuration
       if (physicsConfig.hasGravity) {
-        coin.velocityY += GAME_CONFIG.COIN_GRAVITY;
+        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+        coin.velocityY += GAME_CONFIG.COIN_GRAVITY * frameMultiplier;
       }
 
-      coin.x += coin.velocityX;
-      coin.y += coin.velocityY;
+      const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
+      coin.x += coin.velocityX * frameMultiplier;
+      coin.y += coin.velocityY * frameMultiplier;
 
       if (physicsConfig.reflects) {
         this.handleReflectiveCollisions(coin, platforms, ground);
@@ -32,11 +35,11 @@ export class CoinPhysics {
 
       // Use custom update function if provided
       if (physicsConfig.customUpdate) {
-        physicsConfig.customUpdate(coin, platforms, ground);
+        physicsConfig.customUpdate(coin, platforms, ground, deltaTime);
       }
     } else {
       // Fallback to standard physics
-      this.updateStandardCoin(coin, platforms, ground);
+      this.updateStandardCoin(coin, platforms, ground, deltaTime);
     }
   }
 
@@ -46,9 +49,10 @@ export class CoinPhysics {
   static updateStandardCoin(
     coin: Coin,
     platforms: Platform[],
-    ground: Ground
+    ground: Ground,
+    deltaTime?: number
   ): void {
-    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.STANDARD);
+    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.STANDARD, deltaTime);
   }
 
   /**
@@ -57,9 +61,10 @@ export class CoinPhysics {
   static updatePowerCoin(
     coin: Coin,
     platforms: Platform[],
-    ground: Ground
+    ground: Ground,
+    deltaTime?: number
   ): void {
-    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.POWER);
+    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.POWER, deltaTime);
   }
 
   /**
