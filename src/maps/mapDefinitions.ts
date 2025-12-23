@@ -1449,7 +1449,6 @@ export const mapDefinitions = [
   level3Map,
   level4Map,
   level5Map,
-  level5Map,
-  // level6Map,
-  level7Map,
+  // level6Map, // TODO: INCOMPLETE
+  // level7Map, // TODO: INCOMPLETE
 ];
