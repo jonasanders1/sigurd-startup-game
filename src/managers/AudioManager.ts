@@ -17,6 +17,10 @@ export class AudioManager {
   private backgroundMusicBuffer: AudioBuffer | null = null;
   private backgroundMusicSource: AudioBufferSourceNode | null = null;
 
+  // One-shot sound effect buffers
+  private victoryBuffer: AudioBuffer | null = null;
+  private gameOverBuffer: AudioBuffer | null = null;
+
   // Power-up melody management
   private powerUpMelodyActive = false;
   private powerUpMelodyTimeout: NodeJS.Timeout | null = null;
@@ -25,6 +29,8 @@ export class AudioManager {
   constructor() {
     this.initializeAudioContext();
     this.loadBackgroundMusic();
+    this.loadSoundEffect("Victory").then((buf) => (this.victoryBuffer = buf));
+    this.loadSoundEffect("gameover").then((buf) => (this.gameOverBuffer = buf));
   }
 
   private initializeAudioContext(): void {
@@ -43,8 +49,8 @@ export class AudioManager {
     if (!this.audioContext) return;
 
     try {
-      // Use the new asset import system
-      const audioPath = getAudioPath("background-music");
+      // Use the theme song as background music
+      const audioPath = getAudioPath("sigurd-theme-song");
       const response = await fetch(audioPath);
       const arrayBuffer = await response.arrayBuffer();
       this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(
@@ -53,6 +59,37 @@ export class AudioManager {
     } catch (error) {
       log.warn("Failed to load background music:", error);
     }
+  }
+
+  private async loadSoundEffect(name: string): Promise<AudioBuffer | null> {
+    if (!this.audioContext) return null;
+
+    try {
+      const audioPath = getAudioPath(name);
+      if (!audioPath) return null;
+      const response = await fetch(audioPath);
+      const arrayBuffer = await response.arrayBuffer();
+      return await this.audioContext.decodeAudioData(arrayBuffer);
+    } catch (error) {
+      log.warn(`Failed to load sound effect "${name}":`, error);
+      return null;
+    }
+  }
+
+  private playSoundBuffer(buffer: AudioBuffer | null): void {
+    if (!this.audioContext || !buffer) return;
+
+    this.ensureAudioContext();
+    const source = this.audioContext.createBufferSource();
+    const gainNode = this.audioContext.createGain();
+    source.buffer = buffer;
+    source.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    const sfxVolume = this.getSFXVolume();
+    gainNode.gain.setValueAtTime(sfxVolume, this.audioContext.currentTime);
+
+    source.start();
   }
 
   private ensureAudioContext(): void {
@@ -72,7 +109,10 @@ export class AudioManager {
         this.playMonsterHitSound();
         break;
       case AudioEvent.MAP_CLEARED:
-        this.playMapClearedSound();
+        this.playSoundBuffer(this.victoryBuffer);
+        break;
+      case AudioEvent.GAME_OVER:
+        this.playSoundBuffer(this.gameOverBuffer);
         break;
       case AudioEvent.BONUS_SCREEN:
         log.audio("Bonus sound");

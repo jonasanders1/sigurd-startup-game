@@ -8,7 +8,7 @@ import {
 } from "../stores/gameStore";
 import { MonsterBehaviorManager } from "./MonsterBehaviorManager";
 
-interface ScheduledSpawn {
+export interface ScheduledSpawn {
   id: string;
   spawnPoint: MonsterSpawnPoint;
   scheduledTime: number;

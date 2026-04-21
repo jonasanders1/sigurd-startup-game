@@ -32,6 +32,7 @@ export class LevelManager {
   private mapStartTime: number = 0;
   private wasGroundedWhenMapCleared: boolean = false;
   private gameStartTime: number = Date.now();
+  private activeTimers: Set<ReturnType<typeof setTimeout>> = new Set();
 
   // Dependencies
   private renderManager: RenderManager;
@@ -42,6 +43,22 @@ export class LevelManager {
   private audioManager: AudioManager;
   private playerManager: PlayerManager;
   private gameStateManager: GameStateManager;
+
+  private scheduleTimer(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
+    const id = setTimeout(() => {
+      this.activeTimers.delete(id);
+      callback();
+    }, delay);
+    this.activeTimers.add(id);
+    return id;
+  }
+
+  private clearAllTimers(): void {
+    for (const id of this.activeTimers) {
+      clearTimeout(id);
+    }
+    this.activeTimers.clear();
+  }
 
   constructor(
     renderManager: RenderManager,
@@ -67,6 +84,9 @@ export class LevelManager {
     const { currentLevel } = useStateStore.getState();
     const gameStore = useGameStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
+
+    // Clear any pending timers from previous level
+    this.clearAllTimers();
 
     if (currentLevel <= mapDefinitions.length) {
       const mapDefinition = mapDefinitions[currentLevel - 1];
@@ -145,16 +165,18 @@ export class LevelManager {
       // Record if player was grounded when map was cleared
       this.wasGroundedWhenMapCleared = player.isGrounded;
 
-      // Play map cleared sound
+      // Stop background music and play victory sound
+      this.audioManager.stopBackgroundMusic();
+      this.gameStateManager.resetBackgroundMusicFlag();
       this.audioManager.playSound(AudioEvent.MAP_CLEARED);
 
       // Set game state to MAP_CLEARED
       this.gameStateManager.setState(GameState.MAP_CLEARED);
 
-      // Pause briefly, then proceed
-      setTimeout(() => {
+      // Wait for victory sound to finish (~5s) before proceeding
+      this.scheduleTimer(() => {
         this.proceedAfterMapCleared();
-      }, 3000);
+      }, 5000);
     }
   }
 
@@ -170,7 +192,7 @@ export class LevelManager {
     const {
       getLevelCoinStats,
       resetEffects,
-      resetCoinState,
+      softResetCoinState,
       resetLevelCoinCounters,
       coinManager,
     } = useCoinStore.getState();
@@ -202,10 +224,10 @@ export class LevelManager {
     // Clear floating texts
     clearAllFloatingTexts();
 
-    // Reset coin effects and state
+    // Reset coin effects but preserve spawn counters (B-coin counter should persist across maps)
     resetEffects();
-    resetCoinState();
-    log.debug("Coins reset when map is cleared");
+    softResetCoinState(); // Use soft reset to preserve totalBonusMultiplierCoinsCollected
+    log.debug("Coins reset when map is cleared (preserving spawn counters)");
 
     // Record the level result
     if (currentMap) {
@@ -282,7 +304,7 @@ export class LevelManager {
       this.loadCurrentLevel();
 
       // Start the countdown timer to transition to PLAYING
-      setTimeout(() => {
+      this.scheduleTimer(() => {
         gameStateManager.setState(GameState.PLAYING);
       }, 3000);
     } else {
@@ -333,27 +355,30 @@ export class LevelManager {
 
       // Reset monsters to starting positions and clear individual properties
       const resetMonsters = currentMap.monsters.map((monster) => {
+        const startX = 'patrolStartX' in monster ? monster.patrolStartX : monster.x;
         const resetMonster = {
           ...monster,
-          x: (monster as any).patrolStartX || monster.x,
+          x: startX,
           direction: 1,
+          // Clear runtime scaling properties
+          updateIntervalMultiplier: undefined,
+          directnessMultiplier: undefined,
+          speedMultiplier: undefined,
+          spawnPauseTime: undefined,
+          // Clear runtime movement properties
+          walkLengths: undefined,
+          currentWalkCount: undefined,
+          originalSpawnX: undefined,
         };
 
-        // Clear individual movement properties that are stored on the monster object
-        delete (resetMonster as any).updateIntervalMultiplier;
-        delete (resetMonster as any).directnessMultiplier;
-        delete (resetMonster as any).speedMultiplier;
-        delete (resetMonster as any).targetX;
-        delete (resetMonster as any).targetY;
-        delete (resetMonster as any).patrolSide;
-        delete (resetMonster as any).targetPlatformX;
-        delete (resetMonster as any).chaseTargetX;
-        delete (resetMonster as any).chaseTargetY;
-        delete (resetMonster as any).ambushCooldown;
-        delete (resetMonster as any).spawnPauseTime;
-        delete (resetMonster as any).walkLengths;
-        delete (resetMonster as any).currentWalkCount;
-        delete (resetMonster as any).originalSpawnX;
+        // Clear subtype-specific runtime properties
+        if ('targetX' in resetMonster) resetMonster.targetX = undefined;
+        if ('targetY' in resetMonster) resetMonster.targetY = undefined;
+        if ('patrolSide' in resetMonster) resetMonster.patrolSide = undefined;
+        if ('targetPlatformX' in resetMonster) resetMonster.targetPlatformX = undefined;
+        if ('chaseTargetX' in resetMonster) resetMonster.chaseTargetX = undefined;
+        if ('chaseTargetY' in resetMonster) resetMonster.chaseTargetY = undefined;
+        if ('ambushCooldown' in resetMonster) resetMonster.ambushCooldown = undefined;
 
         return resetMonster;
       });

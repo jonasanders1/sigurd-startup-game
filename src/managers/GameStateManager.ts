@@ -16,16 +16,33 @@ import type { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 
 export class GameStateManager {
-  private previousGameState: GameState = GameState.MENU; // Initialize with MENU instead of null
+  private previousGameState: GameState = GameState.MENU;
   private isBackgroundMusicPlaying = false;
   private devModeInitialized = false;
   private bonusTransitionInProgress = false;
+  private activeTimers: Set<ReturnType<typeof setTimeout>> = new Set();
 
   // Dependencies
   private audioManager: AudioManager;
   private scalingManager: ScalingManager;
   private monsterSpawnManager: OptimizedSpawnManager;
   private monsterRespawnManager: OptimizedRespawnManager;
+
+  private scheduleTimer(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
+    const id = setTimeout(() => {
+      this.activeTimers.delete(id);
+      callback();
+    }, delay);
+    this.activeTimers.add(id);
+    return id;
+  }
+
+  public clearAllTimers(): void {
+    for (const id of this.activeTimers) {
+      clearTimeout(id);
+    }
+    this.activeTimers.clear();
+  }
 
   constructor(
     audioManager: AudioManager,
@@ -171,16 +188,7 @@ export class GameStateManager {
   }
 
   public handleBackgroundMusic(currentState: GameState): void {
-    // Check if we should play music:
-    // 1. State must be PLAYING
-    // 2. PowerUp melody must NOT be active
-    const shouldPlayMusic =
-      currentState === GameState.PLAYING &&
-      !this.audioManager.isPowerUpMelodyActive();
-
-    const stateChanged = this.previousGameState !== currentState;
-
-    if (stateChanged) {
+    if (this.previousGameState !== currentState) {
       log.audio(
         `Game state changed: ${this.previousGameState} -> ${currentState}`
       );
@@ -197,17 +205,8 @@ export class GameStateManager {
         this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
         this.isBackgroundMusicPlaying = true;
       }
-    } else if (currentState === GameState.PAUSED) {
-      // Explicitly stop music when paused
-      log.game("Entering paused state", currentState);
-      log.debug("handleBackgroundMusic", this.isBackgroundMusicPlaying);
-      if (this.isBackgroundMusicPlaying) {
-        log.audio("Game paused, stopping background music");
-        this.audioManager.stopBackgroundMusic();
-        this.isBackgroundMusicPlaying = false;
-      }
     } else if (currentState !== GameState.PLAYING) {
-      // Stop music for all other non-playing states
+      // Stop music for all non-playing states (paused, menu, bonus, etc.)
       if (this.isBackgroundMusicPlaying) {
         log.audio(`Stopping background music (state: ${currentState})`);
         this.audioManager.stopBackgroundMusic();
@@ -215,7 +214,7 @@ export class GameStateManager {
       }
     }
 
-    // Also stop music if power-up melody becomes active
+    // Also stop music if power-up melody becomes active during PLAYING
     if (
       this.audioManager.isPowerUpMelodyActive() &&
       this.isBackgroundMusicPlaying
@@ -223,16 +222,6 @@ export class GameStateManager {
       log.audio("PowerUp melody active, stopping background music");
       this.audioManager.stopBackgroundMusic();
       this.isBackgroundMusicPlaying = false;
-    }
-
-    // Explicitly handle PAUSED state to ensure music stops
-    if (currentState === GameState.PAUSED) {
-      // Force stop background music when paused
-      if (this.audioManager.isBackgroundMusicPlaying) {
-        log.audio("Game paused, forcing background music stop");
-        this.audioManager.stopBackgroundMusic();
-        this.isBackgroundMusicPlaying = false;
-      }
     }
 
     this.previousGameState = currentState;
@@ -392,7 +381,7 @@ export class GameStateManager {
     const gameState = useGameStore.getState();
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
 
-    setTimeout(() => {
+    this.scheduleTimer(() => {
       this.setState(GameState.PLAYING);
       callback?.();
     }, duration);
@@ -432,8 +421,8 @@ export class GameStateManager {
       );
 
       // Animation is complete, proceed after delay
-      setTimeout(() => {
-        log.info("✅ Transition delay complete, proceeding to next level now");
+      this.scheduleTimer(() => {
+        log.info("Transition delay complete, proceeding to next level now");
 
         // Reset the flag AFTER we're about to transition, not before
         setBonusAnimationComplete(false);
@@ -483,7 +472,7 @@ export class GameStateManager {
 
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
 
-    setTimeout(() => {
+    this.scheduleTimer(() => {
       this.setState(GameState.PLAYING);
     }, 3000);
   }
@@ -496,6 +485,9 @@ export class GameStateManager {
 
     log.info("Restarting game");
 
+    // Clear any pending timers from previous game
+    this.clearAllTimers();
+
     // Reset any lingering bonus transition state
     this.resetBonusTransition();
 
@@ -506,7 +498,7 @@ export class GameStateManager {
     // Show countdown before starting
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
 
-    setTimeout(() => {
+    this.scheduleTimer(() => {
       this.setState(GameState.PLAYING);
     }, 3000);
   }
@@ -526,7 +518,7 @@ export class GameStateManager {
     log.info("Resuming game with countdown");
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
 
-    setTimeout(() => {
+    this.scheduleTimer(() => {
       this.setState(GameState.PLAYING);
     }, 3000);
   }
@@ -582,6 +574,10 @@ export class GameStateManager {
     const gameState = useGameStore.getState();
 
     log.info("Quitting to main menu");
+
+    // Clear any pending timers
+    this.clearAllTimers();
+
     // Reset the game
     log.data('CoinSpawn: Quit to menu - full reset, all coin spawn counters cleared');
     gameState.resetGame();

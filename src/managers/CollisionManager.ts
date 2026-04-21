@@ -2,13 +2,17 @@ import { Player, Monster, Bomb, Platform, Ground, CollisionResult, Coin } from '
 
 export class CollisionManager {
   checkPlayerPlatformCollision(player: Player, platforms: Platform[]): CollisionResult {
+    let bestCollision: CollisionResult = { hasCollision: false };
+    let smallestPenetration = Infinity;
+
     for (const platform of platforms) {
       const collision = this.checkFullCollision(player, platform);
-      if (collision.hasCollision) {
-        return collision;
+      if (collision.hasCollision && collision.penetration !== undefined && collision.penetration < smallestPenetration) {
+        bestCollision = collision;
+        smallestPenetration = collision.penetration;
       }
     }
-    return { hasCollision: false };
+    return bestCollision;
   }
 
   checkPlayerGroundCollision(player: Player, ground: Ground): CollisionResult {

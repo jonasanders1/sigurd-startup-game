@@ -11,9 +11,9 @@ export const COIN_PHYSICS = {
 
 export const COIN_SPAWNING = {
   // Spawning intervals
-  POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 3 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 1000 points
-  EXTRA_LIFE_COIN_RATIO: 5, // Extra life coin appears for every 1 bonus multiplier coin
+  POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 9 firebombs
+  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 5000 points
+  EXTRA_LIFE_COIN_RATIO: 4, // Extra life coin appears for every 4 bonus multiplier coin
 } as const;
 
 export const COIN_EFFECTS = {

@@ -177,13 +177,15 @@ export class GameLoopManager {
     const ground = currentMap?.ground;
 
     if (ground && coinManager) {
+      const state = getGameState();
+
       // Check spawn conditions for all coin types
       coinManager.checkSpawnConditions(
-        getGameState() as unknown as Record<string, unknown>
+        state as unknown as Record<string, unknown>
       );
 
       // Let CoinManager handle all coin physics updates
-      coinManager.update(platforms, ground, getGameState(), deltaTime);
+      coinManager.update(platforms, ground, state, deltaTime);
 
       // Update the store with the latest coin state
       useCoinStore.getState().setCoins(coinManager.getCoins());
@@ -191,37 +193,30 @@ export class GameLoopManager {
       // Update monster states based on power mode
       const { monsters } = useMonsterStore.getState();
       updateMonsterStates(monsters);
-    }
 
-    // Update floating texts
-    const { updateFloatingTexts } = getGameState();
-    updateFloatingTexts();
+      // Update floating texts
+      state.updateFloatingTexts();
+    } else {
+      // Still update floating texts even if no coin manager
+      const { updateFloatingTexts } = getGameState();
+      updateFloatingTexts();
+    }
   }
 
   private render(): void {
-    const {
-      player,
-      platforms,
-      bombs,
-      monsters,
-      ground,
-      coins,
-      floatingTexts,
-      coinManager,
-      currentMap,
-    } = getGameState();
+    const state = getGameState();
     this.renderManager.render(
-      player,
-      platforms,
-      bombs,
-      monsters,
-      ground,
-      coins,
-      floatingTexts,
-      coinManager,
+      state.player,
+      state.platforms,
+      state.bombs,
+      state.monsters,
+      state.ground,
+      state.coins,
+      state.floatingTexts,
+      state.coinManager,
       this.monsterSpawnManager,
-      currentMap,
-      getGameState()
+      state.currentMap,
+      state
     );
   }
 }

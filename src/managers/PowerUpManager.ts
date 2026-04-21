@@ -2,6 +2,7 @@ import { useCoinStore, useGameStore } from "../stores/gameStore";
 import { AudioEvent } from "../types/enums";
 import { DEV_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
+import type { Monster, Coin } from "../types/interfaces";
 import type { AudioManager } from "./AudioManager";
 import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 import type { ScoreManager } from "./ScoreManager";
@@ -21,7 +22,7 @@ export class PowerUpManager {
     this.scoreManager = scoreManager;
   }
 
-  public handlePowerCoinCollection(coin: any): void {
+  public handlePowerCoinCollection(coin: Coin): void {
     const gameState = useGameStore.getState();
     
     // Activate power mode
@@ -30,7 +31,7 @@ export class PowerUpManager {
     }
   }
 
-  public handleMonsterCollisionDuringPowerMode(monster: any): void {
+  public handleMonsterCollisionDuringPowerMode(monster: Monster): void {
     const gameState = useGameStore.getState();
     
     // Monster is killed during power mode

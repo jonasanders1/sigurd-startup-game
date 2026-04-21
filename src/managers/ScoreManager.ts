@@ -9,6 +9,7 @@ import {
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 import { sendScoreToHost } from "../lib/communicationUtils";
+import type { Monster } from "../types/interfaces";
 
 export class ScoreManager {
   public addScore(points: number): void {
@@ -86,7 +87,7 @@ export class ScoreManager {
     return result;
   }
 
-  public handleMonsterKill(monster: any): void {
+  public handleMonsterKill(monster: Monster): void {
     const { multiplier } = useScoreStore.getState();
     const { activeEffects } = useCoinStore.getState();
 

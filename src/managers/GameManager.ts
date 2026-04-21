@@ -22,6 +22,7 @@ import {
   useStateStore,
   useRenderStore,
 } from "../stores/gameStore";
+import { Monster } from "../types/interfaces";
 import { GameState, AudioEvent } from "../types/enums";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
@@ -61,6 +62,7 @@ export class GameManager {
   private monsterRespawnManager: OptimizedRespawnManager;
   private playerManager: PlayerManager;
   private audioSettingsListenerCleanup: (() => void) | null = null;
+  private deathInProgress = false;
 
   constructor(canvas: HTMLCanvasElement) {
     // Create managers
@@ -146,6 +148,9 @@ export class GameManager {
    * Note: All loading is now handled by LoadingManager before GameManager is created
    */
   public start(): void {
+    // Reset death flag for clean start
+    this.deathInProgress = false;
+
     // Initialize input
     this.inputManager.initialize();
 
@@ -165,9 +170,7 @@ export class GameManager {
       log.data('CoinSpawn: Normal game start - full reset, all coin spawn counters cleared');
       gameState.resetGame();
 
-      if ("setGameStartTime" in gameState) {
-        (gameState as any).setGameStartTime(Date.now());
-      }
+      useLevelStore.getState().setGameStartTime(Date.now());
 
       this.levelManager.loadCurrentLevel();
     }
@@ -186,38 +189,39 @@ export class GameManager {
    * Initialize spawn diagnostics utility
    */
   private initializeSpawnDiagnostics(): void {
+    if (!DEV_CONFIG.ENABLED) return;
+
     // Create and expose spawn diagnostics utility
     const diagnostics = new SpawnDiagnostics(
       this.monsterSpawnManager,
       this.monsterRespawnManager
     );
 
+    let diagnosticsInstance: SpawnDiagnostics | null = null;
+
     // Make available globally for console debugging
-    (window as any).spawnDiagnostics = {
+    (window as unknown as Record<string, unknown>).spawnDiagnostics = {
       dump: () => diagnostics.dumpFullDiagnostics(),
       start: (intervalMs: number = 1000) => {
-        (window as any).spawnDiagnosticsInstance = diagnostics;
+        diagnosticsInstance = diagnostics;
         diagnostics.startDiagnostics(intervalMs);
       },
       stop: () => {
-        const instance = (window as any).spawnDiagnosticsInstance;
-        if (instance) {
-          instance.stopDiagnostics();
-          delete (window as any).spawnDiagnosticsInstance;
+        if (diagnosticsInstance) {
+          diagnosticsInstance.stopDiagnostics();
+          diagnosticsInstance = null;
         }
       },
     };
 
-    // Also expose managers for advanced debugging
-    if (DEV_CONFIG.ENABLED) {
-      (window as any).gameManagers = {
-        spawn: this.monsterSpawnManager,
-        respawn: this.monsterRespawnManager,
-        gameState: this.gameStateManager,
-        level: this.levelManager,
-        audio: this.audioManager,
-      };
-    }
+    // Expose managers for advanced debugging
+    (window as unknown as Record<string, unknown>).gameManagers = {
+      spawn: this.monsterSpawnManager,
+      respawn: this.monsterRespawnManager,
+      gameState: this.gameStateManager,
+      level: this.levelManager,
+      audio: this.audioManager,
+    };
 
     log.debug(
       "Spawn diagnostics initialized - use spawnDiagnostics.dump() in console"
@@ -326,7 +330,10 @@ export class GameManager {
   /**
    * Handle monster collision with player
    */
-  private handleMonsterCollision(monster: any): void {
+  private handleMonsterCollision(monster: Monster): void {
+    // Skip all collision handling while death sequence is playing
+    if (this.deathInProgress) return;
+
     // Check god mode
     if (this.powerUpManager.isGodModeEnabled()) {
       log.debug("God mode enabled - player is invincible");
@@ -338,7 +345,6 @@ export class GameManager {
       this.powerUpManager.handleMonsterCollisionDuringPowerMode(monster);
     } else {
       // Normal collision - player dies
-      this.audioManager.playSound(AudioEvent.MONSTER_HIT);
       this.handlePlayerDeath();
     }
   }
@@ -347,6 +353,10 @@ export class GameManager {
    * Handle player death
    */
   private handlePlayerDeath(): void {
+    // Prevent re-entry while death sequence is playing out
+    if (this.deathInProgress) return;
+    this.deathInProgress = true;
+
     const { lives, loseLife, currentLevel, correctOrderCount } =
       useStateStore.getState();
     const { score, levelScore, multiplier } = this.scoreManager.getScore
@@ -372,8 +382,8 @@ export class GameManager {
     this.audioManager.stopBackgroundMusic();
     this.gameStateManager.resetBackgroundMusicFlag();
 
-    // Send level failure event for tracking (with current stats)
     if (lives <= 1) {
+      // Send level failure event for tracking
       if (currentMap) {
         const failureData: LevelFailureData = {
           level: currentLevel,
@@ -381,21 +391,20 @@ export class GameManager {
           score: score,
           bombs: bombs.filter((b) => b.isCollected).length,
           correctOrders: correctOrderCount,
-          lives: lives - 1, // Lives after death
+          lives: lives - 1,
           multiplier: multiplier,
           timestamp: Date.now(),
         };
         sendLevelFailure(failureData);
       }
 
-      // Game over - only record level data on final death
+      // Record level data on final death
       if (currentMap) {
         const partialLevelResult: LevelHistoryEntry = {
           level: currentLevel,
           mapName: currentMap.name,
-          score: levelScore,  // Use levelScore for this level's earnings only
+          score: levelScore,
           bonus: 0,
-          // Don't include completionTime for partial levels - the level wasn't completed
           coinsCollected: coinStats.totalCoinsCollected,
           powerModeActivations: coinStats.totalPowerCoinsCollected,
           timestamp: Date.now(),
@@ -403,15 +412,23 @@ export class GameManager {
           totalBombs: bombs.filter((b) => b.isCollected).length,
           lives: lives - 1,
           multiplier: multiplier,
-          isPartial: true, // Mark as partial/incomplete
+          isPartial: true,
         };
         addLevelResult(partialLevelResult as LevelResult);
       }
+
+      // Play game over sound — it plays while the game over screen shows
+      this.audioManager.playSound(AudioEvent.GAME_OVER);
+
+      // Transition to GAME_OVER state immediately (stops all gameplay updates)
       loseLife();
+      this.deathInProgress = false;
     } else {
-      // Respawn player
+      // Still have lives — play monster hit sound and respawn
+      this.audioManager.playSound(AudioEvent.MONSTER_HIT);
       loseLife();
       this.levelManager.respawnPlayer();
+      this.deathInProgress = false;
     }
   }
 
@@ -453,7 +470,7 @@ export class GameManager {
   }
 
   // Debug methods
-  public getPauseStatus(): any {
+  public getPauseStatus() {
     return {
       gameState: useStateStore.getState().currentState,
       scalingManager: this.scalingManager.getPauseStatus(),
@@ -464,11 +481,11 @@ export class GameManager {
     };
   }
 
-  public getSpawnStatus(): any {
+  public getSpawnStatus() {
     return this.monsterSpawnManager.getSpawnStatus();
   }
 
-  public getPowerUpStatus(): any {
+  public getPowerUpStatus() {
     return this.powerUpManager.getPowerUpStatus();
   }
 

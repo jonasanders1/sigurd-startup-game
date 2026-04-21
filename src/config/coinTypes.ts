@@ -10,7 +10,6 @@ import {
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { ScalingManager } from "../managers/ScalingManager";
-import { useScoreStore } from "../stores/gameStore";
 import { useAudioStore } from "../stores/systems/audioStore";
 import { log } from "../lib/logger";
 
@@ -117,27 +116,18 @@ export const COIN_EFFECTS = {
   BONUS_MULTIPLIER: {
     type: "BONUS_MULTIPLIER",
     points: 0, // Points will be calculated dynamically
-    apply: (gameState: GameStateInterface) => {
-      // Get the score store to add points
-      const scoreStore = useScoreStore.getState();
-      
-      // Give points based on current multiplier (1000 * multiplier)
-      const points = 1000 * gameState.multiplier;
-      scoreStore.addScore(points);
-
-      // Increase multiplier
-      if (gameState.multiplier < GAME_CONFIG.MAX_MULTIPLIER) {
-        gameState.setMultiplier(gameState.multiplier + 1, 0);
-      }
+    apply: () => {
+      // Scoring and multiplier bump are handled by coinStore.collectCoin()
+      // This effect is intentionally empty to avoid double-counting
     },
   },
 
   EXTRA_LIFE: {
     type: "EXTRA_LIFE",
     points: 1000,
-    apply: (gameState: GameStateInterface) => {
-      // Add extra life
-      gameState.lives += 1;
+    apply: () => {
+      // Score addition and life grant are handled by coinStore.collectCoin()
+      // This effect is intentionally empty to avoid double-counting
     },
   },
 };

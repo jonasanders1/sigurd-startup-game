@@ -2,13 +2,13 @@
 // This file is updated during the build process
 
 export const VERSION = {
-  major: 2,
-  minor: 9,
-  patch: 12,
-  build: 0,
-  timestamp: 1766484921238,
-  hash: 'JZSH2K',
-  full: '2.9.12'
+  major: 3,
+  minor: 0,
+  patch: 0,
+  build: 11,
+  timestamp: 1776813552855,
+  hash: '4XMSZ9',
+  full: '3.0.0'
 };
 
 // Version string for easy access

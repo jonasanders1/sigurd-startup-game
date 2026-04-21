@@ -53,6 +53,12 @@ interface BaseMonster {
   // Individual scaling properties
   individualSpawnTime?: number; // When this specific monster was spawned (for individual scaling)
   individualScalingPaused?: boolean; // Whether this monster's scaling is paused
+
+  // Runtime scaling properties (added by ScalingManager/behavior systems)
+  updateIntervalMultiplier?: number;
+  directnessMultiplier?: number;
+  speedMultiplier?: number;
+  spawnPauseTime?: number;
 }
 
 // Patrol monster (horizontal and vertical)
@@ -303,7 +309,7 @@ export interface CoinPhysicsConfig {
   hasGravity: boolean;
   bounces: boolean;
   reflects: boolean;
-  customUpdate?: (coin: Coin, platforms: Platform[], ground: Ground) => void;
+  customUpdate?: (coin: Coin, platforms: Platform[], ground: Ground, deltaTime?: number) => void;
 }
 
 export interface CoinTypeConfig {

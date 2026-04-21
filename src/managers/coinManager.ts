@@ -17,6 +17,7 @@ import { log, LogCategory, logger } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 import { useAudioStore } from "../stores/systems/audioStore";
 import { useScoreStore, useStateStore } from "../stores/gameStore";
+import { useCoinStore } from "../stores/entities/coinStore";
 
 interface EffectData {
   endTime: number;
@@ -81,7 +82,7 @@ export class CoinManager {
         note: "Does NOT include points from B-coin or E-coin collection to prevent spawn loops",
       },
       "M-Coin (Extra Life)": {
-        condition: "Every 5 B-coins collected",
+        condition: `Every ${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO} B-coins collected`,
         ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
         spawnPointsCount: mcoinSpawnPoints.length,
         spawnPoints: mcoinSpawnPoints.map((p) => ({ x: p.x, y: p.y })),
@@ -558,12 +559,15 @@ export class CoinManager {
         !coinConfig.spawnCondition.toString().includes("firebombCount") &&
         coinConfig.type !== "POWER"
       ) {
+        // Get the latest coin collection count from coinStore
+        const coinStore = useCoinStore.getState();
         const combinedState = {
           ...gameState,
           firebombCount: this.firebombCount,
           bombAndMonsterPoints: this.bombAndMonsterPoints,
           coinPoints: this.coinPoints,
           firebombPoints: this.firebombPoints,
+          totalBonusMultiplierCoinsCollected: coinStore.totalBonusMultiplierCoinsCollected || 0,
         };
 
         // Only log when there are actual state changes for B-coin
@@ -616,8 +620,9 @@ export class CoinManager {
 
         // Only log when there are actual state changes for EXTRA_LIFE coin
         if (coinConfig.type === "EXTRA_LIFE") {
-          const bonusCount =
-            (combinedState as any).totalBonusMultiplierCoinsCollected || 0;
+          // Read from coinStore directly to get the most up-to-date value
+          const coinStore = useCoinStore.getState();
+          const bonusCount = coinStore.totalBonusMultiplierCoinsCollected || 0;
           const nextMCoinAt =
             Math.ceil(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) *
             GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
@@ -746,8 +751,9 @@ export class CoinManager {
               .toString()
               .includes("totalBonusMultiplierCoinsCollected")
           ) {
-            const bonusCount =
-              (gameState.totalBonusMultiplierCoinsCollected as number) || 0;
+            // Read from coinStore directly to get the most up-to-date value
+            const coinStore = useCoinStore.getState();
+            const bonusCount = coinStore.totalBonusMultiplierCoinsCollected || 0;
             const threshold =
               Math.floor(bonusCount / GAME_CONFIG.EXTRA_LIFE_COIN_RATIO) *
               GAME_CONFIG.EXTRA_LIFE_COIN_RATIO;
@@ -755,17 +761,21 @@ export class CoinManager {
             const shouldSpawn =
               bonusCount > 0 &&
               bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0;
-            if (shouldSpawn) {
-              log.coin(
-                `M-coin spawn condition met! (bonusCount: ${bonusCount}, ratio: ${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO})`
-              );
-              log.data("CoinSpawn: M-coin spawning", {
-                totalBonusMultiplierCoinsCollected: bonusCount,
-                threshold,
-                ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
-                spawnKey,
-              });
+            
+            if (!shouldSpawn) {
+              // Don't spawn if condition not met
+              return;
             }
+            
+            log.coin(
+              `M-coin spawn condition met! (bonusCount: ${bonusCount}, ratio: ${GAME_CONFIG.EXTRA_LIFE_COIN_RATIO})`
+            );
+            log.data("CoinSpawn: M-coin spawning", {
+              totalBonusMultiplierCoinsCollected: bonusCount,
+              threshold,
+              ratio: GAME_CONFIG.EXTRA_LIFE_COIN_RATIO,
+              spawnKey,
+            });
           }
 
           // Check if we've already triggered this spawn condition

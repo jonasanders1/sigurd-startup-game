@@ -11,7 +11,6 @@ interface WebkitDocument extends Document {
 }
 
 export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
-  
   const { audioSettings, updateAudioSettings } = useAudioStore.getState();
   const { currentState, gameStateManager } = useStateStore.getState();
 
@@ -28,7 +27,6 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
       switch (event.key) {
         case "f":
         case "F":
-          event.preventDefault();
           onFullscreenToggle?.();
           break;
 
@@ -38,7 +36,6 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
             document.fullscreenElement ||
             (document as WebkitDocument).webkitFullscreenElement
           ) {
-            event.preventDefault();
             onFullscreenToggle?.();
           }
           break;
@@ -47,12 +44,10 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
         case "P":
           // Use centralized pause/resume logic through GameStateManager
           if (currentState === GameState.PLAYING) {
-            event.preventDefault();
             // Use the GameStateManager to pause the game
             // This ensures all managers are properly paused
             gameStateManager?.pauseGame();
           } else if (currentState === GameState.PAUSED) {
-            event.preventDefault();
             // Use the GameStateManager to resume the game
             // This ensures all managers are properly resumed
             gameStateManager?.resumeGame();
@@ -62,7 +57,6 @@ export const useKeyboardShortcuts = (onFullscreenToggle?: () => void) => {
         case "m":
         case "M":
           // Toggle audio mute
-          event.preventDefault();
           updateAudioSettings({ masterMuted: !audioSettings.masterMuted });
           break;
       }

@@ -6,6 +6,7 @@ import {
   Ground,
   Coin,
   FloatingText,
+  MapDefinition,
 } from "../types/interfaces";
 import { COLORS, DEV_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
@@ -16,10 +17,15 @@ import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
+import type { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import { MonsterType } from "@/types/enums";
 
 interface CoinManagerInterface {
   getPcoinCurrentColor: (coin: Coin) => string;
+}
+
+interface GameStateSnapshot {
+  currentState: string;
 }
 
 export class RenderManager {
@@ -27,9 +33,10 @@ export class RenderManager {
   private ctx: CanvasRenderingContext2D;
   private lastTime: number = 0;
   private backgroundManager: BackgroundManager;
-  private bombSprites: Map<number, SpriteInstance> = new Map(); // Individual sprites for each bomb
-  private currentSpawnManager: any = null;
-  private currentGameState: any = null;
+  private bombSprites: Map<number, SpriteInstance> = new Map();
+  private currentSpawnManager: OptimizedSpawnManager | null = null;
+  private currentGameState: GameStateSnapshot | null = null;
+  private frameTime: number = 0; // Cached Date.now() for current frame
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -47,16 +54,16 @@ export class RenderManager {
     coins: Coin[] = [],
     floatingTexts: FloatingText[] = [],
     coinManager?: CoinManagerInterface,
-    spawnManager?: any,
-    currentMap?: any,
-    gameState?: any
+    spawnManager?: OptimizedSpawnManager,
+    currentMap?: MapDefinition,
+    gameState?: GameStateSnapshot
   ): void {
     // Store spawn manager and game state for use in indicator rendering
     this.currentSpawnManager = spawnManager;
     this.currentGameState = gameState;
-    const currentTime = Date.now();
-    const deltaTime = currentTime - this.lastTime;
-    this.lastTime = currentTime;
+    this.frameTime = Date.now();
+    const deltaTime = this.frameTime - this.lastTime;
+    this.lastTime = this.frameTime;
 
     // Render background first
     this.renderBackground();
@@ -204,39 +211,28 @@ export class RenderManager {
         color = coinManager.getPcoinCurrentColor(coin);
       }
 
-      // Draw coin as circle
-      this.ctx.fillStyle = color;
-      this.ctx.beginPath();
-      this.ctx.arc(
-        coin.x + coin.width / 2,
-        coin.y + coin.height / 2,
-        coin.width / 2,
-        0,
-        2 * Math.PI
-      );
-      this.ctx.fill();
-      this.ctx.restore();
+      const coinCenterX = coin.x + coin.width / 2;
+      const coinCenterY = coin.y + coin.height / 2;
 
-      this.ctx.save();
+      // Shadow (drawn first so it appears behind the coin)
       this.ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
       this.ctx.beginPath();
       this.ctx.arc(
-        coin.x + coin.width / 2 + 1,
-        coin.y + coin.height / 2 + 1,
+        coinCenterX + 1,
+        coinCenterY + 1,
         coin.width / 2,
         0,
         Math.PI * 2
       );
       this.ctx.fill();
-      this.ctx.restore();
 
       // Coin body with pulsing effect
-      const pulse = Math.sin(Date.now() / 200) * 0.1 + 1;
+      const pulse = Math.sin(this.frameTime / 200) * 0.1 + 1;
       this.ctx.fillStyle = color;
       this.ctx.beginPath();
       this.ctx.arc(
-        coin.x + coin.width / 2,
-        coin.y + coin.height / 2,
+        coinCenterX,
+        coinCenterY,
         (coin.width / 2) * pulse,
         0,
         Math.PI * 2
@@ -247,8 +243,8 @@ export class RenderManager {
       this.ctx.fillStyle = "rgba(2, 2, 2, 0.3)";
       this.ctx.beginPath();
       this.ctx.arc(
-        coin.x + coin.width / 2,
-        coin.y + coin.height / 2,
+        coinCenterX,
+        coinCenterY,
         coin.width / 2.5,
         0,
         Math.PI * 2
@@ -271,8 +267,8 @@ export class RenderManager {
 
       this.ctx.fillText(
         coinSymbol,
-        coin.x + coin.width / 2,
-        coin.y + coin.height / 2 + 2
+        coinCenterX,
+        coinCenterY + 2
       );
     });
   }
@@ -288,7 +284,7 @@ export class RenderManager {
       // Handle blinking effect for monsters about to unfreeze
       let monsterColor = monster.color;
       if (monster.isBlinking) {
-        const time = Date.now();
+        const time = this.frameTime;
         if (Math.floor(time / 300) % 2 === 0) {
           monsterColor = COLORS.MONSTER_FROZEN; // Blink to frozen color
         } else {
@@ -458,7 +454,7 @@ export class RenderManager {
           const spawnPoint = monster.originalSpawnPoint;
 
           // Use monster's actual color with pulsating effect
-          const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
+          const pulseIntensity = Math.sin(this.frameTime / 200) * 0.3 + 0.7; // Pulsing effect
           const monsterColor = monster.color || "#ffffff";
 
           // Draw a pulsating filled rounded rectangle using monster's color
@@ -509,7 +505,7 @@ export class RenderManager {
     });
   }
 
-  private renderSpawnIndicators(spawnManager?: any): void {
+  private renderSpawnIndicators(spawnManager?: OptimizedSpawnManager): void {
     if (!spawnManager) {
       return;
     }
@@ -525,7 +521,7 @@ export class RenderManager {
     try {
       const pendingSpawns = spawnManager.getPendingSpawns();
 
-      pendingSpawns.forEach((spawn: any) => {
+      pendingSpawns.forEach((spawn) => {
         const timeRemaining = spawnManager.getSpawnTimeRemaining(spawn);
         const secondsRemaining = Math.ceil(timeRemaining / 1000);
         if (timeRemaining > 0 && secondsRemaining <= 3) {
@@ -534,7 +530,7 @@ export class RenderManager {
           const tempMonster = spawn.spawnPoint.createMonster();
 
           // Use monster's actual color with pulsating effect
-          const pulseIntensity = Math.sin(Date.now() / 200) * 0.3 + 0.7; // Pulsing effect
+          const pulseIntensity = Math.sin(this.frameTime / 200) * 0.3 + 0.7; // Pulsing effect
           const monsterColor = tempMonster.color || "#ffffff";
 
           // Draw a pulsating filled rounded rectangle using monster's color
@@ -594,7 +590,7 @@ export class RenderManager {
   ): void {
     floatingTexts.forEach((text) => {
       // Calculate animation progress
-      const elapsed = Date.now() - text.startTime;
+      const elapsed = this.frameTime - text.startTime;
       const progress = Math.min(elapsed / text.duration, 1);
 
       // Animate position (float upward)

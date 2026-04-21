@@ -4,35 +4,33 @@ import { log } from "../lib/logger";
 
 export class InputManager {
   private keysPressed: Set<string> = new Set();
-  // Remove the cached store reference
   private initialized = false;
+
+  // Store bound handlers so addEventListener/removeEventListener reference the same function
+  private boundHandleKeyDown = this.handleKeyDown.bind(this);
+  private boundHandleKeyUp = this.handleKeyUp.bind(this);
+  private boundHandleBlur = this.handleBlur.bind(this);
 
   public initialize() {
     if (this.initialized) return;
 
-    // Add keyboard event listeners
-    window.addEventListener("keydown", this.handleKeyDown.bind(this));
-    window.addEventListener("keyup", this.handleKeyUp.bind(this));
-    window.addEventListener("blur", this.handleBlur.bind(this));
+    window.addEventListener("keydown", this.boundHandleKeyDown);
+    window.addEventListener("keyup", this.boundHandleKeyUp);
+    window.addEventListener("blur", this.boundHandleBlur);
 
     this.initialized = true;
   }
 
   destroy() {
-    window.removeEventListener("keydown", this.handleKeyDown.bind(this));
-    window.removeEventListener("keyup", this.handleKeyUp.bind(this));
-    window.removeEventListener("blur", this.handleBlur.bind(this));
+    window.removeEventListener("keydown", this.boundHandleKeyDown);
+    window.removeEventListener("keyup", this.boundHandleKeyUp);
+    window.removeEventListener("blur", this.boundHandleBlur);
 
     this.keysPressed.clear();
     this.initialized = false;
   }
 
   private handleKeyDown(event: KeyboardEvent) {
-    // Prevent default for game keys
-    if (this.isGameKey(event.key)) {
-      event.preventDefault();
-    }
-
     // Track key state
     this.keysPressed.add(event.key);
 
@@ -100,30 +98,6 @@ export class InputManager {
         setInput("float", pressed);
         break;
     }
-  }
-
-  private isGameKey(key: string): boolean {
-    const gameKeys = [
-      InputKey.LEFT,
-      InputKey.RIGHT,
-      InputKey.UP,
-      InputKey.DOWN,
-      InputKey.SPACE,
-      InputKey.ENTER,
-      InputKey.ESCAPE,
-      InputKey.P,
-      "a",
-      "A",
-      "d",
-      "D",
-      "w",
-      "W",
-      "s",
-      "S",
-      "Shift",
-    ];
-
-    return gameKeys.includes(key);
   }
 
   isKeyPressed(key: string): boolean {

@@ -6,6 +6,7 @@ import { COIN_SPAWNING } from "../../config/coins";
 import { log } from "../../lib/logger";
 import { useScoreStore } from "../game/scoreStore";
 import { useStateStore } from "../game/stateStore";
+import { CoinType } from "../../types/enums";
 
 interface CoinState {
   coins: Coin[];
@@ -117,72 +118,120 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
 
     log.coin(`Coin store: Collecting ${coin.type} coin`);
 
-    // Get the current game state to pass to coinManager.collectCoin
-    const currentState = get();
+    // Use functional update to ensure we always work with the latest state
+    set((currentState) => {
+      log.data('CoinSpawn: BEFORE coin collection', {
+        coinType: coin.type,
+        currentBonusCount: currentState.totalBonusMultiplierCoinsCollected,
+      });
 
-    // Pass the game state to coinManager so effects can be applied
-    coinManager.collectCoin(
-      coin,
-      currentState as unknown as Record<string, unknown>
-    );
+      // Pass the game state to coinManager so effects can be applied
+      coinManager.collectCoin(
+        coin,
+        currentState as unknown as Record<string, unknown>
+      );
 
-    log.coin(`Coin store: Coin manager collectCoin completed`);
+      log.coin(`Coin store: Coin manager collectCoin completed`);
 
-    // Update coins list
-    const updatedCoins = currentState.coins.map((c) =>
-      c === coin ? { ...c, isCollected: true } : c
-    );
+      // Update coins list
+      const updatedCoins = currentState.coins.map((c) =>
+        c === coin ? { ...c, isCollected: true } : c
+      );
 
-    // Update active effects with dynamic duration for P-coins
-    let powerModeEndTime = 0;
-    if (coinManager.isPowerModeActive()) {
-      if (coin.type === "POWER" && coin.spawnTime !== undefined) {
-        // Get duration based on coin color
-        const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
-        powerModeEndTime = Date.now() + colorData.duration;
+      // Update active effects with dynamic duration for P-coins
+      let powerModeEndTime = 0;
+      if (coinManager.isPowerModeActive()) {
+        if (coin.type === "POWER" && coin.spawnTime !== undefined) {
+          // Get duration based on coin color
+          const colorData = coinManager.getPcoinColorForTime(coin.spawnTime);
+          powerModeEndTime = Date.now() + colorData.duration;
+        }
       }
-    }
 
-    const activeEffects = {
-      powerMode: coinManager.isPowerModeActive(),
-      powerModeEndTime,
-    };
+      const activeEffects = {
+        powerMode: coinManager.isPowerModeActive(),
+        powerModeEndTime,
+      };
 
-    // Update total collection counters
-    const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
-    const newTotalPowerCoinsCollected =
-      currentState.totalPowerCoinsCollected + (coin.type === "POWER" ? 1 : 0);
-    const newTotalBonusMultiplierCoinsCollected =
-      currentState.totalBonusMultiplierCoinsCollected +
-      (coin.type === "BONUS_MULTIPLIER" ? 1 : 0);
-    const newTotalExtraLifeCoinsCollected =
-      currentState.totalExtraLifeCoinsCollected +
-      (coin.type === "EXTRA_LIFE" ? 1 : 0);
+      // Update total collection counters
+      const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
+      const newTotalPowerCoinsCollected =
+        currentState.totalPowerCoinsCollected + (coin.type === "POWER" || coin.type === CoinType.POWER ? 1 : 0);
+      
+      // Check for bonus multiplier coin (handle both string and enum)
+      const isBonusCoin = coin.type === "BONUS_MULTIPLIER" || coin.type === CoinType.BONUS_MULTIPLIER;
+      const bonusIncrement = isBonusCoin ? 1 : 0;
+      
+      // Debug: Log coin type and current bonus count before increment
+      log.data('CoinSpawn: Updating bonus coin counter', {
+        coinType: coin.type,
+        coinTypeEnum: CoinType.BONUS_MULTIPLIER,
+        typesMatch: coin.type === "BONUS_MULTIPLIER",
+        typesMatchEnum: coin.type === CoinType.BONUS_MULTIPLIER,
+        isBonusCoin,
+        bonusIncrement,
+        currentBonusCount: currentState.totalBonusMultiplierCoinsCollected,
+        newBonusCount: currentState.totalBonusMultiplierCoinsCollected + bonusIncrement,
+      });
+      
+      const newTotalBonusMultiplierCoinsCollected =
+        currentState.totalBonusMultiplierCoinsCollected + bonusIncrement;
+      const newTotalExtraLifeCoinsCollected =
+        currentState.totalExtraLifeCoinsCollected +
+        (coin.type === "EXTRA_LIFE" || coin.type === CoinType.EXTRA_LIFE ? 1 : 0);
 
-    // Update level-specific counters (these accumulate across respawns)
-    const newLevelCoinsCollected = currentState.levelCoinsCollected + 1;
-    const newLevelPowerCoinsCollected =
-      currentState.levelPowerCoinsCollected + (coin.type === "POWER" ? 1 : 0);
-    const newLevelBonusMultiplierCoinsCollected =
-      currentState.levelBonusMultiplierCoinsCollected +
-      (coin.type === "BONUS_MULTIPLIER" ? 1 : 0);
-    const newLevelExtraLifeCoinsCollected =
-      currentState.levelExtraLifeCoinsCollected +
-      (coin.type === "EXTRA_LIFE" ? 1 : 0);
+      // Update level-specific counters (these accumulate across respawns)
+      const newLevelCoinsCollected = currentState.levelCoinsCollected + 1;
+      const newLevelPowerCoinsCollected =
+        currentState.levelPowerCoinsCollected + (coin.type === "POWER" || coin.type === CoinType.POWER ? 1 : 0);
+      const newLevelBonusMultiplierCoinsCollected =
+        currentState.levelBonusMultiplierCoinsCollected + bonusIncrement;
+      const newLevelExtraLifeCoinsCollected =
+        currentState.levelExtraLifeCoinsCollected +
+        (coin.type === "EXTRA_LIFE" || coin.type === CoinType.EXTRA_LIFE ? 1 : 0);
 
-    set({
-      coins: updatedCoins,
-      activeEffects,
-      totalCoinsCollected: newTotalCoinsCollected,
-      totalPowerCoinsCollected: newTotalPowerCoinsCollected,
-      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
-      totalExtraLifeCoinsCollected: newTotalExtraLifeCoinsCollected,
-      levelCoinsCollected: newLevelCoinsCollected,
-      levelPowerCoinsCollected: newLevelPowerCoinsCollected,
-      levelBonusMultiplierCoinsCollected: newLevelBonusMultiplierCoinsCollected,
-      levelExtraLifeCoinsCollected: newLevelExtraLifeCoinsCollected,
+      // IMPORTANT: Spread existing state to preserve all fields, then update only what changed
+      const updatedState = {
+        ...currentState, // Preserve all existing state
+        coins: updatedCoins,
+        activeEffects,
+        totalCoinsCollected: newTotalCoinsCollected,
+        totalPowerCoinsCollected: newTotalPowerCoinsCollected,
+        totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
+        totalExtraLifeCoinsCollected: newTotalExtraLifeCoinsCollected,
+        levelCoinsCollected: newLevelCoinsCollected,
+        levelPowerCoinsCollected: newLevelPowerCoinsCollected,
+        levelBonusMultiplierCoinsCollected: newLevelBonusMultiplierCoinsCollected,
+        levelExtraLifeCoinsCollected: newLevelExtraLifeCoinsCollected,
+      };
+
+      // Store values for logging after state update
+      const bonusCountForLogging = newTotalBonusMultiplierCoinsCollected;
+      const totalCoinsForLogging = newTotalCoinsCollected;
+      const powerCoinsForLogging = newTotalPowerCoinsCollected;
+
+      // Log the state we're about to return
+      log.data('CoinSpawn: Returning updated state', {
+        coinType: coin.type,
+        oldBonusCount: currentState.totalBonusMultiplierCoinsCollected,
+        newBonusCount: bonusCountForLogging,
+        returningBonusCount: updatedState.totalBonusMultiplierCoinsCollected,
+      });
+
+      return updatedState;
     });
 
+    // Verify the state was actually updated (log after set completes)
+    const verifyState = get();
+    log.data('CoinSpawn: AFTER coin collection (state verification)', {
+      coinType: coin.type,
+      actualBonusCount: verifyState.totalBonusMultiplierCoinsCollected,
+      timestamp: Date.now(),
+    });
+
+    // Get updated state for logging (after set completes)
+    const updatedState = get();
+    
     // Handle coin-specific effects by calling the individual stores
     const scoreStore = useScoreStore.getState();
     const stateStore = useStateStore.getState();
@@ -221,15 +270,15 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     }
 
     log.coin(
-      `Coin collected: ${coin.type} (Total: ${newTotalCoinsCollected}, Power: ${newTotalPowerCoinsCollected}, Bonus: ${newTotalBonusMultiplierCoinsCollected})`
+      `Coin collected: ${coin.type} (Total: ${updatedState.totalCoinsCollected}, Power: ${updatedState.totalPowerCoinsCollected}, Bonus: ${updatedState.totalBonusMultiplierCoinsCollected})`
     );
     
     // Log coin collection for spawn debugging
     log.data('CoinSpawn: Coin collected', {
       coinType: coin.type,
-      totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
-      nextMCoinAt: Math.ceil(newTotalBonusMultiplierCoinsCollected / COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO) * COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO,
-      willSpawnMCoin: newTotalBonusMultiplierCoinsCollected > 0 && newTotalBonusMultiplierCoinsCollected % COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO === 0
+      totalBonusMultiplierCoinsCollected: updatedState.totalBonusMultiplierCoinsCollected,
+      nextMCoinAt: Math.ceil(updatedState.totalBonusMultiplierCoinsCollected / COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO) * COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO,
+      willSpawnMCoin: updatedState.totalBonusMultiplierCoinsCollected > 0 && updatedState.totalBonusMultiplierCoinsCollected % COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO === 0
     });
   },
 
@@ -274,21 +323,28 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       coinManager.softReset();  // Soft reset preserves counters
     }
 
-    // Preserve the counts that should persist across levels
-    const currentState = get();
-    
-    set({
-      coins: [],
-      activeEffects: {
-        powerMode: false,
-        powerModeEndTime: 0,
-      },
-      // PRESERVE these counts across levels:
-      firebombCount: coinManager?.getFirebombCount() || currentState.firebombCount,
-      totalCoinsCollected: currentState.totalCoinsCollected,
-      totalPowerCoinsCollected: currentState.totalPowerCoinsCollected,
-      totalBonusMultiplierCoinsCollected: currentState.totalBonusMultiplierCoinsCollected,
-      totalExtraLifeCoinsCollected: currentState.totalExtraLifeCoinsCollected,
+    // Preserve the counts that should persist across levels using functional update
+    set((currentState) => {
+      log.data('CoinStore: Soft reset - preserving counters', {
+        totalBonusMultiplierCoinsCollected: currentState.totalBonusMultiplierCoinsCollected,
+        totalCoinsCollected: currentState.totalCoinsCollected,
+      });
+      
+      return {
+        ...currentState, // Preserve all existing state
+        coins: [],
+        activeEffects: {
+          powerMode: false,
+          powerModeEndTime: 0,
+        },
+        // PRESERVE these counts across levels:
+        firebombCount: coinManager?.getFirebombCount() || currentState.firebombCount,
+        // The spread above already preserves all the total* counters, but being explicit:
+        totalCoinsCollected: currentState.totalCoinsCollected,
+        totalPowerCoinsCollected: currentState.totalPowerCoinsCollected,
+        totalBonusMultiplierCoinsCollected: currentState.totalBonusMultiplierCoinsCollected,
+        totalExtraLifeCoinsCollected: currentState.totalExtraLifeCoinsCollected,
+      };
     });
     
     log.data('CoinStore: Soft reset (level transition) - preserving spawn counters:', {

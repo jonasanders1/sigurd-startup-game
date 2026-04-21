@@ -75,8 +75,8 @@ export class PlayerManager {
     // Update player with boundary-resolved position
     const updatedPlayer = boundaryResult.player;
 
-    // Reset grounded state
-    player.isGrounded = false;
+    // Reset grounded state before collision detection sets it back to true
+    updatedPlayer.isGrounded = false;
 
     // Update the store
     updatePlayer(updatedPlayer);
