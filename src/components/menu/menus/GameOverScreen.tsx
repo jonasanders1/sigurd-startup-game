@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { PixelBezel } from "@/components/ui/pixel-bezel";
 import {
   useLevelStore,
-  useScoreStore,
   useStateStore,
 } from "../../../stores/gameStore";
 import { waitForGameSaveConfirmation } from "../../../lib/communicationUtils";
@@ -13,11 +13,9 @@ const GameOverScreen: React.FC = () => {
   const { getLevelResults } = useLevelStore.getState();
   const [isSaving, setIsSaving] = useState(true);
 
-  // Get the comprehensive level results (which includes all completion data)
   const levelResults = getLevelResults();
 
   useEffect(() => {
-    // Wait for the game to be saved before allowing restart
     waitForGameSaveConfirmation().then(() => {
       setIsSaving(false);
     });
@@ -29,7 +27,6 @@ const GameOverScreen: React.FC = () => {
     }
   };
 
-  // Calculate total financing and bonus separately
   const totalFinancing = levelResults.reduce(
     (sum, level) => sum + level.score,
     0
@@ -38,99 +35,97 @@ const GameOverScreen: React.FC = () => {
   const totalBonus = levelResults.reduce((sum, level) => sum + level.bonus, 0);
 
   return (
-    <div className=" text-center max-w-2xl">
-      <h1 className="text-4xl font-bold text-white mb-2 font-pixel">
-        Kapitalen tørket ut
+    <div className="text-center max-w-2xl">
+      <h1 className="text-4xl font-pixel text-foreground tracking-wide mb-1">
+        KAPITALEN TØRKET UT
       </h1>
+      <p className="text-sm text-[var(--foreground-dim)] mb-4">Startupen gikk konkurs</p>
 
-      <div className="text-white mb-6 space-y-3 bg-gray-400/10 rounded-lg">
-        {/* Level Results Table */}
-        {levelResults.length > 0 && (
-          <div className="mt-4">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-600">
-                    <th className="text-center py-2 px-3 text-primary font-semibold">
-                      <Check className="w-4 h-4 inline" />
-                    </th>
-                    <th className="text-left py-2 px-3 text-primary font-semibold">
-                      Bane
-                    </th>
-                    <th className="text-right py-2 px-3 text-primary font-semibold">
-                      Finansiering
-                    </th>
-                    <th className="text-right py-2 px-3 text-primary font-semibold">
-                      Bonus
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {levelResults.map((level, index) => (
-                    <tr key={index} className="border-b border-gray-700/50">
-                      <td className="py-2 px-3 text-center">
-                        <div className="flex justify-center items-center">
-                          <div
-                            className={`w-4 h-4 border-2 rounded ${
-                              !level.isPartial
-                                ? "bg-primary border-primary-dark"
-                                : "bg-red-500 border-red-600"
-                            } flex items-center justify-center`}
-                          >
-                            {!level.isPartial ? (
-                              <Check className="w-3 h-3 text-white" />
-                            ) : (
-                              <X className="w-3 h-3 text-white" />
-                            )}
-                          </div>
+      {levelResults.length > 0 && (
+        <PixelBezel className="p-0 mb-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm font-mono">
+              <thead>
+                <tr className="border-b border-[var(--surface-line)]">
+                  <th className="text-center py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                    <Check className="w-4 h-4 inline" />
+                  </th>
+                  <th className="text-left py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                    Bane
+                  </th>
+                  <th className="text-right py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                    Finansiering
+                  </th>
+                  <th className="text-right py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                    Bonus
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {levelResults.map((level, index) => (
+                  <tr key={index} className="border-b border-[var(--surface-line)]/30">
+                    <td className="py-2 px-3 text-center">
+                      <div className="flex justify-center items-center">
+                        <div
+                          className={`w-4 h-4 border-2 rounded-sm ${
+                            !level.isPartial
+                              ? "bg-primary border-primary-dark"
+                              : "bg-destructive border-red-600"
+                          } flex items-center justify-center`}
+                        >
+                          {!level.isPartial ? (
+                            <Check className="w-3 h-3 text-white" />
+                          ) : (
+                            <X className="w-3 h-3 text-white" />
+                          )}
                         </div>
-                      </td>
-                      <td className="py-2 px-3 text-left text-gray-300">
-                        <span className="font-medium">{level.mapName}</span>
-                        <span className="text-xs text-gray-500 ml-2">
-                          (Nivå {level.level})
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-right text-gray-300">
-                        {level.score.toLocaleString()} kr
-                      </td>
-                      <td className="py-2 px-3 text-right">
-                        {level.bonus > 0 ? (
-                          <span className="text-yellow-400 font-semibold">
-                            {level.bonus.toLocaleString()} kr
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td
-                      colSpan={2}
-                      className="py-3 px-3 text-left font-bold text-white text-lg"
-                    >
-                      Total finansiering
+                      </div>
                     </td>
-                    <td
-                      colSpan={2}
-                      className="py-3 px-3 text-right font-bold text-white text-2xl"
-                    >
-                      {(totalFinancing + totalBonus).toLocaleString()} kr
+                    <td className="py-2 px-3 text-left text-foreground">
+                      <span className="font-medium">{level.mapName}</span>
+                      <span className="text-xs text-[var(--foreground-dim)] ml-2">
+                        (Nivå {level.level})
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-right text-foreground">
+                      {level.score.toLocaleString()} kr
+                    </td>
+                    <td className="py-2 px-3 text-right">
+                      {level.bonus > 0 ? (
+                        <span className="text-yellow-400 font-semibold">
+                          {level.bonus.toLocaleString()} kr
+                        </span>
+                      ) : (
+                        <span className="text-[var(--foreground-dim)]">-</span>
+                      )}
                     </td>
                   </tr>
-                </tfoot>
-              </table>
-            </div>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-primary">
+                  <td
+                    colSpan={2}
+                    className="py-3 px-3 text-left font-pixel text-primary tracking-wide"
+                  >
+                    TOTAL
+                  </td>
+                  <td
+                    colSpan={2}
+                    className="py-3 px-3 text-right font-pixel text-foreground text-xl"
+                  >
+                    {(totalFinancing + totalBonus).toLocaleString()} kr
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-        )}
-      </div>
+        </PixelBezel>
+      )}
 
-      <div className="flex flex-col items-center gap-3 mt-6">
+      <div className="flex flex-col items-center gap-3">
         {isSaving && (
-          <div className="text-sm text-gray-400 flex items-center gap-2">
+          <div className="text-sm text-[var(--foreground-dim)] flex items-center gap-2 font-mono">
             <Loader2 className="w-4 h-4 animate-spin" />
             Lagrer spillet...
           </div>
@@ -138,13 +133,11 @@ const GameOverScreen: React.FC = () => {
         <Button
           onClick={handleRestart}
           disabled={isSaving}
-          className={`${
-            isSaving
-              ? "bg-gray-500 hover:bg-gray-500 cursor-not-allowed"
-              : "bg-primary hover:bg-primary-dark"
-          } text-white font-bold py-3 px-8 text-lg transition-all duration-200 uppercase`}
+          className={`uppercase px-10 ${
+            isSaving ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          prøv igjen
+          Prøv igjen
         </Button>
       </div>
     </div>

@@ -30,7 +30,6 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
   const animationInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Set up dot animation for visual feedback
     let dots = 0;
     animationInterval.current = setInterval(() => {
       dots = (dots + 1) % 4;
@@ -44,27 +43,21 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
     };
   }, []);
 
-  
-
   useEffect(() => {
-    // Prevent multiple loading attempts
     if (hasStartedLoading.current) return;
     hasStartedLoading.current = true;
 
-    // Set up progress callback
     loadingManager.setProgressCallback((newProgress: LoadingProgress) => {
       setProgress(newProgress);
 
       if (newProgress.isComplete) {
         logger.asset("Loading complete, notifying parent component");
-        // Small delay to show the completion message
         setTimeout(() => {
           onLoadingComplete();
         }, 500);
       }
     });
 
-    // Start loading process
     const startLoading = async () => {
       try {
         await loadingManager.load();
@@ -80,13 +73,11 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
       }
     };
 
-    // Start loading after a brief delay for UI to render
     setTimeout(() => {
       startLoading();
     }, 100);
   }, [loadingManager, onLoadingComplete]);
 
-  // Determine progress bar color based on state
   const getProgressBarColor = () => {
     if (progress.error) return "bg-destructive";
     if (progress.isComplete) return "bg-primary";
@@ -95,42 +86,33 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
     return "bg-primary-dark";
   };
 
-  // Calculate actual width for smooth animation
   const progressWidth = Math.min(Math.max(progress.progress, 0), 100);
 
   return (
     <Menu showShortcuts={false}>
       <div className="flex flex-col items-center justify-center p-8 max-w-lg w-full">
-        {/* Logo or Title */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-2 font-pixel">
-            Sigurd Startup
+          <h1 className="text-4xl font-pixel text-foreground tracking-wide mb-2">
+            SIGURD STARTUP
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-[var(--foreground-dim)] text-sm font-mono">
             Forbereder din gründerreise
           </p>
         </div>
 
-        {/* Loading Spinner/Animation */}
         <div className="mb-6">
           {!progress.error ? (
             <div className="relative w-24 h-24">
-              {/* Outer rotating ring */}
-              <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
-
-              {/* Inner pulsing circle */}
-              <div className="absolute inset-4 rounded-full bg-primary/20 animate-pulse"></div>
-
-              {/* Center icon or percentage */}
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+              <div className="absolute inset-4 rounded-full bg-primary/20 animate-pulse" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-foreground font-bold text-lg font-mono">
+                <span className="text-foreground font-pixel text-lg">
                   {progress.progress}%
                 </span>
               </div>
             </div>
           ) : (
-            // Error icon
             <div className="w-24 h-24 rounded-full bg-destructive/20 flex items-center justify-center">
               <svg
                 className="w-12 h-12 text-destructive"
@@ -149,9 +131,8 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
           )}
         </div>
 
-        {/* Progress Bar */}
         <div className="w-full mb-4">
-          <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-[var(--surface)] border border-[var(--surface-line)] rounded-sm overflow-hidden">
             <div
               className={`h-full ${getProgressBarColor()} transition-all duration-300 ease-out`}
               style={{ width: `${progressWidth}%` }}
@@ -159,30 +140,28 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
           </div>
         </div>
 
-        {/* Loading Message */}
         <div className="text-center mb-4">
-          <p className="text-foreground text-lg font-medium font-mono">
+          <p className="text-foreground text-base font-mono">
             {progress.currentMessage}
             {!progress.error && !progress.isComplete && dotAnimation}
           </p>
           {progress.currentStep && !progress.error && (
-            <p className="text-muted-foreground text-sm mt-1 font-mono">
+            <p className="text-[var(--foreground-dim)] text-sm mt-1 font-mono">
               {getStepDescription(progress.currentStep)}
             </p>
           )}
         </div>
 
-        {/* Error Details */}
         {progress.error && (
-          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+          <div className="mt-4 p-4 bg-destructive/10 border border-destructive/30 rounded-sm">
             <p className="text-destructive text-sm font-mono">
               Feilmelding: {progress.error}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-3 px-4 py-2 bg-destructive hover:bg-destructive/80 text-destructive-foreground rounded-lg transition-colors font-mono"
+              className="mt-3 px-4 py-2 bg-destructive text-white rounded-sm font-pixel tracking-wide text-sm arcade-press"
             >
-              Last på nytt
+              LAST PÅ NYTT
             </button>
           </div>
         )}
@@ -191,8 +170,6 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
   );
 };
 
-
-// Helper function for step descriptions
 const getStepDescription = (stepId: string): string => {
   const descriptions: Record<string, string> = {
     "host-communication": "Etablerer forbindelse",

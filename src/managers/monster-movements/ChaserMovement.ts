@@ -1,4 +1,4 @@
-import { Monster, Platform, isChaserMonster } from "../../types/interfaces";
+import { Monster, isChaserMonster } from "../../types/interfaces";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
@@ -12,26 +12,28 @@ const CARDINAL_DIRS = [
   { x: 0, y: -1 }, // North
 ];
 
-// A* grid cell size — matches monster size for accurate collision mapping
-const CELL_SIZE = GAME_CONFIG.MONSTER_SIZE;
+// A* grid cell size — half the monster size for smoother navigation
+const CELL_SIZE = Math.ceil(GAME_CONFIG.MONSTER_SIZE / 2);
 
 interface GridNode {
   x: number;
   y: number;
-  g: number; // Cost from start
-  h: number; // Heuristic (Manhattan distance to goal)
-  f: number; // g + h
+  g: number;
+  h: number;
+  f: number;
   parent: GridNode | null;
 }
 
+// Unique ID counter for chasers (stable across frames)
+let nextChaserId = 0;
+
 export class ChaserMovement {
-  // Cache the path so we don't re-run A* every frame
-  private pathCache: Map<number, { path: { x: number; y: number }[]; timestamp: number }> = new Map();
-  private static PATH_RECALC_INTERVAL = 500; // Recalculate path every 500ms
+  private pathCache: Map<number, { path: { x: number; y: number }[]; targetX: number; targetY: number; timestamp: number }> = new Map();
+  private static PATH_RECALC_INTERVAL = 400;
+  private static PATH_TARGET_DRIFT = 40; // Recalc if target moved more than this
 
   public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
     if (!isChaserMonster(monster)) return;
-
     if (gameState.currentState !== "PLAYING") return;
 
     const player = gameState.player;
@@ -54,10 +56,11 @@ export class ChaserMovement {
       monster.chaseTargetX = player.x;
       monster.chaseTargetY = player.y;
 
-      // Store randomization multipliers to preserve difficulty scaling
       (monster as any).updateIntervalMultiplier = 0.8 + Math.random() * 0.4;
       (monster as any).directnessMultiplier = 0.85 + Math.random() * 0.3;
       (monster as any).speedMultiplier = 0.9 + Math.random() * 0.2;
+      // Assign a stable ID for path caching
+      (monster as any)._chaserId = nextChaserId++;
 
       const targetOffsetX = (Math.random() - 0.5) * 50;
       const targetOffsetY = (Math.random() - 0.5) * 50;
@@ -69,6 +72,7 @@ export class ChaserMovement {
     }
 
     const platforms = gameState.platforms || [];
+    const ground = gameState.ground;
     const directness =
       valuesToUse.chaser.directness *
       ((monster as any).directnessMultiplier || 1);
@@ -76,7 +80,7 @@ export class ChaserMovement {
       valuesToUse.chaser.updateInterval *
       ((monster as any).updateIntervalMultiplier || 1);
 
-    // Update chase target periodically (creates "drifting" effect)
+    // Update chase target periodically
     const timeSinceLastUpdate =
       currentTime - (monster.lastDirectionChange || currentTime);
     if (timeSinceLastUpdate > updateInterval) {
@@ -84,12 +88,8 @@ export class ChaserMovement {
       const currentTargetY = monster.chaseTargetY || monster.y;
 
       const shouldAddOffset = Math.random() < 0.3;
-      const randomOffsetX = shouldAddOffset
-        ? (Math.random() - 0.5) * 15
-        : 0;
-      const randomOffsetY = shouldAddOffset
-        ? (Math.random() - 0.5) * 15
-        : 0;
+      const randomOffsetX = shouldAddOffset ? (Math.random() - 0.5) * 15 : 0;
+      const randomOffsetY = shouldAddOffset ? (Math.random() - 0.5) * 15 : 0;
 
       monster.chaseTargetX =
         currentTargetX +
@@ -107,7 +107,7 @@ export class ChaserMovement {
     const dy = targetY - monster.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance <= 5) return; // Close enough, don't jitter
+    if (distance <= 5) return;
 
     const individualSpeed =
       valuesToUse.chaser.speed * ((monster as any).speedMultiplier || 1);
@@ -117,32 +117,16 @@ export class ChaserMovement {
       : individualSpeed * speedScale;
 
     // Try direct cardinal movement first (fast path)
-    const moved = this.tryCardinalMove(
-      monster,
-      dx,
-      dy,
-      frameSpeed,
-      platforms,
-      gameState.ground
-    );
+    const moved = this.tryCardinalMove(monster, dx, dy, frameSpeed, platforms, ground);
 
     if (!moved) {
       // Blocked — use A* pathfinding to navigate around the obstacle
-      this.followPath(
-        monster,
-        targetX,
-        targetY,
-        frameSpeed,
-        platforms,
-        gameState.ground,
-        currentTime
-      );
+      this.followPath(monster, targetX, targetY, frameSpeed, platforms, ground, currentTime);
     }
   }
 
   /**
-   * Try to move in the best cardinal direction toward the target.
-   * Returns true if the monster actually moved.
+   * Try primary then secondary cardinal direction.
    */
   private tryCardinalMove(
     monster: Monster,
@@ -152,8 +136,6 @@ export class ChaserMovement {
     platforms: any[],
     ground: any
   ): boolean {
-    // Primary axis: whichever gap is larger
-    // Secondary axis: the other one (fallback if primary is blocked)
     const primary =
       Math.abs(dx) >= Math.abs(dy)
         ? { x: Math.sign(dx) * speed, y: 0 }
@@ -164,12 +146,10 @@ export class ChaserMovement {
         ? { x: 0, y: Math.sign(dy) * speed }
         : { x: Math.sign(dx) * speed, y: 0 };
 
-    // Try primary direction
     if (this.applyCardinalMove(monster, primary.x, primary.y, platforms, ground)) {
       return true;
     }
 
-    // Primary blocked — try secondary direction
     if (
       (secondary.x !== 0 || secondary.y !== 0) &&
       this.applyCardinalMove(monster, secondary.x, secondary.y, platforms, ground)
@@ -203,7 +183,7 @@ export class ChaserMovement {
   }
 
   /**
-   * Use A* pathfinding to navigate around obstacles, then follow the path with cardinal moves.
+   * Use A* pathfinding to navigate around obstacles.
    */
   private followPath(
     monster: Monster,
@@ -214,29 +194,40 @@ export class ChaserMovement {
     ground: any,
     currentTime: number
   ): void {
-    // Use a unique ID per monster (or fallback to position hash)
-    const monsterId = (monster as any).id ?? Math.round(monster.x * 1000 + monster.y);
+    const monsterId: number = (monster as any)._chaserId ?? 0;
 
     const cached = this.pathCache.get(monsterId);
     let path: { x: number; y: number }[] | null = null;
 
-    if (cached && currentTime - cached.timestamp < ChaserMovement.PATH_RECALC_INTERVAL && cached.path.length > 0) {
-      path = cached.path;
+    // Reuse cached path if recent and target hasn't drifted too far
+    const cacheValid =
+      cached &&
+      cached.path.length > 0 &&
+      currentTime - cached.timestamp < ChaserMovement.PATH_RECALC_INTERVAL &&
+      Math.abs(cached.targetX - targetX) < ChaserMovement.PATH_TARGET_DRIFT &&
+      Math.abs(cached.targetY - targetY) < ChaserMovement.PATH_TARGET_DRIFT;
+
+    if (cacheValid) {
+      path = cached!.path;
     } else {
-      path = this.findPath(monster, targetX, targetY, platforms);
-      this.pathCache.set(monsterId, { path: path || [], timestamp: currentTime });
+      path = this.findPath(monster, targetX, targetY, platforms, ground);
+      this.pathCache.set(monsterId, {
+        path: path || [],
+        targetX,
+        targetY,
+        timestamp: currentTime,
+      });
     }
 
     if (!path || path.length === 0) return;
 
-    // Find the next waypoint we haven't reached yet
-    const nextWaypoint = path[0];
-    const wpDx = nextWaypoint.x - monster.x;
-    const wpDy = nextWaypoint.y - monster.y;
+    // Follow the first waypoint
+    const wp = path[0];
+    const wpDx = wp.x - monster.x;
+    const wpDy = wp.y - monster.y;
     const wpDist = Math.abs(wpDx) + Math.abs(wpDy);
 
-    // If we've reached this waypoint, advance to the next
-    if (wpDist < CELL_SIZE / 2) {
+    if (wpDist < CELL_SIZE) {
       path.shift();
       if (path.length === 0) return;
       const next = path[0];
@@ -257,7 +248,6 @@ export class ChaserMovement {
     platforms: any[],
     ground: any
   ): void {
-    // Pick dominant cardinal direction
     let moveX = 0;
     let moveY = 0;
 
@@ -268,7 +258,6 @@ export class ChaserMovement {
     }
 
     if (!this.applyCardinalMove(monster, moveX, moveY, platforms, ground)) {
-      // If blocked, try the other axis
       if (moveX !== 0 && dy !== 0) {
         this.applyCardinalMove(monster, 0, Math.sign(dy) * speed, platforms, ground);
       } else if (moveY !== 0 && dx !== 0) {
@@ -278,19 +267,20 @@ export class ChaserMovement {
   }
 
   /**
-   * A* pathfinding on a grid. Returns an array of waypoints (pixel coords) or null.
-   * Uses Manhattan distance heuristic — only cardinal neighbors.
+   * A* pathfinding on a grid with cardinal-only neighbors.
+   * Inflates obstacles by the monster's size so the full body fits through gaps.
+   * Includes ground as an obstacle.
    */
   private findPath(
     monster: Monster,
     targetX: number,
     targetY: number,
-    platforms: any[]
+    platforms: any[],
+    ground: any
   ): { x: number; y: number }[] | null {
     const cols = Math.ceil(GAME_CONFIG.CANVAS_WIDTH / CELL_SIZE);
     const rows = Math.ceil(GAME_CONFIG.CANVAS_HEIGHT / CELL_SIZE);
 
-    // Convert pixel coords to grid coords
     const startCol = Math.floor(monster.x / CELL_SIZE);
     const startRow = Math.floor(monster.y / CELL_SIZE);
     const goalCol = Math.min(cols - 1, Math.max(0, Math.floor(targetX / CELL_SIZE)));
@@ -298,20 +288,42 @@ export class ChaserMovement {
 
     if (startCol === goalCol && startRow === goalRow) return null;
 
-    // Build blocked set (cells that overlap platforms)
-    const blocked = new Set<string>();
-    for (const platform of platforms) {
-      const pLeft = Math.floor(platform.x / CELL_SIZE);
-      const pTop = Math.floor(platform.y / CELL_SIZE);
-      const pRight = Math.ceil((platform.x + platform.width) / CELL_SIZE);
-      const pBottom = Math.ceil((platform.y + platform.height) / CELL_SIZE);
+    // How many extra cells the monster body extends beyond a single cell
+    const inflateX = Math.ceil(monster.width / CELL_SIZE) - 1;
+    const inflateY = Math.ceil(monster.height / CELL_SIZE) - 1;
 
-      for (let r = pTop; r < pBottom; r++) {
-        for (let c = pLeft; c < pRight; c++) {
-          blocked.add(`${c},${r}`);
+    // Build blocked set — inflate each obstacle by the monster's body size
+    const blocked = new Set<string>();
+
+    const blockRect = (ox: number, oy: number, ow: number, oh: number) => {
+      const left = Math.floor(ox / CELL_SIZE) - inflateX;
+      const top = Math.floor(oy / CELL_SIZE) - inflateY;
+      const right = Math.ceil((ox + ow) / CELL_SIZE);
+      const bottom = Math.ceil((oy + oh) / CELL_SIZE);
+
+      for (let r = top; r < bottom; r++) {
+        for (let c = left; c < right; c++) {
+          if (c >= 0 && c < cols && r >= 0 && r < rows) {
+            blocked.add(`${c},${r}`);
+          }
         }
       }
+    };
+
+    for (const platform of platforms) {
+      blockRect(platform.x, platform.y, platform.width, platform.height);
     }
+
+    // Include ground as an obstacle
+    if (ground) {
+      blockRect(ground.x, ground.y, ground.width, ground.height);
+    }
+
+    // Ensure start and goal are never blocked (monster is already there / needs to reach there)
+    const startKey = `${startCol},${startRow}`;
+    const goalKey = `${goalCol},${goalRow}`;
+    blocked.delete(startKey);
+    blocked.delete(goalKey);
 
     const key = (c: number, r: number) => `${c},${r}`;
     const manhattan = (c: number, r: number) =>
@@ -329,8 +341,7 @@ export class ChaserMovement {
     const open: GridNode[] = [start];
     const closed = new Set<string>();
 
-    // Limit iterations to avoid frame drops
-    const MAX_ITERATIONS = 200;
+    const MAX_ITERATIONS = 300;
     let iterations = 0;
 
     while (open.length > 0 && iterations < MAX_ITERATIONS) {
@@ -345,13 +356,13 @@ export class ChaserMovement {
       open.splice(bestIdx, 1);
 
       if (current.x === goalCol && current.y === goalRow) {
-        // Reconstruct path as pixel coords (center of each cell)
+        // Reconstruct path as pixel coords (top-left aligned to match monster position)
         const path: { x: number; y: number }[] = [];
         let node: GridNode | null = current;
         while (node && node.parent) {
           path.unshift({
-            x: node.x * CELL_SIZE + CELL_SIZE / 2 - monster.width / 2,
-            y: node.y * CELL_SIZE + CELL_SIZE / 2 - monster.height / 2,
+            x: node.x * CELL_SIZE,
+            y: node.y * CELL_SIZE,
           });
           node = node.parent;
         }
@@ -360,7 +371,6 @@ export class ChaserMovement {
 
       closed.add(key(current.x, current.y));
 
-      // Expand cardinal neighbors
       for (const dir of CARDINAL_DIRS) {
         const nx = current.x + dir.x;
         const ny = current.y + dir.y;
@@ -372,7 +382,6 @@ export class ChaserMovement {
         const g = current.g + 1;
         const h = manhattan(nx, ny);
 
-        // Check if already in open with a better cost
         const existing = open.find((n) => n.x === nx && n.y === ny);
         if (existing) {
           if (g < existing.g) {
@@ -387,7 +396,6 @@ export class ChaserMovement {
       }
     }
 
-    // No path found (or too complex) — return null
     return null;
   }
 

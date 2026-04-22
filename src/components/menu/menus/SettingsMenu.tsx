@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { PixelBezel } from "@/components/ui/pixel-bezel";
 import {
   useAudioStore,
-  useGameStore,
   useStateStore,
 } from "../../../stores/gameStore";
 import { sendAudioSettingsUpdate } from "../../../lib/communicationUtils";
@@ -34,14 +34,12 @@ const SettingsMenu: React.FC = () => {
     sfxMuted: false,
   };
 
-  // Store initial settings on component mount
   useEffect(() => {
     if (audioSettings && !initialSettings) {
       setInitialSettings({ ...audioSettings });
     }
   }, [audioSettings]);
 
-  // Check if settings have changed from initial state
   const hasChanges = useMemo(() => {
     if (!initialSettings) return false;
 
@@ -64,7 +62,6 @@ const SettingsMenu: React.FC = () => {
   ]);
 
   const goBack = () => {
-    // Send audio settings to host before closing if there are changes
     if (hasChanges) {
       sendAudioSettingsUpdate(
         masterVolume,
@@ -75,15 +72,12 @@ const SettingsMenu: React.FC = () => {
         sfxMuted
       );
     }
-
-    // Use centralized close settings transition
     gameStateManager?.closeNestedMenu();
   };
 
   const handleUpdateAudio = async () => {
     setIsUpdating(true);
 
-    // Send audio settings to host for storage
     sendAudioSettingsUpdate(
       masterVolume,
       musicVolume,
@@ -93,7 +87,6 @@ const SettingsMenu: React.FC = () => {
       sfxMuted
     );
 
-    // Update initial settings to current values after successful update
     setInitialSettings({
       masterVolume,
       musicVolume,
@@ -103,41 +96,41 @@ const SettingsMenu: React.FC = () => {
       sfxMuted,
     });
 
-    // Simulate async operation for visual feedback
     setTimeout(() => {
       setIsUpdating(false);
     }, 800);
   };
 
   return (
-    <div className="flex flex-col justify-center ">
-      <div className="flex items-center mb-6 gap-2">
+    <div className="flex flex-col justify-center w-[80%]">
+      <div className="flex items-center mb-6 gap-3">
         <Button
           onClick={goBack}
-          variant="default"
-          className="bg-primary hover:bg-primary-dark text-white w-10 h-10"
+          variant="outline"
+          size="icon"
+          className="text-foreground hover:text-primary"
         >
-          <ArrowLeft size={25} />
+          <ArrowLeft size={20} />
         </Button>
-        <h2 className="text-2xl font-bold text-white uppercase">
+        <h2 className="text-2xl font-pixel text-foreground tracking-wide uppercase">
           Innstillinger
         </h2>
       </div>
 
       <div className="space-y-2">
         {/* Master Volume */}
-        <div className="p-3 bg-card rounded-md">
+        <PixelBezel className="p-3">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-muted-foreground">Master volum</span>
+            <span className="text-[var(--foreground-muted)] font-mono text-sm">Master volum</span>
             <button
               onClick={() => updateAudioSettings({ masterMuted: !masterMuted })}
-              className={`px-3 py-1 rounded text-sm font-mono ${
+              className={`px-3 py-1 rounded-sm text-sm font-pixel tracking-wide border ${
                 masterMuted
-                  ? "bg-destructive text-white"
-                  : "bg-secondary text-white"
+                  ? "bg-destructive border-red-600 text-white"
+                  : "bg-[var(--surface-raised)] border-[var(--surface-line)] text-foreground"
               }`}
             >
-              {masterMuted ? "Muted" : `${masterVolume}%`}
+              {masterMuted ? "MUTED" : `${masterVolume}%`}
             </button>
           </div>
           <input
@@ -151,21 +144,21 @@ const SettingsMenu: React.FC = () => {
             className="w-full accent-primary"
             disabled={masterMuted}
           />
-        </div>
+        </PixelBezel>
 
         {/* Music Volume */}
-        <div className="p-3 bg-card rounded-md">
+        <PixelBezel className="p-3">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-muted-foreground">Musikk volum</span>
+            <span className="text-[var(--foreground-muted)] font-mono text-sm">Musikk volum</span>
             <button
               onClick={() => updateAudioSettings({ musicMuted: !musicMuted })}
-              className={`px-3 py-1 rounded text-sm font-mono ${
+              className={`px-3 py-1 rounded-sm text-sm font-pixel tracking-wide border ${
                 musicMuted
-                  ? "bg-destructive text-white"
-                  : "bg-secondary text-white"
+                  ? "bg-destructive border-red-600 text-white"
+                  : "bg-[var(--surface-raised)] border-[var(--surface-line)] text-foreground"
               }`}
             >
-              {musicMuted ? "Muted" : `${musicVolume}%`}
+              {musicMuted ? "MUTED" : `${musicVolume}%`}
             </button>
           </div>
           <input
@@ -179,21 +172,21 @@ const SettingsMenu: React.FC = () => {
             className="w-full accent-primary"
             disabled={musicMuted}
           />
-        </div>
+        </PixelBezel>
 
         {/* SFX Volume */}
-        <div className="p-3 bg-card rounded-md">
+        <PixelBezel className="p-3">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-muted-foreground">Lyd effekter</span>
+            <span className="text-[var(--foreground-muted)] font-mono text-sm">Lyd effekter</span>
             <button
               onClick={() => updateAudioSettings({ sfxMuted: !sfxMuted })}
-              className={`px-3 py-1 rounded text-sm font-mono ${
+              className={`px-3 py-1 rounded-sm text-sm font-pixel tracking-wide border ${
                 sfxMuted
-                  ? "bg-destructive text-white"
-                  : "bg-secondary text-white"
+                  ? "bg-destructive border-red-600 text-white"
+                  : "bg-[var(--surface-raised)] border-[var(--surface-line)] text-foreground"
               }`}
             >
-              {sfxMuted ? "Muted" : `${sfxVolume}%`}
+              {sfxMuted ? "MUTED" : `${sfxVolume}%`}
             </button>
           </div>
           <input
@@ -207,18 +200,19 @@ const SettingsMenu: React.FC = () => {
             className="w-full accent-primary"
             disabled={sfxMuted}
           />
-        </div>
-        <div className="text-center text-sm text-gray-400">
-          <p>(Trykk på tallene for å mute lyd)</p>
-        </div>
+        </PixelBezel>
+
+        <p className="text-center text-xs text-[var(--foreground-dim)] font-mono py-1">
+          Trykk på tallene for å mute lyd
+        </p>
 
         <div className="flex gap-3">
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => {
               updateAudioSettings(DEFAULT_AUDIO_SETTINGS);
             }}
-            className="flex-1 bg-secondary hover:bg-secondary-dark hover:text-white text-white active:scale-[0.98] transition-all duration-300 ease-in-out transform"
+            className="flex-1"
           >
             Tilbakestill
           </Button>
@@ -227,17 +221,9 @@ const SettingsMenu: React.FC = () => {
             variant="default"
             onClick={handleUpdateAudio}
             disabled={!hasChanges || isUpdating}
-            className={`
-              flex-1 transition-all duration-300 ease-in-out transform
-              ${
-                !hasChanges
-                  ? "bg-secondary hover:bg-secondary text-gray-500 cursor-not-allowed opacity-60"
-                  : isUpdating
-                  ? "bg-primary-dark hover:bg-primary-dark"
-                  : "bg-primary hover:bg-primary-dark active:scale-[0.98]"
-              }
-
-            `}
+            className={`flex-1 ${
+              !hasChanges ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             {isUpdating ? (
               <div className="flex items-center gap-2">

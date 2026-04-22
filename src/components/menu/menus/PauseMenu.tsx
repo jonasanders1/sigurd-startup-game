@@ -8,62 +8,50 @@ const PauseMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
 
   const resumeGame = () => {
-    // Use centralized resume transition
     gameStateManager?.resumeGame();
   };
 
   const openSettings = () => {
-    // Use centralized settings transition
     gameStateManager?.openSettings();
   };
 
   const quitToMenu = () => {
-    // Use centralized quit to menu transition
     gameStateManager?.quitToMenu();
   };
 
   const restartGame = () => {
-    // Use centralized restart transition
     gameStateManager?.restartGame();
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <div className="space-y-4">
-        <Button
-          onClick={resumeGame}
-          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
-        >
+      <div className="text-center mb-6">
+        <h1 className="text-5xl font-pixel text-foreground tracking-wide">PAUSE</h1>
+        <p className="text-sm text-[var(--foreground-dim)] mt-2">Trykk P for å fortsette</p>
+      </div>
+
+      <div className="space-y-3 w-64">
+        <Button onClick={resumeGame} className="w-full uppercase">
           <Play size={20} />
           Fortsett
         </Button>
 
-        <Button
-          onClick={openSettings}
-          variant="outline"
-          className="w-full border-secondary text-muted-foreground bg-secondary hover:text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
-        >
+        <Button onClick={openSettings} variant="secondary" className="w-full uppercase">
           <Settings size={20} />
           Innstillinger
         </Button>
 
-        <Button
-          onClick={restartGame}
-          variant="outline"
-          className="w-full border-secondary text-muted-foreground bg-secondary hover:text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
-        >
+        <Button onClick={restartGame} variant="secondary" className="w-full uppercase">
           <RotateCcw size={20} />
           Start på nytt
         </Button>
 
-        <Button
+        <button
           onClick={quitToMenu}
-          variant="default"
-          className="w-full bg-destructive text-white font-bold py-3 text-md transition-all duration-200 uppercase flex items-center justify-center gap-2"
+          className="w-full text-[var(--foreground-dim)] text-sm font-mono underline underline-offset-4 hover:text-primary py-2 cursor-pointer"
         >
-          <Home size={20} />
-          hovedmeny
-        </Button>
+          Avslutt til hovedmeny
+        </button>
       </div>
     </div>
   );

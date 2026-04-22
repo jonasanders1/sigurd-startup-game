@@ -1,14 +1,11 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  useGameStore,
-  usePlayerStore,
   useScoreStore,
   useStateStore,
 } from "../../../stores/gameStore";
 
 import {
-  Play,
   Pause,
   Maximize,
   Minimize,
@@ -34,19 +31,16 @@ const InGameMenu: React.FC = () => {
   const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   const handleFullscreenToggle = () => {
-    // Find the game container element (the shadow root host)
     const gameElement = gameContainerRef.current?.closest(
       "sigurd-startup"
     ) as HTMLElement;
     if (gameElement) {
       toggleFullscreen(gameElement);
     } else {
-      // Fallback to document element if game element not found
       toggleFullscreen();
     }
   };
 
-  // Calculate multiplier progress
   const progress = calculateMultiplierProgress(multiplierScore, multiplier);
 
   return (
@@ -55,59 +49,52 @@ const InGameMenu: React.FC = () => {
       className="flex justify-between items-center w-full h-full"
     >
       {/* SCOREBOARD */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-background-80 text-foreground px-4 py-2 rounded-lg backdrop-blur-sm pointer-events-auto">
-        <div className="flex items-center gap-4 text-sm font-mono">
+      <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto">
+        <div
+          className="flex items-center gap-3 text-sm font-mono px-4 py-2 bg-[var(--surface)] border border-[var(--surface-line)] rounded-sm"
+          style={{ boxShadow: "var(--shadow)" }}
+        >
           <div className="text-center">
-            <div className="text-primary font-bold flex items-center gap-1">
-              <CircleDollarSign size={16} />
+            <div className="text-primary font-pixel flex items-center gap-1 text-base">
+              <CircleDollarSign size={14} />
               {score.toLocaleString()}
             </div>
-            {/* <div className="text-xs text-muted-foreground">SCORE</div> */}
           </div>
-          <div className="w-px h-8 bg-border"></div>
+          <div className="w-px h-6 bg-[var(--surface-line)]" />
           <div className="text-center">
-            <div className="text-primary font-bold flex items-center gap-1">
-              <Map size={16} />
-              {currentLevel.toLocaleString()}
+            <div className="text-foreground font-pixel flex items-center gap-1 text-base">
+              <Map size={14} />
+              {currentLevel}
             </div>
-            {/* <div className="text-xs text-muted-foreground">LEVEL</div> */}
           </div>
-          <div className="w-px h-8 bg-border"></div>
-          <div className="min-w-20 flex justify-center border border-primary p-1 rounded-lg relative overflow-hidden">
-            {/* Progress bar background */}
+          <div className="w-px h-6 bg-[var(--surface-line)]" />
+          <div className="min-w-16 flex justify-center border border-primary p-1 rounded-sm relative overflow-hidden">
             <div
               className="absolute inset-0 bg-primary-20 transition-all duration-300 ease-out"
               style={{ width: `${progress * 100}%` }}
             />
-            <div className="text-primary text-center font-bold flex items-center gap-1 relative z-10">
-              <Zap size={16} />x{multiplier}
+            <div className="text-primary text-center font-pixel flex items-center gap-1 relative z-10 text-base">
+              <Zap size={14} />x{multiplier}
             </div>
-            {/* <div className="text-xs text-muted-foreground">MULTIPLIER</div> */}
           </div>
         </div>
       </div>
 
       {/* MENU BUTTONS */}
-      <div className="flex items-center space-x-4 absolute right-4 top-4">
+      <div className="flex items-center space-x-2 absolute right-3 top-3">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={() => gameStateManager?.pauseGame()}
-                variant="outline"
-                className="bg-background-80 text-foreground backdrop-blur-sm border-none hover:bg-primary hover:text-black h-10 w-10"
+                variant="ghost"
+                size="icon"
+                className="text-[var(--foreground-muted)] hover:text-primary h-8 w-8"
               >
-                {isPaused ? (
-                  <Play className="text-white hover:text-primary" size={24} />
-                ) : (
-                  <Pause
-                    className="text-foreground hover:text-primary"
-                    size={24}
-                  />
-                )}
+                <Pause size={18} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{"Pause/Resume Spill (P)"}</TooltipContent>
+            <TooltipContent>Pause (P)</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
@@ -116,20 +103,11 @@ const InGameMenu: React.FC = () => {
             <TooltipTrigger asChild>
               <Button
                 onClick={handleFullscreenToggle}
-                variant="outline"
-                className="bg-background-80 text-foreground backdrop-blur-sm border-none hover:bg-primary hover:text-black h-10 w-10"
+                variant="ghost"
+                size="icon"
+                className="text-[var(--foreground-muted)] hover:text-primary h-8 w-8"
               >
-                {isFullscreen ? (
-                  <Minimize
-                    className="text-foreground hover:text-primary"
-                    size={24}
-                  />
-                ) : (
-                  <Maximize
-                    className="text-foreground hover:text-primary"
-                    size={24}
-                  />
-                )}
+                {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -141,20 +119,22 @@ const InGameMenu: React.FC = () => {
 
       {/* Lives */}
       <div
-        className={`absolute left-3 bottom-2 ${
+        className={`absolute left-3 ${
           isFullscreen ? "bottom-4" : "bottom-2"
         }`}
       >
-        <div className="text-xl font-bold text-red-400 flex items-center gap-1">
+        <div className="flex items-center gap-1">
           {Array.from({ length: 3 }).map((_, index) => (
             <Heart
-              color="#ff3143"
-              size={isFullscreen ? 25 : 20}
+              color="#ef3340"
+              size={isFullscreen ? 22 : 18}
               key={index}
-              fill={index < lives ? "#ff3143" : "none"}
+              fill={index < lives ? "#ef3340" : "none"}
             />
           ))}
-          {lives > 3 ? <p>+ {lives - 3}</p> : ""}
+          {lives > 3 && (
+            <span className="text-primary font-pixel text-sm ml-1">+{lives - 3}</span>
+          )}
         </div>
       </div>
     </div>
