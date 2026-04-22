@@ -34,7 +34,7 @@ export function PixelBezel({ children, className = "", accent = "var(--primary)"
       className={`relative bg-[var(--surface)] border border-[var(--surface-line)] ${className}`}
       style={{
         boxShadow: glow
-          ? "var(--glow-red), var(--shadow-lg)"
+          ? "var(--glow-primary), var(--shadow-lg)"
           : "var(--shadow-lg)",
       }}
     >

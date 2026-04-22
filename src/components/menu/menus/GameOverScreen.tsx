@@ -92,7 +92,7 @@ const GameOverScreen: React.FC = () => {
                     </td>
                     <td className="py-2 px-3 text-right">
                       {level.bonus > 0 ? (
-                        <span className="text-yellow-400 font-semibold">
+                        <span className="text-amber-700 font-semibold">
                           {level.bonus.toLocaleString()} kr
                         </span>
                       ) : (

@@ -126,7 +126,7 @@ const SettingsMenu: React.FC = () => {
               onClick={() => updateAudioSettings({ masterMuted: !masterMuted })}
               className={`px-3 py-1 rounded-sm text-sm font-pixel tracking-wide border ${
                 masterMuted
-                  ? "bg-destructive border-red-600 text-white"
+                  ? "bg-destructive border-destructive text-primary-foreground"
                   : "bg-[var(--surface-raised)] border-[var(--surface-line)] text-foreground"
               }`}
             >
@@ -154,7 +154,7 @@ const SettingsMenu: React.FC = () => {
               onClick={() => updateAudioSettings({ musicMuted: !musicMuted })}
               className={`px-3 py-1 rounded-sm text-sm font-pixel tracking-wide border ${
                 musicMuted
-                  ? "bg-destructive border-red-600 text-white"
+                  ? "bg-destructive border-destructive text-primary-foreground"
                   : "bg-[var(--surface-raised)] border-[var(--surface-line)] text-foreground"
               }`}
             >
@@ -182,7 +182,7 @@ const SettingsMenu: React.FC = () => {
               onClick={() => updateAudioSettings({ sfxMuted: !sfxMuted })}
               className={`px-3 py-1 rounded-sm text-sm font-pixel tracking-wide border ${
                 sfxMuted
-                  ? "bg-destructive border-red-600 text-white"
+                  ? "bg-destructive border-destructive text-primary-foreground"
                   : "bg-[var(--surface-raised)] border-[var(--surface-line)] text-foreground"
               }`}
             >

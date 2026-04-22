@@ -21,6 +21,7 @@ export class GameStateManager {
   private devModeInitialized = false;
   private bonusTransitionInProgress = false;
   private activeTimers: Set<ReturnType<typeof setTimeout>> = new Set();
+  private onRestartCallback?: () => void;
 
   // Dependencies
   private audioManager: AudioManager;
@@ -54,6 +55,10 @@ export class GameStateManager {
     this.scalingManager = scalingManager;
     this.monsterSpawnManager = monsterSpawnManager;
     this.monsterRespawnManager = monsterRespawnManager;
+  }
+
+  public setOnRestartCallback(callback: () => void): void {
+    this.onRestartCallback = callback;
   }
 
   public initializeDevMode(): void {
@@ -491,9 +496,12 @@ export class GameStateManager {
     // Reset any lingering bonus transition state
     this.resetBonusTransition();
 
-    // Reset the game (this now also loads the first level)
+    // Reset the game (resets stores and loads first map data)
     log.data('CoinSpawn: Game restart - full reset, all coin spawn counters cleared');
     gameState.resetGame();
+
+    // Notify GameManager to reload level (resets spawn manager, respawn manager, etc.)
+    this.onRestartCallback?.();
 
     // Show countdown before starting
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);

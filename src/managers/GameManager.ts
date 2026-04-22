@@ -115,6 +115,11 @@ export class GameManager {
       this.animationController
     );
 
+    // Set up restart callback so GameStateManager can trigger a full level reload
+    this.gameStateManager.setOnRestartCallback(() => {
+      this.levelManager.loadCurrentLevel();
+    });
+
     // Set up callbacks for game loop manager
     this.gameLoopManager.setCallbacks({
       onUpdate: this.update.bind(this),
@@ -258,7 +263,7 @@ export class GameManager {
       return;
     }
 
-    // Check if level needs to be loaded
+    // Check if level needs to be loaded (initial load only)
     if (currentState === GameState.MENU && !currentMap) {
       this.powerUpManager.stopPowerUpMelody();
       this.levelManager.loadCurrentLevel();

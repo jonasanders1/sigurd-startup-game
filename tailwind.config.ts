@@ -20,9 +20,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["JetBrains Mono", "monospace"],
-        mono: ["JetBrains Mono", "monospace"],
-        pixel: ["Pixelify Sans", "cursive"],
+        sans: ["JetBrains Mono", "ui-monospace", "monospace"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        pixel: ["Pixelify Sans", "Press Start 2P", "cursive"],
+        lcd: ["VT323", "JetBrains Mono", "monospace"],
       },
       colors: {
         border: "var(--border)",

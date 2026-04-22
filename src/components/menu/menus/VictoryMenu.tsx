@@ -78,7 +78,7 @@ const VictoryMenu: React.FC = () => {
                     </td>
                     <td className="py-2 px-3 text-right">
                       {level.bonus > 0 ? (
-                        <span className="text-yellow-400 font-semibold">
+                        <span className="text-amber-700 font-semibold">
                           {level.bonus.toLocaleString()} kr
                         </span>
                       ) : (
@@ -96,7 +96,7 @@ const VictoryMenu: React.FC = () => {
                   <td className="py-3 px-3 text-right font-pixel text-primary text-lg">
                     {totalFinancing.toLocaleString()} kr
                   </td>
-                  <td className="py-3 px-3 text-right font-pixel text-yellow-400 text-lg">
+                  <td className="py-3 px-3 text-right font-pixel text-amber-700 text-lg">
                     {totalBonus > 0 ? `${totalBonus.toLocaleString()} kr` : "-"}
                   </td>
                 </tr>

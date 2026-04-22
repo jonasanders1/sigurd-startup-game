@@ -10,17 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground border-2 border-white font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--primary-dark),0_0_24px_rgba(239,51,64,.45)] arcade-press",
+          "bg-primary text-primary-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--foreground),0_0_16px_rgba(61,127,232,0.3)] arcade-press cursor-pointer",
         secondary:
-          "bg-transparent text-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--surface-line)] arcade-press",
+          "bg-transparent text-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--surface-line)] arcade-press cursor-pointer",
         destructive:
-          "bg-destructive text-destructive-foreground border-2 border-white font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_rgba(0,0,0,.6)] arcade-press",
+          "bg-destructive text-destructive-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_rgba(26,29,46,0.3)] arcade-press cursor-pointer",
         outline:
-          "border border-surface-line bg-surface text-foreground hover:bg-surface-raised rounded-sm",
+          "border border-surface-line bg-surface text-foreground hover:bg-surface-raised rounded-sm cursor-pointer",
         ghost:
-          "hover:bg-surface-raised hover:text-foreground rounded-sm",
+          "hover:bg-surface-raised hover:text-foreground rounded-sm cursor-pointer",
         link:
-          "text-primary-light underline-offset-4 hover:underline",
+          "text-primary underline-offset-4 hover:underline cursor-pointer",
       },
       size: {
         default: "h-11 px-6 py-2 text-base",

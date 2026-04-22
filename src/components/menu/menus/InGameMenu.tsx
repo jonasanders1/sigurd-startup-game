@@ -51,8 +51,8 @@ const InGameMenu: React.FC = () => {
       {/* SCOREBOARD */}
       <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto">
         <div
-          className="flex items-center gap-3 text-sm font-mono px-4 py-2 bg-[var(--surface)] border border-[var(--surface-line)] rounded-sm"
-          style={{ boxShadow: "var(--shadow)" }}
+          className="flex items-center gap-3 text-sm font-mono px-4 py-2 bg-[var(--surface-raised)] border-2 border-[var(--foreground)] rounded-sm"
+          style={{ boxShadow: "var(--shadow-lg)" }}
         >
           <div className="text-center">
             <div className="text-primary font-pixel flex items-center gap-1 text-base">
@@ -126,10 +126,10 @@ const InGameMenu: React.FC = () => {
         <div className="flex items-center gap-1">
           {Array.from({ length: 3 }).map((_, index) => (
             <Heart
-              color="#ef3340"
+              color="#d93a3a"
               size={isFullscreen ? 22 : 18}
               key={index}
-              fill={index < lives ? "#ef3340" : "none"}
+              fill={index < lives ? "#d93a3a" : "none"}
             />
           ))}
           {lives > 3 && (

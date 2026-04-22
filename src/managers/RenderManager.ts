@@ -198,79 +198,87 @@ export class RenderManager {
   }
 
   private renderCoins(coins: Coin[], coinManager?: CoinManagerInterface): void {
+    // Disable anti-aliasing for pixel-art coins
+    this.ctx.imageSmoothingEnabled = false;
+
     coins.forEach((coin) => {
-      if (coin.isCollected) {
-        return; // Don't render collected coins
-      }
+      if (coin.isCollected) return;
 
       const coinConfig = COIN_TYPES[coin.type];
-      let color = coinConfig?.color || "#FFD700"; // Default gold color
+      let color = coinConfig?.color || "#FFD700";
 
-      // Special handling for P-coins (power coins)
       if (coin.type === "POWER" && coinManager) {
         color = coinManager.getPcoinCurrentColor(coin);
       }
 
-      const coinCenterX = coin.x + coin.width / 2;
-      const coinCenterY = coin.y + coin.height / 2;
+      const x = Math.round(coin.x);
+      const y = Math.round(coin.y);
+      const s = coin.width; // coin size (square)
+      const px = Math.max(1, Math.round(s / 8)); // pixel unit size
 
-      // Shadow (drawn first so it appears behind the coin)
-      this.ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-      this.ctx.beginPath();
-      this.ctx.arc(
-        coinCenterX + 1,
-        coinCenterY + 1,
-        coin.width / 2,
-        0,
-        Math.PI * 2
-      );
-      this.ctx.fill();
+      // Pulsing scale
+      const pulse = Math.sin(this.frameTime / 200) * 0.06 + 1;
+      const halfExpand = Math.round(((pulse - 1) * s) / 2);
 
-      // Coin body with pulsing effect
-      const pulse = Math.sin(this.frameTime / 200) * 0.1 + 1;
+      const ox = x - halfExpand;
+      const oy = y - halfExpand;
+      const sz = s + halfExpand * 2;
+
+      // Shadow (1px offset)
+      this.ctx.fillStyle = "rgba(0,0,0,0.35)";
+      this.drawPixelOctagon(ox + 1, oy + 1, sz, px);
+
+      // Main body
       this.ctx.fillStyle = color;
-      this.ctx.beginPath();
-      this.ctx.arc(
-        coinCenterX,
-        coinCenterY,
-        (coin.width / 2) * pulse,
-        0,
-        Math.PI * 2
-      );
-      this.ctx.fill();
+      this.drawPixelOctagon(ox, oy, sz, px);
 
-      // Inner circle
-      this.ctx.fillStyle = "rgba(2, 2, 2, 0.3)";
-      this.ctx.beginPath();
-      this.ctx.arc(
-        coinCenterX,
-        coinCenterY,
-        coin.width / 2.5,
-        0,
-        Math.PI * 2
-      );
-      this.ctx.fill();
+      // Dark inner border for depth
+      this.ctx.fillStyle = "rgba(0,0,0,0.25)";
+      this.drawPixelOctagon(ox + px, oy + px, sz - px * 2, Math.max(1, px - 1));
 
+      // Highlight top-left
+      this.ctx.fillStyle = "rgba(255,255,255,0.3)";
+      this.ctx.fillRect(ox + px * 2, oy + px, px * 2, px);
+      this.ctx.fillRect(ox + px, oy + px * 2, px, px * 2);
+
+      // Letter
       let coinSymbol = "C";
-      if (coin.type === "POWER") {
-        coinSymbol = "P";
-      } else if (coin.type === "BONUS_MULTIPLIER") {
-        coinSymbol = "B";
-      } else if (coin.type === "EXTRA_LIFE") {
-        coinSymbol = "M";
-      }
-      // Add coin type indicator
+      if (coin.type === "POWER") coinSymbol = "P";
+      else if (coin.type === "BONUS_MULTIPLIER") coinSymbol = "B";
+      else if (coin.type === "EXTRA_LIFE") coinSymbol = "M";
+
       this.ctx.fillStyle = "#fff";
-      this.ctx.font = "14px JetBrains Mono";
+      this.ctx.font = `bold ${Math.round(s * 0.55)}px Pixelify Sans`;
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
-
-      this.ctx.fillText(
-        coinSymbol,
-        coinCenterX,
-        coinCenterY + 2
-      );
+      this.ctx.fillText(coinSymbol, Math.round(ox + sz / 2), Math.round(oy + sz / 2) + 1);
     });
+
+    this.ctx.imageSmoothingEnabled = true;
+  }
+
+  /** Draw a pixel-art octagon (circle approximation) using axis-aligned rects. */
+  private drawPixelOctagon(x: number, y: number, size: number, px: number): void {
+    const indent = Math.round(size * 0.25);
+    const rows = Math.round(size / px);
+    const cornerRows = Math.round(rows * 0.2); // rows used for corner indent on each side
+
+    for (let r = 0; r < rows; r++) {
+      // Distance from nearest edge (symmetric top and bottom)
+      const distFromEdge = Math.min(r, rows - 1 - r);
+      let rowIndent = 0;
+
+      if (distFromEdge < cornerRows) {
+        rowIndent = Math.round(indent * (1 - distFromEdge / cornerRows));
+      }
+
+      this.ctx.fillRect(
+        Math.round(x + rowIndent),
+        Math.round(y + r * px),
+        Math.round(size - rowIndent * 2),
+        px
+      );
+    }
   }
 
   private renderMonsters(monsters: Monster[]): void {
