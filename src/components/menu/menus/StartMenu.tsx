@@ -1,9 +1,10 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PixelBezel } from "@/components/ui/pixel-bezel";
 import { useStateStore } from "../../../stores/gameStore";
+import { useBalanceStore } from "../../../stores/systems/balanceStore";
+import { deductCredits } from "../../../lib/gameBridge";
 
-import { Joystick, Maximize, Minimize, Play, Settings } from "lucide-react";
+import { Joystick, Maximize, Minimize, Play, Settings, Coins } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,9 +16,24 @@ import { useFullscreen } from "../../../hooks/useFullscreen";
 const StartMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
+  const { balance, hasBridge, insufficientFunds } = useBalanceStore();
+  const [isDeducting, setIsDeducting] = useState(false);
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
-  const startGame = () => {
+  const startGame = async () => {
+    if (isDeducting) return;
+
+    if (hasBridge) {
+      setIsDeducting(true);
+      const result = await deductCredits(1);
+      setIsDeducting(false);
+
+      if (!result.success) {
+        useBalanceStore.getState().setInsufficientFunds(true);
+        return;
+      }
+    }
+
     gameStateManager?.startNewGame();
   };
 
@@ -69,13 +85,34 @@ const StartMenu: React.FC = () => {
         <p className="text-sm text-[var(--foreground-dim)]">
           Samle så mye finansiering som mulig!
         </p>
+        {hasBridge && balance !== null && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm font-mono">
+            <Coins size={16} className="text-primary" />
+            <span className="text-foreground">
+              {balance} {balance === 1 ? "mynt" : "mynter"}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 w-[70%]">
-        <Button onClick={startGame} className="w-full uppercase text-lg">
-          <Play size={20} />
-          Press Start
-        </Button>
+        {insufficientFunds && hasBridge ? (
+          <div className="text-center py-3 px-4 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-sm">
+            <p className="text-[var(--accent-red)] font-pixel text-sm">IKKE NOK MYNTER</p>
+            <p className="text-[var(--foreground-dim)] text-xs font-mono mt-1">
+              Kjøp flere mynter for å spille
+            </p>
+          </div>
+        ) : (
+          <Button
+            onClick={startGame}
+            disabled={isDeducting || (hasBridge && insufficientFunds)}
+            className={`w-full uppercase text-lg ${isDeducting ? "opacity-70" : ""}`}
+          >
+            <Play size={20} />
+            {isDeducting ? "Venter..." : hasBridge ? "Spill (1 mynt)" : "Press Start"}
+          </Button>
+        )}
 
         <Button onClick={openSettings} variant="secondary" className="w-full uppercase">
           <Settings size={20} />

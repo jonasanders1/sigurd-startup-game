@@ -5,6 +5,8 @@ import {
   useLevelStore,
   useStateStore,
 } from "../../../stores/gameStore";
+import { useBalanceStore } from "../../../stores/systems/balanceStore";
+import { deductCredits } from "../../../lib/gameBridge";
 import { waitForGameSaveConfirmation } from "../../../lib/communicationUtils";
 import { Loader2, Check } from "lucide-react";
 
@@ -12,6 +14,8 @@ const VictoryMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
   const { getLevelResults } = useLevelStore.getState();
   const [isSaving, setIsSaving] = useState(true);
+  const [isDeducting, setIsDeducting] = useState(false);
+  const { hasBridge, insufficientFunds } = useBalanceStore();
 
   const levelResults = getLevelResults();
 
@@ -21,10 +25,21 @@ const VictoryMenu: React.FC = () => {
     });
   }, []);
 
-  const handleRestart = () => {
-    if (!isSaving) {
-      gameStateManager?.restartGame();
+  const handleRestart = async () => {
+    if (isSaving || isDeducting) return;
+
+    if (hasBridge) {
+      setIsDeducting(true);
+      const result = await deductCredits(1);
+      setIsDeducting(false);
+
+      if (!result.success) {
+        useBalanceStore.getState().setInsufficientFunds(true);
+        return;
+      }
     }
+
+    gameStateManager?.restartGame();
   };
 
   const totalFinancing = levelResults.reduce(
@@ -121,15 +136,22 @@ const VictoryMenu: React.FC = () => {
             Lagrer spillet...
           </div>
         )}
-        <Button
-          onClick={handleRestart}
-          disabled={isSaving}
-          className={`uppercase px-10 ${
-            isSaving ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          Spill igjen
-        </Button>
+        {insufficientFunds && hasBridge ? (
+          <div className="text-center py-3 px-6 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-sm">
+            <p className="text-[var(--accent-red)] font-pixel text-sm">IKKE NOK MYNTER</p>
+            <p className="text-[var(--foreground-dim)] text-xs font-mono mt-1">Kjøp flere mynter for å spille</p>
+          </div>
+        ) : (
+          <Button
+            onClick={handleRestart}
+            disabled={isSaving || isDeducting}
+            className={`uppercase px-10 ${
+              isSaving || isDeducting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isDeducting ? "Venter..." : hasBridge ? "Spill igjen (1 mynt)" : "Spill igjen"}
+          </Button>
+        )}
       </div>
     </div>
   );

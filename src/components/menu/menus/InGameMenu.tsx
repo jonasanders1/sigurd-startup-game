@@ -4,6 +4,7 @@ import {
   useScoreStore,
   useStateStore,
 } from "../../../stores/gameStore";
+import { useBalanceStore } from "../../../stores/systems/balanceStore";
 
 import {
   Pause,
@@ -13,6 +14,7 @@ import {
   CircleDollarSign,
   Map,
   Heart,
+  Coins,
 } from "lucide-react";
 import { calculateMultiplierProgress } from "../../../lib/scoringUtils";
 import { useFullscreen } from "../../../hooks/useFullscreen";
@@ -26,6 +28,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 const InGameMenu: React.FC = () => {
   const { currentLevel, gameStateManager, isPaused, lives } = useStateStore();
   const { score, multiplier, multiplierScore } = useScoreStore();
+  const { balance, hasBridge } = useBalanceStore();
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();

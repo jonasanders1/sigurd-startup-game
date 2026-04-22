@@ -37,6 +37,8 @@ import {
 import { log } from "../lib/logger";
 import { SpawnDiagnostics } from "./spawn-diagnostics";
 import { LevelResult } from "@/stores/game/levelStore";
+import { waitForBridge, subscribeBalance } from "../lib/gameBridge";
+import { useBalanceStore } from "../stores/systems/balanceStore";
 
 /**
  * GameManager - Main orchestrator for the game
@@ -62,6 +64,7 @@ export class GameManager {
   private monsterRespawnManager: OptimizedRespawnManager;
   private playerManager: PlayerManager;
   private audioSettingsListenerCleanup: (() => void) | null = null;
+  private balanceUnsubscribe: (() => void) | null = null;
   private deathInProgress = false;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -162,6 +165,9 @@ export class GameManager {
     // Initialize ongoing audio settings listener for future updates
     // Audio settings have already been loaded by LoadingManager
     this.audioSettingsListenerCleanup = initializeAudioSettingsListener();
+
+    // Detect and subscribe to the host balance bridge
+    this.initializeBridge();
 
     // Handle dev mode if enabled
     if (DEV_CONFIG.ENABLED) {
@@ -460,17 +466,43 @@ export class GameManager {
   }
 
   /**
+   * Initialize the host balance bridge (async, non-blocking).
+   */
+  private initializeBridge(): void {
+    waitForBridge().then((bridge) => {
+      if (bridge) {
+        log.debug("Balance bridge connected");
+        useBalanceStore.getState().setBridgeAvailable(true);
+        useBalanceStore.getState().setBalance(bridge.getBalance());
+
+        // Subscribe to live balance updates
+        this.balanceUnsubscribe = subscribeBalance((info) => {
+          useBalanceStore.getState().setBalance(info.currentBalance);
+          log.debug(`Balance update: ${info.currentBalance} (${info.reason})`);
+        });
+      } else {
+        log.debug("No balance bridge — standalone/free-play mode");
+        useBalanceStore.getState().setBridgeAvailable(false);
+      }
+    });
+  }
+
+  /**
    * Clean up resources
    */
   public cleanup(): void {
     this.stop();
     this.inputManager.destroy();
     this.audioManager.cleanup();
-    
-    // Clean up audio settings listener
+
     if (this.audioSettingsListenerCleanup) {
       this.audioSettingsListenerCleanup();
       this.audioSettingsListenerCleanup = null;
+    }
+
+    if (this.balanceUnsubscribe) {
+      this.balanceUnsubscribe();
+      this.balanceUnsubscribe = null;
     }
   }
 

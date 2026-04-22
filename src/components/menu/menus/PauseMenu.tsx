@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useStateStore } from "../../../stores/gameStore";
+import { useBalanceStore } from "../../../stores/systems/balanceStore";
+import { deductCredits } from "../../../lib/gameBridge";
 
-import { Play, Settings, Home, RotateCcw } from "lucide-react";
+import { Play, Settings, RotateCcw } from "lucide-react";
 
 const PauseMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
+  const { hasBridge, insufficientFunds } = useBalanceStore();
+  const [isDeducting, setIsDeducting] = useState(false);
 
   const resumeGame = () => {
     gameStateManager?.resumeGame();
@@ -19,7 +23,20 @@ const PauseMenu: React.FC = () => {
     gameStateManager?.quitToMenu();
   };
 
-  const restartGame = () => {
+  const restartGame = async () => {
+    if (isDeducting) return;
+
+    if (hasBridge) {
+      setIsDeducting(true);
+      const result = await deductCredits(1);
+      setIsDeducting(false);
+
+      if (!result.success) {
+        useBalanceStore.getState().setInsufficientFunds(true);
+        return;
+      }
+    }
+
     gameStateManager?.restartGame();
   };
 
@@ -41,10 +58,21 @@ const PauseMenu: React.FC = () => {
           Innstillinger
         </Button>
 
-        <Button onClick={restartGame} variant="secondary" className="w-full uppercase">
-          <RotateCcw size={20} />
-          Start på nytt
-        </Button>
+        {insufficientFunds && hasBridge ? (
+          <div className="text-center py-2 px-4 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-sm">
+            <p className="text-[var(--accent-red)] font-pixel text-xs">IKKE NOK MYNTER</p>
+          </div>
+        ) : (
+          <Button
+            onClick={restartGame}
+            variant="secondary"
+            disabled={isDeducting}
+            className={`w-full uppercase ${isDeducting ? "opacity-70" : ""}`}
+          >
+            <RotateCcw size={20} />
+            {isDeducting ? "Venter..." : hasBridge ? "Start på nytt (1 mynt)" : "Start på nytt"}
+          </Button>
+        )}
 
         <button
           onClick={quitToMenu}
