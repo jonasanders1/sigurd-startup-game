@@ -60,16 +60,18 @@ export class ScalingManager {
         patrol: { speed: 1 }, // Slower patrol
       },
       scaling: {
-        ambusher: { ambushInterval: -500, speed: 0.08 }, // Increased scaling factors
-        chaser: { speed: 0.2, directness: 0.08, updateInterval: -8 }, // Increased scaling factors
-        floater: { speed: 0.5, bounceAngle: 0.008 }, // Increased scaling factors
-        patrol: { speed: 0.2 }, // Increased scaling factors
+        // ~25% slower progression than before
+        ambusher: { ambushInterval: -380, speed: 0.06 },
+        chaser: { speed: 0.15, directness: 0.06, updateInterval: -6 },
+        floater: { speed: 0.38, bounceAngle: 0.006 },
+        patrol: { speed: 0.15 },
       },
       max: {
-        ambusher: { ambushInterval: 500, speed: 10 }, // Increased max values for more challenge
-        chaser: { speed: 5.0, directness: 1, updateInterval: 100 }, // Increased max values for more challenge
-        floater: { speed: 5.0, bounceAngle: 0.5 }, // Increased max values for more challenge
-        patrol: { speed: 5.0 }, // Increased max values for more challenge
+        // ~15% lower ceiling than before
+        ambusher: { ambushInterval: 700, speed: 8.5 },
+        chaser: { speed: 4.2, directness: 0.85, updateInterval: 130 },
+        floater: { speed: 4.2, bounceAngle: 0.42 },
+        patrol: { speed: 4.2 },
       },
     };
   }

@@ -138,10 +138,10 @@ export const level1Map: MapDefinition = {
 
   monsters: [
     createHorizontalPatrolMonster(125, 170, 150, "left"),
-    createHorizontalPatrolMonster(525, 170, 150, "right"),
+    createHorizontalPatrolMonster(525, 170, 150, "right", 1, 1, undefined, 0, "black"),
 
     createHorizontalPatrolMonster(100, 400, 200, "right"),
-    createHorizontalPatrolMonster(500, 400, 200, "left"),
+    createHorizontalPatrolMonster(500, 400, 200, "left", 1, 1, undefined, 0, "black"),
   ],
 
   monsterSpawnPoints: [
@@ -322,7 +322,7 @@ export const level2Map: MapDefinition = {
   monsters: [
     createVerticalPatrolMonster(105, 220, 220, "right"),
     createVerticalPatrolMonster(695, 220, 220, "right", 2, 1),
-    createHorizontalPatrolMonster(170, 170, 200, "left"),
+    createHorizontalPatrolMonster(170, 170, 200, "left", 1, 1, undefined, 0, "black"),
     createChaserMonster(250, 300, 1, 0.3, 1000),
   ],
 };
@@ -454,7 +454,7 @@ export const level3Map: MapDefinition = {
     // Monster on top left platform (left side, 3 walks)
     createHorizontalPatrolMonster(165, 130, 150, "left", 0, 0.7),
     // Monster on top right platform (right side, 2 walks)
-    createHorizontalPatrolMonster(485, 130, 150, "right", 0, 1),
+    createHorizontalPatrolMonster(485, 130, 150, "right", 0, 1, undefined, 0, "black"),
     // Monster on upper middle platform (left side, 1 walk)
     createHorizontalPatrolMonster(300, 240, 200, "left", 0, 1),
     createFloaterMonster(50, 300, 45, 1),
@@ -566,9 +566,9 @@ export const level4Map: MapDefinition = {
   monsters: [
     // Static monster on horizontal platform
     createHorizontalPatrolMonster(150, 490, 500, "left", 0, 1),
-    createHorizontalPatrolMonster(150, 130, 500, "left", 0, 1),
+    createHorizontalPatrolMonster(150, 130, 500, "left", 0, 1, undefined, 0, "black"),
     createHorizontalPatrolMonster(150, 130, 500, "right", 0, 1),
-    createHorizontalPatrolMonster(100, 400, 200, "right", 0, 1),
+    createHorizontalPatrolMonster(100, 400, 200, "right", 0, 1, undefined, 0, "black"),
     createHorizontalPatrolMonster(500, 400, 200, "left", 0, 1),
     createChaserMonster(200, 200, 1, 0.1, 500),
   ],
@@ -800,7 +800,7 @@ export const level5Map: MapDefinition = {
     createVerticalPatrolMonster(500, 170, 350, "right"),
     createVerticalPatrolMonster(240, 60, 340, "right"),
     createHorizontalPatrolMonster(90, 500, 200, "left"),
-    createHorizontalPatrolMonster(90, 45, 150, "right"),
+    createHorizontalPatrolMonster(90, 45, 150, "right", 1, 1, undefined, 0, "black"),
   ],
 };
 

@@ -11,6 +11,16 @@ import {
 import { COLORS, DEV_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
 import { bombSprite, BombSpriteInstance } from "../entities/Bomb";
+import { ByrakratSprite, dirName, type ByrakratVariant } from "../entities/Byrakrat";
+import {
+  getHitboxForFrame,
+  applyHitboxToMonster,
+  getNaturalAnchor,
+} from "../config/monsterHitboxes";
+import { VertikalByrakratSprite } from "../entities/VertikalByrakrat";
+import { RegelRobotenSprite, dirNameRegel } from "../entities/RegelRoboten";
+import { SkatteSpokelsetSprite, dirNameSkatte } from "../entities/SkatteSpokelset";
+import { HodelosKonsulentSprite, dirNameHodelos } from "../entities/HodelosKonsulent";
 import { SpriteInstance } from "../lib/SpriteInstance";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
@@ -34,6 +44,11 @@ export class RenderManager {
   private lastTime: number = 0;
   private backgroundManager: BackgroundManager;
   private bombSprites: Map<number, SpriteInstance> = new Map();
+  private byrakratSprites: WeakMap<Monster, ByrakratSprite> = new WeakMap();
+  private vertikalByrakratSprites: WeakMap<Monster, VertikalByrakratSprite> = new WeakMap();
+  private regelRobotenSprites: WeakMap<Monster, RegelRobotenSprite> = new WeakMap();
+  private skatteSpokelsetSprites: WeakMap<Monster, SkatteSpokelsetSprite> = new WeakMap();
+  private hodelosKonsulentSprites: WeakMap<Monster, HodelosKonsulentSprite> = new WeakMap();
   private currentSpawnManager: OptimizedSpawnManager | null = null;
   private currentGameState: GameStateSnapshot | null = null;
   private frameTime: number = 0; // Cached Date.now() for current frame
@@ -73,7 +88,7 @@ export class RenderManager {
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
     this.renderCoins(coins, coinManager);
-    this.renderMonsters(monsters);
+    this.renderMonsters(monsters, deltaTime, player);
     this.renderPlayer(player);
     this.renderFloatingTexts(floatingTexts, deltaTime);
   }
@@ -281,10 +296,40 @@ export class RenderManager {
     }
   }
 
-  private renderMonsters(monsters: Monster[]): void {
-    // log.debug(`Rendering ${monsters.length} monsters`);
+  private renderMonsters(monsters: Monster[], deltaTime: number, player: Player): void {
+    // Pixel-art monster sprites need nearest-neighbor scaling. Toggle once for
+    // the whole pass instead of save/restoring inside every sprite.draw().
+    const prevSmoothing = this.ctx.imageSmoothingEnabled;
+    this.ctx.imageSmoothingEnabled = false;
 
     monsters.forEach((monster, index) => {
+      // Byråkrat-klonen handles its own activity check so dead monsters can
+      // render through the death animation before disappearing.
+      if (monster.type === MonsterType.HORIZONTAL_PATROL) {
+        this.renderByrakrat(monster);
+        return;
+      }
+
+      if (monster.type === MonsterType.VERTICAL_PATROL) {
+        this.renderVertikalByrakrat(monster, deltaTime);
+        return;
+      }
+
+      if (monster.type === MonsterType.AMBUSHER) {
+        this.renderRegelRoboten(monster);
+        return;
+      }
+
+      if (monster.type === MonsterType.CHASER) {
+        this.renderSkatteSpokelset(monster, deltaTime, player);
+        return;
+      }
+
+      if (monster.type === MonsterType.FLOATER) {
+        this.renderHodelosKonsulent(monster, deltaTime);
+        return;
+      }
+
       if (!monster.isActive) {
         return; // Don't render inactive monsters
       }
@@ -342,7 +387,7 @@ export class RenderManager {
       this.ctx.fill();
 
       // Add body highlights for more dimension
-      this.ctx.fillStyle = `rgba(0, 0, 0, 0.15)`; // Semi-transparent white highlight
+      this.ctx.fillStyle = `rgba(0, 0, 0, 0.15)`;
       this.ctx.beginPath();
       this.ctx.moveTo(x + radius + 2, y + 2);
       this.ctx.lineTo(x + width - radius - 2, y + 2);
@@ -442,11 +487,254 @@ export class RenderManager {
       this.ctx.stroke();
     });
 
-    // Render respawn indicators for dead monsters
-    this.renderRespawnIndicators(monsters);
+    this.ctx.imageSmoothingEnabled = prevSmoothing;
 
-    // Render spawn indicators for pending dynamic spawns
+    this.renderRespawnIndicators(monsters);
     this.renderSpawnIndicators(this.currentSpawnManager);
+  }
+
+  /**
+   * Advance the byråkrat sprite animation state and apply its per-frame hitbox.
+   * Called BEFORE collision check so the collision uses the current frame's
+   * hitbox (otherwise collision would lag the visual by one frame).
+   *
+   * `idleOnly` forces the idle animation during countdown / pre-play states so
+   * monsters look "alive" without committing to walk/attack states.
+   */
+  private updateByrakratState(
+    monster: Monster,
+    deltaTime: number,
+    idleOnly: boolean = false
+  ): void {
+    let sprite = this.byrakratSprites.get(monster);
+    if (!sprite) {
+      const variant: ByrakratVariant =
+        (monster as { variant?: ByrakratVariant }).variant ?? "green";
+      sprite = new ByrakratSprite(variant);
+      this.byrakratSprites.set(monster, sprite);
+    }
+
+    if (monster.isDead && sprite.isDeathAnimComplete()) return;
+
+    const dir = dirName(monster.direction);
+    if (monster.isDead) {
+      sprite.setAnimation(`death-${dir}`);
+    } else if (monster.isFrozen) {
+      const phase = monster.isBlinking ? "blink" : "still";
+      sprite.setAnimation(`freeze-${phase}-${dir}`);
+    } else if (idleOnly) {
+      sprite.setAnimation(`idle-${dir}`);
+    } else if (monster.direction < 0) {
+      sprite.setAnimation("walk-left");
+    } else if (monster.direction > 0) {
+      sprite.setAnimation("walk-right");
+    } else {
+      sprite.setAnimation("idle-front");
+    }
+
+    sprite.update(deltaTime);
+
+    if (!monster.isDead) {
+      const hitbox = getHitboxForFrame(
+        monster.type,
+        sprite.getAnimation(),
+        sprite.getFrame()
+      );
+      applyHitboxToMonster(monster, hitbox, "feet");
+    }
+  }
+
+  private renderByrakrat(monster: Monster): void {
+    const sprite = this.byrakratSprites.get(monster);
+    if (!sprite) return;
+    if (monster.isDead && sprite.isDeathAnimComplete()) return;
+
+    const NATURAL = GAME_CONFIG.MONSTER_SIZE;
+    const { x: feetX, y: feetY } = getNaturalAnchor(monster, "feet");
+    sprite.draw(this.ctx, feetX - NATURAL / 2, feetY - NATURAL, NATURAL, NATURAL);
+  }
+
+  /**
+   * Pre-collision pass: advance every monster sprite that has per-frame hitbox
+   * data and apply its current frame's hitbox to monster.x/y/width/height.
+   * Call this from the game loop BEFORE collision detection.
+   */
+  public updateMonsterAnimations(
+    monsters: Monster[],
+    deltaTime: number,
+    player: Player,
+    idleOnly: boolean = false
+  ): void {
+    for (const monster of monsters) {
+      if (monster.type === MonsterType.HORIZONTAL_PATROL) {
+        this.updateByrakratState(monster, deltaTime, idleOnly);
+      } else if (monster.type === MonsterType.AMBUSHER) {
+        this.updateRegelRobotenState(monster, deltaTime, player, idleOnly);
+      }
+      // Add other monsters here as they get per-frame hitbox configs.
+    }
+  }
+
+  /**
+   * Advance ambusher animation state and apply per-frame hitbox (incl. rotation
+   * during attack-left/attack-right). Run BEFORE collision so the rotated
+   * hitbox is current at collision time.
+   */
+  private updateRegelRobotenState(
+    monster: Monster,
+    deltaTime: number,
+    player: Player,
+    idleOnly: boolean = false
+  ): void {
+    let sprite = this.regelRobotenSprites.get(monster);
+    if (!sprite) {
+      sprite = new RegelRobotenSprite();
+      this.regelRobotenSprites.set(monster, sprite);
+    }
+
+    if (monster.isDead && sprite.isDeathAnimComplete()) return;
+
+    const FRONT_THRESHOLD = 10;
+    const dx = player.x + player.width / 2 - (monster.x + monster.width / 2);
+    const dirSign = Math.abs(dx) < FRONT_THRESHOLD ? 0 : Math.sign(dx);
+    const dir = dirNameRegel(dirSign);
+
+    if (monster.isDead) {
+      sprite.setAnimation(`death-${dir}`);
+    } else if (monster.isFrozen) {
+      const phase = monster.isBlinking ? "blink" : "still";
+      sprite.setAnimation(`freeze-${phase}-${dir}`);
+    } else if (idleOnly) {
+      sprite.setAnimation(`idle-${dir}`);
+    } else if (monster.behaviorState === "ambushing") {
+      sprite.setAnimation(`attack-${dir}`);
+    } else {
+      sprite.setAnimation(`run-${dir}`);
+    }
+
+    sprite.update(deltaTime);
+
+    if (!monster.isDead) {
+      const hitbox = getHitboxForFrame(
+        monster.type,
+        sprite.getAnimation(),
+        sprite.getFrame()
+      );
+      applyHitboxToMonster(monster, hitbox, "center");
+    }
+  }
+
+  private renderRegelRoboten(monster: Monster): void {
+    const sprite = this.regelRobotenSprites.get(monster);
+    if (!sprite) return;
+    if (monster.isDead && sprite.isDeathAnimComplete()) return;
+
+    // Draw sprite at natural size, centered on stable natural center.
+    const NATURAL = GAME_CONFIG.MONSTER_SIZE;
+    const { x: cx, y: cy } = getNaturalAnchor(monster, "center");
+    sprite.draw(this.ctx, cx - NATURAL / 2, cy - NATURAL / 2, NATURAL, NATURAL);
+
+  }
+
+  private renderHodelosKonsulent(monster: Monster, deltaTime: number): void {
+    let sprite = this.hodelosKonsulentSprites.get(monster);
+    if (!sprite) {
+      sprite = new HodelosKonsulentSprite();
+      this.hodelosKonsulentSprites.set(monster, sprite);
+    }
+
+    // Direction from horizontal velocity (floater moves freely). Falls back to
+    // monster.direction if velocity isn't set yet.
+    const vx = monster.velocityX ?? 0;
+    const dirSign = Math.abs(vx) > 0.1 ? Math.sign(vx) : monster.direction;
+    const dir = dirNameHodelos(dirSign);
+
+    if (monster.isDead) {
+      if (sprite.isDeathAnimComplete()) return;
+      sprite.setAnimation(`death-${dir}`);
+    } else if (monster.isFrozen) {
+      const phase = monster.isBlinking ? "blink" : "still";
+      sprite.setAnimation(`freeze-${phase}-${dir}`);
+    } else if (dir === "front") {
+      // No walk-front frames available — fall back to idle when purely vertical
+      sprite.setAnimation("idle-front");
+    } else {
+      sprite.setAnimation(`walk-${dir}`);
+    }
+
+    sprite.update(deltaTime);
+    sprite.draw(
+      this.ctx,
+      monster.x,
+      monster.y,
+      monster.width,
+      monster.height
+    );
+  }
+
+  private renderSkatteSpokelset(
+    monster: Monster,
+    deltaTime: number,
+    player: Player
+  ): void {
+    let sprite = this.skatteSpokelsetSprites.get(monster);
+    if (!sprite) {
+      sprite = new SkatteSpokelsetSprite();
+      this.skatteSpokelsetSprites.set(monster, sprite);
+    }
+
+    // Face the player. Front when player is roughly directly above/below.
+    const FRONT_THRESHOLD = 10;
+    const dx =
+      player.x + player.width / 2 - (monster.x + monster.width / 2);
+    const dirSign = Math.abs(dx) < FRONT_THRESHOLD ? 0 : Math.sign(dx);
+    const dir = dirNameSkatte(dirSign);
+
+    if (monster.isDead) {
+      if (sprite.isDeathAnimComplete()) return;
+      sprite.setAnimation(`death-${dir}`);
+    } else if (monster.isFrozen) {
+      const phase = monster.isBlinking ? "blink" : "still";
+      sprite.setAnimation(`freeze-${phase}-${dir}`);
+    } else {
+      // Chasers are essentially always pursuing — default to walk.
+      sprite.setAnimation(`walk-${dir}`);
+    }
+
+    sprite.update(deltaTime);
+    sprite.draw(
+      this.ctx,
+      monster.x,
+      monster.y,
+      monster.width,
+      monster.height
+    );
+  }
+
+  private renderVertikalByrakrat(monster: Monster, deltaTime: number): void {
+    let sprite = this.vertikalByrakratSprites.get(monster);
+    if (!sprite) {
+      sprite = new VertikalByrakratSprite();
+      this.vertikalByrakratSprites.set(monster, sprite);
+    }
+
+    if (monster.isDead) {
+      if (sprite.isDeathAnimComplete()) return;
+      sprite.setAnimation("death");
+    } else if (monster.isFrozen) {
+      sprite.setAnimation(monster.isBlinking ? "freeze-blink" : "freeze-still");
+    } else {
+      sprite.setAnimation("walk");
+    }
+
+    sprite.update(deltaTime);
+    sprite.draw(
+      this.ctx,
+      monster.x,
+      monster.y,
+      monster.width,
+      monster.height
+    );
   }
 
   private renderRespawnIndicators(monsters: Monster[]): void {
@@ -466,9 +754,7 @@ export class RenderManager {
           const monsterColor = monster.color || "#ffffff";
 
           // Draw a pulsating filled rounded rectangle using monster's color
-          this.ctx.fillStyle = `${monsterColor}${Math.floor(
-            pulseIntensity * 1 * 255
-          )
+          this.ctx.fillStyle = `${monsterColor}${Math.floor(pulseIntensity * 255)
             .toString(16)
             .padStart(2, "0")}`;
 
@@ -542,9 +828,7 @@ export class RenderManager {
           const monsterColor = tempMonster.color || "#ffffff";
 
           // Draw a pulsating filled rounded rectangle using monster's color
-          this.ctx.fillStyle = `${monsterColor}${Math.floor(
-            pulseIntensity * 1 * 255
-          )
+          this.ctx.fillStyle = `${monsterColor}${Math.floor(pulseIntensity * 255)
             .toString(16)
             .padStart(2, "0")}`;
 

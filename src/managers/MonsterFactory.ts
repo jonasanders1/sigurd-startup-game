@@ -1,6 +1,7 @@
 import { Monster } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
 import { MonsterType } from "../types/enums";
+import { getDefaultHitbox } from "../config/monsterHitboxes";
 
 /**
  * Monster Factory - Centralized monster creation functions
@@ -25,25 +26,30 @@ const getMonsterColor = (type: MonsterType): string => {
   }
 };
 
-// Base monster properties that all monsters share
+// Base monster properties that all monsters share. Default hitbox dims come
+// from src/config/monsterHitboxes.ts so per-monster sizes (e.g. ambusher 1:2)
+// stay configurable in one place.
 const createBaseMonster = (
   x: number,
   y: number,
   type: MonsterType,
   speed: number = 1,
   spawnDelay: number = 0
-): Partial<Monster> => ({
-  x,
-  y,
-  width: GAME_CONFIG.MONSTER_SIZE,
-  height: GAME_CONFIG.MONSTER_SIZE,
-  color: getMonsterColor(type),
-  type,
-  speed,
-  direction: 1,
-  isActive: true,
-  spawnDelay,
-});
+): Partial<Monster> => {
+  const defaultHitbox = getDefaultHitbox(type);
+  return {
+    x,
+    y,
+    width: defaultHitbox.width,
+    height: defaultHitbox.height,
+    color: getMonsterColor(type),
+    type,
+    speed,
+    direction: 1,
+    isActive: true,
+    spawnDelay,
+  };
+};
 
 /**
  * Creates a horizontal patrol monster that moves back and forth on a platform
@@ -64,7 +70,8 @@ export const createHorizontalPatrolMonster = (
   walkLengths: number = 1,
   speed: number = 1,
   direction?: number,
-  spawnDelay: number = 0
+  spawnDelay: number = 0,
+  variant: "green" | "black" = "green"
 ): Monster => {
   const x =
     spawnSide === "left"
@@ -79,6 +86,7 @@ export const createHorizontalPatrolMonster = (
     patrolEndX: platformX + platformWidth,
     direction: initialDirection,
     walkLengths,
+    variant,
   } as Monster;
 };
 

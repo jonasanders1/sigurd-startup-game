@@ -10,11 +10,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--foreground),0_0_16px_rgba(61,127,232,0.3)] arcade-press cursor-pointer",
+          "bg-primary text-primary-foreground border-2 border-primary-dark font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--primary-ink),0_0_16px_rgba(171,221,100,0.3)] arcade-press cursor-pointer",
         secondary:
           "bg-transparent text-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_var(--surface-line)] arcade-press cursor-pointer",
         destructive:
-          "bg-destructive text-destructive-foreground border-2 border-foreground font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_rgba(26,29,46,0.3)] arcade-press cursor-pointer",
+          "bg-destructive text-destructive-foreground border-2 border-destructive font-pixel tracking-wider rounded-sm shadow-[0_4px_0_0_rgba(0,0,0,0.4)] arcade-press cursor-pointer",
         outline:
           "border border-surface-line bg-surface text-foreground hover:bg-surface-raised rounded-sm cursor-pointer",
         ghost:

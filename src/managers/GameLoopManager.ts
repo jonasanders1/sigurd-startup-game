@@ -103,6 +103,27 @@ export class GameLoopManager {
       this.updatePlaying(deltaTime);
     } else if (gameState.currentState === GameState.MAP_CLEARED) {
       this.updateMapCleared(deltaTime);
+      // Keep monsters idling while the map-cleared sequence plays out.
+      const state = getGameState();
+      this.renderManager.updateMonsterAnimations(
+        state.monsters,
+        deltaTime,
+        state.player,
+        true
+      );
+    } else if (
+      gameState.currentState === GameState.COUNTDOWN ||
+      gameState.currentState === GameState.GAME_OVER
+    ) {
+      // Animate monsters in idle state — the scene shouldn't freeze just
+      // because the player died or hasn't started yet.
+      const state = getGameState();
+      this.renderManager.updateMonsterAnimations(
+        state.monsters,
+        deltaTime,
+        state.player,
+        true
+      );
     } else if (gameState.currentState === GameState.BONUS) {
       // Call the update callback during BONUS state to allow checking for bonus animation completion
       if (this.onUpdate) {
@@ -121,6 +142,15 @@ export class GameLoopManager {
     // Call external update handler
     this.onUpdate?.(deltaTime);
 
+    // Advance monster animations and apply per-frame hitboxes BEFORE collision
+    // so the collision uses the current frame's hitbox (no 1-frame lag).
+    const state = getGameState();
+    this.renderManager.updateMonsterAnimations(
+      state.monsters,
+      deltaTime,
+      state.player
+    );
+
     // Handle collisions
     this.onCollisions?.();
 
@@ -136,7 +166,13 @@ export class GameLoopManager {
     // Handle falling animation if needed
     this.onMapClearedFall?.(player.isGrounded, deltaTime); // Pass the actual grounded state and delta time
     // Update animation controller with actual player state
-    this.animationController.update(player.isGrounded, 0, false, currentState);
+    this.animationController.update(
+      player.isGrounded,
+      0,
+      false,
+      currentState,
+      player.velocityY
+    );
   }
 
   public update(deltaTime: number): void {

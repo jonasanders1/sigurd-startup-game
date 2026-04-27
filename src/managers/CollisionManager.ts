@@ -1,4 +1,10 @@
 import { Player, Monster, Bomb, Platform, Ground, CollisionResult, Coin } from '../types/interfaces';
+import {
+  getMonsterShape,
+  ellipseRectColliding,
+  rotatedRectAabbColliding,
+  getMonsterRotation,
+} from '../config/monsterHitboxes';
 
 export class CollisionManager {
   checkPlayerPlatformCollision(player: Player, platforms: Platform[]): CollisionResult {
@@ -115,9 +121,16 @@ export class CollisionManager {
 
   checkPlayerMonsterCollision(player: Player, monsters: Monster[]): Monster | null {
     for (const monster of monsters) {
-      if (monster.isActive && this.isColliding(player, monster)) {
-        return monster;
+      if (!monster.isActive) continue;
+      const shape = getMonsterShape(monster.type);
+      let hit: boolean;
+      if (shape === "ellipse") {
+        hit = ellipseRectColliding(monster, player);
+      } else {
+        // rect — possibly rotated (e.g., charging ambusher)
+        hit = rotatedRectAabbColliding(monster, getMonsterRotation(monster), player);
       }
+      if (hit) return monster;
     }
     return null;
   }

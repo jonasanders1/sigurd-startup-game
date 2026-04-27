@@ -1,24 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useStateStore } from "../../../stores/gameStore";
 import { useBalanceStore } from "../../../stores/systems/balanceStore";
 import { deductCredits } from "../../../lib/gameBridge";
 
-import { Joystick, Maximize, Minimize, Play, Settings, Coins } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useFullscreen } from "../../../hooks/useFullscreen";
+import { Joystick, Play, Settings, Coins } from "lucide-react";
 
 const StartMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const { balance, hasBridge, insufficientFunds } = useBalanceStore();
   const [isDeducting, setIsDeducting] = useState(false);
-  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const startGame = async () => {
     if (isDeducting) return;
@@ -45,39 +36,8 @@ const StartMenu: React.FC = () => {
     gameStateManager?.openControls();
   };
 
-  const handleFullscreenToggle = () => {
-    const gameElement = gameContainerRef.current?.closest(
-      "sigurd-startup"
-    ) as HTMLElement;
-    if (gameElement) {
-      toggleFullscreen(gameElement);
-    } else {
-      toggleFullscreen();
-    }
-  };
-
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={handleFullscreenToggle}
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 text-foreground hover:text-primary"
-            >
-              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {isFullscreen
-              ? "Avslutt fullskjerm (F11 eller F)"
-              : "Fullskjerm (F11 eller F)"}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
       <div className="text-center mb-8">
         <h1 className="text-4xl font-pixel text-foreground tracking-wide mb-2">
           SIGURD STARTUP

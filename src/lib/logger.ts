@@ -74,7 +74,7 @@ const CATEGORY_ICONS: Record<LogCategory, string> = {
 // Category colors for console output
 const CATEGORY_COLORS: Record<LogCategory, string> = {
   [LogCategory.AUDIO]: "#FF6B6B", // Red
-  [LogCategory.PLAYER]: "#4ECDC4", // Teal
+  [LogCategory.PLAYER]: "#abdd64", // Teal
   [LogCategory.MONSTER]: "#8B4513", // Brown
   [LogCategory.COIN]: "#FFD700", // Gold
   [LogCategory.BOMB]: "#FF4500", // Orange Red
@@ -249,7 +249,7 @@ export class Logger {
       if (import.meta.env?.DEV) {
         console.log(
           "%c🎮 Game Logger Ready!",
-          "color: #4ECDC4; font-size: 14px; font-weight: bold;"
+          "color: #abdd64; font-size: 14px; font-weight: bold;"
         );
         console.log(
           "%cType gameLog.help() for available commands",
@@ -297,7 +297,7 @@ export class Logger {
     console.log("  Check current status: gameLog.coinSpawn() then collect B-coins");
     
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
-    console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
+    console.log("%c💡 Tips:", "color: #abdd64; font-weight: bold;");
     console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
     console.log("  • Use gameLog.data() to see all data-passing logs including spawns");
     console.log("  • Spawn conditions are logged with 'CoinSpawn:' prefix in data logs");
@@ -347,7 +347,7 @@ export class Logger {
     }
     
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #FFD700;");
-    console.log("%c💡 Tips:", "color: #4ECDC4; font-weight: bold;");
+    console.log("%c💡 Tips:", "color: #abdd64; font-weight: bold;");
     console.log("  • Use gameLog.coinSpawn() to see real-time spawn condition checks");
     console.log("  • Use gameLog.coinConditions() to see spawn condition rules");
     console.log("  • Use gameLog.data() to see all data-passing logs");
@@ -357,7 +357,7 @@ export class Logger {
   private showHelp(): void {
     console.log(
       "%c📚 Game Logger Commands",
-      "color: #4ECDC4; font-size: 16px; font-weight: bold;"
+      "color: #abdd64; font-size: 16px; font-weight: bold;"
     );
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
 
@@ -401,7 +401,7 @@ export class Logger {
   private listCategories(): void {
     console.log(
       "%c📂 Available Categories",
-      "color: #4ECDC4; font-size: 14px; font-weight: bold;"
+      "color: #abdd64; font-size: 14px; font-weight: bold;"
     );
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
 
@@ -416,7 +416,7 @@ export class Logger {
   private showConfig(): void {
     console.log(
       "%c⚙️ Logger Configuration",
-      "color: #4ECDC4; font-size: 14px; font-weight: bold;"
+      "color: #abdd64; font-size: 14px; font-weight: bold;"
     );
     console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #666;");
     console.log(`  Log Level: ${LogLevel[this.config.level]}`);

@@ -40,7 +40,8 @@ export class PlayerManager {
       player.isGrounded,
       moveX,
       player.isFloating,
-      currentState
+      currentState,
+      player.velocityY
     );
 
     // Handle jumping mechanics

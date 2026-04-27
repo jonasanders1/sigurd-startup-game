@@ -4,20 +4,17 @@ import {
   useScoreStore,
   useStateStore,
 } from "../../../stores/gameStore";
-import { useBalanceStore } from "../../../stores/systems/balanceStore";
+import { GameState } from "../../../types/enums";
 
 import {
   Pause,
+  Play,
   Maximize,
   Minimize,
-  Zap,
-  CircleDollarSign,
-  Map,
-  Heart,
-  Coins,
 } from "lucide-react";
 import { calculateMultiplierProgress } from "../../../lib/scoringUtils";
 import { useFullscreen } from "../../../hooks/useFullscreen";
+import { useAnimatedScore } from "../../../hooks/useAnimatedScore";
 import {
   Tooltip,
   TooltipContent,
@@ -25,13 +22,30 @@ import {
 } from "@/components/ui/tooltip";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
+/** Gradient per multiplier level */
+const MULT_GRADIENT: Record<number, string> = {
+  1: "linear-gradient(90deg, #7fb33d, #abdd64, #c2eb83)",
+  2: "linear-gradient(90deg, #0e9fb8, #22d3ee, #67e8f9)",
+  3: "linear-gradient(90deg, #ca8a04, #eab308, #fde047)",
+  4: "linear-gradient(90deg, #e8856e, #f2ae99, #fcd5c8)",
+  5: "linear-gradient(90deg, #d56aaf, #ee90cb, #8465ec)",
+};
+const MULT_GLOW: Record<number, string> = {
+  1: "rgba(171,221,100,0.35)",
+  2: "rgba(34,211,238,0.35)",
+  3: "rgba(234,179,8,0.4)",
+  4: "rgba(242,174,153,0.4)",
+  5: "rgba(238,144,203,0.45)",
+};
+
 const InGameMenu: React.FC = () => {
-  const { currentLevel, gameStateManager, isPaused, lives } = useStateStore();
+  const { currentState, currentLevel, gameStateManager, isPaused } = useStateStore();
   const { score, multiplier, multiplierScore } = useScoreStore();
-  const { balance, hasBridge } = useBalanceStore();
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
+
+  const animatedScore = useAnimatedScore(score, 0.14);
 
   const handleFullscreenToggle = () => {
     const gameElement = gameContainerRef.current?.closest(
@@ -44,62 +58,101 @@ const InGameMenu: React.FC = () => {
     }
   };
 
+  const handlePlayPause = () => {
+    if (currentState === GameState.PLAYING) {
+      gameStateManager?.pauseGame();
+    } else if (currentState === GameState.PAUSED) {
+      gameStateManager?.resumeGame();
+    }
+  };
+
   const progress = calculateMultiplierProgress(multiplierScore, multiplier);
+  const isScoreAnimating = animatedScore !== score;
+  const showPlayPause = currentState === GameState.PLAYING || currentState === GameState.PAUSED;
+
+  const multGradient = MULT_GRADIENT[multiplier] ?? MULT_GRADIENT[1];
+  const multGlow = MULT_GLOW[multiplier] ?? MULT_GLOW[1];
+  const isMax = multiplier >= 5;
+  const fillPct = isMax ? 100 : progress * 100;
 
   return (
     <div
       ref={gameContainerRef}
-      className="flex justify-between items-center w-full h-full"
+      className="w-full relative flex items-center gap-3 px-3 py-1.5 bg-[var(--background-deep)] border-b border-[var(--surface-line)] rounded-t-lg"
+      style={{ minHeight: 40 }}
     >
-      {/* SCOREBOARD */}
-      <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto">
+      {/* ── Level ── */}
+      <div className="text-[var(--foreground-dim)] font-mono text-xs shrink-0 uppercase tracking-wide">
+        Lvl <span className="text-foreground font-pixel">{currentLevel}</span>
+      </div>
+
+      <div className="w-px h-5 bg-[var(--surface-line)] shrink-0" />
+
+      {/* ── Score ── */}
+      <div className="shrink-0 min-w-[90px]">
         <div
-          className="flex items-center gap-3 text-sm font-mono px-4 py-2 bg-[var(--surface-raised)] border-2 border-[var(--foreground)] rounded-sm"
-          style={{ boxShadow: "var(--shadow-lg)" }}
+          className={`font-pixel text-sm tabular-nums transition-colors duration-150 ${
+            isScoreAnimating ? "text-[var(--primary-light)]" : "text-primary"
+          }`}
+          style={isScoreAnimating ? { textShadow: "0 0 8px rgba(171,221,100,.5)" } : undefined}
         >
-          <div className="text-center">
-            <div className="text-primary font-pixel flex items-center gap-1 text-base">
-              <CircleDollarSign size={14} />
-              {score.toLocaleString()}
-            </div>
-          </div>
-          <div className="w-px h-6 bg-[var(--surface-line)]" />
-          <div className="text-center">
-            <div className="text-foreground font-pixel flex items-center gap-1 text-base">
-              <Map size={14} />
-              {currentLevel}
-            </div>
-          </div>
-          <div className="w-px h-6 bg-[var(--surface-line)]" />
-          <div className="min-w-16 flex justify-center border border-primary p-1 rounded-sm relative overflow-hidden">
-            <div
-              className="absolute inset-0 bg-primary-20 transition-all duration-300 ease-out"
-              style={{ width: `${progress * 100}%` }}
-            />
-            <div className="text-primary text-center font-pixel flex items-center gap-1 relative z-10 text-base">
-              <Zap size={14} />x{multiplier}
-            </div>
+          {animatedScore.toLocaleString()}
+        </div>
+      </div>
+
+      {/* ── Multiplier bar — absolute centered ── */}
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60"
+        style={{ width: 200 }}
+      >
+        <div className="relative h-5 rounded-full overflow-hidden bg-[var(--surface)] border border-[var(--surface-line)]">
+          {/* Gradient fill */}
+          <div
+            className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${fillPct}%`,
+              background: multGradient,
+              boxShadow: `0 0 8px ${multGlow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
+            }}
+          />
+
+          {/* Centered label */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span
+              className="font-pixel text-[11px] leading-none"
+              style={{
+                color: "#fff",
+                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+              }}
+            >
+              x{multiplier}{isMax ? " MAX" : ""}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* MENU BUTTONS */}
-      <div className="flex items-center space-x-2 absolute right-3 top-3">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={() => gameStateManager?.pauseGame()}
-                variant="ghost"
-                size="icon"
-                className="text-[var(--foreground-muted)] hover:text-primary h-8 w-8"
-              >
-                <Pause size={18} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Pause (P)</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {/* ── Right-side spacer ── */}
+      <div className="flex-1" />
+
+      {/* ── Action buttons ── */}
+      <div className="flex items-center gap-1 shrink-0">
+        {showPlayPause && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handlePlayPause}
+                  variant="ghost"
+                  size="icon"
+                  className="text-[var(--foreground-dim)] hover:text-primary h-7 w-7"
+                >
+                  {isPaused ? <Play size={15} /> : <Pause size={15} />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{isPaused ? "Resume (P)" : "Pause (P)"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
         <TooltipProvider>
           <Tooltip>
@@ -108,37 +161,16 @@ const InGameMenu: React.FC = () => {
                 onClick={handleFullscreenToggle}
                 variant="ghost"
                 size="icon"
-                className="text-[var(--foreground-muted)] hover:text-primary h-8 w-8"
+                className="text-[var(--foreground-dim)] hover:text-primary h-7 w-7"
               >
-                {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                {isFullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {isFullscreen ? "Avslutt fullskjerm (F)" : "Fullskjerm (F)"}
+              {isFullscreen ? "Exit fullscreen (F)" : "Fullscreen (F)"}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </div>
-
-      {/* Lives */}
-      <div
-        className={`absolute left-3 ${
-          isFullscreen ? "bottom-4" : "bottom-2"
-        }`}
-      >
-        <div className="flex items-center gap-1">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Heart
-              color="#d93a3a"
-              size={isFullscreen ? 22 : 18}
-              key={index}
-              fill={index < lives ? "#d93a3a" : "none"}
-            />
-          ))}
-          {lives > 3 && (
-            <span className="text-primary font-pixel text-sm ml-1">+{lives - 3}</span>
-          )}
-        </div>
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ const CountdownOverlay: React.FC = () => {
 
   return (
     <div className="text-center">
-      <div className="text-8xl font-pixel text-primary" style={{ textShadow: "0 0 24px rgba(61,127,232,.4)" }}>
+      <div className="text-8xl font-pixel text-primary" style={{ textShadow: "0 0 24px rgba(171,221,100,.4)" }}>
         {count}
       </div>
       <div className="flex items-center justify-center gap-2 mt-2">

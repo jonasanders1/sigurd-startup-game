@@ -5,39 +5,39 @@
 
 export const COLORS = {
   // Player
-  PLAYER: "#00FF00",
-  
+  PLAYER: "#abdd64", // KAPLAY lime
+
   // Bombs
-  BOMB: "#FFD700",
-  BOMB_COLLECTED: "#666666",
-  BOMB_NEXT: "#FF0000",
-  
+  BOMB: "#eab308", // coin-yellow
+  BOMB_COLLECTED: "#3a4150", // surface-line (dim on dark)
+  BOMB_NEXT: "#ee90cb", // accent-pink
+
   // Monsters
-  MONSTER: "#FF4444", // Default monster color (fallback)
-  MONSTER_FROZEN: "#4444FF", // Blue color for frozen monsters
-  
-  // Monster type variants
+  MONSTER: "#ee90cb", // Default monster color (accent pink)
+  MONSTER_FROZEN: "#8fb7ff", // coin-blue for frozen monsters
+
+  // Monster type variants — KAPLAY accent palette
   MONSTER_TYPES: {
-    HORIZONTAL_PATROL: "#FF4444", // Red - horizontal patrol
-    VERTICAL_PATROL: "#44FF44", // Green - vertical patrol
-    CHASER: "#FF8844", // Orange - chaser
-    AMBUSHER: "#8844FF", // Purple - ambusher
-    FLOATER: "#44FFFF", // Cyan - floater
+    HORIZONTAL_PATROL: "#ee90cb", // Pink - horizontal patrol
+    VERTICAL_PATROL: "#abdd64", // Lime - vertical patrol
+    CHASER: "#f2ae99", // Peach - chaser
+    AMBUSHER: "#8465ec", // Purple - ambusher
+    FLOATER: "#22d3ee", // Cyan - floater
   },
-  
+
   // Environment
-  PLATFORM: "#484744",
-  BACKGROUND: "#262521",
-  GROUND: "#484744",
-  
+  PLATFORM: "#2f3543", // surface-raised
+  BACKGROUND: "#2a303c", // background
+  GROUND: "#242933", // surface
+
   // UI
-  UI_PRIMARY: "#00FFFF",
-  UI_SECONDARY: "#FFFFFF",
-  
-  // Coins
+  UI_PRIMARY: "#abdd64", // KAPLAY lime
+  UI_SECONDARY: "#ffffff",
+
+  // Coins — KAPLAY vivid set
   COINS: {
-    POWER: "#0066FF", // Blue for power coin
-    BONUS: "#FF6600", // Orange for bonus multiplier coin
-    LIFE: "#FF0066", // Pink for extra life coin
+    POWER: "#8fb7ff", // coin-blue
+    BONUS: "#eab308", // coin-yellow
+    LIFE: "#ee90cb", // coin-pink
   },
 } as const;

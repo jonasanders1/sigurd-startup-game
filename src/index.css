@@ -6,108 +6,151 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Sigurd Startup Design System v3 — Newsprint Arcade ──
-   Creamy newsprint canvas · Sky-blue primary · arcade dress */
+/* KAPLAY Dark
+   Primary: Lime  #abdd64
+   Canvas:  Slate #2a303c  /  Sidebar #20252e
+   Accents: Pink #ee90cb · Purple #8465ec · Peach #f2ae99
+   Fonts:   JetBrains Mono (body), Pixelify Sans (display), VT323 (LCD)
+   Source:  kaplayjs.com/docs/guides/starting
+*/
 
 @layer base {
     :root {
-        /* Surfaces — warm newsprint ramp */
-        --background-deep: #e9dfc4;
-        --background: #f2ead5;
-        --surface: #fbf5e3;
-        --surface-raised: #ffffff;
-        --surface-line: #d6caa9;
+        /* Neutrals — slate ground */
+        --background-deep: #20252e; /* sidebar / app shell */
+        --background: #2a303c; /* main canvas */
+        --foreground: #ffffff; /* headings, primary text */
+        --foreground-muted: #b2ccd6; /* body paragraphs */
+        --foreground-dim: #91a6b0; /* captions, inline bold */
 
-        /* Foreground — near-black, slightly blue */
-        --foreground: #1a1d2e;
-        --foreground-muted: #4a4e66;
-        --foreground-dim: #7a7e94;
+        /* Surfaces */
+        --surface: #242933; /* search pill, kbd, rows */
+        --surface-raised: #2f3543; /* raised cards / popovers */
+        --surface-line: #3a4150; /* hairlines, dividers */
 
-        /* Primary — sky blue */
-        --primary: #3d7fe8;
-        --primary-light: #5d9aff;
-        --primary-dark: #2862c4;
-        --primary-ink: #fbf5e3;
-        --primary-foreground: #fbf5e3;
-        --primary-opacity-hover: rgba(61, 127, 232, 0.45);
+        --card: var(--surface);
+        --card-foreground: var(--foreground);
 
-        /* Secondary — muted cream */
-        --secondary: #e9dfc4;
-        --secondary-light: #efe3c3;
-        --secondary-dark: #d6caa9;
-        --secondary-foreground: #1a1d2e;
+        --popover: var(--surface-raised);
+        --popover-foreground: var(--foreground);
 
-        /* Semantic accents */
-        --accent-red: #d93a3a;
-        --ok: #4a8a2f;
-        --destructive: #d93a3a;
-        --destructive-foreground: #fbf5e3;
-        --muted: #e9dfc4;
-        --muted-foreground: #4a4e66;
-        --accent: #3d7fe8;
-        --accent-foreground: #fbf5e3;
+        /* Primary — KAPLAY lime */
+        --primary: #abdd64;
+        --primary-light: #c2eb83;
+        --primary-dark: #7fb33d;
+        --primary-ink: hsl(86deg 70% 4%); /* deep ink for type on lime */
+        --primary-opacity-hover: rgba(171, 221, 100, 0.35);
+        --primary-foreground: hsl(86deg 70% 4%);
 
-        /* Component tokens */
-        --card: #fbf5e3;
-        --card-foreground: #1a1d2e;
-        --popover: #ffffff;
-        --popover-foreground: #1a1d2e;
-        --border: #d6caa9;
-        --input: #d6caa9;
-        --ring: #3d7fe8;
-        --radius: 4px;
+        /* Semantic accents — KAPLAY brand hues */
+        --accent-pink: #ee90cb;
+        --accent-pink-soft: rgba(238, 144, 203, 0.15);
+        --accent-purple: #8465ec;
+        --accent-purple-soft: rgba(132, 101, 236, 0.15);
+        --accent-peach: #f2ae99;
+        --accent-peach-soft: rgba(242, 174, 153, 0.15);
 
-        --menu-background: rgba(251, 245, 227, 0.7);
+        --accent-red: #ee90cb; /* mapped to brand pink */
+        --accent-red-soft: rgba(238, 144, 203, 0.15);
 
-        /* Shadows — hard ink drops on cream */
-        --shadow-sm: 0 1px 0 0 rgba(26, 29, 46, 0.18);
-        --shadow: 0 2px 0 0 rgba(26, 29, 46, 0.22);
-        --shadow-lg: 0 4px 0 0 rgba(26, 29, 46, 0.3);
+        /* Secondary */
+        --secondary: #2f3543;
+        --secondary-light: #3a4150;
+        --secondary-dark: #242933;
+        --secondary-foreground: var(--foreground);
+
+        /* Muted */
+        --muted: #242933;
+        --muted-foreground: var(--foreground-muted);
+
+        /* Accent (alias of primary) */
+        --accent: var(--primary);
+        --accent-foreground: var(--primary-ink);
+
+        /* Semantic */
+        --destructive: #e05555;
+        --destructive-foreground: #ffffff;
+        --ok: #abdd64;
+        --ok-soft: rgba(171, 221, 100, 0.15);
+        --ok-glow: rgba(171, 221, 100, 0.35);
+
+        /* Borders & inputs */
+        --border: var(--surface-line);
+        --input: var(--surface-line);
+        --ring: var(--primary);
+
+        /* Radii — KAPLAY uses gentle rounding on its docs UI */
+        --radius-sm: 4px;
+        --radius: 8px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        --radius-pill: 9999px;
+
+        /* Menu */
+        --menu-background: rgba(36, 41, 51, 0.92);
+
+        /* Sidebar (HSL for shadcn compat) */
+        --sidebar-background: 218deg 18% 15%; /* #20252e */
+        --sidebar-foreground: 0deg 0% 100%; /* #ffffff */
+        --sidebar-primary: 85deg 64% 63%; /* #abdd64 */
+        --sidebar-primary-foreground: 86deg 70% 4%;
+        --sidebar-accent: 220 17% 18%; /* #242933 */
+        --sidebar-accent-foreground: 0deg 0% 100%;
+        --sidebar-border: 220 14% 27%; /* #3a4150 */
+        --sidebar-ring: 85deg 64% 63%;
+
+        /* Gradients — built from the KAPLAY accents */
+        --gradient-primary: linear-gradient(135deg, #c2eb83 0%, #7fb33d 100%);
+        --gradient-primary-hover: linear-gradient(
+            135deg,
+            #d2f59a 0%,
+            #92c84a 100%
+        );
+        --gradient-sky: linear-gradient(
+            180deg,
+            #2a303c 0%,
+            #242933 60%,
+            #20252e 100%
+        );
+        --gradient-brand: linear-gradient(135deg, #ee90cb 0%, #8465ec 100%);
+        --gradient-warm: linear-gradient(135deg, #f2ae99 0%, #ee90cb 100%);
+
+        /* Shadows */
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+        --shadow-base: 0 2px 4px rgba(0, 0, 0, 0.55);
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
+        --shadow-lg:
+            0 4px 8px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--surface-line) inset;
+        --shadow-inset: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+        /* Arcade glows — KAPLAY accents */
         --glow-primary:
-            0 0 0 2px rgba(61, 127, 232, 0.2), 0 0 16px rgba(61, 127, 232, 0.3);
-        --glow-red: 0 0 12px rgba(217, 58, 58, 0.3);
+            0 0 0 2px rgba(171, 221, 100, 0.25),
+            0 0 16px rgba(171, 221, 100, 0.35);
+        --glow-primary-sm: 0 0 10px rgba(171, 221, 100, 0.4);
+        --glow-pink:
+            0 0 0 2px rgba(238, 144, 203, 0.25),
+            0 0 12px rgba(238, 144, 203, 0.35);
+        --glow-purple:
+            0 0 0 2px rgba(132, 101, 236, 0.25),
+            0 0 12px rgba(132, 101, 236, 0.4);
+        --glow-red: 0 0 12px rgba(238, 144, 203, 0.35);
+        --glow-ok: 0 0 14px var(--ok-glow);
 
-        /* Sidebar */
-        --sidebar-background: #ede3c9;
-        --sidebar-foreground: #1a1d2e;
-        --sidebar-primary: #3d7fe8;
-        --sidebar-primary-foreground: #fbf5e3;
-        --sidebar-accent: #e4d9ba;
-        --sidebar-accent-foreground: #1a1d2e;
-        --sidebar-border: #d6caa9;
-        --sidebar-ring: #3d7fe8;
+        /* Power-coin colors (in-game only — pulled from KAPLAY's vivid set) */
+        --coin-lime: #abdd64;
+        --coin-pink: #ee90cb;
+        --coin-purple: #8465ec;
+        --coin-peach: #f2ae99;
+        --coin-blue: #8fb7ff; /* illustration sky */
+        --coin-cyan: #22d3ee;
+        --coin-yellow: #eab308;
+        --coin-gray: #91a6b0;
     }
 
     .dark {
-        --background-deep: #e9dfc4;
-        --background: #f2ead5;
-        --surface: #fbf5e3;
-        --surface-raised: #ffffff;
-        --surface-line: #d6caa9;
-        --foreground: #1a1d2e;
-        --foreground-muted: #4a4e66;
-        --foreground-dim: #7a7e94;
-        --primary: #3d7fe8;
-        --primary-light: #5d9aff;
-        --primary-dark: #2862c4;
-        --primary-ink: #fbf5e3;
-        --primary-foreground: #fbf5e3;
-        --primary-opacity-hover: rgba(61, 127, 232, 0.45);
-        --secondary: #e9dfc4;
-        --secondary-foreground: #1a1d2e;
-        --muted: #e9dfc4;
-        --muted-foreground: #4a4e66;
-        --accent: #3d7fe8;
-        --accent-foreground: #fbf5e3;
-        --destructive: #d93a3a;
-        --destructive-foreground: #fbf5e3;
-        --card: #fbf5e3;
-        --card-foreground: #1a1d2e;
-        --popover: #ffffff;
-        --popover-foreground: #1a1d2e;
-        --border: #d6caa9;
-        --input: #d6caa9;
-        --ring: #3d7fe8;
+        /* Dark mode inherits same values — KAPLAY ships dark-only */
     }
 }
 
@@ -118,6 +161,7 @@
 
     body {
         @apply bg-background text-foreground;
+        -webkit-font-smoothing: antialiased;
     }
 
     :fullscreen {
@@ -134,31 +178,164 @@
     }
 }
 
+/* ============================================================
+   Arcade primitives — tuned for KAPLAY slate
+   ============================================================ */
+
+/* Subtle scan-line texture */
+.paper-grain {
+    position: relative;
+}
+.paper-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.018) 2px,
+            rgba(255, 255, 255, 0.018) 3px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.012) 3px,
+            rgba(255, 255, 255, 0.012) 4px
+        );
+}
+
+/* CRT flicker */
+@keyframes crt-flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    92% {
+        opacity: 1;
+    }
+    94% {
+        opacity: 0.92;
+    }
+    96% {
+        opacity: 1;
+    }
+    98% {
+        opacity: 0.95;
+    }
+}
+.flicker {
+    animation: crt-flicker 6s infinite;
+}
+
+/* Blinking block cursor */
+@keyframes caret-blink {
+    0%,
+    49% {
+        opacity: 1;
+    }
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+.caret::after {
+    content: "\2588";
+    display: inline-block;
+    margin-left: 4px;
+    animation: caret-blink 1s steps(2) infinite;
+    color: var(--primary);
+}
+
+/* Countdown overlay: fade the blurred menu backdrop out to transparent so the
+   transition from a paused/menu state into countdown feels smooth. */
+@keyframes menu-blur-out {
+    to {
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+        background-color: transparent;
+    }
+}
+.menu-blur-out {
+    animation: menu-blur-out 3000ms linear forwards;
+}
+
+/* Marquee ticker — lime strip */
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+.marquee {
+    font-family: var(--font-pixel, "Pixelify Sans", cursive);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: var(--primary-ink);
+    background: var(--primary);
+    border-top: 2px solid var(--primary-dark);
+    border-bottom: 2px solid var(--primary-dark);
+    overflow: hidden;
+    white-space: nowrap;
+}
+.marquee-inner {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee-scroll 40s linear infinite;
+}
+.marquee-filled {
+    display: inline-flex;
+    animation: marquee-scroll 40s linear infinite;
+}
+
+/* Utility classes */
 @layer utilities {
     /* Background opacity variants */
     .bg-background-50 {
-        background-color: rgba(242, 234, 213, 0.5);
+        background-color: rgba(42, 48, 60, 0.5);
     }
     .bg-background-80 {
-        background-color: rgba(242, 234, 213, 0.8);
+        background-color: rgba(42, 48, 60, 0.8);
     }
     .bg-card-50 {
-        background-color: rgba(251, 245, 227, 0.5);
+        background-color: rgba(36, 41, 51, 0.5);
     }
     .bg-card-80 {
-        background-color: rgba(251, 245, 227, 0.8);
+        background-color: rgba(36, 41, 51, 0.8);
     }
     .bg-primary-20 {
-        background-color: rgba(61, 127, 232, 0.2);
+        background-color: rgba(171, 221, 100, 0.2);
     }
     .bg-primary-80 {
-        background-color: rgba(61, 127, 232, 0.8);
+        background-color: rgba(171, 221, 100, 0.8);
     }
     .bg-secondary-50 {
-        background-color: rgba(233, 223, 196, 0.5);
+        background-color: rgba(47, 53, 67, 0.5);
     }
     .bg-secondary-80 {
-        background-color: rgba(233, 223, 196, 0.8);
+        background-color: rgba(47, 53, 67, 0.8);
+    }
+
+    .bg-gradient-primary {
+        background: var(--gradient-primary);
+    }
+    .bg-gradient-primary-hover {
+        background: var(--gradient-primary-hover);
+    }
+    .bg-gradient-sky {
+        background: var(--gradient-sky);
+    }
+    .bg-gradient-brand {
+        background: var(--gradient-brand);
+    }
+    .bg-gradient-warm {
+        background: var(--gradient-warm);
     }
 
     /* Text */
@@ -173,6 +350,19 @@
     }
     .text-foreground-dim {
         color: var(--foreground-dim);
+    }
+
+    .text-gradient-primary {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .text-gradient-brand {
+        background: var(--gradient-brand);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     /* Border */
@@ -194,7 +384,7 @@
         background-color: var(--primary);
     }
     .hover\:bg-primary-80:hover {
-        background-color: rgba(61, 127, 232, 0.8);
+        background-color: rgba(171, 221, 100, 0.8);
     }
     .hover\:bg-secondary:hover {
         background-color: var(--secondary);
@@ -206,9 +396,49 @@
         color: #ffffff;
     }
 
+    /* Arcade shadow utilities */
+    .shadow-pixel-sm {
+        box-shadow: var(--shadow-sm);
+    }
+    .shadow-pixel {
+        box-shadow: var(--shadow-base);
+    }
+    .shadow-pixel-lg {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .shadow-glow-primary {
+        box-shadow: var(--glow-primary);
+    }
+    .shadow-glow-pink {
+        box-shadow: var(--glow-pink);
+    }
+    .shadow-glow-purple {
+        box-shadow: var(--glow-purple);
+    }
+    .shadow-glow-ok {
+        box-shadow: var(--glow-ok);
+    }
+
+    .shadow-pixel-cta {
+        box-shadow:
+            0 4px 0 0 var(--primary-ink),
+            var(--glow-primary);
+    }
+
+    /* LCD text glow — lime on slate */
+    .text-lcd-glow {
+        text-shadow: 0 0 8px rgba(171, 221, 100, 0.55);
+    }
+
     /* Arcade button press effect */
     .arcade-press:active {
         transform: translateY(3px);
         box-shadow: none !important;
+    }
+
+    .pixel-img {
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
     }
 }

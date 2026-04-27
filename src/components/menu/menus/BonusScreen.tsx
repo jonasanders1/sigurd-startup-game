@@ -51,7 +51,7 @@ const BonusScreen: React.FC = () => {
               </span>{" "}
               av 23 finansieringer!
             </div>
-            <div className="text-5xl font-pixel text-primary animate-pulse" style={{ textShadow: "0 0 12px rgba(61,127,232,.5)" }}>
+            <div className="text-5xl font-pixel text-primary animate-pulse" style={{ textShadow: "0 0 12px rgba(171,221,100,.5)" }}>
               {animatedBonusPoints.toLocaleString()} kr
             </div>
             {!DEV_CONFIG.ENABLED && (

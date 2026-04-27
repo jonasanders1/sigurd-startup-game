@@ -14,10 +14,15 @@ const Menu = ({
 }) => {
   const { currentState } = useStateStore();
 
+  const isCountdown = currentState === GameState.COUNTDOWN;
   return (
     <div
-      className={`absolute inset-0 flex items-center justify-center z-50 rounded-lg ${
-        transparent ? "bg-transparent" : "bg-menu backdrop-blur-sm"
+      className={`absolute inset-0 flex items-center justify-center z-50 ${
+        isCountdown
+          ? "bg-menu backdrop-blur-sm menu-blur-out"
+          : transparent
+            ? "bg-transparent"
+            : "bg-menu backdrop-blur-sm"
       }`}
     >
       {children}

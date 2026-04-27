@@ -70,6 +70,7 @@ interface PatrolMonster extends BaseMonster {
   patrolEndY?: number; // For vertical patrol
   patrolSide?: "left" | "right"; // Which side of platform to patrol on (for vertical patrol)
   targetPlatformX?: number; // Target platform X position for vertical patrol monsters
+  variant?: "green" | "black"; // Visual variant for byråkrat sprites
 }
 
 // Chaser monster

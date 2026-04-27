@@ -244,20 +244,20 @@ export const COIN_PHYSICS = {
 
 // P-coin color progression system with duration scaling
 export const P_COIN_COLORS = [
-  { color: "#3c82f6", points: 100, name: "Blue", duration: 3000 }, // Blue - 3 seconds
-  { color: "#ef4444", points: 200, name: "Red", duration: 4000 }, // Red - 4 seconds
-  { color: "#a855f7", points: 300, name: "Purple", duration: 5000 }, // Purple - 5 seconds
-  { color: "#22c55d", points: 500, name: "Green", duration: 6000 }, // Green - 6 seconds
-  { color: "#07b6d4", points: 800, name: "Cyan", duration: 7000 }, // Cyan - 7 seconds
-  { color: "#ebb305", points: 1200, name: "Yellow", duration: 8000 }, // Yellow - 8 seconds
-  { color: "#6b7280", points: 2000, name: "Gray", duration: 10000 }, // Gray - 10 seconds
+  { color: "#8fb7ff", points: 100, name: "Blue", duration: 3000 }, // coin-blue - 3 seconds
+  { color: "#ee90cb", points: 200, name: "Pink", duration: 4000 }, // coin-pink - 4 seconds
+  { color: "#8465ec", points: 300, name: "Purple", duration: 5000 }, // coin-purple - 5 seconds
+  { color: "#abdd64", points: 500, name: "Lime", duration: 6000 }, // coin-lime - 6 seconds
+  { color: "#22d3ee", points: 800, name: "Cyan", duration: 7000 }, // coin-cyan - 7 seconds
+  { color: "#eab308", points: 1200, name: "Yellow", duration: 8000 }, // coin-yellow - 8 seconds
+  { color: "#91a6b0", points: 2000, name: "Gray", duration: 10000 }, // coin-gray - 10 seconds
 ];
 
 // Define all coin types according to user specifications
 export const COIN_TYPES: Record<string, CoinTypeConfig> = {
   [CoinType.POWER]: {
     type: CoinType.POWER,
-    color: "#FF0000", // Initial color (will be dynamic)
+    color: "#8fb7ff", // Initial color (will be dynamic — coin-blue)
     points: 0, // Points will be calculated dynamically based on color
     physics: COIN_PHYSICS.POWER,
     effects: [COIN_EFFECTS.POWER_MODE],
@@ -270,7 +270,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
 
   [CoinType.BONUS_MULTIPLIER]: {
     type: CoinType.BONUS_MULTIPLIER,
-    color: "#e9b300", // Yellow-Orange
+    color: "#eab308", // coin-yellow
     points: GAME_CONFIG.BONUS_MULTIPLIER_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
@@ -288,7 +288,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
 
   [CoinType.EXTRA_LIFE]: {
     type: CoinType.EXTRA_LIFE,
-    color: "#ef4444", // Red
+    color: "#ee90cb", // coin-pink
     points: GAME_CONFIG.EXTRA_LIFE_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.EXTRA_LIFE],

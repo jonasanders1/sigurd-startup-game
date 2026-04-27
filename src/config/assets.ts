@@ -86,9 +86,11 @@ export const getSpriteImagePath = (path: string): string => {
   const cacheKey = `sprite-${path}`;
   if (assetCache.has(cacheKey)) return assetCache.get(cacheKey)!;
 
-  // Find by path (e.g., "bomb/bomb1.png")
+  // macOS stores filenames as NFD; TS literals are NFC. Normalize both sides
+  // so paths with Unicode (e.g. "byråkrat-klonen") match.
+  const needle = path.normalize("NFC");
   const match = Object.entries(spriteImages).find(([filePath]) =>
-    filePath.endsWith(path)
+    filePath.normalize("NFC").endsWith(needle)
   );
 
   if (match) {

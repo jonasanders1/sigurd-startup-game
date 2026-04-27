@@ -9,12 +9,12 @@ export const ENTITY_SIZES = {
     WIDTH: 25,
     HEIGHT: 35,
   },
-  
+
   // Collectibles and obstacles
   BOMB_SIZE: 25,
   MONSTER_SIZE: 25,
   COIN_SIZE: 25,
-  
+
   // Environment
   PLATFORM_HEIGHT: 25,
 } as const;

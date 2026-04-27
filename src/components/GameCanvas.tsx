@@ -79,7 +79,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
     <div className="relative">
       <canvas
         ref={canvasRef}
-        className={`shadow-black/10 shadow-lg rounded-lg ${className}`}
+        className={`block ${className}`}
         style={canvasStyle}
       />
       {/* Loading overlay while waiting for audio settings */}
