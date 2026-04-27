@@ -4,7 +4,7 @@ import { useStateStore } from "../../../stores/gameStore";
 import { useBalanceStore } from "../../../stores/systems/balanceStore";
 import { deductCredits } from "../../../lib/gameBridge";
 
-import { Joystick, Play, Settings, Coins, GraduationCap } from "lucide-react";
+import { Joystick, Play, Settings, Coins, Box } from "lucide-react";
 
 const StartMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
@@ -89,8 +89,8 @@ const StartMenu: React.FC = () => {
         </Button>
 
         <Button onClick={openTutorial} variant="secondary" className="w-full uppercase">
-          <GraduationCap size={20} />
-          Tutorial
+          <Box size={20} />
+          Sandkassa
         </Button>
       </div>
     </div>

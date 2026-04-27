@@ -38,6 +38,8 @@ interface StateData {
 
   // Tutorial state — null when playing the regular game.
   tutorialMission: TutorialMissionId | null;
+  // Mission selected from the picker, awaiting Start on the brief screen.
+  pendingTutorialMission: TutorialMissionId | null;
   tutorialSubTasks: string[]; // ids of completed sub-tasks for current mission
   // For Mission 4 (KILL): index into P_COIN_COLORS of the coin whose power mode
   // is currently active. Null when no power mode is running.
@@ -67,6 +69,7 @@ interface StateActions {
 
   // Tutorial actions
   setTutorialMission: (id: TutorialMissionId | null) => void;
+  setPendingTutorialMission: (id: TutorialMissionId | null) => void;
   markTutorialSubTask: (id: SubTaskId) => void;
   resetTutorialSubTasks: () => void;
   setTutorialActivePcoinIndex: (index: number | null) => void;
@@ -99,6 +102,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
   bombManager: null,
 
   tutorialMission: null,
+  pendingTutorialMission: null,
   tutorialSubTasks: [],
   tutorialActivePcoinIndex: null,
   tutorialResult: null,
@@ -386,6 +390,8 @@ export const useStateStore = create<StateStore>((set, get) => ({
       tutorialActivePcoinIndex: null,
     });
   },
+
+  setPendingTutorialMission: (id) => set({ pendingTutorialMission: id }),
 
   setTutorialActivePcoinIndex: (index) =>
     set({ tutorialActivePcoinIndex: index }),

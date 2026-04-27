@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+/* Google Fonts (Pixelify Sans / JetBrains Mono / VT323) are injected into
+   document.head from src/game-wrapper.tsx. @import here would be applied to
+   the shadow root, where Chrome/Safari ignore @font-face for inherited text. */
 
 @tailwind base;
 @tailwind components;
@@ -15,6 +15,15 @@
 */
 
 @layer base {
+    /* Typography vars — declared on both :root (standalone dev) and :host
+       (shadow DOM, where :root matches nothing) so the marquee's
+       var(--font-pixel, …) reference resolves in either context. */
+    :root,
+    :host {
+        --font-pixel: "Pixelify Sans", "Press Start 2P", cursive;
+        --font-mono: "JetBrains Mono", ui-monospace, monospace;
+        --font-lcd: "VT323", "JetBrains Mono", monospace;
+    }
     :root {
         /* Neutrals — slate ground */
         --background-deep: #20252e; /* sidebar / app shell */

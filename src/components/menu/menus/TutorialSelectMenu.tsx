@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useStateStore } from "../../../stores/gameStore";
-import { ArrowLeft, GraduationCap } from "lucide-react";
+import { ArrowLeft, Box } from "lucide-react";
 import {
   TUTORIAL_MISSIONS,
   TUTORIAL_MISSION_ORDER,
@@ -12,7 +12,7 @@ const TutorialSelectMenu: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
 
   const start = (id: TutorialMissionId) => {
-    gameStateManager?.startTutorialMission?.(id);
+    gameStateManager?.openTutorialBrief?.(id);
   };
 
   const back = () => {
@@ -22,9 +22,9 @@ const TutorialSelectMenu: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-full px-6 py-4 max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <GraduationCap size={28} className="text-primary" />
+        <Box size={28} className="text-primary" />
         <h1 className="text-3xl font-pixel text-foreground tracking-wide">
-          Tutorial
+          Sandkassa
         </h1>
       </div>
 

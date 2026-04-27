@@ -40,7 +40,9 @@ const AudioSettingsMenu: React.FC = () => {
           >
             <ArrowLeft size={20} />
           </Button>
-          <h2 className="text-xl font-bold text-primary">Lydinnstillinger</h2>
+          <h2 className="text-2xl font-pixel text-foreground tracking-wide uppercase">
+            Lydinnstillinger
+          </h2>
         </div>
         
         <div className="space-y-4">

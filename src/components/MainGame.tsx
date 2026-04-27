@@ -20,7 +20,8 @@ import { useFullscreen } from "../hooks/useFullscreen";
 import { VERSION_STRING, getVersion } from "../version";
 import ControlsMenu from "./menu/menus/ControlsMenu";
 import TutorialSelectMenu from "./menu/menus/TutorialSelectMenu";
-import TutorialResultMenu from "./menu/menus/TutorialResultMenu";
+import MissionBriefMenu from "./menu/menus/MissionBriefMenu";
+import MissionCompleteMenu from "./menu/menus/MissionCompleteMenu";
 import TutorialOverlay from "./menu/menus/TutorialOverlay";
 
 const MainGame: React.FC = () => {
@@ -124,9 +125,14 @@ const MainGame: React.FC = () => {
             <TutorialSelectMenu />
           </Menu>
         )}
+        {showMenu === MenuType.TUTORIAL_BRIEF && (
+          <Menu>
+            <MissionBriefMenu />
+          </Menu>
+        )}
         {showMenu === MenuType.TUTORIAL_RESULT && (
           <Menu>
-            <TutorialResultMenu />
+            <MissionCompleteMenu />
           </Menu>
         )}
       </div>

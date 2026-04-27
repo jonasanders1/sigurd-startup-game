@@ -1,71 +1,67 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useStateStore } from "../../../stores/gameStore";
-import { ArrowRight, Home, Trophy, Flag } from "lucide-react";
+import { ArrowLeft, ArrowRight, Home } from "lucide-react";
 import { TutorialMissionId } from "../../../types/enums";
+import {
+  TUTORIAL_MISSIONS,
+  TUTORIAL_MISSION_ORDER,
+} from "../../../tutorials/missions";
 
-const headlineFor = (
+const flavorFor = (
   reason: "complete" | "skipped",
   missionId: TutorialMissionId | undefined,
   stats: Record<string, number | string> | undefined
-): { title: string; flavor: string } => {
-  if (reason === "skipped") {
-    return {
-      title: "Hoppet over",
-      flavor: "Greit. Du gjør det på din måte.",
-    };
-  }
-
+): string => {
+  if (reason === "skipped") return "Greit. Du gjør det på din måte.";
   switch (missionId) {
     case TutorialMissionId.MOVEMENTS:
-      return {
-        title: "Bevegelse mestret",
-        flavor: "Du beveger deg som en konsulent på timepris.",
-      };
+      return "Du beveger deg som en konsulent på timepris.";
     case TutorialMissionId.BOMBS:
-      return {
-        title: "Skjemajungelen klar",
-        flavor: "Skattefunn-godkjent — eller i det minste innsendt.",
-      };
+      return "Skattefunn-godkjent — eller i det minste innsendt.";
     case TutorialMissionId.SURVIVE:
-      return {
-        title: "Du overlevde",
-        flavor: "Byråkratene stoppet for kaffepause. Lykke til neste gang.",
-      };
+      return "Byråkratene stoppet for kaffepause. Lykke til neste gang.";
     case TutorialMissionId.KILL: {
       const ryggvind = stats?.["ryggvind"];
-      const flavor = ryggvind
+      return ryggvind
         ? `${ryggvind} gikk ut. Tilbake til søknadsskjemaet.`
         : "Effekten gikk ut. Tilbake til søknadsskjemaet.";
-      return { title: "Politisk Ryggvind aktivert", flavor };
     }
     default:
-      return { title: "Fullført", flavor: "" };
+      return "";
   }
 };
 
-const TutorialResultMenu: React.FC = () => {
+const MissionCompleteMenu: React.FC = () => {
   const tutorialResult = useStateStore((s) => s.tutorialResult);
   const { gameStateManager } = useStateStore.getState();
 
   if (!tutorialResult) return null;
   const { reason, missionId, stats } = tutorialResult;
-  const { title, flavor } = headlineFor(reason, missionId, stats);
-  const Icon = reason === "complete" ? Trophy : Flag;
+  const mission = missionId ? TUTORIAL_MISSIONS[missionId] : undefined;
+  const flavor = flavorFor(reason, missionId, stats);
+  const statusLabel = reason === "complete" ? "Fullført!" : "Hoppet over";
+
+  const idx = missionId ? TUTORIAL_MISSION_ORDER.indexOf(missionId) : -1;
+  const hasPrev = idx > 0;
+  const hasNext = idx >= 0 && idx < TUTORIAL_MISSION_ORDER.length - 1;
 
   return (
     <div className="flex flex-col items-center justify-center h-full px-6 max-w-md text-center">
-      <Icon
-        size={36}
-        className={`mb-3 ${
+      {mission && (
+        <h1 className="text-3xl font-pixel text-foreground tracking-wide mb-1 leading-tight">
+          {mission.title}
+        </h1>
+      )}
+      <div
+        className={`text-sm font-pixel uppercase tracking-[0.2em] mb-4 ${
           reason === "complete" ? "text-primary" : "text-[var(--foreground-dim)]"
         }`}
-      />
-      <h1 className="text-3xl font-pixel text-foreground tracking-wide mb-1">
-        {title}
-      </h1>
+      >
+        {statusLabel}
+      </div>
       {flavor && (
-        <p className="text-xs font-mono text-[var(--foreground-dim)] mb-4 italic">
+        <p className="text-xs font-mono text-[var(--foreground-dim)] mb-4 italic text-balance max-w-[320px]">
           {flavor}
         </p>
       )}
@@ -90,13 +86,23 @@ const TutorialResultMenu: React.FC = () => {
         </div>
       )}
 
-      <div className="flex gap-3 mt-5">
+      <div className="flex gap-3 mt-5 flex-wrap justify-center">
         <Button
-          onClick={() => gameStateManager?.openTutorialSelect?.()}
+          onClick={() => gameStateManager?.goToPreviousTutorialMission?.()}
+          variant="secondary"
+          disabled={!hasPrev}
           className="uppercase text-sm"
         >
+          <ArrowLeft size={16} />
+          Tilbake
+        </Button>
+        <Button
+          onClick={() => gameStateManager?.goToNextTutorialMission?.()}
+          disabled={!hasNext}
+          className="uppercase text-sm"
+        >
+          Neste
           <ArrowRight size={16} />
-          Velg oppdrag
         </Button>
         <Button
           onClick={() => gameStateManager?.quitToMenu?.()}
@@ -111,4 +117,4 @@ const TutorialResultMenu: React.FC = () => {
   );
 };
 
-export default TutorialResultMenu;
+export default MissionCompleteMenu;

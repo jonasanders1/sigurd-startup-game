@@ -7,7 +7,7 @@ import {
 } from "../stores/gameStore";
 
 import { GameState, MenuType, AudioEvent, TutorialMissionId } from "../types/enums";
-import { TUTORIAL_MISSIONS } from "../tutorials/missions";
+import { TUTORIAL_MISSIONS, TUTORIAL_MISSION_ORDER } from "../tutorials/missions";
 import type { TutorialManager } from "./TutorialManager";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { sendGameStateUpdate } from "../lib/communicationUtils";
@@ -572,8 +572,45 @@ export class GameStateManager {
   }
 
   public openTutorialSelect(): void {
-    const { setMenuType } = useStateStore.getState();
+    const { setMenuType, setPendingTutorialMission } = useStateStore.getState();
+    setPendingTutorialMission(null);
     setMenuType(MenuType.TUTORIAL_SELECT);
+  }
+
+  public openTutorialBrief(id: TutorialMissionId): void {
+    const { setMenuType, setPendingTutorialMission } = useStateStore.getState();
+    setPendingTutorialMission(id);
+    setMenuType(MenuType.TUTORIAL_BRIEF);
+  }
+
+  public goToNextTutorialMission(): void {
+    const current = this.lastFinishedMissionId();
+    if (current === null) {
+      this.openTutorialSelect();
+      return;
+    }
+    const idx = TUTORIAL_MISSION_ORDER.indexOf(current);
+    const next = TUTORIAL_MISSION_ORDER[idx + 1];
+    if (next) this.openTutorialBrief(next);
+    else this.openTutorialSelect();
+  }
+
+  public goToPreviousTutorialMission(): void {
+    const current = this.lastFinishedMissionId();
+    if (current === null) {
+      this.openTutorialSelect();
+      return;
+    }
+    const idx = TUTORIAL_MISSION_ORDER.indexOf(current);
+    const prev = TUTORIAL_MISSION_ORDER[idx - 1];
+    if (prev) this.openTutorialBrief(prev);
+    else this.openTutorialSelect();
+  }
+
+  private lastFinishedMissionId(): TutorialMissionId | null {
+    const { tutorialResult, pendingTutorialMission } =
+      useStateStore.getState();
+    return tutorialResult?.missionId ?? pendingTutorialMission ?? null;
   }
 
   public startTutorialMission(id: TutorialMissionId): void {

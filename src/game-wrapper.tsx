@@ -5,6 +5,35 @@ import css from "./index.css?inline";
 import { getVersion, logVersion } from "./version";
 import { debugAssetPaths } from "./config/assets";
 
+// @font-face declarations applied inside a shadow root don't reliably register
+// with the browser's font loader. Google Fonts links must live in document.head
+// so the families resolve everywhere — including the shadow DOM where the game
+// renders. Idempotent: marker attribute prevents duplicate injection if multiple
+// instances mount.
+const FONT_MARKER = "data-sigurd-fonts";
+const ensureFontsLoaded = () => {
+  if (typeof document === "undefined") return;
+  if (document.head.querySelector(`link[${FONT_MARKER}]`)) return;
+  const families = [
+    "https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap",
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap",
+    "https://fonts.googleapis.com/css2?family=VT323&display=swap",
+  ];
+  const preconnect = document.createElement("link");
+  preconnect.rel = "preconnect";
+  preconnect.href = "https://fonts.gstatic.com";
+  preconnect.crossOrigin = "anonymous";
+  preconnect.setAttribute(FONT_MARKER, "");
+  document.head.appendChild(preconnect);
+  for (const href of families) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.setAttribute(FONT_MARKER, "");
+    document.head.appendChild(link);
+  }
+};
+
 interface GameElementInterface {
   getVersion: () => ReturnType<typeof getVersion>;
   isCompatible: (minVersion: string) => boolean;
@@ -16,6 +45,8 @@ class GameElement extends HTMLElement implements GameElementInterface {
   connectedCallback() {
     // Debug asset paths
     debugAssetPaths();
+
+    ensureFontsLoaded();
 
     const shadow = this.attachShadow({ mode: "open" });
     const rootElement = document.createElement("div");
