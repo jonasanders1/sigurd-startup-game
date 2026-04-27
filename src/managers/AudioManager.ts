@@ -20,6 +20,10 @@ export class AudioManager {
   // One-shot sound effect buffers
   private victoryBuffer: AudioBuffer | null = null;
   private gameOverBuffer: AudioBuffer | null = null;
+  private bombCollectBuffer: AudioBuffer | null = null;
+  private bonusCoinBuffer: AudioBuffer | null = null;
+  private monsterKillBuffer: AudioBuffer | null = null;
+  private playerDeathBuffer: AudioBuffer | null = null;
 
   // Power-up melody management
   private powerUpMelodyActive = false;
@@ -31,6 +35,10 @@ export class AudioManager {
     this.loadBackgroundMusic();
     this.loadSoundEffect("Victory").then((buf) => (this.victoryBuffer = buf));
     this.loadSoundEffect("gameover").then((buf) => (this.gameOverBuffer = buf));
+    this.loadSoundEffect("coin-catch").then((buf) => (this.bombCollectBuffer = buf));
+    this.loadSoundEffect("bonus-coin-colect").then((buf) => (this.bonusCoinBuffer = buf));
+    this.loadSoundEffect("monster-kill").then((buf) => (this.monsterKillBuffer = buf));
+    this.loadSoundEffect("player-death").then((buf) => (this.playerDeathBuffer = buf));
   }
 
   private initializeAudioContext(): void {
@@ -49,8 +57,7 @@ export class AudioManager {
     if (!this.audioContext) return;
 
     try {
-      // Use the theme song as background music
-      const audioPath = getAudioPath("sigurd-theme-song");
+      const audioPath = getAudioPath("background-music");
       const response = await fetch(audioPath);
       const arrayBuffer = await response.arrayBuffer();
       this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(
@@ -103,10 +110,16 @@ export class AudioManager {
 
     switch (event) {
       case AudioEvent.BOMB_COLLECT:
-        this.playBombCollectSound();
+        this.playSoundBuffer(this.bombCollectBuffer);
         break;
       case AudioEvent.MONSTER_HIT:
-        this.playMonsterHitSound();
+        // Fired when the player loses a life (still alive). Uses the
+        // player-death sample; the longer game-over sample plays separately
+        // when the last life is lost.
+        this.playSoundBuffer(this.playerDeathBuffer);
+        break;
+      case AudioEvent.MONSTER_KILL:
+        this.playSoundBuffer(this.monsterKillBuffer);
         break;
       case AudioEvent.MAP_CLEARED:
         this.playSoundBuffer(this.victoryBuffer);
@@ -119,7 +132,7 @@ export class AudioManager {
         this.playBonusSound();
         break;
       case AudioEvent.COIN_COLLECT:
-        this.playCoinCollectSound();
+        this.playSoundBuffer(this.bonusCoinBuffer);
         break;
       case AudioEvent.POWER_COIN_ACTIVATE:
         log.audio("Power coin activate sound");

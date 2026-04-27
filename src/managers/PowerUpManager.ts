@@ -37,8 +37,7 @@ export class PowerUpManager {
     // Monster is killed during power mode
     this.scoreManager.handleMonsterKill(monster);
     
-    // Play monster kill sound
-    this.audioManager.playSound(AudioEvent.COIN_COLLECT);
+    this.audioManager.playSound(AudioEvent.MONSTER_KILL);
     
     // Kill the monster and schedule for respawn
     this.monsterRespawnManager.killMonster(monster);
