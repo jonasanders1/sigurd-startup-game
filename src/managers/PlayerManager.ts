@@ -15,6 +15,16 @@ export class PlayerManager {
   private bounds: { width: number; height: number };
   private onPlayerDeath?: () => void;
 
+  // Tutorial Mission 1: hold-time tracking + jump edge-latch
+  private tutorialHoldStart: {
+    left: number;
+    right: number;
+    jump: number;
+    float: number;
+    fastFall: number;
+  } = { left: 0, right: 0, jump: 0, float: 0, fastFall: 0 };
+  private tutorialJumpLatch = false;
+
   constructor(animationController: AnimationController) {
     this.collisionManager = new CollisionManager();
     this.animationController = animationController;
@@ -34,14 +44,43 @@ export class PlayerManager {
     const { currentState, loseLife, tutorialMission, markTutorialSubTask } =
       useStateStore.getState();
 
-    // Tutorial Mission 1 sub-task tracking — observe inputs / player state.
+    // Tutorial Mission 1 sub-task tracking — only mark a sub-task when the
+    // input is held long enough (or the player has moved a meaningful distance)
+    // so a single tap doesn't tick everything off at once.
     if (tutorialMission === "movements") {
-      if (input.left) markTutorialSubTask("moveLeft");
-      if (input.right) markTutorialSubTask("moveRight");
-      if (input.jump && player.isGrounded) {
+      const HOLD_MS = 250;
+      const now = Date.now();
+      const t = this.tutorialHoldStart;
+
+      const tickHold = (
+        key: "left" | "right" | "jump" | "float" | "fastFall",
+        subId: string,
+        actuallyDoingIt: boolean
+      ) => {
+        if (input[key] && actuallyDoingIt) {
+          if (!t[key]) t[key] = now;
+          if (now - (t[key] ?? now) >= HOLD_MS) markTutorialSubTask(subId);
+        } else {
+          t[key] = 0;
+        }
+      };
+      // Sub-task counts only when the player is *actually* doing the action,
+      // not just pressing the key (e.g. holding ↓ while standing on a platform
+      // shouldn't tick "fall"; pressing space on the ground shouldn't tick
+      // "float"; pushing into a wall shouldn't tick "moveLeft").
+      tickHold("left", "moveLeft", player.velocityX < 0);
+      tickHold("right", "moveRight", player.velocityX > 0);
+      tickHold("float", "float", player.isFloating);
+      tickHold("fastFall", "fall", !player.isGrounded && player.velocityY > 0);
+
+      // Jump variants — fire on the rising edge while grounded; super-jump
+      // requires Shift. (Hold-detection isn't useful here since jump is a
+      // discrete event.)
+      if (input.jump && player.isGrounded && !this.tutorialJumpLatch) {
         markTutorialSubTask(input.superJump ? "superJump" : "jump");
+        this.tutorialJumpLatch = true;
       }
-      if (player.isFloating) markTutorialSubTask("float");
+      if (!input.jump) this.tutorialJumpLatch = false;
     }
     // Handle input from store
     const moveX = this.processInput(input);

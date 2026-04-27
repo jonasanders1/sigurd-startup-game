@@ -25,7 +25,7 @@ export const DEV_CONFIG = {
 
   // Game state configuration
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 2, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  TARGET_LEVEL: 4, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   // Debug features
   GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)

@@ -490,26 +490,27 @@ export class GameStateManager {
    * Restart the game after game over
    */
   public restartGame(): void {
+    const stateStore = useStateStore.getState();
     const gameState = useGameStore.getState();
 
     log.info("Restarting game");
 
-    // Clear any pending timers from previous game
     this.clearAllTimers();
-
-    // Reset any lingering bonus transition state
     this.resetBonusTransition();
 
-    // Reset the game (resets stores and loads first map data)
+    // Tutorial-aware restart — re-run the active mission instead of dropping
+    // the player into the main game's Level 1 with the tutorial overlay still
+    // visible.
+    const activeMission = stateStore.tutorialMission;
+    if (activeMission) {
+      this.startTutorialMission(activeMission);
+      return;
+    }
+
     log.data('CoinSpawn: Game restart - full reset, all coin spawn counters cleared');
     gameState.resetGame();
-
-    // Notify GameManager to reload level (resets spawn manager, respawn manager, etc.)
     this.onRestartCallback?.();
-
-    // Show countdown before starting
     this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
-
     this.scheduleTimer(() => {
       this.setState(GameState.PLAYING);
     }, 3000);

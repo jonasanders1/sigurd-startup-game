@@ -3,6 +3,7 @@ import { Platform, Ground, MapDefinition } from '../../types/interfaces';
 import { BombManager } from '../../managers/bombManager';
 import { sendMapCompletionData } from '../../lib/communicationUtils';
 import { log } from '../../lib/logger';
+import { PCoinTierCollections } from '../../config/coinTypes';
 
 export interface LevelResult {
   level: number;
@@ -14,6 +15,7 @@ export interface LevelResult {
   hasBonus: boolean;
   coinsCollected: number;
   powerModeActivations: number;
+  pCoinTierCollections?: PCoinTierCollections;
   completionTime?: number; // Optional - not included for partial/incomplete levels
   timestamp: number;
   lives: number;
@@ -47,6 +49,7 @@ interface LevelActions {
     multiplier: number;
     coinsCollected?: number;
     powerModeActivations?: number;
+    pCoinTierCollections?: PCoinTierCollections;
   }) => void;
   addLevelResult: (result: LevelResult) => void;
   getLevelResults: () => LevelResult[];
@@ -114,6 +117,7 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
       multiplier: data.multiplier,
       coinsCollected: data.coinsCollected || 0,
       powerModeActivations: data.powerModeActivations || 0,
+      pCoinTierCollections: data.pCoinTierCollections,
       completionTime: completionTime,
       timestamp: Date.now()
     });

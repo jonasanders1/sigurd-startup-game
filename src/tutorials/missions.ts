@@ -9,11 +9,34 @@
 import { TutorialMissionId, CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { MapDefinition } from "../types/interfaces";
+import { P_COIN_COLORS } from "../config/coinTypes";
 import {
   createAmbusherMonster,
+  createChaserMonster,
   createFloaterMonster,
   createHorizontalPatrolMonster,
+  createVerticalPatrolMonster,
 } from "../managers/MonsterFactory";
+
+// Norwegian satirical names for the P-coin tiers, indexed against P_COIN_COLORS
+// (so colour, points and duration come from the canonical config). Used by the
+// Mission 4 overlay and the result-screen flavour text.
+export const P_COIN_TUTORIAL_LABELS = [
+  "Lokal støtte",
+  "Ordførergodkjenning",
+  "Startup-plan",
+  "Fritak fra dokumentasjon",
+  "Aksjeopsjoner",
+  "Skattelette",
+  "EU-støtte",
+] as const;
+
+export const P_COIN_TUTORIAL_INFO = P_COIN_COLORS.map((c, i) => ({
+  color: c.color,
+  label: P_COIN_TUTORIAL_LABELS[i] ?? c.name,
+  durationMs: c.duration,
+  durationLabel: `${Math.round(c.duration / 1000)}s`,
+}));
 
 const centerX = (offsetWidth: number) =>
   (GAME_CONFIG.CANVAS_WIDTH - offsetWidth) / 2;
@@ -38,6 +61,21 @@ const platform = (
   width: number,
   color: string = "#ebb185"
 ) => ({ x, y, width, height: 15, color, borderColor: "#000" });
+
+const verticalPlatform = (
+  x: number,
+  y: number,
+  height: number,
+  color: string = "#ebb185"
+) => ({
+  x,
+  y,
+  width: 15,
+  height,
+  color,
+  borderColor: "#000",
+  isVertical: true,
+});
 
 const baseMap = (overrides: Partial<MapDefinition> & { id: string }): MapDefinition => ({
   id: overrides.id,
@@ -111,15 +149,26 @@ const bombsMap: MapDefinition = baseMap({
 });
 
 // ── Mission 3: Survive ───────────────────────────────────────────────────
-// Empty arena with one ambusher + one floater. Survive 10 s.
+// 30 s gauntlet — one of each monster type so the player meets them all.
+// Patrol monsters need their platforms (h-patrol on horizontal, v-patrol next
+// to a wall), so platforms here are aligned with the spawn coords below.
 const surviveMap: MapDefinition = baseMap({
   id: "tutorial-survive",
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  platforms: [platform(150, 400, 500)],
-  monsters: [
-    createAmbusherMonster(600, 100, 1),
-    createFloaterMonster(100, 200, 35, 1),
+  platforms: [
+    platform(150, 170, 200), // anchors the horizontal patrol
+    verticalPlatform(680, 220, 200), // anchors the vertical patrol
+    platform(100, 400, 200),
+    platform(500, 400, 200),
   ],
+  monsters: [
+    createHorizontalPatrolMonster(150, 170, 200, "left", 1, 1, undefined, 0, "green"),
+    createVerticalPatrolMonster(680, 220, 180, "left"),
+    createChaserMonster(250, 300, 1, 0.3, 1000),
+    createFloaterMonster(100, 250, 35, 1),
+    createAmbusherMonster(600, 80, 1),
+  ],
+  coinSpawnPoints: [],
 });
 
 // ── Mission 4: Kill ──────────────────────────────────────────────────────
@@ -159,49 +208,56 @@ export interface TutorialMission {
   title: string;
   description: string;
   goal: string;
+  /** Title shown in the top-right tutorial overlay (defaults to `title`). */
+  overlayTitle?: string;
   map: MapDefinition;
   subTasks?: SubTask[];
-  totalMonsters?: number; // for Mission 4 stats
-  totalBombs?: number; // for Mission 2 stats
-  surviveDurationMs?: number; // for Mission 3
+  totalMonsters?: number;
+  totalBombs?: number;
+  surviveDurationMs?: number;
 }
 
 export const TUTORIAL_MISSIONS: Record<TutorialMissionId, TutorialMission> = {
   [TutorialMissionId.MOVEMENTS]: {
     id: TutorialMissionId.MOVEMENTS,
-    title: "Bevegelse",
-    description: "Lær å bevege Sigurd, hoppe og fly.",
-    goal: "Fullfør alle bevegelsene",
+    title: "Bevegelse 101",
+    description: "Lær å manøvrere skjemajungelen.",
+    goal: "Lær å bevege Sigurd",
+    overlayTitle: "Kontroller",
     map: movementsMap,
     subTasks: [
-      { id: "moveLeft", label: "Beveg venstre" },
-      { id: "moveRight", label: "Beveg høyre" },
+      { id: "moveLeft", label: "Gå venstre" },
+      { id: "moveRight", label: "Gå høyre" },
       { id: "jump", label: "Hopp" },
-      { id: "superJump", label: "Super-hopp (Shift + Hopp)" },
-      { id: "float", label: "Sveve (hold hopp i lufta)" },
+      { id: "superJump", label: "Super-hopp" },
+      { id: "float", label: "Sveve" },
+      { id: "fall", label: "Rask fall" },
     ],
   },
   [TutorialMissionId.BOMBS]: {
     id: TutorialMissionId.BOMBS,
-    title: "Bomber",
-    description: "Lær rekkefølgen — følg de blinkende bombene.",
-    goal: "Samle alle bombene",
+    title: "Finansieringer",
+    description: "Plukk i riktig rekkefølge — som om Skatteetaten ser på.",
+    goal: "Samle alle finansieringene",
+    overlayTitle: "Samle finansiering",
     map: bombsMap,
     totalBombs: 14,
   },
   [TutorialMissionId.SURVIVE]: {
     id: TutorialMissionId.SURVIVE,
-    title: "Overlev",
-    description: "Hold deg unna monstrene i 10 sekunder.",
-    goal: "Overlev i 10 sekunder",
+    title: "Overlev byråkratiet",
+    description: "Hold deg unna byråkratene så lenge du klarer.",
+    goal: "Overlev",
+    overlayTitle: "Tid igjen",
     map: surviveMap,
-    surviveDurationMs: 10000,
+    surviveDurationMs: 30000,
   },
   [TutorialMissionId.KILL]: {
     id: TutorialMissionId.KILL,
-    title: "Drep monstrene",
-    description: "Plukk P-mynten og drep så mange monstre som mulig før effekten går ut.",
-    goal: "Drep monstrene under power-effekten",
+    title: "Politisk Ryggvind",
+    description: "Plukk mynten på rett øyeblikk og fei vekk byråkratene.",
+    goal: "Drep monstrene under effekten",
+    overlayTitle: "Plukk Politisk Ryggvind",
     map: killMap,
     totalMonsters: 4,
   },

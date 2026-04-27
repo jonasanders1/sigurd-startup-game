@@ -251,6 +251,7 @@ export class LevelManager {
     const coinStats = getLevelCoinStats();
     const coinsCollected = coinStats.totalCoinsCollected;
     const powerModeActivations = coinStats.totalPowerCoinsCollected;
+    const pCoinTierCollections = coinStats.pCoinTierCollections;
 
     // Clear floating texts
     clearAllFloatingTexts();
@@ -273,6 +274,7 @@ export class LevelManager {
         hasBonus: bonusPoints > 0,
         coinsCollected: coinsCollected,
         powerModeActivations: powerModeActivations,
+        pCoinTierCollections: pCoinTierCollections,
         completionTime: completionTime,
         timestamp: Date.now(),
         lives: lives,
@@ -497,6 +499,7 @@ export class LevelManager {
       levelHistory: levelResults,
       totalCoinsCollected: gameStats.totalCoinsCollected,
       totalPowerModeActivations: gameStats.totalPowerModeActivations,
+      totalPCoinTierCollections: gameStats.totalPCoinTierCollections,
       totalBombs: gameStats.totalBombs,
       totalCorrectOrders: gameStats.totalCorrectOrders,
       averageCompletionTime: gameStats.averageCompletionTime,

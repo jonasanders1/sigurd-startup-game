@@ -4,61 +4,30 @@ import {
   TUTORIAL_MISSIONS,
   TUTORIAL_MISSION_ORDER,
 } from "../../../tutorials/missions";
-import { Check } from "lucide-react";
 
 /**
- * Replaces the score/multiplier area in InGameMenu when a tutorial mission is
- * active. Shows the mission goal (or sub-task checklist for Mission 1) and a
- * Skip button.
+ * Top bar replacement when a tutorial mission is active. Just the mission name
+ * + a skip link — sub-tasks / timers / hints live in TutorialOverlay.
  */
 const TutorialHUD: React.FC = () => {
   const tutorialMission = useStateStore((s) => s.tutorialMission);
-  const tutorialSubTasks = useStateStore((s) => s.tutorialSubTasks);
   const { gameStateManager } = useStateStore.getState();
 
   if (!tutorialMission) return null;
   const mission = TUTORIAL_MISSIONS[tutorialMission];
-
-  const skip = () => gameStateManager?.skipTutorialMission?.();
   const idx = TUTORIAL_MISSION_ORDER.indexOf(tutorialMission);
 
   return (
-    <div className="flex items-center gap-4 px-4 py-1">
-      <div className="text-xs font-mono text-[var(--foreground-dim)] whitespace-nowrap">
-        Oppdrag {idx + 1}
+    <div className="flex items-center gap-3 w-full">
+      <div className="text-xs font-mono text-[var(--foreground-dim)] uppercase tracking-wide whitespace-nowrap">
+        Oppdrag <span className="text-foreground font-pixel">{idx + 1}</span>
       </div>
-
-      {mission.subTasks ? (
-        <div className="flex items-center gap-3 flex-wrap">
-          {mission.subTasks.map((task) => {
-            const done = tutorialSubTasks.includes(task.id);
-            return (
-              <div
-                key={task.id}
-                className={`flex items-center gap-1 text-xs font-mono ${
-                  done
-                    ? "text-primary line-through"
-                    : "text-[var(--foreground-dim)]"
-                }`}
-              >
-                {done ? (
-                  <Check size={12} />
-                ) : (
-                  <span className="inline-block w-3 h-3 border border-current rounded-full" />
-                )}
-                {task.label}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-sm font-pixel text-foreground tracking-wider">
-          {mission.goal}
-        </div>
-      )}
-
+      <div className="w-px h-5 bg-[var(--surface-line)] shrink-0" />
+      <div className="font-pixel text-sm text-foreground tracking-wider truncate">
+        {mission.title}
+      </div>
       <button
-        onClick={skip}
+        onClick={() => gameStateManager?.skipTutorialMission?.()}
         className="ml-auto text-xs font-mono text-[var(--foreground-dim)] underline underline-offset-2 hover:text-primary cursor-pointer whitespace-nowrap"
       >
         Hopp over

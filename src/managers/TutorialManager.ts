@@ -7,33 +7,75 @@
  * UI and routes through finish(reason: "skipped").
  */
 
-import { TutorialMissionId } from "../types/enums";
-import { TUTORIAL_MISSIONS, TutorialMission } from "../tutorials/missions";
+import { TutorialMissionId, CoinType } from "../types/enums";
+import {
+  TUTORIAL_MISSIONS,
+  TutorialMission,
+  P_COIN_TUTORIAL_INFO,
+} from "../tutorials/missions";
+import { P_COIN_COLORS } from "../config/coinTypes";
 import { useStateStore } from "../stores/game/stateStore";
 import { useCoinStore } from "../stores/entities/coinStore";
 import { useMonsterStore } from "../stores/entities/monsterStore";
 
-type SubTaskId = "moveLeft" | "moveRight" | "jump" | "superJump" | "float";
+export type SubTaskId =
+  | "moveLeft"
+  | "moveRight"
+  | "jump"
+  | "superJump"
+  | "float"
+  | "fall";
+
+const closestPcoinIndexByDuration = (durationMs: number): number => {
+  let bestIndex = 0;
+  let bestDelta = Infinity;
+  for (let i = 0; i < P_COIN_COLORS.length; i++) {
+    const delta = Math.abs(P_COIN_COLORS[i].duration - durationMs);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+};
 
 export class TutorialManager {
   private currentMission: TutorialMission | null = null;
   private missionStartTime = 0;
   private monsterCountAtStart = 0;
   private powerModeWasActive = false;
+  private activePcoinIndex: number | null = null;
 
   public startMission(id: TutorialMissionId): void {
     this.currentMission = TUTORIAL_MISSIONS[id];
     this.missionStartTime = Date.now();
     this.powerModeWasActive = false;
+    this.activePcoinIndex = null;
     const stateStore = useStateStore.getState();
     stateStore.setTutorialMission(id);
     stateStore.setTutorialResult(null);
+
+    // Mission 4 needs a P-coin available immediately — the regular spawn rule
+    // (every N firebombs) doesn't fire here since there are no firebombs.
+    if (id === TutorialMissionId.KILL) {
+      // Defer until after the level loader has installed the new CoinManager.
+      setTimeout(() => {
+        const coinManager = useCoinStore.getState().coinManager;
+        const map = TUTORIAL_MISSIONS[id].map;
+        const sp = map.coinSpawnPoints?.[0];
+        if (coinManager && sp) {
+          coinManager.spawnCoin(CoinType.POWER, sp.x, sp.y, sp.spawnAngle);
+        }
+      }, 100);
+    }
   }
 
   public exitMission(): void {
     this.currentMission = null;
+    this.activePcoinIndex = null;
     const stateStore = useStateStore.getState();
     stateStore.setTutorialMission(null);
+    stateStore.setTutorialActivePcoinIndex(null);
   }
 
   public isActive(): boolean {
@@ -62,18 +104,22 @@ export class TutorialManager {
         const total = mission.subTasks?.length ?? 0;
         const done = useStateStore.getState().tutorialSubTasks.length;
         if (total > 0 && done >= total) {
-          this.finish("complete", { sub_tasks: `${done}/${total}` });
+          const elapsed = ((Date.now() - this.missionStartTime) / 1000).toFixed(1);
+          this.finish("complete", {
+            øvelser: `${done}/${total}`,
+            tid: `${elapsed}s`,
+          });
         }
         break;
       }
 
       case TutorialMissionId.BOMBS: {
-        // All bombs collected (regardless of order) → done. Stats: correct/total.
         const { bombs, correctOrderCount } = useStateStore.getState();
         const collected = bombs.filter((b) => b.isCollected).length;
         if (mission.totalBombs && collected >= mission.totalBombs) {
           this.finish("complete", {
-            correct_order: `${correctOrderCount}/${mission.totalBombs}`,
+            plukket: `${collected}/${mission.totalBombs}`,
+            "riktig rekkefølge": `${correctOrderCount}/${mission.totalBombs}`,
           });
         }
         break;
@@ -83,7 +129,8 @@ export class TutorialManager {
         const elapsed = Date.now() - this.missionStartTime;
         if (mission.surviveDurationMs && elapsed >= mission.surviveDurationMs) {
           this.finish("complete", {
-            survived: `${Math.floor(elapsed / 1000)}s`,
+            overlevde: `${Math.floor(elapsed / 1000)}s`,
+            mål: `${Math.floor(mission.surviveDurationMs / 1000)}s`,
           });
         }
         break;
@@ -91,14 +138,32 @@ export class TutorialManager {
 
       case TutorialMissionId.KILL: {
         // Mission completes when power mode ENDS (was on, now off).
-        const powerActive =
-          useCoinStore.getState().activeEffects?.powerMode === true;
+        const coinState = useCoinStore.getState();
+        const powerActive = coinState.activeEffects?.powerMode === true;
+
+        // Rising edge: identify which P-coin tier the player just activated by
+        // matching the live remaining duration against P_COIN_COLORS.
+        if (powerActive && !this.powerModeWasActive) {
+          const endTime = coinState.activeEffects?.powerModeEndTime ?? 0;
+          const totalDuration = endTime - Date.now();
+          this.activePcoinIndex = closestPcoinIndexByDuration(totalDuration);
+          useStateStore
+            .getState()
+            .setTutorialActivePcoinIndex(this.activePcoinIndex);
+        }
+
         if (this.powerModeWasActive && !powerActive) {
           const monsters = useMonsterStore.getState().monsters;
           const dead = monsters.filter((m) => m.isDead).length;
-          this.finish("complete", {
-            killed: `${dead}/${mission.totalMonsters ?? monsters.length}`,
-          });
+          const total = mission.totalMonsters ?? monsters.length;
+          const stats: Record<string, number | string> = {
+            "byråkrater nedlagt": `${dead}/${total}`,
+          };
+          if (this.activePcoinIndex !== null) {
+            stats["ryggvind"] =
+              P_COIN_TUTORIAL_INFO[this.activePcoinIndex]?.label ?? "";
+          }
+          this.finish("complete", stats);
           return;
         }
         this.powerModeWasActive = powerActive;
@@ -129,8 +194,11 @@ export class TutorialManager {
     stats?: Record<string, number | string>
   ): void {
     const stateStore = useStateStore.getState();
-    stateStore.setTutorialResult({ reason, stats });
+    const missionId = this.currentMission?.id;
+    stateStore.setTutorialResult({ missionId, reason, stats });
+    stateStore.setTutorialActivePcoinIndex(null);
     this.currentMission = null;
+    this.activePcoinIndex = null;
     stateStore.setTutorialMission(null);
   }
 }

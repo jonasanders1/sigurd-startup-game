@@ -452,6 +452,7 @@ export class GameManager {
           bonus: 0,
           coinsCollected: coinStats.totalCoinsCollected,
           powerModeActivations: coinStats.totalPowerCoinsCollected,
+          pCoinTierCollections: coinStats.pCoinTierCollections,
           timestamp: Date.now(),
           correctOrderCount: correctOrderCount,
           totalBombs: bombs.filter((b) => b.isCollected).length,

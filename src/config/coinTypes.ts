@@ -251,7 +251,35 @@ export const P_COIN_COLORS = [
   { color: "#22d3ee", points: 800, name: "Cyan", duration: 7000 }, // coin-cyan - 7 seconds
   { color: "#eab308", points: 1200, name: "Yellow", duration: 8000 }, // coin-yellow - 8 seconds
   { color: "#91a6b0", points: 2000, name: "Gray", duration: 10000 }, // coin-gray - 10 seconds
-];
+] as const;
+
+// Stable English keys used as the wire-format contract with the host backend.
+// Frontend maps these to localized labels for display (see P_COIN_TUTORIAL_INFO).
+export type PCoinTier = (typeof P_COIN_COLORS)[number]["name"];
+
+export type PCoinTierCollections = Record<PCoinTier, number>;
+
+export const emptyPCoinTierCollections = (): PCoinTierCollections =>
+  P_COIN_COLORS.reduce(
+    (acc, c) => {
+      acc[c.name] = 0;
+      return acc;
+    },
+    {} as PCoinTierCollections
+  );
+
+export const sumPCoinTierCollections = (
+  entries: ReadonlyArray<PCoinTierCollections | undefined>
+): PCoinTierCollections => {
+  const out = emptyPCoinTierCollections();
+  for (const e of entries) {
+    if (!e) continue;
+    for (const k of Object.keys(out) as PCoinTier[]) {
+      out[k] += e[k] ?? 0;
+    }
+  }
+  return out;
+};
 
 // Define all coin types according to user specifications
 export const COIN_TYPES: Record<string, CoinTypeConfig> = {

@@ -449,6 +449,11 @@ export class CoinManager {
 
   // Check spawn conditions when firebomb count changes (for firebomb-based spawns)
   private checkSpawnConditionsOnFirebombChange(): void {
+    // Tutorial Mission 2 (Bombs) teaches collection order — no P-coin should
+    // spawn from firebomb thresholds. Missions 1/3 also shouldn't spawn coins.
+    const tm = useStateStore.getState().tutorialMission;
+    if (tm === "bombs" || tm === "survive" || tm === "movements") return;
+
     Object.values(COIN_TYPES).forEach((coinConfig) => {
       // Only check spawn conditions that depend on firebomb count (P-coin)
       if (

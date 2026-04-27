@@ -1,5 +1,10 @@
 import { log } from "./logger";
 import { useAudioStore } from "../stores/systems/audioStore";
+import {
+  PCoinTierCollections,
+  emptyPCoinTierCollections,
+  sumPCoinTierCollections,
+} from "../config/coinTypes";
 
 export interface LevelStartData {
   level: number;
@@ -32,6 +37,9 @@ export interface MapCompletionData {
   completionTime?: number; // Time taken to complete the map in milliseconds
   coinsCollected?: number; // Number of coins collected during the map
   powerModeActivations?: number; // Number of times power mode was activated
+  // Per-tier P-coin breakdown for this map. Sum of values equals
+  // powerModeActivations. Keyed by canonical tier name (Blue, Pink, …, Gray).
+  pCoinTierCollections?: PCoinTierCollections;
 }
 
 export interface LevelHistoryEntry {
@@ -48,6 +56,8 @@ export interface LevelHistoryEntry {
   lives: number;
   multiplier: number;
   isPartial?: boolean; // True for failed/incomplete levels
+  // Per-tier P-coin breakdown for this level
+  pCoinTierCollections?: PCoinTierCollections;
 }
 
 export interface GameCompletionData {
@@ -70,6 +80,9 @@ export interface GameCompletionData {
   userDisplayName?: string;
   userEmail?: string;
   userId?: string;
+  // Game-wide P-coin breakdown by tier. Sum of values equals
+  // totalPowerModeActivations.
+  totalPCoinTierCollections?: PCoinTierCollections;
 }
 
 export interface AudioSettingsUpdateData {
@@ -236,6 +249,9 @@ export const calculateGameStats = (
     (sum, level) => sum + level.powerModeActivations,
     0
   );
+  const totalPCoinTierCollections = sumPCoinTierCollections(
+    levelHistory.map((l) => l.pCoinTierCollections)
+  );
   const totalPlayTime = endTime - startTime;
   const averageCompletionTime =
     levelHistory.length > 0 ? totalPlayTime / levelHistory.length / 1000 : 0; // Convert to seconds
@@ -245,6 +261,7 @@ export const calculateGameStats = (
     totalCorrectOrders,
     totalCoinsCollected,
     totalPowerModeActivations,
+    totalPCoinTierCollections,
     averageCompletionTime: Math.round(averageCompletionTime),
     totalPlayTime: Math.round(totalPlayTime / 1000), // Convert to seconds
   };

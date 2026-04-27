@@ -7,6 +7,10 @@ import { log } from "../../lib/logger";
 import { useScoreStore } from "../game/scoreStore";
 import { useStateStore } from "../game/stateStore";
 import { CoinType } from "../../types/enums";
+import {
+  PCoinTierCollections,
+  emptyPCoinTierCollections,
+} from "../../config/coinTypes";
 
 interface CoinState {
   coins: Coin[];
@@ -20,11 +24,15 @@ interface CoinState {
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
   totalExtraLifeCoinsCollected: number;
+  // Per-tier P-coin breakdown (game-wide, accumulates across levels)
+  totalPCoinTierCollections: PCoinTierCollections;
   // Level-specific counters that accumulate across respawns
   levelCoinsCollected: number;
   levelPowerCoinsCollected: number;
   levelBonusMultiplierCoinsCollected: number;
   levelExtraLifeCoinsCollected: number;
+  // Per-tier P-coin breakdown for the current level only
+  levelPCoinTierCollections: PCoinTierCollections;
 }
 
 interface CoinActions {
@@ -46,12 +54,14 @@ interface CoinActions {
     totalPowerCoinsCollected: number;
     totalBonusMultiplierCoinsCollected: number;
     totalExtraLifeCoinsCollected: number;
+    pCoinTierCollections: PCoinTierCollections;
   };
   getLevelCoinStats: () => {
     totalCoinsCollected: number;
     totalPowerCoinsCollected: number;
     totalBonusMultiplierCoinsCollected: number;
     totalExtraLifeCoinsCollected: number;
+    pCoinTierCollections: PCoinTierCollections;
   };
 }
 
@@ -70,11 +80,13 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
   totalPowerCoinsCollected: 0,
   totalBonusMultiplierCoinsCollected: 0,
   totalExtraLifeCoinsCollected: 0,
+  totalPCoinTierCollections: emptyPCoinTierCollections(),
   // Level-specific counters
   levelCoinsCollected: 0,
   levelPowerCoinsCollected: 0,
   levelBonusMultiplierCoinsCollected: 0,
   levelExtraLifeCoinsCollected: 0,
+  levelPCoinTierCollections: emptyPCoinTierCollections(),
 
   // Actions
   setCoins: (coins: Coin[]) => {
@@ -155,8 +167,29 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
 
       // Update total collection counters
       const newTotalCoinsCollected = currentState.totalCoinsCollected + 1;
+      const isPowerCoin =
+        coin.type === "POWER" || coin.type === CoinType.POWER;
       const newTotalPowerCoinsCollected =
-        currentState.totalPowerCoinsCollected + (coin.type === "POWER" || coin.type === CoinType.POWER ? 1 : 0);
+        currentState.totalPowerCoinsCollected + (isPowerCoin ? 1 : 0);
+
+      // Per-tier P-coin tracking — keyed by the canonical English name from
+      // P_COIN_COLORS so the backend contract stays language-neutral.
+      let newTotalPCoinTierCollections = currentState.totalPCoinTierCollections;
+      let newLevelPCoinTierCollections = currentState.levelPCoinTierCollections;
+      if (isPowerCoin && coin.spawnTime !== undefined) {
+        const tier = coinManager.getPcoinColorForTime(coin.spawnTime);
+        const tierName = tier.name as keyof PCoinTierCollections;
+        newTotalPCoinTierCollections = {
+          ...currentState.totalPCoinTierCollections,
+          [tierName]:
+            (currentState.totalPCoinTierCollections[tierName] ?? 0) + 1,
+        };
+        newLevelPCoinTierCollections = {
+          ...currentState.levelPCoinTierCollections,
+          [tierName]:
+            (currentState.levelPCoinTierCollections[tierName] ?? 0) + 1,
+        };
+      }
       
       // Check for bonus multiplier coin (handle both string and enum)
       const isBonusCoin = coin.type === "BONUS_MULTIPLIER" || coin.type === CoinType.BONUS_MULTIPLIER;
@@ -183,7 +216,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       // Update level-specific counters (these accumulate across respawns)
       const newLevelCoinsCollected = currentState.levelCoinsCollected + 1;
       const newLevelPowerCoinsCollected =
-        currentState.levelPowerCoinsCollected + (coin.type === "POWER" || coin.type === CoinType.POWER ? 1 : 0);
+        currentState.levelPowerCoinsCollected + (isPowerCoin ? 1 : 0);
       const newLevelBonusMultiplierCoinsCollected =
         currentState.levelBonusMultiplierCoinsCollected + bonusIncrement;
       const newLevelExtraLifeCoinsCollected =
@@ -199,10 +232,12 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         totalPowerCoinsCollected: newTotalPowerCoinsCollected,
         totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
         totalExtraLifeCoinsCollected: newTotalExtraLifeCoinsCollected,
+        totalPCoinTierCollections: newTotalPCoinTierCollections,
         levelCoinsCollected: newLevelCoinsCollected,
         levelPowerCoinsCollected: newLevelPowerCoinsCollected,
         levelBonusMultiplierCoinsCollected: newLevelBonusMultiplierCoinsCollected,
         levelExtraLifeCoinsCollected: newLevelExtraLifeCoinsCollected,
+        levelPCoinTierCollections: newLevelPCoinTierCollections,
       };
 
       // Store values for logging after state update
@@ -311,8 +346,10 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalPowerCoinsCollected: 0,
       totalBonusMultiplierCoinsCollected: 0,
       totalExtraLifeCoinsCollected: 0,
+      totalPCoinTierCollections: emptyPCoinTierCollections(),
+      levelPCoinTierCollections: emptyPCoinTierCollections(),
     });
-    
+
     log.data('CoinStore: Full reset (game over) - all coin state cleared');
   },
 
@@ -361,6 +398,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       levelPowerCoinsCollected: 0,
       levelBonusMultiplierCoinsCollected: 0,
       levelExtraLifeCoinsCollected: 0,
+      levelPCoinTierCollections: emptyPCoinTierCollections(),
     });
   },
 
@@ -372,6 +410,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalBonusMultiplierCoinsCollected:
         state.totalBonusMultiplierCoinsCollected,
       totalExtraLifeCoinsCollected: state.totalExtraLifeCoinsCollected,
+      pCoinTierCollections: state.totalPCoinTierCollections,
     };
   },
 
@@ -383,6 +422,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalBonusMultiplierCoinsCollected:
         state.levelBonusMultiplierCoinsCollected,
       totalExtraLifeCoinsCollected: state.levelExtraLifeCoinsCollected,
+      pCoinTierCollections: state.levelPCoinTierCollections,
     };
   },
 

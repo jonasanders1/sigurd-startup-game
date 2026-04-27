@@ -17,6 +17,7 @@ import { useScoreStore } from "./scoreStore";
 import { useLevelStore } from "./levelStore";
 import { useCoinStore } from "../entities/coinStore";
 import { useRenderStore } from "../systems/renderStore";
+import type { SubTaskId } from "../../managers/TutorialManager";
 
 interface StateData {
   currentState: GameState;
@@ -38,7 +39,14 @@ interface StateData {
   // Tutorial state — null when playing the regular game.
   tutorialMission: TutorialMissionId | null;
   tutorialSubTasks: string[]; // ids of completed sub-tasks for current mission
-  tutorialResult: { stats?: Record<string, number | string>; reason: "complete" | "skipped" } | null;
+  // For Mission 4 (KILL): index into P_COIN_COLORS of the coin whose power mode
+  // is currently active. Null when no power mode is running.
+  tutorialActivePcoinIndex: number | null;
+  tutorialResult: {
+    missionId?: TutorialMissionId;
+    stats?: Record<string, number | string>;
+    reason: "complete" | "skipped";
+  } | null;
 }
 
 interface StateActions {
@@ -59,10 +67,15 @@ interface StateActions {
 
   // Tutorial actions
   setTutorialMission: (id: TutorialMissionId | null) => void;
-  markTutorialSubTask: (id: string) => void;
+  markTutorialSubTask: (id: SubTaskId) => void;
   resetTutorialSubTasks: () => void;
+  setTutorialActivePcoinIndex: (index: number | null) => void;
   setTutorialResult: (
-    result: { stats?: Record<string, number | string>; reason: "complete" | "skipped" } | null
+    result: {
+      missionId?: TutorialMissionId;
+      stats?: Record<string, number | string>;
+      reason: "complete" | "skipped";
+    } | null
   ) => void;
 }
 
@@ -87,6 +100,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
 
   tutorialMission: null,
   tutorialSubTasks: [],
+  tutorialActivePcoinIndex: null,
   tutorialResult: null,
 
   // Actions
@@ -198,6 +212,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
         levelHistory: levelResults,
         totalCoinsCollected: gameStats.totalCoinsCollected,
         totalPowerModeActivations: gameStats.totalPowerModeActivations,
+        totalPCoinTierCollections: gameStats.totalPCoinTierCollections,
         totalBombs: gameStats.totalBombs,
         totalCorrectOrders: gameStats.totalCorrectOrders,
         averageCompletionTime: gameStats.averageCompletionTime,
@@ -365,8 +380,15 @@ export const useStateStore = create<StateStore>((set, get) => ({
   },
 
   setTutorialMission: (id) => {
-    set({ tutorialMission: id, tutorialSubTasks: [] });
+    set({
+      tutorialMission: id,
+      tutorialSubTasks: [],
+      tutorialActivePcoinIndex: null,
+    });
   },
+
+  setTutorialActivePcoinIndex: (index) =>
+    set({ tutorialActivePcoinIndex: index }),
 
   markTutorialSubTask: (id) => {
     const { tutorialSubTasks } = get();
