@@ -1,6 +1,6 @@
 import { MapDefinition, Bomb, Platform } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
-import { MonsterType, CoinType } from "../types/enums";
+import { CoinType } from "../types/enums";
 import {
   createHorizontalPatrolMonster,
   createVerticalPatrolMonster,
@@ -14,7 +14,7 @@ const createBomb = (
   x: number,
   y: number,
   order: number,
-  group: number
+  group: number,
 ): Bomb => ({
   x,
   y,
@@ -32,7 +32,7 @@ const createPlatform = (
   y: number,
   dimensions: { width: number; height: number },
   color: string = COLORS.PLATFORM,
-  borderColor: string = "#000"
+  borderColor: string = "#000",
 ) => ({
   x,
   y,
@@ -48,7 +48,7 @@ const createVerticalPlatform = (
   y: number,
   height: number,
   color: string = COLORS.PLATFORM,
-  borderColor: string = "#000"
+  borderColor: string = "#000",
 ) => ({
   x,
   y,
@@ -137,11 +137,51 @@ export const level1Map: MapDefinition = {
   ],
 
   monsters: [
-    createHorizontalPatrolMonster(125, 170, 150, "left", 1, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(525, 170, 150, "right", 1, 1, undefined, 0, "black"),
+    createHorizontalPatrolMonster(
+      125,
+      170,
+      150,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
+    createHorizontalPatrolMonster(
+      525,
+      170,
+      150,
+      "right",
+      1,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
 
-    createHorizontalPatrolMonster(100, 400, 200, "right", 1, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(500, 400, 200, "left", 1, 1, undefined, 0, "black"),
+    createHorizontalPatrolMonster(
+      100,
+      400,
+      200,
+      "right",
+      1,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
+    createHorizontalPatrolMonster(
+      500,
+      400,
+      200,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
   ],
 
   monsterSpawnPoints: [
@@ -312,7 +352,7 @@ export const level2Map: MapDefinition = {
           1.0,
           undefined,
           0,
-          "green"
+          "green",
         ),
     },
 
@@ -325,7 +365,17 @@ export const level2Map: MapDefinition = {
   monsters: [
     createVerticalPatrolMonster(105, 220, 220, "right"),
     createVerticalPatrolMonster(695, 220, 220, "right", 2, 1),
-    createHorizontalPatrolMonster(170, 170, 200, "left", 1, 1, undefined, 0, "black"),
+    createHorizontalPatrolMonster(
+      170,
+      170,
+      200,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
     createChaserMonster(250, 300, 1, 0.3, 1000),
   ],
 };
@@ -455,11 +505,41 @@ export const level3Map: MapDefinition = {
 
   monsters: [
     // Monster on top left platform (left side, 3 walks)
-    createHorizontalPatrolMonster(165, 130, 150, "left", 0, 0.7, undefined, 0, "green"),
+    createHorizontalPatrolMonster(
+      165,
+      130,
+      150,
+      "left",
+      0,
+      0.7,
+      undefined,
+      0,
+      "green",
+    ),
     // Monster on top right platform (right side, 2 walks)
-    createHorizontalPatrolMonster(485, 130, 150, "right", 0, 1, undefined, 0, "black"),
+    createHorizontalPatrolMonster(
+      485,
+      130,
+      150,
+      "right",
+      0,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
     // Monster on upper middle platform (left side, 1 walk)
-    createHorizontalPatrolMonster(300, 240, 200, "left", 0, 1, undefined, 0, "green"),
+    createHorizontalPatrolMonster(
+      300,
+      240,
+      200,
+      "left",
+      0,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
     createFloaterMonster(50, 300, 45, 1),
     createFloaterMonster(750, 500, 155, 1),
     // createAmbusherMonster(50, 500),
@@ -568,11 +648,61 @@ export const level4Map: MapDefinition = {
 
   monsters: [
     // Static monster on horizontal platform
-    createHorizontalPatrolMonster(150, 490, 500, "left", 0, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(150, 130, 500, "left", 0, 1, undefined, 0, "black"),
-    createHorizontalPatrolMonster(150, 130, 500, "right", 0, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(100, 400, 200, "right", 0, 1, undefined, 0, "black"),
-    createHorizontalPatrolMonster(500, 400, 200, "left", 0, 1, undefined, 0, "green"),
+    createHorizontalPatrolMonster(
+      150,
+      490,
+      500,
+      "left",
+      0,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
+    createHorizontalPatrolMonster(
+      150,
+      130,
+      500,
+      "left",
+      0,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
+    createHorizontalPatrolMonster(
+      150,
+      130,
+      500,
+      "right",
+      0,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
+    createHorizontalPatrolMonster(
+      100,
+      400,
+      200,
+      "right",
+      0,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
+    createHorizontalPatrolMonster(
+      500,
+      400,
+      200,
+      "left",
+      0,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
     createChaserMonster(200, 200, 1, 0.1, 500),
   ],
 
@@ -585,7 +715,7 @@ export const level4Map: MapDefinition = {
           centerX(GAME_CONFIG.MONSTER_SIZE),
           centerY(GAME_CONFIG.MONSTER_SIZE),
           150,
-          1
+          1,
         ),
     },
     {
@@ -595,7 +725,7 @@ export const level4Map: MapDefinition = {
           centerX(GAME_CONFIG.MONSTER_SIZE),
           centerY(GAME_CONFIG.MONSTER_SIZE),
           50,
-          1
+          1,
         ),
     },
     // Chaser monster - spawns after 6 seconds
@@ -607,7 +737,7 @@ export const level4Map: MapDefinition = {
           50, // startX
           500, // startY
           1.0, // speed (reduced from 1.5)
-          8000 // ambushInterval (increased from 500 to match new base value)
+          8000, // ambushInterval (increased from 500 to match new base value)
         ),
     },
   ],
@@ -763,7 +893,7 @@ export const level5Map: MapDefinition = {
           50, // startX
           50, // startY
           1.2, // speed (reduced from 2)
-          8000 // ambushInterval (increased from 300 to match new base value)
+          8000, // ambushInterval (increased from 300 to match new base value)
         ),
     },
     {
@@ -772,7 +902,7 @@ export const level5Map: MapDefinition = {
         createAmbusherMonster(
           725, // startX
           100, // startY
-          1 // speed (reduced from 2)
+          1, // speed (reduced from 2)
         ),
     },
     // {
@@ -793,7 +923,7 @@ export const level5Map: MapDefinition = {
           590, // startX
           400, // startY
           3, // Speed
-          0.5 // Directness
+          0.5, // Directness
           // updateInterval
         ),
     },
@@ -802,8 +932,28 @@ export const level5Map: MapDefinition = {
   monsters: [
     createVerticalPatrolMonster(500, 170, 350, "right"),
     createVerticalPatrolMonster(240, 60, 340, "right"),
-    createHorizontalPatrolMonster(90, 500, 200, "left", 1, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(90, 45, 150, "right", 1, 1, undefined, 0, "black"),
+    createHorizontalPatrolMonster(
+      90,
+      500,
+      200,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
+    createHorizontalPatrolMonster(
+      90,
+      45,
+      150,
+      "right",
+      1,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
   ],
 };
 
@@ -877,7 +1027,17 @@ export const level6Map: MapDefinition = {
 
     createVerticalPatrolMonster(520, 20, 350, "right"),
     createVerticalPatrolMonster(225, 20, 350, "right"),
-    createHorizontalPatrolMonster(0, 550, 800, "left", 1, 1, undefined, 0, "green"),
+    createHorizontalPatrolMonster(
+      0,
+      550,
+      800,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
   ],
 
   monsterSpawnPoints: [
@@ -895,7 +1055,7 @@ export const level6Map: MapDefinition = {
       createMonster: () =>
         createChaserMonster(
           centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE + 200)
+          centerY(GAME_CONFIG.MONSTER_SIZE + 200),
         ),
     },
     {
@@ -903,7 +1063,7 @@ export const level6Map: MapDefinition = {
       createMonster: () =>
         createFloaterMonster(
           centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE - 200)
+          centerY(GAME_CONFIG.MONSTER_SIZE - 200),
         ),
     },
   ],
@@ -956,428 +1116,186 @@ export const level6Map: MapDefinition = {
 };
 
 // Level 7 - Alltinn Norge
+// Vertical-ascent zigzag: twin pillar walls anchor vertical patrols while a
+// center spine of horizontal platforms forces left↔right traversal upward.
+// Bomb groups are ordered floor→top — the climb itself is the difficulty curve.
 export const level7Map: MapDefinition = {
-  id: "level6",
+  id: "level7",
   name: "alltinn norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#ff9ff3", // Pink for blue background
+  spawnIndicatorColor: "#ff9ff3", // Pink — high contrast against navy ground
 
-  groupSequence: [1, 2, 3, 4, 5, 6],
+  groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
   ground: {
     x: 0,
     y: GAME_CONFIG.CANVAS_HEIGHT - 40,
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: 40,
-    color: "#47567f",
+    color: "#2a3858",
   },
 
   platforms: [
-    // Floating platforms in spiral pattern
-    createPlatform(
-      200,
-      GAME_CONFIG.CANVAS_HEIGHT - 120,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
-    createPlatform(
-      600,
-      GAME_CONFIG.CANVAS_HEIGHT - 110,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
+    // Twin pillar walls — vertical-patrol monster tracks
+    createVerticalPlatform(40, 200, 300, "#5d8fb3", "#1a2540"),
+    createVerticalPlatform(745, 200, 300, "#5d8fb3", "#1a2540"),
 
-    createPlatform(
-      100,
-      GAME_CONFIG.CANVAS_HEIGHT - 180,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
-    createPlatform(
-      700,
-      GAME_CONFIG.CANVAS_HEIGHT - 180,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
+    // Center bottom (lane 1)
+    createPlatform(300, 470, { width: 200, height: 15 }, "#5d8fb3", "#1a2540"),
 
-    createPlatform(
-      300,
-      GAME_CONFIG.CANVAS_HEIGHT - 240,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
-    createPlatform(
-      500,
-      GAME_CONFIG.CANVAS_HEIGHT - 240,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
+    // Mid layer (lane 2 — split left/right, forces a side commit)
+    createPlatform(100, 350, { width: 180, height: 15 }, "#5d8fb3", "#1a2540"),
+    createPlatform(510, 350, { width: 180, height: 15 }, "#5d8fb3", "#1a2540"),
 
-    createPlatform(
-      150,
-      GAME_CONFIG.CANVAS_HEIGHT - 300,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
-    createPlatform(
-      650,
-      GAME_CONFIG.CANVAS_HEIGHT - 300,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
+    // Lane 3 — center upper
+    createPlatform(300, 210, { width: 200, height: 15 }, "#5d8fb3", "#1a2540"),
 
-    createPlatform(
-      400,
-      GAME_CONFIG.CANVAS_HEIGHT - 370,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
-
-    createPlatform(
-      250,
-      GAME_CONFIG.CANVAS_HEIGHT - 420,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
-    createPlatform(
-      550,
-      GAME_CONFIG.CANVAS_HEIGHT - 420,
-      { width: 200, height: 15 },
-      "#ebb185"
-    ),
+    // Top finale (lane 4 — narrow risk platform)
+    createPlatform(325, 110, { width: 150, height: 15 }, "#5d8fb3", "#1a2540"),
   ],
 
   bombs: [
-    // Ground level
-    {
-      x: 70,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-      width: 16,
-      height: 16,
-      order: 1,
-      group: 1,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 750,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-      width: 16,
-      height: 16,
-      order: 2,
-      group: 1,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 1 — left ground (intro). 4 bombs to land at exactly 23 total
+    // (GAME_CONFIG.TOTAL_BOMBS — strict equality gates level completion).
+    createBomb(270, 525, 1, 1),
+    createBomb(220, 525, 2, 1),
+    createBomb(170, 525, 3, 1),
+    createBomb(10, 325, 4, 1),
 
-    // First floating level
-    {
-      x: 220,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-      width: 16,
-      height: 16,
-      order: 3,
-      group: 2,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 620,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-      width: 16,
-      height: 16,
-      order: 4,
-      group: 2,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 2 — right ground (4 bombs)
+    createBomb(530, 525, 5, 2),
+    createBomb(580, 525, 6, 2),
+    createBomb(630, 525, 7, 2),
+    createBomb(765, 325, 8, 2),
 
-    // Second level
-    {
-      x: 120,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-      width: 16,
-      height: 16,
-      order: 5,
-      group: 3,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 720,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-      width: 16,
-      height: 16,
-      order: 6,
-      group: 3,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 3 — center bottom platform
+    createBomb(320, 440, 9, 3),
+    createBomb(370, 440, 10, 3),
+    createBomb(420, 440, 11, 3),
 
-    // Third level
-    {
-      x: 320,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-      width: 16,
-      height: 16,
-      order: 7,
-      group: 4,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 540,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-      width: 16,
-      height: 16,
-      order: 8,
-      group: 4,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 4 — mid-left platform
+    createBomb(130, 320, 12, 4),
+    createBomb(180, 320, 13, 4),
+    createBomb(230, 320, 14, 4),
 
-    // Fourth level
-    {
-      x: 170,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-      width: 16,
-      height: 16,
-      order: 9,
-      group: 5,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 670,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-      width: 16,
-      height: 16,
-      order: 10,
-      group: 5,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 5 — mid-right platform
+    createBomb(530, 320, 15, 5),
+    createBomb(580, 320, 16, 5),
+    createBomb(630, 320, 17, 5),
 
-    // Fifth level
-    {
-      x: 420,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 390,
-      width: 16,
-      height: 16,
-      order: 11,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 6 — center upper platform (centered: platform spans x=300-500,
+    // center=400; bombs at 340/390/440 give visual centers around 398).
+    createBomb(340, 180, 18, 6),
+    createBomb(390, 180, 19, 6),
+    createBomb(440, 180, 20, 6),
 
-    // Sixth level
-    {
-      x: 270,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 450,
-      width: 16,
-      height: 16,
-      order: 12,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 570,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 450,
-      width: 16,
-      height: 16,
-      order: 13,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-
-    // Additional scattered bombs
-    {
-      x: 25,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 90,
-      width: 16,
-      height: 16,
-      order: 14,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 775,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 90,
-      width: 16,
-      height: 16,
-      order: 15,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 180,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-      width: 16,
-      height: 16,
-      order: 16,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 620,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
-      width: 16,
-      height: 16,
-      order: 17,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 280,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-      width: 16,
-      height: 16,
-      order: 18,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 520,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 210,
-      width: 16,
-      height: 16,
-      order: 19,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 370,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-      width: 16,
-      height: 16,
-      order: 20,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 470,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 270,
-      width: 16,
-      height: 16,
-      order: 21,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 220,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-      width: 16,
-      height: 16,
-      order: 22,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
-    {
-      x: 580,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 330,
-      width: 16,
-      height: 16,
-      order: 23,
-      group: 6,
-      isCollected: false,
-      isBlinking: false,
-    },
+    // Group 7 — top finale (narrow platform, highest risk)
+    createBomb(345, 80, 21, 7),
+    createBomb(395, 80, 22, 7),
+    createBomb(445, 80, 23, 7),
   ],
 
   monsters: [
+    // Spawn-pad platform (y=320) is intentionally clear so the centered drop
+    // lands safely. Threats start one lane in either direction.
+    createHorizontalPatrolMonster(
+      300,
+      470,
+      200,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "green",
+    ),
+    createHorizontalPatrolMonster(
+      80,
+      350,
+      180,
+      "right",
+      1,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
+    createHorizontalPatrolMonster(
+      540,
+      350,
+      180,
+      "left",
+      1,
+      1,
+      undefined,
+      0,
+      "black",
+    ),
+
+    // Pillar verticals — make the side approaches dangerous
+    createVerticalPatrolMonster(45, 220, 280, "right"),
+    createVerticalPatrolMonster(700, 220, 280, "right"),
+  ],
+
+  monsterSpawnPoints: [
+    // Mid-game: ambusher emerges from below the left pillar to push the
+    // player off the center-bottom platform mid-collection.
     {
-      x: 150,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 70,
-      width: GAME_CONFIG.MONSTER_SIZE,
-      height: GAME_CONFIG.MONSTER_SIZE,
-      color: COLORS.MONSTER,
-      type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 100,
-      patrolEndX: 300,
-      speed: 4,
-      direction: 1,
-      isActive: true,
+      spawnDelay: 5000,
+      createMonster: () => createAmbusherMonster(20, 525, 1, 8000),
     },
+    // Late-game: chaser enters from above-right (clear of the right pillar
+    // at x=725-740) once the player is committed to the upper half.
     {
-      x: 650,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 130,
-      width: GAME_CONFIG.MONSTER_SIZE,
-      height: GAME_CONFIG.MONSTER_SIZE,
-      color: COLORS.MONSTER,
-      type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 600,
-      patrolEndX: 800,
-      speed: 4.2,
-      direction: -1,
-      isActive: true,
+      spawnDelay: 12000,
+      createMonster: () => createChaserMonster(770, 100, 1, 0.3, 1000),
     },
+    // Top-platform pressure: floater drifts in once the climb begins.
     {
-      x: 300,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 170,
-      width: GAME_CONFIG.MONSTER_SIZE,
-      height: GAME_CONFIG.MONSTER_SIZE,
-      color: COLORS.MONSTER,
-      type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 250,
-      patrolEndX: 450,
-      speed: 3.8,
-      direction: 1,
-      isActive: true,
-    },
-    {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 290,
-      width: GAME_CONFIG.MONSTER_SIZE,
-      height: GAME_CONFIG.MONSTER_SIZE,
-      color: COLORS.MONSTER,
-      type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 450,
-      patrolEndX: 650,
-      speed: 3.6,
-      direction: -1,
-      isActive: true,
-    },
-    {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 350,
-      width: GAME_CONFIG.MONSTER_SIZE,
-      height: GAME_CONFIG.MONSTER_SIZE,
-      color: COLORS.MONSTER,
-      type: MonsterType.HORIZONTAL_PATROL,
-      patrolStartX: 350,
-      patrolEndX: 550,
-      speed: 4,
-      direction: 1,
-      isActive: true,
+      spawnDelay: 18000,
+      createMonster: () => createFloaterMonster(400, 250, 50, 1),
     },
   ],
 
   coinSpawnPoints: [
-    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
+    // P-coins spawn near the chokepoints (mid layer + top platform) so the
+    // player has to commit to a route to reach them.
     {
-      x: 300,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 100,
+      x: 400,
+      y: 380,
       type: CoinType.POWER,
-      spawnAngle: 165,
+      spawnAngle: 45,
     },
     {
-      x: 500,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 140,
+      x: 400,
+      y: 140,
       type: CoinType.POWER,
-      spawnAngle: 15,
+      spawnAngle: -125,
+    },
+
+    // B-coin / E-coin candidates at the top-platform corners — reward for
+    // making it that high.
+    {
+      x: 350,
+      y: 80,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 450,
+      y: 80,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 350,
+      y: 80,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 450,
+      y: 80,
+      type: CoinType.EXTRA_LIFE,
     },
   ],
 };
@@ -1452,6 +1370,7 @@ export const mapDefinitions = [
   level3Map,
   level4Map,
   level5Map,
-  // level6Map, // TODO: INCOMPLETE
-  // level7Map, // TODO: INCOMPLETE
+  level6Map,
+  level7Map,
+  level8Map,
 ];

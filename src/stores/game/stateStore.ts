@@ -18,6 +18,7 @@ import { useLevelStore } from "./levelStore";
 import { useCoinStore } from "../entities/coinStore";
 import { useRenderStore } from "../systems/renderStore";
 import type { SubTaskId } from "../../managers/TutorialManager";
+import { TUTORIAL_MISSIONS } from "../../tutorials/missions";
 
 interface StateData {
   currentState: GameState;
@@ -397,8 +398,15 @@ export const useStateStore = create<StateStore>((set, get) => ({
     set({ tutorialActivePcoinIndex: index }),
 
   markTutorialSubTask: (id) => {
-    const { tutorialSubTasks } = get();
+    const { tutorialSubTasks, tutorialMission } = get();
     if (tutorialSubTasks.includes(id)) return;
+    if (!tutorialMission) return;
+    // Order gate: a sub-task is only accepted when it's the next expected one
+    // in the mission's declared subTasks order. Lets the UI dim upcoming rows
+    // and prevents the player from completing them out-of-sequence.
+    const subTasks = TUTORIAL_MISSIONS[tutorialMission].subTasks;
+    if (!subTasks) return;
+    if (subTasks[tutorialSubTasks.length]?.id !== id) return;
     set({ tutorialSubTasks: [...tutorialSubTasks, id] });
   },
 

@@ -1,6 +1,8 @@
 import { Monster } from "../types/interfaces";
 import { logger, LogCategory } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
+import { useStateStore } from "../stores/game/stateStore";
+import { TutorialMissionId } from "../types/enums";
 
 export interface RespawnConfig {
   ambusher: number;
@@ -83,6 +85,17 @@ export class OptimizedRespawnManager {
     monster.isActive = false;
     const adjustedNow = Date.now() - this.totalPausedTime;
     monster.deathTime = adjustedNow;
+
+    // Mission 4 (KILL) is a kill-the-byråkratene gauntlet — respawning would
+    // make the totalMonsters target unwinnable and reset the player's progress
+    // mid-power-mode. Skip the respawn queue entirely while it's active.
+    if (
+      useStateStore.getState().tutorialMission === TutorialMissionId.KILL
+    ) {
+      logger.monster(`${monster.type} killed (tutorial KILL — no respawn)`);
+      return;
+    }
+
     monster.respawnTime =
       adjustedNow + this.getRespawnDelay(monster.type);
 

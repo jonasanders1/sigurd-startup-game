@@ -67,18 +67,23 @@ const MovementsContent: React.FC = () => {
     return false;
   };
 
+  // The order gate in markTutorialSubTask only accepts the next sub-task in
+  // CONTROLS order; this index is the row the player is currently allowed to
+  // complete. Rows past it are upcoming and dimmed.
+  const currentIndex = subTasks.length;
   return (
     <div className="space-y-0">
       {CONTROLS.map((c, i) => {
         const done = subTasks.includes(c.subTaskId);
+        const upcoming = i > currentIndex;
         return (
           <div
             key={i}
-            className={`flex justify-between items-center py-2 ${
+            className={`flex justify-between items-center py-2 transition-opacity ${
               i < CONTROLS.length - 1
                 ? "border-b border-dashed border-[var(--surface-line)]"
                 : ""
-            }`}
+            } ${upcoming ? "opacity-30" : "opacity-100"}`}
           >
             <span
               className={`font-mono text-[11px] ${

@@ -24,6 +24,10 @@ export class PlayerManager {
     fastFall: number;
   } = { left: 0, right: 0, jump: 0, float: 0, fastFall: 0 };
   private tutorialJumpLatch = false;
+  // "fall" doesn't complete on the fast-fall input alone — the player has to
+  // see the ground before it counts. Set true once they've fast-fallen for the
+  // hold window; cleared the next time they touch ground.
+  private tutorialFastFallArmed = false;
 
   constructor(animationController: AnimationController) {
     this.collisionManager = new CollisionManager();
@@ -71,7 +75,21 @@ export class PlayerManager {
       tickHold("left", "moveLeft", player.velocityX < 0);
       tickHold("right", "moveRight", player.velocityX > 0);
       tickHold("float", "float", player.isFloating);
-      tickHold("fastFall", "fall", !player.isGrounded && player.velocityY > 0);
+
+      // Fast-fall: arm the flag once the player has actually fast-fallen for
+      // the hold window, then mark "fall" only when they hit the ground.
+      const isFastFalling =
+        input.fastFall && !player.isGrounded && player.velocityY > 0;
+      if (isFastFalling) {
+        if (!t.fastFall) t.fastFall = now;
+        if (now - t.fastFall >= HOLD_MS) this.tutorialFastFallArmed = true;
+      } else {
+        t.fastFall = 0;
+      }
+      if (this.tutorialFastFallArmed && player.isGrounded) {
+        markTutorialSubTask("fall");
+        this.tutorialFastFallArmed = false;
+      }
 
       // Jump variants — fire on the rising edge while grounded; super-jump
       // requires Shift. (Hold-detection isn't useful here since jump is a
