@@ -71,13 +71,13 @@ const centerPoint = (offsetWidth: number, offsetHeight: number) => {
   };
 };
 
-// Level 1 - Garage
+// Level 1 - Bedroom
 export const level1Map: MapDefinition = {
   id: "level1",
-  name: "garasjen",
+  name: "soverommet",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "garasjen",
+  background: "soverommet",
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
   spawnIndicatorColor: "#ff9ff3", // Pink for blue background
 

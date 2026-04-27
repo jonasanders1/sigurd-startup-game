@@ -20,6 +20,15 @@ export enum MenuType {
   GAME_OVER = "GAME_OVER",
   AUDIO_SETTINGS = "AUDIO_SETTINGS",
   CONTROLS = "CONTROLS",
+  TUTORIAL_SELECT = "TUTORIAL_SELECT",
+  TUTORIAL_RESULT = "TUTORIAL_RESULT",
+}
+
+export enum TutorialMissionId {
+  MOVEMENTS = "movements",
+  BOMBS = "bombs",
+  SURVIVE = "survive",
+  KILL = "kill",
 }
 
 export enum MonsterType {

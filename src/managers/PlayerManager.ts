@@ -31,7 +31,18 @@ export class PlayerManager {
   update(deltaTime: number): void {
     const { player, updatePlayer } = usePlayerStore.getState();
     const { input } = useInputStore.getState();
-    const { currentState, loseLife } = useStateStore.getState();
+    const { currentState, loseLife, tutorialMission, markTutorialSubTask } =
+      useStateStore.getState();
+
+    // Tutorial Mission 1 sub-task tracking — observe inputs / player state.
+    if (tutorialMission === "movements") {
+      if (input.left) markTutorialSubTask("moveLeft");
+      if (input.right) markTutorialSubTask("moveRight");
+      if (input.jump && player.isGrounded) {
+        markTutorialSubTask(input.superJump ? "superJump" : "jump");
+      }
+      if (player.isFloating) markTutorialSubTask("float");
+    }
     // Handle input from store
     const moveX = this.processInput(input);
 

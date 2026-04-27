@@ -80,6 +80,37 @@ export class LevelManager {
     this.gameStateManager = gameStateManager;
   }
 
+  /**
+   * Load an arbitrary map (used by tutorial missions). Mirrors loadCurrentLevel
+   * but skips the mapDefinitions index lookup and currentLevel coupling.
+   */
+  public loadTutorialMap(mapDefinition: import("../types/interfaces").MapDefinition): void {
+    const gameStore = useGameStore.getState();
+    const { clearAllFloatingTexts } = useRenderStore.getState();
+
+    this.clearAllTimers();
+    this.wasGroundedWhenMapCleared = false;
+    this.monsterSpawnManager.cleanup();
+    this.scalingManager.startMap();
+    gameStore.initializeLevel(mapDefinition);
+    clearAllFloatingTexts();
+    this.animationController.reset();
+    this.renderManager.loadMapBackground(mapDefinition.name);
+    this.mapStartTime = Date.now();
+
+    this.monsterSpawnManager.initializeLevel(mapDefinition.monsterSpawnPoints || []);
+    this.monsterRespawnManager.reset();
+
+    const { updateMonsters } = useMonsterStore.getState();
+    if (mapDefinition.monsters) {
+      const monstersWithSpawnPoints = mapDefinition.monsters.map((m) => ({
+        ...m,
+        originalSpawnPoint: { x: m.x, y: m.y },
+      }));
+      updateMonsters(monstersWithSpawnPoints);
+    }
+  }
+
   public loadCurrentLevel(): void {
     const { currentLevel } = useStateStore.getState();
     const gameStore = useGameStore.getState();

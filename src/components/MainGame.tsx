@@ -19,6 +19,8 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
 import { VERSION_STRING, getVersion } from "../version";
 import ControlsMenu from "./menu/menus/ControlsMenu";
+import TutorialSelectMenu from "./menu/menus/TutorialSelectMenu";
+import TutorialResultMenu from "./menu/menus/TutorialResultMenu";
 
 const MainGame: React.FC = () => {
   // Fix: Use the store hooks properly to subscribe to state changes
@@ -111,6 +113,16 @@ const MainGame: React.FC = () => {
         {showMenu === MenuType.GAME_OVER && (
           <Menu>
             <GameOverScreen />
+          </Menu>
+        )}
+        {showMenu === MenuType.TUTORIAL_SELECT && (
+          <Menu>
+            <TutorialSelectMenu />
+          </Menu>
+        )}
+        {showMenu === MenuType.TUTORIAL_RESULT && (
+          <Menu>
+            <TutorialResultMenu />
           </Menu>
         )}
       </div>

@@ -12,6 +12,8 @@ import { GameStateManager } from "./GameStateManager";
 import { LevelManager } from "./LevelManager";
 import { ScoreManager } from "./ScoreManager";
 import { PowerUpManager } from "./PowerUpManager";
+import { TutorialManager } from "./TutorialManager";
+import { TUTORIAL_MISSIONS } from "../tutorials/missions";
 import {
   useAudioStore,
   useGameStore,
@@ -63,6 +65,7 @@ export class GameManager {
   private scalingManager: ScalingManager;
   private monsterRespawnManager: OptimizedRespawnManager;
   private playerManager: PlayerManager;
+  private tutorialManager!: TutorialManager;
   private audioSettingsListenerCleanup: (() => void) | null = null;
   private balanceUnsubscribe: (() => void) | null = null;
   private deathInProgress = false;
@@ -89,6 +92,9 @@ export class GameManager {
       this.monsterSpawnManager,
       this.monsterRespawnManager
     );
+
+    this.tutorialManager = new TutorialManager();
+    this.gameStateManager.setTutorialManager(this.tutorialManager);
 
     this.scoreManager = new ScoreManager();
 
@@ -121,6 +127,12 @@ export class GameManager {
     // Set up restart callback so GameStateManager can trigger a full level reload
     this.gameStateManager.setOnRestartCallback(() => {
       this.levelManager.loadCurrentLevel();
+    });
+
+    // Tutorial map loading — bypasses currentLevel + mapDefinitions index.
+    this.gameStateManager.setOnTutorialMapLoad((id) => {
+      const mission = TUTORIAL_MISSIONS[id];
+      this.levelManager.loadTutorialMap(mission.map);
     });
 
     // Set up callbacks for game loop manager
@@ -284,6 +296,13 @@ export class GameManager {
     // Update game loop (players, monsters, coins)
     if (currentState === GameState.PLAYING) {
       this.gameLoopManager.update(deltaTime);
+
+      // Tutorial tick — checks completion conditions for the active mission.
+      this.tutorialManager.update();
+      const { tutorialResult, tutorialMission } = useStateStore.getState();
+      if (tutorialResult && !tutorialMission) {
+        this.gameStateManager.finishTutorialMission();
+      }
     }
   }
 
@@ -367,6 +386,21 @@ export class GameManager {
     // Prevent re-entry while death sequence is playing out
     if (this.deathInProgress) return;
     this.deathInProgress = true;
+
+    const stateNow = useStateStore.getState();
+
+    // Tutorial: bypass score/credit/game-over flow. Survive resets timer +
+    // respawns; other missions end with current stats.
+    if (stateNow.tutorialMission) {
+      this.audioManager.playSound(AudioEvent.MONSTER_HIT);
+      this.tutorialManager.onPlayerDeath();
+      const stillActive = useStateStore.getState().tutorialMission;
+      if (stillActive) {
+        this.levelManager.respawnPlayer();
+      }
+      this.deathInProgress = false;
+      return;
+    }
 
     const { lives, loseLife, currentLevel, correctOrderCount } =
       useStateStore.getState();

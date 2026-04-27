@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { GameState, MenuType } from "../../types/enums";
+import { GameState, MenuType, TutorialMissionId } from "../../types/enums";
 import { Bomb } from "../../types/interfaces";
 import { BombManager } from "../../managers/bombManager";
 import { GAME_CONFIG } from "../../types/constants";
@@ -34,6 +34,11 @@ interface StateData {
   correctOrderCount: number;
   nextBombOrder: number;
   bombManager: BombManager | null;
+
+  // Tutorial state — null when playing the regular game.
+  tutorialMission: TutorialMissionId | null;
+  tutorialSubTasks: string[]; // ids of completed sub-tasks for current mission
+  tutorialResult: { stats?: Record<string, number | string>; reason: "complete" | "skipped" } | null;
 }
 
 interface StateActions {
@@ -51,6 +56,14 @@ interface StateActions {
   setBombs: (bombs: Bomb[]) => void;
   setBombManager: (bombManager: BombManager) => void;
   resetBombState: () => void;
+
+  // Tutorial actions
+  setTutorialMission: (id: TutorialMissionId | null) => void;
+  markTutorialSubTask: (id: string) => void;
+  resetTutorialSubTasks: () => void;
+  setTutorialResult: (
+    result: { stats?: Record<string, number | string>; reason: "complete" | "skipped" } | null
+  ) => void;
 }
 
 export type StateStore = StateData & StateActions;
@@ -71,6 +84,10 @@ export const useStateStore = create<StateStore>((set, get) => ({
   correctOrderCount: 0,
   nextBombOrder: 1,
   bombManager: null,
+
+  tutorialMission: null,
+  tutorialSubTasks: [],
+  tutorialResult: null,
 
   // Actions
   setState: (state: GameState) => {
@@ -346,4 +363,18 @@ export const useStateStore = create<StateStore>((set, get) => ({
       bombManager: null,
     });
   },
+
+  setTutorialMission: (id) => {
+    set({ tutorialMission: id, tutorialSubTasks: [] });
+  },
+
+  markTutorialSubTask: (id) => {
+    const { tutorialSubTasks } = get();
+    if (tutorialSubTasks.includes(id)) return;
+    set({ tutorialSubTasks: [...tutorialSubTasks, id] });
+  },
+
+  resetTutorialSubTasks: () => set({ tutorialSubTasks: [] }),
+
+  setTutorialResult: (result) => set({ tutorialResult: result }),
 }));

@@ -15,6 +15,7 @@ import {
 import { calculateMultiplierProgress } from "../../../lib/scoringUtils";
 import { useFullscreen } from "../../../hooks/useFullscreen";
 import { useAnimatedScore } from "../../../hooks/useAnimatedScore";
+import TutorialHUD from "./TutorialHUD";
 import {
   Tooltip,
   TooltipContent,
@@ -39,8 +40,9 @@ const MULT_GLOW: Record<number, string> = {
 };
 
 const InGameMenu: React.FC = () => {
-  const { currentState, currentLevel, gameStateManager, isPaused } = useStateStore();
+  const { currentState, currentLevel, gameStateManager, isPaused, tutorialMission } = useStateStore();
   const { score, multiplier, multiplierScore } = useScoreStore();
+  const inTutorial = tutorialMission !== null;
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
@@ -81,58 +83,62 @@ const InGameMenu: React.FC = () => {
       className="w-full relative flex items-center gap-3 px-3 py-1.5 bg-[var(--background-deep)] border-b border-[var(--surface-line)] rounded-t-lg"
       style={{ minHeight: 40 }}
     >
-      {/* ── Level ── */}
-      <div className="text-[var(--foreground-dim)] font-mono text-xs shrink-0 uppercase tracking-wide">
-        Lvl <span className="text-foreground font-pixel">{currentLevel}</span>
-      </div>
-
-      <div className="w-px h-5 bg-[var(--surface-line)] shrink-0" />
-
-      {/* ── Score ── */}
-      <div className="shrink-0 min-w-[90px]">
-        <div
-          className={`font-pixel text-sm tabular-nums transition-colors duration-150 ${
-            isScoreAnimating ? "text-[var(--primary-light)]" : "text-primary"
-          }`}
-          style={isScoreAnimating ? { textShadow: "0 0 8px rgba(171,221,100,.5)" } : undefined}
-        >
-          {animatedScore.toLocaleString()}
+      {inTutorial ? (
+        <div className="flex-1 flex items-center">
+          <TutorialHUD />
         </div>
-      </div>
-
-      {/* ── Multiplier bar — absolute centered ── */}
-      <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60"
-        style={{ width: 200 }}
-      >
-        <div className="relative h-5 rounded-full overflow-hidden bg-[var(--surface)] border border-[var(--surface-line)]">
-          {/* Gradient fill */}
-          <div
-            className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
-            style={{
-              width: `${fillPct}%`,
-              background: multGradient,
-              boxShadow: `0 0 8px ${multGlow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
-            }}
-          />
-
-          {/* Centered label */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span
-              className="font-pixel text-[11px] leading-none"
-              style={{
-                color: "#fff",
-                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-              }}
-            >
-              x{multiplier}{isMax ? " MAX" : ""}
-            </span>
+      ) : (
+        <>
+          {/* ── Level ── */}
+          <div className="text-[var(--foreground-dim)] font-mono text-xs shrink-0 uppercase tracking-wide">
+            Lvl <span className="text-foreground font-pixel">{currentLevel}</span>
           </div>
-        </div>
-      </div>
 
-      {/* ── Right-side spacer ── */}
-      <div className="flex-1" />
+          <div className="w-px h-5 bg-[var(--surface-line)] shrink-0" />
+
+          {/* ── Score ── */}
+          <div className="shrink-0 min-w-[90px]">
+            <div
+              className={`font-pixel text-sm tabular-nums transition-colors duration-150 ${
+                isScoreAnimating ? "text-[var(--primary-light)]" : "text-primary"
+              }`}
+              style={isScoreAnimating ? { textShadow: "0 0 8px rgba(171,221,100,.5)" } : undefined}
+            >
+              {animatedScore.toLocaleString()}
+            </div>
+          </div>
+
+          {/* ── Multiplier bar — absolute centered ── */}
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60"
+            style={{ width: 200 }}
+          >
+            <div className="relative h-5 rounded-full overflow-hidden bg-[var(--surface)] border border-[var(--surface-line)]">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
+                style={{
+                  width: `${fillPct}%`,
+                  background: multGradient,
+                  boxShadow: `0 0 8px ${multGlow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span
+                  className="font-pixel text-[11px] leading-none"
+                  style={{
+                    color: "#fff",
+                    textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  x{multiplier}{isMax ? " MAX" : ""}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1" />
+        </>
+      )}
 
       {/* ── Action buttons ── */}
       <div className="flex items-center gap-1 shrink-0">

@@ -6,7 +6,9 @@ import {
   useCoinStore,
 } from "../stores/gameStore";
 
-import { GameState, MenuType, AudioEvent } from "../types/enums";
+import { GameState, MenuType, AudioEvent, TutorialMissionId } from "../types/enums";
+import { TUTORIAL_MISSIONS } from "../tutorials/missions";
+import type { TutorialManager } from "./TutorialManager";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { sendGameStateUpdate } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
@@ -28,6 +30,8 @@ export class GameStateManager {
   private scalingManager: ScalingManager;
   private monsterSpawnManager: OptimizedSpawnManager;
   private monsterRespawnManager: OptimizedRespawnManager;
+  private tutorialManager?: TutorialManager;
+  private onTutorialMapLoad?: (mapId: TutorialMissionId) => void;
 
   private scheduleTimer(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
     const id = setTimeout(() => {
@@ -557,6 +561,53 @@ export class GameStateManager {
     const { setMenuType } = useStateStore.getState();
     setMenuType(MenuType.CONTROLS);
   }
+
+  public setTutorialManager(manager: TutorialManager): void {
+    this.tutorialManager = manager;
+  }
+
+  public setOnTutorialMapLoad(cb: (id: TutorialMissionId) => void): void {
+    this.onTutorialMapLoad = cb;
+  }
+
+  public openTutorialSelect(): void {
+    const { setMenuType } = useStateStore.getState();
+    setMenuType(MenuType.TUTORIAL_SELECT);
+  }
+
+  public startTutorialMission(id: TutorialMissionId): void {
+    log.info(`Starting tutorial mission: ${id}`);
+    this.clearAllTimers();
+    this.resetBonusTransition();
+
+    // Mark tutorial state — gates score/credit/scaling logic elsewhere.
+    this.tutorialManager?.startMission(id);
+
+    // Load the mission's map (skips deductCredits / scoring path).
+    this.onTutorialMapLoad?.(id);
+
+    this.setState(GameState.COUNTDOWN, MenuType.COUNTDOWN);
+    this.scheduleTimer(() => {
+      this.setState(GameState.PLAYING);
+    }, 3000);
+  }
+
+  public skipTutorialMission(): void {
+    this.tutorialManager?.skipMission();
+    this.finishTutorialMission();
+  }
+
+  /**
+   * Called when TutorialManager has set tutorialResult (mission complete or
+   * skipped). Cleans up game-loop side effects and shows the result menu.
+   */
+  public finishTutorialMission(): void {
+    log.info("Tutorial mission ended");
+    this.clearAllTimers();
+    const stateStore = useStateStore.getState();
+    stateStore.setTutorialMission(null);
+    this.setState(GameState.MENU, MenuType.TUTORIAL_RESULT);
+  }
   /**
    * Go back from settings menu
    */
@@ -580,16 +631,18 @@ export class GameStateManager {
    */
   public quitToMenu(): void {
     const gameState = useGameStore.getState();
+    const stateStore = useStateStore.getState();
 
     log.info("Quitting to main menu");
 
-    // Clear any pending timers
     this.clearAllTimers();
 
-    // Reset the game
+    // Clear any active tutorial state so InGameMenu/HUD don't carry over.
+    this.tutorialManager?.exitMission();
+    stateStore.setTutorialResult(null);
+
     log.data('CoinSpawn: Quit to menu - full reset, all coin spawn counters cleared');
     gameState.resetGame();
-    // Set to menu state with start menu
     this.setState(GameState.MENU, MenuType.START);
   }
 }
