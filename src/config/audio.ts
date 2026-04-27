@@ -7,7 +7,7 @@ import { AudioSettings } from "@/stores/systems/audioStore";
 
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   masterVolume: 50,
-  musicVolume: 80,
+  musicVolume: 40,
   sfxVolume: 20,
   masterMuted: false,
   musicMuted: false,

@@ -67,7 +67,7 @@ const PauseMenu: React.FC = () => {
             onClick={restartGame}
             variant="secondary"
             disabled={isDeducting}
-            className={`w-full uppercase ${isDeducting ? "opacity-70" : ""}`}
+            className={`w-full uppercase text-sm tracking-normal ${isDeducting ? "opacity-70" : ""}`}
           >
             <RotateCcw size={20} />
             {isDeducting ? "Venter..." : hasBridge ? "Start på nytt (1 mynt)" : "Start på nytt"}

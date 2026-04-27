@@ -1435,6 +1435,11 @@ export class CoinManager {
     this.activeEffects.clear();
     this.bombAndMonsterPoints = 0;
     this.monsterKillCount = 0;
+    // Clear spawn-condition keys alongside firebombCount; otherwise level 2's
+    // bomb #9 hits the already-triggered "POWER_9" key from level 1 and the
+    // P-coin never spawns again. Same for lastProcessedScore (B-coin keys).
+    this.triggeredSpawnConditions.clear();
+    this.lastProcessedScore = 0;
     log.debug("Coin effects reset");
   }
 
