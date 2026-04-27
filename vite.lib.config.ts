@@ -50,8 +50,9 @@ export default defineConfig({
     assetsInlineLimit: 0,
     // Copy public directory for any remaining assets
     copyPublicDir: true,
-    // Ensure we get source maps for debugging
-    sourcemap: true,
+    // Source maps off for the published bundle (saves ~44MB per install +
+    // avoids leaking original TS structure to npm consumers).
+    sourcemap: false,
     // Target modern browsers
     target: 'es2020',
   },
