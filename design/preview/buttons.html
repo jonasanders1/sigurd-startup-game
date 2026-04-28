@@ -1,0 +1,18 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>html,body{margin:0;padding:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans);}
+.card{padding:24px;}
+.lbl{font-family:var(--font-pixel);font-size:10px;letter-spacing:.2em;color:var(--foreground-dim);margin-bottom:4px;}
+.mono{font-family:var(--font-mono);}
+.pix{font-family:var(--font-pixel);}
+.lcd{font-family:var(--font-lcd);}
+</style></head><body><div class="card">
+  <div class="lbl">BUTTONS</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:14px">
+    <button class="pix" style="background:var(--primary);color:#fff;border:2px solid #fff;padding:12px 22px;font-size:18px;letter-spacing:.04em;box-shadow:0 4px 0 0 var(--primary-dark), 0 0 24px rgba(239,51,64,.45);cursor:pointer;border-radius:2px">PRESS START</button>
+    <button class="pix" style="background:transparent;color:var(--foreground);border:2px solid var(--foreground);padding:12px 22px;font-size:18px;letter-spacing:.04em;box-shadow:0 4px 0 0 var(--surface-line);cursor:pointer;border-radius:2px">LES REGLENE</button>
+    <button class="mono" style="background:var(--surface-raised);color:var(--foreground);border:1px solid var(--surface-line);border-bottom-width:3px;padding:8px 14px;font-size:13px;cursor:pointer;border-radius:2px">Secondary action</button>
+    <button class="mono" style="background:transparent;color:var(--primary-light);border:none;padding:8px 14px;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:4px">ghost link</button>
+  </div>
+  <div class="mono" style="font-size:11px;color:var(--foreground-dim);margin-top:14px">Press state sinks 3px (Y-translate). Hover adds 2px lift. No scale transforms.</div>
+</div></body></html>
