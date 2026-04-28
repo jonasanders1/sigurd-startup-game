@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MainGame from "./components/MainGame";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { EditorRoot } from "./editor/EditorRoot";
+import { PreviewMode } from "./editor/PreviewMode";
+import { useEditorStore } from "./editor/store";
 
 const queryClient = new QueryClient();
 
@@ -12,7 +14,12 @@ const isEditorMode = (): boolean => {
 };
 
 const App = () => {
+  const previewActive = useEditorStore((s) => s.previewActive);
+
   if (isEditorMode()) {
+    if (previewActive) {
+      return <PreviewMode />;
+    }
     return <EditorRoot />;
   }
   return (

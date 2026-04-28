@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   X,
   Trash2,
+  Play,
 } from "lucide-react";
 
 const buildBuiltinList = (): { id: string; map: MapDefinition; label: string }[] =>
@@ -204,6 +205,7 @@ export const Toolbar: React.FC = () => {
     savedMaps,
     saveCurrent,
     deleteSaved,
+    startPreview,
   } = useEditorStore();
 
   const [exportPayload, setExportPayload] = useState<ExportPayload | null>(null);
@@ -436,6 +438,18 @@ export const Toolbar: React.FC = () => {
 
         <button onClick={handleSave} style={btn} title="Save current map">
           <Save size={14} /> Save
+        </button>
+
+        <button
+          onClick={startPreview}
+          style={{
+            ...btnActive,
+            background: "#16a34a",
+            border: "1px solid #22c55e",
+          }}
+          title="Play-test this map with full physics"
+        >
+          <Play size={14} /> Preview
         </button>
 
         <button onClick={handleExportTs} style={btnActive} title="Export to TypeScript code">

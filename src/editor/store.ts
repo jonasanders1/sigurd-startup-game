@@ -32,6 +32,7 @@ interface EditorState {
   past: Snapshot[];
   future: Snapshot[];
   savedMaps: SavedMap[];
+  previewActive: boolean;
 
   // Actions
   setTool: (tool: Tool) => void;
@@ -57,6 +58,9 @@ interface EditorState {
   refreshSaved: () => void;
   saveCurrent: (name: string) => void;
   deleteSaved: (key: string) => void;
+  // Preview
+  startPreview: () => void;
+  stopPreview: () => void;
 }
 
 const cloneSnap = (s: Pick<EditorState, "entities" | "meta">): Snapshot => ({
@@ -105,6 +109,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     past: [],
     future: [],
     savedMaps: loadSaved(),
+    previewActive: false,
 
     setTool: (tool) => set({ tool, selectedIds: new Set() }),
 
@@ -277,6 +282,9 @@ export const useEditorStore = create<EditorState>((set, get) => {
       writeSaved(next);
       set({ savedMaps: next });
     },
+
+    startPreview: () => set({ previewActive: true }),
+    stopPreview: () => set({ previewActive: false }),
   };
 });
 
