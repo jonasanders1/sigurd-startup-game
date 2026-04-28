@@ -6,7 +6,6 @@ import {
   MousePointer2,
   Square,
   RectangleVertical,
-  Circle,
   Bomb,
   Coins,
   User,
@@ -321,22 +320,6 @@ export const ToolPalette: React.FC = () => {
           color="#f472b6"
         >
           <Coins size={16} />
-        </ToolButton>
-        <ToolButton
-          active={isActiveTool(tool, {
-            kind: "place",
-            entity: "coinSpawn",
-            subType: CoinType.MONSTER_FREEZE,
-          })}
-          onClick={set({
-            kind: "place",
-            entity: "coinSpawn",
-            subType: CoinType.MONSTER_FREEZE,
-          })}
-          label="Freeze"
-          color="#67e8f9"
-        >
-          <Circle size={16} />
         </ToolButton>
       </Section>
     </div>

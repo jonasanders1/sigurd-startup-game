@@ -7,15 +7,15 @@ import { Toolbar } from "./Toolbar";
 
 export const EditorRoot: React.FC = () => {
   const {
-    selectedId,
-    deleteEntity,
+    selectedIds,
+    deleteSelected,
     duplicateSelected,
+    moveSelected,
+    selectAll,
     undo,
     redo,
     setTool,
     tool,
-    updateEntity,
-    entities,
   } = useEditorStore();
 
   useEffect(() => {
@@ -35,32 +35,33 @@ export const EditorRoot: React.FC = () => {
         else undo();
         return;
       }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        selectAll();
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
         e.preventDefault();
         duplicateSelected();
         return;
       }
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedIds.size > 0) {
         e.preventDefault();
-        deleteEntity(selectedId);
+        deleteSelected();
         return;
       }
       if (e.key === "Escape") {
         if (tool.kind !== "select") setTool({ kind: "select" });
         return;
       }
-      // Nudge selected entity with arrow keys
-      if (selectedId && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      if (selectedIds.size > 0 && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
         e.preventDefault();
-        const ent = entities.find((en) => en.id === selectedId);
-        if (!ent) return;
         const step = e.shiftKey ? 10 : 1;
         const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
         const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
-        updateEntity(selectedId, { x: ent.x + dx, y: ent.y + dy });
+        moveSelected(dx, dy);
         return;
       }
-      // Tool shortcuts
       const map: Record<string, () => void> = {
         v: () => setTool({ kind: "select" }),
         p: () => setTool({ kind: "place", entity: "platform" }),
@@ -77,15 +78,15 @@ export const EditorRoot: React.FC = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [
-    selectedId,
-    deleteEntity,
+    selectedIds,
+    deleteSelected,
     duplicateSelected,
+    moveSelected,
+    selectAll,
     undo,
     redo,
     setTool,
     tool,
-    updateEntity,
-    entities,
   ]);
 
   return (

@@ -280,15 +280,18 @@ const MonsterEditor: React.FC<{
 export const PropertiesPanel: React.FC = () => {
   const {
     entities,
-    selectedId,
+    selectedIds,
     updateEntity,
-    deleteEntity,
+    deleteSelected,
     duplicateSelected,
     meta,
     setMeta,
   } = useEditorStore();
 
-  const selected = entities.find((e) => e.id === selectedId) ?? null;
+  const selected =
+    selectedIds.size === 1
+      ? entities.find((e) => selectedIds.has(e.id)) ?? null
+      : null;
 
   const update = (patch: Partial<EditorEntity>) => {
     if (!selected) return;
@@ -308,7 +311,70 @@ export const PropertiesPanel: React.FC = () => {
         fontFamily: "system-ui, sans-serif",
       }}
     >
-      {!selected && (
+      {selectedIds.size > 1 && (
+        <>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+              color: "#94a3b8",
+              marginBottom: 8,
+            }}
+          >
+            {selectedIds.size} entities selected
+          </div>
+          <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
+            <button
+              onClick={duplicateSelected}
+              title="Duplicate (Cmd+D)"
+              style={{
+                flex: 1,
+                padding: "6px 8px",
+                background: "#1f2937",
+                border: "1px solid #374151",
+                color: "#cbd5e1",
+                borderRadius: 3,
+                cursor: "pointer",
+                fontSize: 11,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                justifyContent: "center",
+              }}
+            >
+              <Copy size={12} /> Duplicate
+            </button>
+            <button
+              onClick={deleteSelected}
+              title="Delete (Del)"
+              style={{
+                flex: 1,
+                padding: "6px 8px",
+                background: "#7f1d1d",
+                border: "1px solid #b91c1c",
+                color: "#fff",
+                borderRadius: 3,
+                cursor: "pointer",
+                fontSize: 11,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                justifyContent: "center",
+              }}
+            >
+              <Trash2 size={12} /> Delete
+            </button>
+          </div>
+          <div style={{ fontSize: 11, color: "#64748b" }}>
+            Drag any selected entity to move them all together. Click an empty
+            spot to deselect, or click a single entity for property editing.
+          </div>
+        </>
+      )}
+
+      {selectedIds.size === 0 && (
         <>
           <div
             style={{
@@ -399,7 +465,7 @@ export const PropertiesPanel: React.FC = () => {
                 <Copy size={12} />
               </button>
               <button
-                onClick={() => deleteEntity(selected.id)}
+                onClick={deleteSelected}
                 title="Delete (Del)"
                 style={{
                   padding: 4,
@@ -488,10 +554,9 @@ export const PropertiesPanel: React.FC = () => {
                 label="Coin Type"
                 value={selected.coinType}
                 options={[
-                  { value: CoinType.POWER, label: "Power" },
+                  { value: CoinType.POWER, label: "Power (freezes monsters)" },
                   { value: CoinType.BONUS_MULTIPLIER, label: "Bonus Mult." },
                   { value: CoinType.EXTRA_LIFE, label: "Extra Life" },
-                  { value: CoinType.MONSTER_FREEZE, label: "Freeze" },
                 ]}
                 onChange={(v) => update({ coinType: v } as Partial<EditorEntity>)}
               />

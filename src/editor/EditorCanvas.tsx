@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useEditorStore, commitHistory } from "./store";
 import { GAME_CONFIG } from "../types/constants";
 import { MonsterType, CoinType } from "../types/enums";
-import { EditorEntity } from "./types";
+import { EditorEntity, MonsterEntity } from "./types";
 import {
   defaultPlatform,
   defaultVerticalWall,
@@ -40,33 +40,87 @@ const getEntityRect = (e: EditorEntity) => {
     case "ground":
       return { x: e.x, y: e.y, width: e.width, height: e.height };
     case "bomb":
-      return {
-        x: e.x,
-        y: e.y,
-        width: GAME_CONFIG.BOMB_SIZE,
-        height: GAME_CONFIG.BOMB_SIZE,
-      };
+      return { x: e.x, y: e.y, width: GAME_CONFIG.BOMB_SIZE, height: GAME_CONFIG.BOMB_SIZE };
     case "monster":
-      return {
-        x: e.x,
-        y: e.y,
-        width: GAME_CONFIG.MONSTER_SIZE,
-        height: GAME_CONFIG.MONSTER_SIZE,
-      };
+      return { x: e.x, y: e.y, width: GAME_CONFIG.MONSTER_SIZE, height: GAME_CONFIG.MONSTER_SIZE };
     case "coinSpawn":
-      return {
-        x: e.x,
-        y: e.y,
-        width: GAME_CONFIG.COIN_SIZE,
-        height: GAME_CONFIG.COIN_SIZE,
-      };
+      return { x: e.x, y: e.y, width: GAME_CONFIG.COIN_SIZE, height: GAME_CONFIG.COIN_SIZE };
     case "playerStart":
-      return {
-        x: e.x,
-        y: e.y,
-        width: GAME_CONFIG.PLAYER_WIDTH,
-        height: GAME_CONFIG.PLAYER_HEIGHT,
-      };
+      return { x: e.x, y: e.y, width: GAME_CONFIG.PLAYER_WIDTH, height: GAME_CONFIG.PLAYER_HEIGHT };
+  }
+};
+
+const rectsIntersect = (
+  a: { x: number; y: number; width: number; height: number },
+  b: { x: number; y: number; width: number; height: number }
+): boolean =>
+  a.x < b.x + b.width &&
+  a.x + a.width > b.x &&
+  a.y < b.y + b.height &&
+  a.y + a.height > b.y;
+
+interface ArrowProps {
+  /** Origin in entity-local pixels (relative to entity's top-left). */
+  fromX: number;
+  fromY: number;
+  /** Direction angle in degrees (0 = right, 90 = down). */
+  angleDeg: number;
+  length: number;
+  color: string;
+}
+
+const ArrowOverlay: React.FC<ArrowProps> = ({ fromX, fromY, angleDeg, length, color }) => {
+  // Render as an absolutely-positioned div with a rotation transform
+  const rad = (angleDeg * Math.PI) / 180;
+  const dx = Math.cos(rad) * length;
+  const dy = Math.sin(rad) * length;
+  return (
+    <svg
+      style={{
+        position: "absolute",
+        left: -CANVAS_W,
+        top: -CANVAS_H,
+        width: CANVAS_W * 2,
+        height: CANVAS_H * 2,
+        pointerEvents: "none",
+        overflow: "visible",
+      }}
+    >
+      <defs>
+        <marker
+          id={`arrow-${color.replace("#", "")}`}
+          markerWidth="6"
+          markerHeight="6"
+          refX="5"
+          refY="3"
+          orient="auto"
+        >
+          <path d="M0,0 L0,6 L6,3 z" fill={color} />
+        </marker>
+      </defs>
+      <line
+        x1={CANVAS_W + fromX}
+        y1={CANVAS_H + fromY}
+        x2={CANVAS_W + fromX + dx}
+        y2={CANVAS_H + fromY + dy}
+        stroke={color}
+        strokeWidth={2}
+        markerEnd={`url(#arrow-${color.replace("#", "")})`}
+      />
+    </svg>
+  );
+};
+
+const monsterArrowAngle = (m: MonsterEntity): number | null => {
+  switch (m.monsterType) {
+    case MonsterType.FLOATER:
+      return m.startAngle ?? 45;
+    case MonsterType.HORIZONTAL_PATROL:
+      return (m.spawnSide ?? "left") === "left" ? 0 : 180;
+    case MonsterType.VERTICAL_PATROL:
+      return (m.direction ?? 1) >= 0 ? 90 : -90;
+    default:
+      return null;
   }
 };
 
@@ -74,12 +128,14 @@ interface EntityVisualProps {
   entity: EditorEntity;
   selected: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
+  onResizeStart?: (e: React.MouseEvent, axis: "x" | "y") => void;
 }
 
 const EntityVisual: React.FC<EntityVisualProps> = ({
   entity,
   selected,
   onMouseDown,
+  onResizeStart,
 }) => {
   const rect = getEntityRect(entity);
   const baseStyle: React.CSSProperties = {
@@ -94,6 +150,43 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
     outlineOffset: 1,
   };
 
+  const renderResizeHandle = () => {
+    if (!selected || entity.kind !== "platform") return null;
+    const isVert = entity.isVertical ?? false;
+    return (
+      <div
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          onResizeStart?.(e, isVert ? "y" : "x");
+        }}
+        style={{
+          position: "absolute",
+          ...(isVert
+            ? {
+                left: "50%",
+                bottom: -6,
+                transform: "translateX(-50%)",
+                width: 12,
+                height: 12,
+                cursor: "ns-resize",
+              }
+            : {
+                right: -6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 12,
+                height: 12,
+                cursor: "ew-resize",
+              }),
+          background: "#00f0ff",
+          border: "2px solid #0c4a6e",
+          borderRadius: 2,
+          zIndex: 10,
+        }}
+      />
+    );
+  };
+
   if (entity.kind === "platform" || entity.kind === "ground") {
     return (
       <div
@@ -101,11 +194,11 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
         style={{
           ...baseStyle,
           background: entity.color,
-          border: `1px solid ${
-            entity.kind === "platform" ? entity.borderColor ?? "#000" : "#000"
-          }`,
+          border: `1px solid ${entity.kind === "platform" ? entity.borderColor ?? "#000" : "#000"}`,
         }}
-      />
+      >
+        {renderResizeHandle()}
+      </div>
     );
   }
 
@@ -135,57 +228,80 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
   }
 
   if (entity.kind === "monster") {
+    const angle = monsterArrowAngle(entity);
     return (
-      <div
-        onMouseDown={onMouseDown}
-        style={{
-          ...baseStyle,
-          background: MONSTER_COLORS[entity.monsterType],
-          border: "1px solid #000",
-          opacity: entity.delayed ? 0.6 : 1,
-        }}
-        title={`${entity.monsterType}${entity.delayed ? ` (${entity.spawnDelay}ms)` : ""}`}
-      >
+      <>
         <div
+          onMouseDown={onMouseDown}
           style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#000",
-            fontSize: 8,
-            fontWeight: 700,
+            ...baseStyle,
+            background: MONSTER_COLORS[entity.monsterType],
+            border: "1px solid #000",
+            opacity: entity.delayed ? 0.6 : 1,
           }}
+          title={`${entity.monsterType}${entity.delayed ? ` (${entity.spawnDelay}ms)` : ""}`}
         >
-          {entity.monsterType.charAt(0)}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#000",
+              fontSize: 8,
+              fontWeight: 700,
+            }}
+          >
+            {entity.monsterType.charAt(0)}
+          </div>
         </div>
-      </div>
+        {angle !== null && (
+          <ArrowOverlay
+            fromX={entity.x + GAME_CONFIG.MONSTER_SIZE / 2}
+            fromY={entity.y + GAME_CONFIG.MONSTER_SIZE / 2}
+            angleDeg={angle}
+            length={28}
+            color={MONSTER_COLORS[entity.monsterType]}
+          />
+        )}
+      </>
     );
   }
 
   if (entity.kind === "coinSpawn") {
     return (
-      <div onMouseDown={onMouseDown} style={baseStyle}>
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            background: COIN_COLORS[entity.coinType],
-            borderRadius: "50%",
-            border: "2px dashed #000",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#000",
-            fontSize: 9,
-            fontWeight: 700,
-          }}
-          title={`Coin spawn: ${entity.coinType}`}
-        >
-          {entity.coinType.charAt(0)}
+      <>
+        <div onMouseDown={onMouseDown} style={baseStyle}>
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              background: COIN_COLORS[entity.coinType],
+              borderRadius: "50%",
+              border: "2px dashed #000",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#000",
+              fontSize: 9,
+              fontWeight: 700,
+            }}
+            title={`Coin spawn: ${entity.coinType}`}
+          >
+            {entity.coinType.charAt(0)}
+          </div>
         </div>
-      </div>
+        {entity.coinType === CoinType.POWER && entity.spawnAngle !== undefined && (
+          <ArrowOverlay
+            fromX={entity.x + GAME_CONFIG.COIN_SIZE / 2}
+            fromY={entity.y + GAME_CONFIG.COIN_SIZE / 2}
+            angleDeg={entity.spawnAngle}
+            length={32}
+            color={COIN_COLORS[entity.coinType]}
+          />
+        )}
+      </>
     );
   }
 
@@ -215,19 +331,34 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
   return null;
 };
 
-interface DragState {
-  id: string;
+interface DragMoveState {
   startX: number;
   startY: number;
-  origX: number;
-  origY: number;
+  origPositions: Map<string, { x: number; y: number }>;
   moved: boolean;
+}
+
+interface ResizeState {
+  id: string;
+  axis: "x" | "y";
+  startClient: number;
+  origLength: number;
+  moved: boolean;
+}
+
+interface MarqueeState {
+  startX: number;
+  startY: number;
+  curX: number;
+  curY: number;
+  additive: boolean;
+  preExisting: Set<string>;
 }
 
 export const EditorCanvas: React.FC = () => {
   const {
     entities,
-    selectedId,
+    selectedIds,
     tool,
     showGrid,
     gridSize,
@@ -235,60 +366,50 @@ export const EditorCanvas: React.FC = () => {
     showBackground,
     meta,
     setSelected,
+    toggleSelected,
     addEntity,
     updateEntity,
+    moveSelected,
     setTool,
   } = useEditorStore();
 
   const stageRef = useRef<HTMLDivElement>(null);
-  const [drag, setDrag] = useState<DragState | null>(null);
+  const [dragMove, setDragMove] = useState<DragMoveState | null>(null);
+  const [resize, setResize] = useState<ResizeState | null>(null);
+  const [marquee, setMarquee] = useState<MarqueeState | null>(null);
+  const marqueeRef = useRef<MarqueeState | null>(null);
+  marqueeRef.current = marquee;
 
-  const stageCoords = useCallback(
-    (clientX: number, clientY: number) => {
-      const r = stageRef.current?.getBoundingClientRect();
-      if (!r) return { x: 0, y: 0 };
-      return {
-        x: ((clientX - r.left) / r.width) * CANVAS_W,
-        y: ((clientY - r.top) / r.height) * CANVAS_H,
-      };
-    },
-    []
-  );
+  const stageCoords = useCallback((clientX: number, clientY: number) => {
+    const r = stageRef.current?.getBoundingClientRect();
+    if (!r) return { x: 0, y: 0 };
+    return {
+      x: ((clientX - r.left) / r.width) * CANVAS_W,
+      y: ((clientY - r.top) / r.height) * CANVAS_H,
+    };
+  }, []);
 
-  const handleStageMouseDown = (e: React.MouseEvent) => {
-    if (e.target !== stageRef.current && e.target !== e.currentTarget) {
-      // click on entity handled by entity onMouseDown
-      return;
-    }
-    if (tool.kind === "select") {
-      setSelected(null);
-      return;
-    }
-    const { x, y } = stageCoords(e.clientX, e.clientY);
+  const placeEntity = (clientX: number, clientY: number) => {
+    if (tool.kind !== "place") return;
+    const { x, y } = stageCoords(clientX, clientY);
     const sx = snap(x, gridSize, snapToGrid);
     const sy = snap(y, gridSize, snapToGrid);
     let entity: EditorEntity | null = null;
     if (tool.entity === "platform") {
-      entity =
-        tool.subType === "vertical"
-          ? defaultVerticalWall(sx, sy)
-          : defaultPlatform(sx, sy);
+      entity = tool.subType === "vertical" ? defaultVerticalWall(sx, sy) : defaultPlatform(sx, sy);
     } else if (tool.entity === "ground") {
       entity = { ...defaultGround(), x: sx, y: sy };
     } else if (tool.entity === "bomb") {
-      const existingBombs = entities.filter((en) => en.kind === "bomb").length;
+      const existing = entities.filter((en) => en.kind === "bomb").length;
       const next = defaultBomb(sx, sy);
-      next.order = existingBombs + 1;
-      next.group = Math.min(
-        meta.groupSequence.length,
-        Math.ceil((existingBombs + 1) / 3)
-      );
+      next.order = existing + 1;
+      next.group = Math.min(meta.groupSequence.length, Math.ceil((existing + 1) / 3));
       entity = next;
     } else if (tool.entity === "playerStart") {
       const existing = entities.find((en) => en.kind === "playerStart");
       if (existing) {
         updateEntity(existing.id, { x: sx, y: sy });
-        setSelected(existing.id);
+        setSelected([existing.id]);
         setTool({ kind: "select" });
         return;
       }
@@ -304,43 +425,94 @@ export const EditorCanvas: React.FC = () => {
     }
   };
 
-  const handleEntityMouseDown = (entityId: string) => (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (tool.kind !== "select") {
-      setTool({ kind: "select" });
+  const handleStageMouseDown = (e: React.MouseEvent) => {
+    if (e.target !== stageRef.current && e.target !== e.currentTarget) return;
+    if (tool.kind === "place") {
+      placeEntity(e.clientX, e.clientY);
+      return;
     }
-    setSelected(entityId);
-    const ent = entities.find((en) => en.id === entityId);
-    if (!ent) return;
-    setDrag({
-      id: entityId,
-      startX: e.clientX,
-      startY: e.clientY,
-      origX: ent.x,
-      origY: ent.y,
-      moved: false,
+    // Select tool: start marquee
+    const { x, y } = stageCoords(e.clientX, e.clientY);
+    const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+    if (!additive) setSelected(null);
+    setMarquee({
+      startX: x,
+      startY: y,
+      curX: x,
+      curY: y,
+      additive,
+      preExisting: new Set(selectedIds),
     });
   };
 
+  const handleEntityMouseDown =
+    (entityId: string) => (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (tool.kind !== "select") setTool({ kind: "select" });
+
+      const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+      let nextSelection: Set<string>;
+      if (additive) {
+        const next = new Set(selectedIds);
+        if (next.has(entityId)) next.delete(entityId);
+        else next.add(entityId);
+        toggleSelected(entityId);
+        nextSelection = next;
+      } else if (!selectedIds.has(entityId)) {
+        setSelected([entityId]);
+        nextSelection = new Set([entityId]);
+      } else {
+        nextSelection = new Set(selectedIds);
+      }
+
+      // Begin drag-move for all currently-selected entities
+      if (nextSelection.size === 0) return;
+      const positions = new Map<string, { x: number; y: number }>();
+      for (const ent of entities) {
+        if (nextSelection.has(ent.id)) positions.set(ent.id, { x: ent.x, y: ent.y });
+      }
+      setDragMove({
+        startX: e.clientX,
+        startY: e.clientY,
+        origPositions: positions,
+        moved: false,
+      });
+    };
+
+  const handleResizeStart =
+    (entityId: string) => (e: React.MouseEvent, axis: "x" | "y") => {
+      const ent = entities.find((en) => en.id === entityId);
+      if (!ent || ent.kind !== "platform") return;
+      setResize({
+        id: entityId,
+        axis,
+        startClient: axis === "x" ? e.clientX : e.clientY,
+        origLength: axis === "x" ? ent.width : ent.height,
+        moved: false,
+      });
+    };
+
+  // Drag-move effect
   useEffect(() => {
-    if (!drag) return;
+    if (!dragMove) return;
     const onMove = (e: MouseEvent) => {
       const r = stageRef.current?.getBoundingClientRect();
       if (!r) return;
-      const dx = ((e.clientX - drag.startX) / r.width) * CANVAS_W;
-      const dy = ((e.clientY - drag.startY) / r.height) * CANVAS_H;
-      const nx = snap(drag.origX + dx, gridSize, snapToGrid);
-      const ny = snap(drag.origY + dy, gridSize, snapToGrid);
-      updateEntity(drag.id, { x: nx, y: ny });
-      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-        if (!drag.moved) {
-          setDrag({ ...drag, moved: true });
-        }
+      const dx = ((e.clientX - dragMove.startX) / r.width) * CANVAS_W;
+      const dy = ((e.clientY - dragMove.startY) / r.height) * CANVAS_H;
+      let moved = dragMove.moved;
+      if (!moved && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) moved = true;
+      // Apply per-entity using its original snapped position so drag stays consistent
+      for (const [id, orig] of dragMove.origPositions) {
+        const nx = snap(orig.x + dx, gridSize, snapToGrid);
+        const ny = snap(orig.y + dy, gridSize, snapToGrid);
+        updateEntity(id, { x: nx, y: ny });
       }
+      if (moved !== dragMove.moved) setDragMove({ ...dragMove, moved });
     };
     const onUp = () => {
-      if (drag.moved) commitHistory();
-      setDrag(null);
+      if (dragMove.moved) commitHistory();
+      setDragMove(null);
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -348,14 +520,72 @@ export const EditorCanvas: React.FC = () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, [drag, gridSize, snapToGrid, updateEntity]);
+  }, [dragMove, gridSize, snapToGrid, updateEntity]);
+
+  // Resize effect
+  useEffect(() => {
+    if (!resize) return;
+    const onMove = (e: MouseEvent) => {
+      const r = stageRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const client = resize.axis === "x" ? e.clientX : e.clientY;
+      const scale = resize.axis === "x" ? r.width / CANVAS_W : r.height / CANVAS_H;
+      const delta = (client - resize.startClient) / scale;
+      const raw = Math.max(15, resize.origLength + delta);
+      const snapped = snapToGrid ? Math.max(gridSize, Math.round(raw / gridSize) * gridSize) : Math.round(raw);
+      if (resize.axis === "x") updateEntity(resize.id, { width: snapped } as Partial<EditorEntity>);
+      else updateEntity(resize.id, { height: snapped } as Partial<EditorEntity>);
+      if (!resize.moved) setResize({ ...resize, moved: true });
+    };
+    const onUp = () => {
+      if (resize.moved) commitHistory();
+      setResize(null);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [resize, gridSize, snapToGrid, updateEntity]);
+
+  // Marquee effect
+  useEffect(() => {
+    if (!marquee) return;
+    const onMove = (e: MouseEvent) => {
+      const { x, y } = stageCoords(e.clientX, e.clientY);
+      setMarquee((m) => (m ? { ...m, curX: x, curY: y } : m));
+    };
+    const onUp = () => {
+      const m = marqueeRef.current;
+      setMarquee(null);
+      if (!m) return;
+      const x1 = Math.min(m.startX, m.curX);
+      const y1 = Math.min(m.startY, m.curY);
+      const x2 = Math.max(m.startX, m.curX);
+      const y2 = Math.max(m.startY, m.curY);
+      const box = { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+      if (box.width < 2 && box.height < 2) return;
+      const hits = entities
+        .filter((ent) => rectsIntersect(getEntityRect(ent), box))
+        .map((e) => e.id);
+      const nextIds = m.additive
+        ? Array.from(new Set([...m.preExisting, ...hits]))
+        : hits;
+      setSelected(nextIds);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [marquee, entities, stageCoords, setSelected]);
 
   const cursor =
-    tool.kind === "place" ? "crosshair" : drag ? "grabbing" : "default";
+    tool.kind === "place" ? "crosshair" : dragMove ? "grabbing" : "default";
 
-  const bgImage = showBackground
-    ? `url(/maps-bg-images/${meta.background}.png)`
-    : "none";
+  const bgImage = showBackground ? `url(/maps-bg-images/${meta.background}.png)` : "none";
 
   return (
     <div
@@ -372,6 +602,7 @@ export const EditorCanvas: React.FC = () => {
         cursor,
         userSelect: "none",
         boxShadow: "0 0 0 2px #444",
+        overflow: "hidden",
       }}
     >
       {showGrid && (
@@ -393,12 +624,27 @@ export const EditorCanvas: React.FC = () => {
         <EntityVisual
           key={entity.id}
           entity={entity}
-          selected={entity.id === selectedId}
+          selected={selectedIds.has(entity.id)}
           onMouseDown={handleEntityMouseDown(entity.id)}
+          onResizeStart={handleResizeStart(entity.id)}
         />
       ))}
 
-      {/* Coordinate readout for placement */}
+      {marquee && (
+        <div
+          style={{
+            position: "absolute",
+            left: Math.min(marquee.startX, marquee.curX),
+            top: Math.min(marquee.startY, marquee.curY),
+            width: Math.abs(marquee.curX - marquee.startX),
+            height: Math.abs(marquee.curY - marquee.startY),
+            border: "1px dashed #00f0ff",
+            background: "rgba(0, 240, 255, 0.08)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
       {tool.kind === "place" && (
         <div
           style={{
@@ -415,6 +661,24 @@ export const EditorCanvas: React.FC = () => {
         >
           Placing: {tool.entity}
           {tool.subType ? ` / ${tool.subType}` : ""}
+        </div>
+      )}
+
+      {selectedIds.size > 1 && (
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            background: "rgba(0,0,0,0.7)",
+            color: "#0ff",
+            padding: "4px 8px",
+            fontSize: 11,
+            fontFamily: "monospace",
+            pointerEvents: "none",
+          }}
+        >
+          {selectedIds.size} selected
         </div>
       )}
     </div>

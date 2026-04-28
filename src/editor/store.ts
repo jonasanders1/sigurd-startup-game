@@ -6,16 +6,24 @@ import {
 } from "./defaults";
 
 const HISTORY_LIMIT = 50;
+const STORAGE_KEY = "sigurd-editor-saves-v1";
 
 interface Snapshot {
   entities: EditorEntity[];
   meta: MapMeta;
 }
 
+export interface SavedMap {
+  key: string;        // unique storage key
+  name: string;       // user-facing name
+  savedAt: number;    // ms timestamp
+  snapshot: Snapshot;
+}
+
 interface EditorState {
   entities: EditorEntity[];
   meta: MapMeta;
-  selectedId: string | null;
+  selectedIds: Set<string>;
   tool: Tool;
   showGrid: boolean;
   gridSize: number;
@@ -23,13 +31,17 @@ interface EditorState {
   showBackground: boolean;
   past: Snapshot[];
   future: Snapshot[];
+  savedMaps: SavedMap[];
 
   // Actions
   setTool: (tool: Tool) => void;
-  setSelected: (id: string | null) => void;
+  setSelected: (ids: string[] | null) => void;
+  toggleSelected: (id: string) => void;
+  selectAll: () => void;
   addEntity: (entity: EditorEntity) => void;
   updateEntity: (id: string, patch: Partial<EditorEntity>) => void;
-  deleteEntity: (id: string) => void;
+  moveSelected: (dx: number, dy: number) => void;
+  deleteSelected: () => void;
   duplicateSelected: () => void;
   setMeta: (patch: Partial<MapMeta>) => void;
   loadSnapshot: (snap: Snapshot) => void;
@@ -40,17 +52,42 @@ interface EditorState {
   toggleBackground: () => void;
   undo: () => void;
   redo: () => void;
+  // Saved maps
+  refreshSaved: () => void;
+  saveCurrent: (name: string) => void;
+  deleteSaved: (key: string) => void;
 }
 
-const snapshot = (s: Pick<EditorState, "entities" | "meta">): Snapshot => ({
+const cloneSnap = (s: Pick<EditorState, "entities" | "meta">): Snapshot => ({
   entities: JSON.parse(JSON.stringify(s.entities)),
   meta: JSON.parse(JSON.stringify(s.meta)),
 });
 
+const loadSaved = (): SavedMap[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as SavedMap[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeSaved = (maps: SavedMap[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(maps));
+  } catch {
+    // quota exceeded — silently fail
+  }
+};
+
 export const useEditorStore = create<EditorState>((set, get) => {
   const pushHistory = () => {
     const { entities, meta, past } = get();
-    const next = [...past, snapshot({ entities, meta })];
+    const next = [...past, cloneSnap({ entities, meta })];
     if (next.length > HISTORY_LIMIT) next.shift();
     set({ past: next, future: [] });
   };
@@ -58,7 +95,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
   return {
     entities: blankMapEntities(),
     meta: defaultMapMeta(),
-    selectedId: null,
+    selectedIds: new Set<string>(),
     tool: { kind: "select" },
     showGrid: true,
     gridSize: 25,
@@ -66,17 +103,33 @@ export const useEditorStore = create<EditorState>((set, get) => {
     showBackground: true,
     past: [],
     future: [],
+    savedMaps: loadSaved(),
 
-    setTool: (tool) => set({ tool, selectedId: null }),
-    setSelected: (id) => set({ selectedId: id }),
+    setTool: (tool) => set({ tool, selectedIds: new Set() }),
+
+    setSelected: (ids) =>
+      set({ selectedIds: ids ? new Set(ids) : new Set() }),
+
+    toggleSelected: (id) =>
+      set((s) => {
+        const next = new Set(s.selectedIds);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return { selectedIds: next };
+      }),
+
+    selectAll: () =>
+      set((s) => ({ selectedIds: new Set(s.entities.map((e) => e.id)) })),
 
     addEntity: (entity) => {
       pushHistory();
-      set((s) => ({ entities: [...s.entities, entity], selectedId: entity.id }));
+      set((s) => ({
+        entities: [...s.entities, entity],
+        selectedIds: new Set([entity.id]),
+      }));
     },
 
     updateEntity: (id, patch) => {
-      // Don't push history on every drag-frame; caller throttles via commitMove.
       set((s) => ({
         entities: s.entities.map((e) =>
           e.id === id ? ({ ...e, ...patch } as EditorEntity) : e
@@ -84,27 +137,46 @@ export const useEditorStore = create<EditorState>((set, get) => {
       }));
     },
 
-    deleteEntity: (id) => {
+    moveSelected: (dx, dy) => {
+      set((s) => ({
+        entities: s.entities.map((e) =>
+          s.selectedIds.has(e.id) ? ({ ...e, x: e.x + dx, y: e.y + dy } as EditorEntity) : e
+        ),
+      }));
+    },
+
+    deleteSelected: () => {
+      const { selectedIds } = get();
+      if (selectedIds.size === 0) return;
       pushHistory();
       set((s) => ({
-        entities: s.entities.filter((e) => e.id !== id),
-        selectedId: s.selectedId === id ? null : s.selectedId,
+        entities: s.entities.filter((e) => !s.selectedIds.has(e.id)),
+        selectedIds: new Set(),
       }));
     },
 
     duplicateSelected: () => {
-      const { selectedId, entities } = get();
-      if (!selectedId) return;
-      const orig = entities.find((e) => e.id === selectedId);
-      if (!orig) return;
+      const { selectedIds, entities } = get();
+      if (selectedIds.size === 0) return;
       pushHistory();
-      const copy = {
-        ...JSON.parse(JSON.stringify(orig)),
-        id: `${orig.id}_copy_${Date.now().toString(36)}`,
-        x: orig.x + 20,
-        y: orig.y + 20,
-      } as EditorEntity;
-      set((s) => ({ entities: [...s.entities, copy], selectedId: copy.id }));
+      const stamp = Date.now().toString(36);
+      const newOnes: EditorEntity[] = [];
+      const newIds: string[] = [];
+      for (const orig of entities) {
+        if (!selectedIds.has(orig.id)) continue;
+        const copy = {
+          ...JSON.parse(JSON.stringify(orig)),
+          id: `${orig.id}_copy_${stamp}_${newOnes.length}`,
+          x: orig.x + 20,
+          y: orig.y + 20,
+        } as EditorEntity;
+        newOnes.push(copy);
+        newIds.push(copy.id);
+      }
+      set((s) => ({
+        entities: [...s.entities, ...newOnes],
+        selectedIds: new Set(newIds),
+      }));
     },
 
     setMeta: (patch) => {
@@ -117,7 +189,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       set({
         entities: JSON.parse(JSON.stringify(snap.entities)),
         meta: JSON.parse(JSON.stringify(snap.meta)),
-        selectedId: null,
+        selectedIds: new Set(),
       });
     },
 
@@ -126,7 +198,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
       set({
         entities: blankMapEntities(),
         meta: defaultMapMeta(),
-        selectedId: null,
+        selectedIds: new Set(),
       });
     },
 
@@ -141,10 +213,10 @@ export const useEditorStore = create<EditorState>((set, get) => {
       const prev = past[past.length - 1];
       set({
         past: past.slice(0, -1),
-        future: [...future, snapshot({ entities, meta })],
+        future: [...future, cloneSnap({ entities, meta })],
         entities: prev.entities,
         meta: prev.meta,
-        selectedId: null,
+        selectedIds: new Set(),
       });
     },
 
@@ -153,19 +225,46 @@ export const useEditorStore = create<EditorState>((set, get) => {
       if (future.length === 0) return;
       const next = future[future.length - 1];
       set({
-        past: [...past, snapshot({ entities, meta })],
+        past: [...past, cloneSnap({ entities, meta })],
         future: future.slice(0, -1),
         entities: next.entities,
         meta: next.meta,
-        selectedId: null,
+        selectedIds: new Set(),
       });
+    },
+
+    refreshSaved: () => set({ savedMaps: loadSaved() }),
+
+    saveCurrent: (name) => {
+      const { entities, meta } = get();
+      const trimmed = name.trim() || meta.name || "untitled";
+      const all = loadSaved();
+      const key =
+        all.find((m) => m.name === trimmed)?.key ??
+        `save_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+      const entry: SavedMap = {
+        key,
+        name: trimmed,
+        savedAt: Date.now(),
+        snapshot: cloneSnap({ entities, meta }),
+      };
+      const filtered = all.filter((m) => m.key !== key);
+      const next = [...filtered, entry].sort((a, b) => b.savedAt - a.savedAt);
+      writeSaved(next);
+      set({ savedMaps: next });
+    },
+
+    deleteSaved: (key) => {
+      const next = loadSaved().filter((m) => m.key !== key);
+      writeSaved(next);
+      set({ savedMaps: next });
     },
   };
 });
 
 export const commitHistory = () => {
   const s = useEditorStore.getState();
-  const next = [...s.past, snapshot({ entities: s.entities, meta: s.meta })];
+  const next = [...s.past, cloneSnap({ entities: s.entities, meta: s.meta })];
   if (next.length > HISTORY_LIMIT) next.shift();
   useEditorStore.setState({ past: next, future: [] });
 };
