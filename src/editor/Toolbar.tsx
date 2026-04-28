@@ -2,16 +2,7 @@ import React, { useState, useRef } from "react";
 import { useEditorStore } from "./store";
 import { serializeMap } from "./serialize";
 import { mapToEditor } from "./deserialize";
-import {
-  level1Map,
-  level2Map,
-  level3Map,
-  level4Map,
-  level5Map,
-  level6Map,
-  level7Map,
-  level8Map,
-} from "../maps/mapDefinitions";
+import { mapDefinitions } from "../maps/mapDefinitions";
 import { MapDefinition } from "../types/interfaces";
 import {
   FilePlus2,
@@ -31,16 +22,12 @@ import {
   Trash2,
 } from "lucide-react";
 
-const BUILTIN_MAPS: { id: string; map: MapDefinition; label: string }[] = [
-  { id: "level1", map: level1Map, label: "1 — Soverommet" },
-  { id: "level2", map: level2Map, label: "2 — Startup Lab" },
-  { id: "level3", map: level3Map, label: "3 — Innovasjon Norge" },
-  { id: "level4", map: level4Map, label: "4 — Skatteetaten" },
-  { id: "level5", map: level5Map, label: "5 — NAV" },
-  { id: "level6", map: level6Map, label: "6 — Kommunehuset" },
-  { id: "level7", map: level7Map, label: "7 — Alltinn Norge" },
-  { id: "level8", map: level8Map, label: "8 — Silicone Valley" },
-];
+const buildBuiltinList = (): { id: string; map: MapDefinition; label: string }[] =>
+  mapDefinitions.map((m, i) => ({
+    id: `__builtin_${i}`,
+    map: m,
+    label: `${i + 1} — ${m.name}`,
+  }));
 
 const btn: React.CSSProperties = {
   display: "inline-flex",
@@ -227,8 +214,10 @@ export const Toolbar: React.FC = () => {
     setExportPayload(serializeMap(entities, meta));
   };
 
+  const builtins = buildBuiltinList();
+
   const handleLoadBuiltin = (mapId: string) => {
-    const found = BUILTIN_MAPS.find((m) => m.id === mapId);
+    const found = builtins.find((m) => m.id === mapId);
     if (!found) return;
     const { entities: ents, meta: m } = mapToEditor(found.map);
     loadSnapshot({ entities: ents, meta: m });
@@ -343,7 +332,7 @@ export const Toolbar: React.FC = () => {
               >
                 Built-in
               </div>
-              {BUILTIN_MAPS.map((m) => (
+              {builtins.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => handleLoadBuiltin(m.id)}
