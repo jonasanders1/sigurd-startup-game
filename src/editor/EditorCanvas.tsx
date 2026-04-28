@@ -124,6 +124,104 @@ const monsterArrowAngle = (m: MonsterEntity): number | null => {
   }
 };
 
+interface PatrolOverlayProps {
+  monster: MonsterEntity;
+  onStartHandle: (e: React.MouseEvent) => void;
+  onEndHandle: (e: React.MouseEvent) => void;
+}
+
+const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
+  monster,
+  onStartHandle,
+  onEndHandle,
+}) => {
+  const isHoriz = monster.monsterType === MonsterType.HORIZONTAL_PATROL;
+  const color = isHoriz ? "#22c55e" : "#3b82f6";
+
+  let x1: number, y1: number, x2: number, y2: number;
+  if (isHoriz) {
+    const startX = monster.platformX ?? monster.x;
+    const width = monster.platformWidth ?? 150;
+    const trackY = (monster.platformY ?? monster.y + GAME_CONFIG.MONSTER_SIZE) - 1;
+    x1 = startX;
+    y1 = trackY;
+    x2 = startX + width;
+    y2 = trackY;
+  } else {
+    const startY = monster.y;
+    const height = monster.patrolHeight ?? 200;
+    const trackX = monster.x + GAME_CONFIG.MONSTER_SIZE / 2;
+    x1 = trackX;
+    y1 = startY;
+    x2 = trackX;
+    y2 = startY + height;
+  }
+
+  return (
+    <svg
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        overflow: "visible",
+      }}
+    >
+      {/* Patrol band — a thicker translucent stripe so it's readable */}
+      <line
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={color}
+        strokeWidth={isHoriz ? 4 : 4}
+        strokeOpacity={0.35}
+        strokeLinecap="round"
+        strokeDasharray="6 4"
+      />
+      {/* Endpoint ticks for clarity */}
+      <line
+        x1={isHoriz ? x1 : x1 - 8}
+        y1={isHoriz ? y1 - 8 : y1}
+        x2={isHoriz ? x1 : x1 + 8}
+        y2={isHoriz ? y1 + 8 : y1}
+        stroke={color}
+        strokeWidth={2}
+      />
+      <line
+        x1={isHoriz ? x2 : x2 - 8}
+        y1={isHoriz ? y2 - 8 : y2}
+        x2={isHoriz ? x2 : x2 + 8}
+        y2={isHoriz ? y2 + 8 : y2}
+        stroke={color}
+        strokeWidth={2}
+      />
+      {/* Drag handles — hit boxes have pointer events */}
+      <circle
+        cx={x1}
+        cy={y1}
+        r={7}
+        fill="#0c4a6e"
+        stroke={color}
+        strokeWidth={2}
+        style={{ pointerEvents: "auto", cursor: isHoriz ? "ew-resize" : "ns-resize" }}
+        onMouseDown={onStartHandle}
+      />
+      <circle
+        cx={x2}
+        cy={y2}
+        r={7}
+        fill="#0c4a6e"
+        stroke={color}
+        strokeWidth={2}
+        style={{ pointerEvents: "auto", cursor: isHoriz ? "ew-resize" : "ns-resize" }}
+        onMouseDown={onEndHandle}
+      />
+    </svg>
+  );
+};
+
 interface EntityVisualProps {
   entity: EditorEntity;
   selected: boolean;
@@ -334,7 +432,11 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
 interface DragMoveState {
   startX: number;
   startY: number;
-  origPositions: Map<string, { x: number; y: number }>;
+  /** Per-entity origin snapshot: position + (for patrol monsters) patrol origin. */
+  origPositions: Map<
+    string,
+    { x: number; y: number; platformX?: number; platformY?: number }
+  >;
   moved: boolean;
 }
 
@@ -343,6 +445,20 @@ interface ResizeState {
   axis: "x" | "y";
   startClient: number;
   origLength: number;
+  moved: boolean;
+}
+
+interface PatrolResizeState {
+  id: string;
+  edge: "start" | "end";
+  axis: "x" | "y"; // x = horizontal patrol, y = vertical patrol
+  startClient: number;
+  /** Original anchor that won't move (the opposite edge). */
+  fixedAnchor: number;
+  /** Original moving edge position. */
+  origMovingEdge: number;
+  /** Original monster x/y (only relevant when dragging start handle). */
+  origMonsterPos: number;
   moved: boolean;
 }
 
@@ -376,6 +492,7 @@ export const EditorCanvas: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
   const [dragMove, setDragMove] = useState<DragMoveState | null>(null);
   const [resize, setResize] = useState<ResizeState | null>(null);
+  const [patrolResize, setPatrolResize] = useState<PatrolResizeState | null>(null);
   const [marquee, setMarquee] = useState<MarqueeState | null>(null);
   const marqueeRef = useRef<MarqueeState | null>(null);
   marqueeRef.current = marquee;
@@ -467,9 +584,22 @@ export const EditorCanvas: React.FC = () => {
 
       // Begin drag-move for all currently-selected entities
       if (nextSelection.size === 0) return;
-      const positions = new Map<string, { x: number; y: number }>();
+      const positions = new Map<
+        string,
+        { x: number; y: number; platformX?: number; platformY?: number }
+      >();
       for (const ent of entities) {
-        if (nextSelection.has(ent.id)) positions.set(ent.id, { x: ent.x, y: ent.y });
+        if (!nextSelection.has(ent.id)) continue;
+        if (ent.kind === "monster") {
+          positions.set(ent.id, {
+            x: ent.x,
+            y: ent.y,
+            platformX: ent.platformX,
+            platformY: ent.platformY,
+          });
+        } else {
+          positions.set(ent.id, { x: ent.x, y: ent.y });
+        }
       }
       setDragMove({
         startX: e.clientX,
@@ -492,6 +622,49 @@ export const EditorCanvas: React.FC = () => {
       });
     };
 
+  const beginPatrolResize = (
+    monster: MonsterEntity,
+    edge: "start" | "end",
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const isHoriz = monster.monsterType === MonsterType.HORIZONTAL_PATROL;
+    if (isHoriz) {
+      const startX = monster.platformX ?? monster.x;
+      const width = monster.platformWidth ?? 150;
+      const endX = startX + width;
+      const fixed = edge === "start" ? endX : startX;
+      const moving = edge === "start" ? startX : endX;
+      setPatrolResize({
+        id: monster.id,
+        edge,
+        axis: "x",
+        startClient: e.clientX,
+        fixedAnchor: fixed,
+        origMovingEdge: moving,
+        origMonsterPos: monster.x,
+        moved: false,
+      });
+    } else {
+      const startY = monster.y;
+      const height = monster.patrolHeight ?? 200;
+      const endY = startY + height;
+      const fixed = edge === "start" ? endY : startY;
+      const moving = edge === "start" ? startY : endY;
+      setPatrolResize({
+        id: monster.id,
+        edge,
+        axis: "y",
+        startClient: e.clientY,
+        fixedAnchor: fixed,
+        origMovingEdge: moving,
+        origMonsterPos: monster.y,
+        moved: false,
+      });
+    }
+  };
+
   // Drag-move effect
   useEffect(() => {
     if (!dragMove) return;
@@ -506,7 +679,16 @@ export const EditorCanvas: React.FC = () => {
       for (const [id, orig] of dragMove.origPositions) {
         const nx = snap(orig.x + dx, gridSize, snapToGrid);
         const ny = snap(orig.y + dy, gridSize, snapToGrid);
-        updateEntity(id, { x: nx, y: ny });
+        const realDx = nx - orig.x;
+        const realDy = ny - orig.y;
+        const patch: Partial<EditorEntity> = { x: nx, y: ny };
+        if (orig.platformX !== undefined) {
+          (patch as Partial<MonsterEntity>).platformX = orig.platformX + realDx;
+        }
+        if (orig.platformY !== undefined) {
+          (patch as Partial<MonsterEntity>).platformY = orig.platformY + realDy;
+        }
+        updateEntity(id, patch);
       }
       if (moved !== dragMove.moved) setDragMove({ ...dragMove, moved });
     };
@@ -548,6 +730,66 @@ export const EditorCanvas: React.FC = () => {
       window.removeEventListener("mouseup", onUp);
     };
   }, [resize, gridSize, snapToGrid, updateEntity]);
+
+  // Patrol resize effect
+  useEffect(() => {
+    if (!patrolResize) return;
+    const onMove = (e: MouseEvent) => {
+      const r = stageRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const client = patrolResize.axis === "x" ? e.clientX : e.clientY;
+      const scale = patrolResize.axis === "x" ? r.width / CANVAS_W : r.height / CANVAS_H;
+      const delta = (client - patrolResize.startClient) / scale;
+      const newMoving = snap(
+        patrolResize.origMovingEdge + delta,
+        gridSize,
+        snapToGrid
+      );
+
+      const ent = useEditorStore
+        .getState()
+        .entities.find((en) => en.id === patrolResize.id);
+      if (!ent || ent.kind !== "monster") return;
+
+      if (patrolResize.axis === "x") {
+        // H. Patrol — fixedAnchor and newMoving define platform range.
+        const startX = Math.min(patrolResize.fixedAnchor, newMoving);
+        const endX = Math.max(patrolResize.fixedAnchor, newMoving);
+        const width = Math.max(GAME_CONFIG.MONSTER_SIZE, endX - startX);
+        const patch: Partial<MonsterEntity> = {
+          platformX: startX,
+          platformWidth: width,
+        };
+        if (patrolResize.edge === "start") {
+          // Monster sits at the start; its x follows the start anchor.
+          patch.x = startX;
+        }
+        updateEntity(patrolResize.id, patch as Partial<EditorEntity>);
+      } else {
+        // V. Patrol
+        const startY = Math.min(patrolResize.fixedAnchor, newMoving);
+        const endY = Math.max(patrolResize.fixedAnchor, newMoving);
+        const height = Math.max(GAME_CONFIG.MONSTER_SIZE, endY - startY);
+        const patch: Partial<MonsterEntity> = { patrolHeight: height };
+        if (patrolResize.edge === "start") {
+          patch.y = startY;
+        }
+        updateEntity(patrolResize.id, patch as Partial<EditorEntity>);
+      }
+
+      if (!patrolResize.moved) setPatrolResize({ ...patrolResize, moved: true });
+    };
+    const onUp = () => {
+      if (patrolResize.moved) commitHistory();
+      setPatrolResize(null);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [patrolResize, gridSize, snapToGrid, updateEntity]);
 
   // Marquee effect
   useEffect(() => {
@@ -629,6 +871,23 @@ export const EditorCanvas: React.FC = () => {
           onResizeStart={handleResizeStart(entity.id)}
         />
       ))}
+
+      {entities
+        .filter(
+          (e): e is MonsterEntity =>
+            e.kind === "monster" &&
+            selectedIds.has(e.id) &&
+            (e.monsterType === MonsterType.HORIZONTAL_PATROL ||
+              e.monsterType === MonsterType.VERTICAL_PATROL)
+        )
+        .map((m) => (
+          <PatrolOverlay
+            key={`patrol-${m.id}`}
+            monster={m}
+            onStartHandle={(e) => beginPatrolResize(m, "start", e)}
+            onEndHandle={(e) => beginPatrolResize(m, "end", e)}
+          />
+        ))}
 
       {marquee && (
         <div

@@ -38,6 +38,7 @@ interface EditorState {
   setSelected: (ids: string[] | null) => void;
   toggleSelected: (id: string) => void;
   selectAll: () => void;
+  selectAllLike: (id: string) => void;
   addEntity: (entity: EditorEntity) => void;
   updateEntity: (id: string, patch: Partial<EditorEntity>) => void;
   moveSelected: (dx: number, dy: number) => void;
@@ -120,6 +121,23 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
     selectAll: () =>
       set((s) => ({ selectedIds: new Set(s.entities.map((e) => e.id)) })),
+
+    selectAllLike: (id) =>
+      set((s) => {
+        const ref = s.entities.find((e) => e.id === id);
+        if (!ref) return {};
+        const matches = s.entities.filter((e) => {
+          if (e.kind !== ref.kind) return false;
+          if (ref.kind === "monster" && e.kind === "monster") {
+            return e.monsterType === ref.monsterType;
+          }
+          if (ref.kind === "coinSpawn" && e.kind === "coinSpawn") {
+            return e.coinType === ref.coinType;
+          }
+          return true;
+        });
+        return { selectedIds: new Set(matches.map((m) => m.id)) };
+      }),
 
     addEntity: (entity) => {
       pushHistory();

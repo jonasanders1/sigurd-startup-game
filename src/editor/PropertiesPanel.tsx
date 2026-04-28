@@ -2,7 +2,7 @@ import React from "react";
 import { useEditorStore, commitHistory } from "./store";
 import { EditorEntity, MonsterEntity } from "./types";
 import { MonsterType, CoinType } from "../types/enums";
-import { Trash2, Copy } from "lucide-react";
+import { Trash2, Copy, Layers } from "lucide-react";
 
 const labelStyle: React.CSSProperties = {
   display: "block",
@@ -284,6 +284,7 @@ export const PropertiesPanel: React.FC = () => {
     updateEntity,
     deleteSelected,
     duplicateSelected,
+    selectAllLike,
     meta,
     setMeta,
   } = useEditorStore();
@@ -480,6 +481,52 @@ export const PropertiesPanel: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {(() => {
+            const matchCount = entities.filter((e) => {
+              if (e.kind !== selected.kind) return false;
+              if (selected.kind === "monster" && e.kind === "monster") {
+                return e.monsterType === selected.monsterType;
+              }
+              if (selected.kind === "coinSpawn" && e.kind === "coinSpawn") {
+                return e.coinType === selected.coinType;
+              }
+              return true;
+            }).length;
+            if (matchCount <= 1) return null;
+            const typeLabel =
+              selected.kind === "monster"
+                ? selected.monsterType
+                : selected.kind === "coinSpawn"
+                ? selected.coinType
+                : selected.kind;
+            return (
+              <button
+                onClick={() => selectAllLike(selected.id)}
+                title="Select all of this type (Cmd+Shift+A)"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  width: "100%",
+                  padding: "6px 8px",
+                  background: "#1f2937",
+                  border: "1px solid #374151",
+                  color: "#cbd5e1",
+                  borderRadius: 3,
+                  cursor: "pointer",
+                  fontSize: 11,
+                  marginBottom: 12,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#374151")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#1f2937")}
+              >
+                <Layers size={12} /> Select all {matchCount} {typeLabel.toLowerCase()}
+                {matchCount > 1 ? "s" : ""}
+              </button>
+            );
+          })()}
 
           <NumField
             label="X"

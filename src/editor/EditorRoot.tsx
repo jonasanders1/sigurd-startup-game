@@ -12,6 +12,7 @@ export const EditorRoot: React.FC = () => {
     duplicateSelected,
     moveSelected,
     selectAll,
+    selectAllLike,
     undo,
     redo,
     setTool,
@@ -37,7 +38,12 @@ export const EditorRoot: React.FC = () => {
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") {
         e.preventDefault();
-        selectAll();
+        if (e.shiftKey && selectedIds.size === 1) {
+          const id = Array.from(selectedIds)[0];
+          selectAllLike(id);
+        } else {
+          selectAll();
+        }
         return;
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
@@ -83,6 +89,7 @@ export const EditorRoot: React.FC = () => {
     duplicateSelected,
     moveSelected,
     selectAll,
+    selectAllLike,
     undo,
     redo,
     setTool,
