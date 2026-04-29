@@ -39,14 +39,17 @@ if (missingFiles.length > 0) {
   process.exit(1);
 }
 
-// Check if assets folder exists and has content
-const assetsPath = path.join(distPath, 'assets');
-if (!fs.existsSync(assetsPath)) {
-  console.warn('⚠️  Assets folder not found. Game may not work properly.');
-} else {
-  const assetFiles = fs.readdirSync(assetsPath);
-  console.log(`✅ Assets folder found with ${assetFiles.length} files`);
-}
+// Assets are inlined into the JS bundle via import.meta.glob({ eager: true })
+// in src/config/assets.ts, so dist/assets/ no longer exists. Sanity-check the
+// bundle contains data: URLs as a proxy for "assets shipped".
+const esModulePath = path.join(distPath, 'sigurd-startup.es.js');
+const esModuleSize = fs.statSync(esModulePath).size;
+const inlineAssetCount = (
+  fs.readFileSync(esModulePath, 'utf8').match(/data:image\/(png|jpe?g|gif);base64,/g) || []
+).length;
+console.log(
+  `✅ Bundle includes ${inlineAssetCount} inline asset URLs (${(esModuleSize / 1024 / 1024).toFixed(1)} MB)`
+);
 
 // Check file sizes
 console.log('\n📦 Package contents:');
