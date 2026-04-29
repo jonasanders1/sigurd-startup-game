@@ -22,6 +22,13 @@ export class BombManager {
     this.gameStarted = false;
   }
 
+  /** Clear active group/next-order tracking; preserves collection progress. */
+  resetActiveSequence(): void {
+    this.activeGroup = null;
+    this.nextBombOrder = null;
+    this.gameStarted = false;
+  }
+
   setBombs(bombs: Bomb[]): void {
     this.bombs = bombs;
   }

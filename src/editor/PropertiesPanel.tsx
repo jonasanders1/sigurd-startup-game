@@ -3,6 +3,13 @@ import { useEditorStore, commitHistory } from "./store";
 import { EditorEntity, MonsterEntity } from "./types";
 import { MonsterType, CoinType } from "../types/enums";
 import { Trash2, Copy, Layers } from "lucide-react";
+import { PLATFORM_THEMES, DEFAULT_PLATFORM_THEME } from "../config/platformTiles";
+import {
+  GROUND_THEMES,
+  DEFAULT_GROUND_THEME,
+  DEFAULT_GROUND_NOISE,
+  GROUND_BLOCK_SIZE,
+} from "../config/groundTiles";
 
 const labelStyle: React.CSSProperties = {
   display: "block",
@@ -49,6 +56,40 @@ const NumField: React.FC<NumProps> = ({ label, value, onChange, step = 1, min, m
       max={max}
       onChange={(e) => onChange(Number(e.target.value))}
       onBlur={commitHistory}
+    />
+  </div>
+);
+
+interface SliderProps {
+  label: string;
+  value: number;
+  onChange: (n: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+const SliderField: React.FC<SliderProps> = ({
+  label,
+  value,
+  onChange,
+  min = 0,
+  max = 1,
+  step = 0.05,
+}) => (
+  <div style={fieldStyle}>
+    <label style={labelStyle}>
+      {label} <span style={{ color: "#64748b" }}>({value.toFixed(2)})</span>
+    </label>
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      onMouseUp={commitHistory}
+      onTouchEnd={commitHistory}
+      style={{ width: "100%" }}
     />
   </div>
 );
@@ -546,11 +587,24 @@ export const PropertiesPanel: React.FC = () => {
                 value={selected.width}
                 onChange={(v) => update({ width: v } as Partial<EditorEntity>)}
               />
-              <NumField
-                label="Height"
-                value={selected.height}
-                onChange={(v) => update({ height: v } as Partial<EditorEntity>)}
-              />
+              {selected.kind === "ground" ? (
+                <NumField
+                  label={`Depth (blocks of ${GROUND_BLOCK_SIZE}px)`}
+                  value={Math.max(1, Math.round(selected.height / GROUND_BLOCK_SIZE))}
+                  min={1}
+                  onChange={(v) =>
+                    update({
+                      height: Math.max(1, Math.round(v)) * GROUND_BLOCK_SIZE,
+                    } as Partial<EditorEntity>)
+                  }
+                />
+              ) : (
+                <NumField
+                  label="Height"
+                  value={selected.height}
+                  onChange={(v) => update({ height: v } as Partial<EditorEntity>)}
+                />
+              )}
               <ColorField
                 label="Color"
                 value={selected.color}
@@ -567,6 +621,27 @@ export const PropertiesPanel: React.FC = () => {
                     label="Vertical wall"
                     value={selected.isVertical ?? false}
                     onChange={(b) => update({ isVertical: b } as Partial<EditorEntity>)}
+                  />
+                  <SelectField
+                    label="Tile Theme"
+                    value={selected.tileTheme ?? DEFAULT_PLATFORM_THEME}
+                    options={PLATFORM_THEMES.map((t) => ({ value: t, label: t }))}
+                    onChange={(v) => update({ tileTheme: v } as Partial<EditorEntity>)}
+                  />
+                </>
+              )}
+              {selected.kind === "ground" && (
+                <>
+                  <SelectField
+                    label="Tile Theme"
+                    value={selected.tileTheme ?? DEFAULT_GROUND_THEME}
+                    options={GROUND_THEMES.map((t) => ({ value: t, label: t }))}
+                    onChange={(v) => update({ tileTheme: v } as Partial<EditorEntity>)}
+                  />
+                  <SliderField
+                    label="Tile Noise"
+                    value={selected.tileNoise ?? DEFAULT_GROUND_NOISE}
+                    onChange={(v) => update({ tileNoise: v } as Partial<EditorEntity>)}
                   />
                 </>
               )}

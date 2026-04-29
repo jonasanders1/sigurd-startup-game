@@ -364,6 +364,14 @@ export class LevelManager {
       // Clear floating texts
       clearAllFloatingTexts();
 
+      // Reset bomb sequence tracking so the player can start with any bomb
+      // group again, but keep already-collected bombs collected.
+      const { bombManager, bombs, setBombs } = useStateStore.getState();
+      if (bombManager) {
+        bombManager.resetActiveSequence();
+      }
+      setBombs(bombs.map((b) => ({ ...b, isBlinking: false })));
+
       // Reset difficulty
       this.scalingManager.resetOnDeath();
       log.debug("Difficulty reset after player death");

@@ -29,6 +29,7 @@ interface EditorState {
   gridSize: number;
   snapToGrid: boolean;
   showBackground: boolean;
+  showSprites: boolean;
   past: Snapshot[];
   future: Snapshot[];
   savedMaps: SavedMap[];
@@ -52,6 +53,7 @@ interface EditorState {
   setGridSize: (n: number) => void;
   toggleSnap: () => void;
   toggleBackground: () => void;
+  toggleSprites: () => void;
   undo: () => void;
   redo: () => void;
   // Saved maps
@@ -106,6 +108,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     gridSize: 25,
     snapToGrid: true,
     showBackground: true,
+    showSprites: false,
     past: [],
     future: [],
     savedMaps: loadSaved(),
@@ -229,6 +232,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     setGridSize: (n) => set({ gridSize: Math.max(1, n) }),
     toggleSnap: () => set((s) => ({ snapToGrid: !s.snapToGrid })),
     toggleBackground: () => set((s) => ({ showBackground: !s.showBackground })),
+    toggleSprites: () => set((s) => ({ showSprites: !s.showSprites })),
 
     undo: () => {
       const { past, future, entities, meta } = get();

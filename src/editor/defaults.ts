@@ -27,7 +27,7 @@ export const defaultPlatform = (x: number, y: number): PlatformEntity => ({
   x,
   y,
   width: 150,
-  height: 15,
+  height: 25,
   color: DEFAULT_PLATFORM_COLOR,
   borderColor: "#000",
 });
@@ -37,7 +37,7 @@ export const defaultVerticalWall = (x: number, y: number): PlatformEntity => ({
   kind: "platform",
   x,
   y,
-  width: 15,
+  width: 25,
   height: 150,
   color: DEFAULT_PLATFORM_COLOR,
   borderColor: "#000",

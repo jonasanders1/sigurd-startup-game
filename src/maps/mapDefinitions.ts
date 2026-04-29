@@ -52,7 +52,7 @@ const createVerticalPlatform = (
 ) => ({
   x,
   y,
-  width: 15, // Standard wall thickness
+  width: 25, // Standard wall thickness — matches PLATFORM_HEIGHT / cell grid.
   height,
   borderColor,
   color,
@@ -69,6 +69,137 @@ const centerPoint = (offsetWidth: number, offsetHeight: number) => {
     x: centerX(offsetWidth),
     y: centerY(offsetHeight),
   };
+};
+
+export const newLevelMap: MapDefinition = {
+  id: "newLevel",
+  name: "new level",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ff9ff3",
+
+  groupSequence: [1, 2, 3, 4, 5, 6, 7, 8],
+
+  ground: {
+    x: 0,
+    y: 560,
+    width: 800,
+    height: 40,
+    color: "#4c6986",
+  },
+
+  platforms: [
+    createPlatform(225, 425, { width: 350, height: 25 }, "#2f3543", "#000"),
+    createVerticalPlatform(225, 300, 125, "#2f3543", "#000"),
+    createVerticalPlatform(575, 225, 225, "#2f3543", "#000"),
+    createPlatform(450, 275, { width: 125, height: 25 }, "#2f3543", "#000"),
+    createPlatform(175, 275, { width: 150, height: 25 }, "#2f3543", "#000"),
+  ],
+
+  bombs: [],
+
+  monsters: [],
+};
+
+export const level0Map: MapDefinition = {
+  id: "level0",
+  name: "garasjen",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ff9ff3",
+
+  groupSequence: [1, 2, 3, 4, 5, 6, 7, 8],
+
+  ground: {
+    x: 0,
+    y: 560,
+    width: 800,
+    height: 40,
+    color: "#4c6986",
+  },
+
+  platforms: [
+    createPlatform(75, 475, { width: 150, height: 15 }, "#2f3543", "#000"),
+    createPlatform(207, 387, { width: 150, height: 15 }, "#2f3543", "#000"),
+    createPlatform(400, 200, { width: 150, height: 15 }, "#2f3543", "#000"),
+    createPlatform(575, 100, { width: 150, height: 15 }, "#2f3543", "#000"),
+    createVerticalPlatform(475, 325, 150, "#2f3543", "#000"),
+    createVerticalPlatform(142, 258, 150, "#2f3543", "#000"),
+    createVerticalPlatform(644, 183, 150, "#2f3543", "#000"),
+    createVerticalPlatform(730, 328, 150, "#2f3543", "#000"),
+  ],
+
+  bombs: [
+    createBomb(650, 525, 1, 1),
+    createBomb(700, 525, 2, 1),
+    createBomb(750, 525, 3, 1),
+    createBomb(750, 450, 4, 2),
+    createBomb(750, 400, 5, 2),
+    createBomb(750, 350, 6, 2),
+    createBomb(591, 141, 7, 3),
+    createBomb(636, 141, 8, 3),
+    createBomb(678, 141, 9, 3),
+    createBomb(187, 525, 10, 4),
+    createBomb(138, 525, 11, 4),
+    createBomb(88, 525, 12, 4),
+    createBomb(503, 438, 13, 5),
+    createBomb(503, 388, 14, 5),
+    createBomb(503, 340, 15, 5),
+    createBomb(314, 353, 16, 6),
+    createBomb(268, 353, 17, 6),
+    createBomb(219, 353, 18, 6),
+    createBomb(186, 444, 19, 7),
+    createBomb(140, 444, 20, 7),
+    createBomb(88, 444, 21, 7),
+    createBomb(437, 165, 22, 8),
+    createBomb(486, 164, 23, 8),
+  ],
+
+  monsters: [
+    createFloaterMonster(38, 388, 45, 1, 0),
+    createHorizontalPatrolMonster(303, 561, 150, "left", 1, 1, 1, 0, "green"),
+    createHorizontalPatrolMonster(400, 200, 150, "left", 1, 1, 1, 0, "black"),
+    createAmbusherMonster(515, 38, 0.8, 8000, 0),
+  ],
+
+  coinSpawnPoints: [
+    {
+      x: 188,
+      y: 289,
+      type: CoinType.POWER,
+      spawnAngle: 60,
+    },
+    {
+      x: 714,
+      y: 213,
+      type: CoinType.POWER,
+      spawnAngle: 65,
+    },
+    {
+      x: 414,
+      y: 168,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 688,
+      y: 69,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 413,
+      y: 132,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 687,
+      y: 32,
+      type: CoinType.EXTRA_LIFE,
+    },
+  ],
 };
 
 // Level 1 - Bedroom
@@ -1365,6 +1496,8 @@ export const level8Map: MapDefinition = {
 };
 
 export const mapDefinitions = [
+  newLevelMap,
+  level0Map,
   level1Map,
   level2Map,
   level3Map,

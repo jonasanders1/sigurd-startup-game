@@ -281,71 +281,70 @@ export class PlayerManager {
   ): Player {
     let updatedPlayer = { ...player };
 
-    // Platform collisions - handle all directions
-    const platformCollision =
-      this.collisionManager.checkPlayerPlatformCollision(player, platforms);
-    if (
-      platformCollision.hasCollision &&
-      platformCollision.normal &&
-      platformCollision.penetration
-    ) {
-      if (platformCollision.normal.y === -1) {
-        // Landing on top of platform
-        updatedPlayer.y = updatedPlayer.y - platformCollision.penetration;
-        updatedPlayer.velocityY = 0;
-        updatedPlayer.isGrounded = true;
-        // Reset floating state when landing
-        updatedPlayer.isFloating = false;
-      } else if (platformCollision.normal.y === 1) {
-        // Hitting platform from below
-        updatedPlayer.y = updatedPlayer.y + platformCollision.penetration;
-        updatedPlayer.velocityY = 0;
-      } else if (platformCollision.normal.x === 1) {
-        // Hitting platform from the right
-        updatedPlayer.x = updatedPlayer.x + platformCollision.penetration;
-        updatedPlayer.velocityX = 0;
-      } else if (platformCollision.normal.x === -1) {
-        // Hitting platform from the left
-        updatedPlayer.x = updatedPlayer.x - platformCollision.penetration;
-        updatedPlayer.velocityX = 0;
-      }
-    }
-
-    // Ground collision - handle all directions
-    if (ground) {
-      const groundCollision = this.collisionManager.checkPlayerGroundCollision(
+    // Iterate so a single frame resolves all overlapping rects (e.g. floor +
+    // wall in an L-corner). Picking only the smallest leaves the other and
+    // causes per-frame jitter as the loser snaps the next frame.
+    const MAX_ITERS = 4;
+    for (let i = 0; i < MAX_ITERS; i++) {
+      const collision = this.collisionManager.checkPlayerPlatformCollision(
         updatedPlayer,
-        ground
+        platforms
       );
       if (
-        groundCollision.hasCollision &&
-        groundCollision.normal &&
-        groundCollision.penetration
+        !collision.hasCollision ||
+        !collision.normal ||
+        collision.penetration === undefined ||
+        collision.penetration <= 0
       ) {
-        if (groundCollision.normal.y === -1) {
-          // Landing on top of ground
-          updatedPlayer.y = updatedPlayer.y - groundCollision.penetration;
-          updatedPlayer.velocityY = 0;
-          updatedPlayer.isGrounded = true;
-          // Reset floating state when landing
-          updatedPlayer.isFloating = false;
-        } else if (groundCollision.normal.y === 1) {
-          // Hitting ground from below (shouldn't normally happen but just in case)
-          updatedPlayer.y = updatedPlayer.y + groundCollision.penetration;
-          updatedPlayer.velocityY = 0;
-        } else if (groundCollision.normal.x === 1) {
-          // Hitting ground from the right
-          updatedPlayer.x = updatedPlayer.x + groundCollision.penetration;
-          updatedPlayer.velocityX = 0;
-        } else if (groundCollision.normal.x === -1) {
-          // Hitting ground from the left
-          updatedPlayer.x = updatedPlayer.x - groundCollision.penetration;
-          updatedPlayer.velocityX = 0;
+        break;
+      }
+      this.applyResolution(updatedPlayer, collision);
+    }
+
+    if (ground) {
+      for (let i = 0; i < MAX_ITERS; i++) {
+        const groundCollision =
+          this.collisionManager.checkPlayerGroundCollision(updatedPlayer, ground);
+        if (
+          !groundCollision.hasCollision ||
+          !groundCollision.normal ||
+          groundCollision.penetration === undefined ||
+          groundCollision.penetration <= 0
+        ) {
+          break;
         }
+        this.applyResolution(updatedPlayer, groundCollision);
       }
     }
 
     return updatedPlayer;
+  }
+
+  /** Mutates `p`: snaps out of collider along normal, zeros that axis's velocity. */
+  private applyResolution(
+    p: Player,
+    collision: { normal?: { x: number; y: number }; penetration?: number }
+  ): void {
+    if (!collision.normal || collision.penetration === undefined) return;
+    if (collision.normal.y === -1) {
+      // Landing on top of surface
+      p.y -= collision.penetration;
+      p.velocityY = 0;
+      p.isGrounded = true;
+      p.isFloating = false;
+    } else if (collision.normal.y === 1) {
+      // Hitting surface from below
+      p.y += collision.penetration;
+      p.velocityY = 0;
+    } else if (collision.normal.x === 1) {
+      // Hit from the right
+      p.x += collision.penetration;
+      p.velocityX = 0;
+    } else if (collision.normal.x === -1) {
+      // Hit from the left
+      p.x -= collision.penetration;
+      p.velocityX = 0;
+    }
   }
 
   // Reset player position and state

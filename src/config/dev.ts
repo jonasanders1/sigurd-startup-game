@@ -3,6 +3,9 @@
  * Contains settings for development and debugging features
  */
 
+/** Draw collider outlines on every entity. Independent of DEV_CONFIG.ENABLED. */
+export const SHOW_HITBOXES = false;
+
 interface LevelHistoryMock {
   level: number;
   mapName: string;
@@ -25,7 +28,7 @@ export const DEV_CONFIG = {
 
   // Game state configuration
   TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 7, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  TARGET_LEVEL: 3, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   // Debug features
   GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)

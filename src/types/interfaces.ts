@@ -170,6 +170,9 @@ export interface MonsterSpawnPoint {
   color?: string; // Optional custom color override for the monster
 }
 
+import type { PlatformTheme } from "../config/platformTiles";
+import type { GroundTheme } from "../config/groundTiles";
+
 export interface Platform {
   x: number;
   y: number;
@@ -177,7 +180,8 @@ export interface Platform {
   height: number;
   color: string;
   borderColor?: string;
-  isVertical?: boolean; // Indicates if this is a vertical platform (wall)
+  isVertical?: boolean;
+  tileTheme?: PlatformTheme;
 }
 
 export interface Ground {
@@ -186,6 +190,8 @@ export interface Ground {
   width: number;
   height: number;
   color: string;
+  tileTheme?: GroundTheme;
+  tileNoise?: number;
 }
 
 export interface MapDefinition {

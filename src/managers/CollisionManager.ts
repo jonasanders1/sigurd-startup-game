@@ -44,7 +44,7 @@ export class CollisionManager {
     // Calculate entity's next position
     const nextX = entity.x + (entity.velocityX || 0);
     const nextY = entity.y + (entity.velocityY || 0);
-    
+
     // Check if there would be a collision at the next position
     if (this.wouldCollide(nextX, nextY, entity.width, entity.height, surface)) {
       // Determine which side of the collision is happening
@@ -52,52 +52,53 @@ export class CollisionManager {
       const entityCenterY = entity.y + entity.height / 2;
       const surfaceCenterX = surface.x + surface.width / 2;
       const surfaceCenterY = surface.y + surface.height / 2;
-      
+
       const deltaX = entityCenterX - surfaceCenterX;
       const deltaY = entityCenterY - surfaceCenterY;
-      
+
       // Calculate overlap on each axis
       const overlapX = (entity.width + surface.width) / 2 - Math.abs(deltaX);
       const overlapY = (entity.height + surface.height) / 2 - Math.abs(deltaY);
-      
-      // Resolve collision based on smallest overlap
-      if (overlapX < overlapY) {
-        // Horizontal collision
-        if (deltaX > 0) {
-          // Player hitting from the right
-          return {
-            hasCollision: true,
-            normal: { x: 1, y: 0 },
-            penetration: overlapX
-          };
-        } else {
-          // Player hitting from the left
-          return {
-            hasCollision: true,
-            normal: { x: -1, y: 0 },
-            penetration: overlapX
-          };
-        }
+
+      // Resolve on the axis the entity ENTERED from this frame; prevents the
+      // seam glitch where a player straddling two adjacent platforms gets
+      // pushed sideways through the gap.
+      const vx = entity.velocityX || 0;
+      const vy = entity.velocityY || 0;
+      const prevX = entity.x - vx;
+      const prevY = entity.y - vy;
+      const wasOverlappingX =
+        prevX < surface.x + surface.width && prevX + entity.width > surface.x;
+      const wasOverlappingY =
+        prevY < surface.y + surface.height &&
+        prevY + entity.height > surface.y;
+
+      let useYAxis: boolean;
+      if (wasOverlappingX && !wasOverlappingY) {
+        useYAxis = true; // Entered vertically.
+      } else if (wasOverlappingY && !wasOverlappingX) {
+        useYAxis = false; // Entered horizontally.
       } else {
-        // Vertical collision
-        if (deltaY > 0) {
-          // Player hitting from below
-          return {
-            hasCollision: true,
-            normal: { x: 0, y: 1 },
-            penetration: overlapY
-          };
-        } else {
-          // Player hitting from above (landing on platform)
-          return {
-            hasCollision: true,
-            normal: { x: 0, y: -1 },
-            penetration: overlapY
-          };
-        }
+        // Corner hit / first-frame overlap: smaller axis wins, ties → Y (landing).
+        useYAxis = overlapY <= overlapX;
       }
+
+      if (!useYAxis) {
+        // Horizontal collision
+        return {
+          hasCollision: true,
+          normal: { x: deltaX > 0 ? 1 : -1, y: 0 },
+          penetration: overlapX,
+        };
+      }
+      // Vertical collision
+      return {
+        hasCollision: true,
+        normal: { x: 0, y: deltaY > 0 ? 1 : -1 },
+        penetration: overlapY,
+      };
     }
-    
+
     return { hasCollision: false };
   }
 
@@ -112,7 +113,7 @@ export class CollisionManager {
 
   checkPlayerBombCollision(player: Player, bombs: Bomb[]): Bomb | null {
     for (const bomb of bombs) {
-      if (!bomb.isCollected && this.isColliding(player, bomb)) {
+      if (!bomb.isCollected && ellipseRectColliding(bomb, player)) {
         return bomb;
       }
     }

@@ -2,7 +2,20 @@ import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useEditorStore, commitHistory } from "./store";
 import { GAME_CONFIG } from "../types/constants";
 import { MonsterType, CoinType } from "../types/enums";
-import { EditorEntity, MonsterEntity } from "./types";
+import { EditorEntity, MonsterEntity, PlatformEntity, GroundEntity } from "./types";
+import {
+  DEFAULT_PLATFORM_THEME,
+  getPlatformTileUrls,
+  layoutPlatformTiles,
+  type PlatformTheme,
+} from "../config/platformTiles";
+import {
+  DEFAULT_GROUND_THEME,
+  getGroundTileUrls,
+  layoutGroundCells,
+  type GroundTheme,
+} from "../config/groundTiles";
+import { getSpriteImagePath } from "../config/assets";
 import {
   defaultPlatform,
   defaultVerticalWall,
@@ -222,9 +235,106 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
   );
 };
 
+const PIXEL_IMG: React.CSSProperties = {
+  imageRendering: "pixelated",
+  display: "block",
+  pointerEvents: "none",
+};
+
+const PlatformSprite: React.FC<{ entity: PlatformEntity }> = ({ entity }) => {
+  const theme = entity.tileTheme || DEFAULT_PLATFORM_THEME;
+  const urls = getPlatformTileUrls(theme);
+  const slots = layoutPlatformTiles(
+    entity.width,
+    entity.height,
+    entity.isVertical ?? false
+  );
+  return (
+    <>
+      {slots.map((slot) => {
+        const src = urls[slot.piece];
+        if (entity.isVertical) {
+          // 90° CW rotation around the cell center.
+          return (
+            <img
+              key={slot.index}
+              src={src}
+              draggable={false}
+              alt=""
+              style={{
+                ...PIXEL_IMG,
+                position: "absolute",
+                left: slot.localX + slot.width / 2 - slot.height / 2,
+                top: slot.localY + slot.height / 2 - slot.width / 2,
+                width: slot.height,
+                height: slot.width,
+                transform: "rotate(90deg)",
+              }}
+            />
+          );
+        }
+        return (
+          <img
+            key={slot.index}
+            src={src}
+            draggable={false}
+            alt=""
+            style={{
+              ...PIXEL_IMG,
+              position: "absolute",
+              left: slot.localX,
+              top: slot.localY,
+              width: slot.width,
+              height: slot.height,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};
+
+const GroundSprite: React.FC<{ entity: GroundEntity }> = ({ entity }) => {
+  const theme = entity.tileTheme || DEFAULT_GROUND_THEME;
+  const urls = getGroundTileUrls(theme);
+  const cells = layoutGroundCells(
+    0,
+    0,
+    entity.width,
+    entity.height,
+    theme,
+    entity.tileNoise
+  );
+  return (
+    <>
+      {cells.map((cell) => {
+        const variants = cell.layer === "surface" ? urls.surface : urls.ground;
+        const src = variants[cell.variantIndex % variants.length];
+        return (
+          <img
+            key={`${cell.col}-${cell.row}`}
+            src={src}
+            draggable={false}
+            alt=""
+            style={{
+              ...PIXEL_IMG,
+              position: "absolute",
+              left: cell.x,
+              top: cell.y,
+              width: cell.width,
+              height: cell.height,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};
+
 interface EntityVisualProps {
   entity: EditorEntity;
   selected: boolean;
+  showSprites: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   onResizeStart?: (e: React.MouseEvent, axis: "x" | "y") => void;
 }
@@ -232,6 +342,7 @@ interface EntityVisualProps {
 const EntityVisual: React.FC<EntityVisualProps> = ({
   entity,
   selected,
+  showSprites,
   onMouseDown,
   onResizeStart,
 }) => {
@@ -286,6 +397,26 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
   };
 
   if (entity.kind === "platform" || entity.kind === "ground") {
+    if (showSprites) {
+      return (
+        <div
+          onMouseDown={onMouseDown}
+          style={{
+            ...baseStyle,
+            background: "transparent",
+            border: "none",
+            overflow: "hidden",
+          }}
+        >
+          {entity.kind === "platform" ? (
+            <PlatformSprite entity={entity} />
+          ) : (
+            <GroundSprite entity={entity} />
+          )}
+          {renderResizeHandle()}
+        </div>
+      );
+    }
     return (
       <div
         onMouseDown={onMouseDown}
@@ -301,6 +432,43 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
   }
 
   if (entity.kind === "bomb") {
+    if (showSprites) {
+      const fundingSrc = getSpriteImagePath("funding/funding_0.png");
+      return (
+        <div onMouseDown={onMouseDown} style={baseStyle}>
+          <img
+            src={fundingSrc}
+            draggable={false}
+            alt=""
+            style={{
+              ...PIXEL_IMG,
+              width: "190%",
+              height: "190%",
+              position: "absolute",
+              left: "-45%",
+              top: "-45%",
+            }}
+            title={`Bomb #${entity.order} (group ${entity.group})`}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 700,
+              textShadow: "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+              pointerEvents: "none",
+            }}
+          >
+            {entity.order}
+          </div>
+        </div>
+      );
+    }
     return (
       <div onMouseDown={onMouseDown} style={baseStyle}>
         <div
@@ -480,6 +648,7 @@ export const EditorCanvas: React.FC = () => {
     gridSize,
     snapToGrid,
     showBackground,
+    showSprites,
     meta,
     setSelected,
     toggleSelected,
@@ -867,6 +1036,7 @@ export const EditorCanvas: React.FC = () => {
           key={entity.id}
           entity={entity}
           selected={selectedIds.has(entity.id)}
+          showSprites={showSprites}
           onMouseDown={handleEntityMouseDown(entity.id)}
           onResizeStart={handleResizeStart(entity.id)}
         />
@@ -922,6 +1092,7 @@ export const EditorCanvas: React.FC = () => {
           {tool.subType ? ` / ${tool.subType}` : ""}
         </div>
       )}
+
 
       {selectedIds.size > 1 && (
         <div

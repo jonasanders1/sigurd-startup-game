@@ -1,4 +1,6 @@
 import { MonsterType, CoinType } from "../types/enums";
+import type { PlatformTheme } from "../config/platformTiles";
+import type { GroundTheme } from "../config/groundTiles";
 
 export type EntityKind =
   | "platform"
@@ -18,6 +20,7 @@ export interface PlatformEntity {
   color: string;
   borderColor?: string;
   isVertical?: boolean;
+  tileTheme?: PlatformTheme;
 }
 
 export interface GroundEntity {
@@ -28,6 +31,8 @@ export interface GroundEntity {
   width: number;
   height: number;
   color: string;
+  tileTheme?: GroundTheme;
+  tileNoise?: number;
 }
 
 export interface BombEntity {

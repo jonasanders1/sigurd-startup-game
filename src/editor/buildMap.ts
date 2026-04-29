@@ -38,6 +38,7 @@ const buildPlatform = (p: PlatformEntity): Platform => ({
   color: p.color,
   borderColor: p.borderColor,
   isVertical: p.isVertical,
+  tileTheme: p.tileTheme,
 });
 
 const buildMonster = (m: MonsterEntity): Monster => {
@@ -150,6 +151,8 @@ export const buildMapFromEditor = (
       width: ground.width,
       height: ground.height,
       color: ground.color,
+      tileTheme: (ground as GroundEntity).tileTheme,
+      tileNoise: (ground as GroundEntity).tileNoise,
     },
     platforms: platforms.map(buildPlatform),
     bombs: bombs.map(buildBomb),

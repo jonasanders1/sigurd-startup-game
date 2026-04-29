@@ -15,6 +15,8 @@ import {
 } from "../config/assets";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { DEV_CONFIG } from "../config/dev";
+import { getAllPlatformTilePaths } from "../config/platformTiles";
+import { getAllGroundTilePaths } from "../config/groundTiles";
 
 export interface LoadingStep {
   id: string;
@@ -395,7 +397,18 @@ export class LoadingManager {
    * Load UI sprites (bombs, coins, etc.)
    */
   private async loadUISprites(step: LoadingStep): Promise<void> {
-    const uiSprites = ["bomb/bomb1.png", "bomb/bomb2.png"];
+    const uiSprites = [
+      "funding/funding_0.png",
+      "funding/funding_1.png",
+      "funding/funding_2.png",
+      "funding/funding_3.png",
+      "funding/funding_4.png",
+      "funding/funding_5.png",
+      "funding/funding_6.png",
+      "funding/funding_7.png",
+      ...getAllPlatformTilePaths(),
+      ...getAllGroundTilePaths(),
+    ];
 
     await Promise.all(
       uiSprites.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))

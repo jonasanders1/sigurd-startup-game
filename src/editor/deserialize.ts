@@ -73,6 +73,8 @@ export const mapToEditor = (
     width: map.ground.width,
     height: map.ground.height,
     color: map.ground.color,
+    tileTheme: map.ground.tileTheme,
+    tileNoise: map.ground.tileNoise,
   });
 
   entities.push({
@@ -93,6 +95,7 @@ export const mapToEditor = (
       color: p.color,
       borderColor: p.borderColor,
       isVertical: p.isVertical,
+      tileTheme: p.tileTheme,
     });
   }
 

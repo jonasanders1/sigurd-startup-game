@@ -17,10 +17,13 @@ const num = (n: number): string => {
 const str = (s: string): string => `"${s.replace(/"/g, '\\"')}"`;
 
 const platformLine = (p: PlatformEntity): string => {
-  if (p.isVertical) {
-    return `  createVerticalPlatform(${num(p.x)}, ${num(p.y)}, ${num(p.height)}, ${str(p.color)}${p.borderColor ? `, ${str(p.borderColor)}` : ""}),`;
+  const factory = p.isVertical
+    ? `createVerticalPlatform(${num(p.x)}, ${num(p.y)}, ${num(p.height)}, ${str(p.color)}${p.borderColor ? `, ${str(p.borderColor)}` : ""})`
+    : `createPlatform(${num(p.x)}, ${num(p.y)}, { width: ${num(p.width)}, height: ${num(p.height)} }, ${str(p.color)}${p.borderColor ? `, ${str(p.borderColor)}` : ""})`;
+  if (p.tileTheme) {
+    return `  { ...${factory}, tileTheme: ${str(p.tileTheme)} },`;
   }
-  return `  createPlatform(${num(p.x)}, ${num(p.y)}, { width: ${num(p.width)}, height: ${num(p.height)} }, ${str(p.color)}${p.borderColor ? `, ${str(p.borderColor)}` : ""}),`;
+  return `  ${factory},`;
 };
 
 const bombLine = (b: BombEntity): string =>
@@ -129,6 +132,12 @@ export const serializeMap = (
     lines.push(`    width: ${num(ground.width)},`);
     lines.push(`    height: ${num(ground.height)},`);
     lines.push(`    color: ${str(ground.color)},`);
+    if (ground.tileTheme) {
+      lines.push(`    tileTheme: ${str(ground.tileTheme)},`);
+    }
+    if (ground.tileNoise !== undefined) {
+      lines.push(`    tileNoise: ${num(ground.tileNoise)},`);
+    }
     lines.push(`  },`);
     lines.push(``);
   }

@@ -9,6 +9,7 @@ import {
   MapDefinition,
 } from "../types/interfaces";
 import { COLORS, DEV_CONFIG } from "../types/constants";
+import { SHOW_HITBOXES } from "../config/dev";
 import { playerSprite } from "../entities/Player";
 import { bombSprite, BombSpriteInstance } from "../entities/Bomb";
 import { ByrakratSprite, dirName, type ByrakratVariant } from "../entities/Byrakrat";
@@ -24,6 +25,17 @@ import { HodelosKonsulentSprite, dirNameHodelos } from "../entities/HodelosKonsu
 import { SpriteInstance } from "../lib/SpriteInstance";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
+import {
+  getPlatformTileSet,
+  DEFAULT_PLATFORM_THEME,
+  layoutPlatformTiles,
+} from "../config/platformTiles";
+import {
+  getGroundTileSet,
+  DEFAULT_GROUND_THEME,
+  layoutGroundCells,
+  type GroundCell,
+} from "../config/groundTiles";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
@@ -52,6 +64,8 @@ export class RenderManager {
   private currentSpawnManager: OptimizedSpawnManager | null = null;
   private currentGameState: GameStateSnapshot | null = null;
   private frameTime: number = 0; // Cached Date.now() for current frame
+  /** Per-Ground tile layout cache; survives until the Ground reference changes. */
+  private groundLayoutCache: WeakMap<Ground, GroundCell[]> = new WeakMap();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -91,6 +105,49 @@ export class RenderManager {
     this.renderMonsters(monsters, deltaTime, player);
     this.renderPlayer(player);
     this.renderFloatingTexts(floatingTexts, deltaTime);
+
+    if (SHOW_HITBOXES) {
+      this.renderHitboxes(player, platforms, bombs, monsters, ground, coins);
+    }
+  }
+
+  private strokeRect(color: string, x: number, y: number, w: number, h: number): void {
+    this.ctx.strokeStyle = color;
+    this.ctx.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, w, h);
+  }
+
+  private strokeEllipse(color: string, x: number, y: number, w: number, h: number): void {
+    this.ctx.strokeStyle = color;
+    this.ctx.beginPath();
+    this.ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+    this.ctx.stroke();
+  }
+
+  private renderHitboxes(
+    player: Player,
+    platforms: Platform[],
+    bombs: Bomb[],
+    monsters: Monster[],
+    ground: Ground | null,
+    coins: Coin[]
+  ): void {
+    const ctx = this.ctx;
+    const prevSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    ctx.lineWidth = 1;
+
+    if (ground) this.strokeRect("#888888", ground.x, ground.y, ground.width, ground.height);
+    platforms.forEach((p) => this.strokeRect("#00BFFF", p.x, p.y, p.width, p.height));
+    bombs.forEach((b) => {
+      if (!b.isCollected) this.strokeEllipse("#FF3030", b.x, b.y, b.width, b.height);
+    });
+    coins.forEach((c) => {
+      if (!c.isCollected) this.strokeRect("#FFD700", c.x, c.y, c.width, c.height);
+    });
+    monsters.forEach((m) => this.strokeRect("#FF66FF", m.x, m.y, m.width, m.height));
+    this.strokeRect("#00FF00", player.x, player.y, player.width, player.height);
+
+    ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
   private renderBackground(): void {
@@ -98,12 +155,50 @@ export class RenderManager {
   }
 
   private renderGround(ground: Ground): void {
-    if (GAME_CONFIG.USE_SPRITES) {
-      this.ctx.fillStyle = ground.color;
-    } else {
-      this.ctx.fillStyle = DEV_CONFIG.COLORS.GROUND;
+    const ctx = this.ctx;
+    const theme = ground.tileTheme || DEFAULT_GROUND_THEME;
+    const tiles = getGroundTileSet(theme);
+    const ready =
+      tiles.surface.every((img) => img.complete && img.naturalWidth > 0) &&
+      tiles.ground.every((img) => img.complete && img.naturalWidth > 0);
+
+    if (!ready) {
+      // Tiles still loading — solid fill so the player has ground to stand on.
+      ctx.fillStyle = ground.color || DEV_CONFIG.COLORS.GROUND;
+      ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+      return;
     }
-    this.ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+
+    const prevSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+
+    // Clip to ground bounds so overflow cells (when width/height isn't a
+    // clean multiple of the block size) get cropped instead of bleeding past.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ground.x, ground.y, ground.width, ground.height);
+    ctx.clip();
+
+    let cells = this.groundLayoutCache.get(ground);
+    if (!cells) {
+      cells = layoutGroundCells(
+        ground.x,
+        ground.y,
+        ground.width,
+        ground.height,
+        theme,
+        ground.tileNoise
+      );
+      this.groundLayoutCache.set(ground, cells);
+    }
+    for (const cell of cells) {
+      const variants = cell.layer === "surface" ? tiles.surface : tiles.ground;
+      const img = variants[cell.variantIndex % variants.length];
+      ctx.drawImage(img, cell.x, cell.y, cell.width, cell.height);
+    }
+
+    ctx.restore();
+    ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
   private renderPlayer(player: Player): void {
@@ -118,45 +213,50 @@ export class RenderManager {
   }
 
   private renderPlatforms(platforms: Platform[]): void {
+    const ctx = this.ctx;
+    const prevSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+
     platforms.forEach((platform) => {
-      if (GAME_CONFIG.USE_SPRITES) {
-        this.ctx.fillStyle = platform.color;
-        this.ctx.strokeStyle = platform.borderColor;
-      } else {
-        this.ctx.fillStyle = DEV_CONFIG.COLORS.PLATFORM;
-        this.ctx.strokeStyle = DEV_CONFIG.COLORS.PLATFORM;
+      const theme = platform.tileTheme || DEFAULT_PLATFORM_THEME;
+      const tiles = getPlatformTileSet(theme);
+      if (
+        !tiles.left.complete ||
+        !tiles.middle.complete ||
+        !tiles.right.complete
+      ) {
+        // Tiles not yet loaded — fall back to a solid rect so platforms remain visible.
+        ctx.fillStyle = platform.color || "#888888";
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        return;
       }
 
-      // Draw rounded rectangle
-      const radius = 4; // Corner radius
-      const x = platform.x;
-      const y = platform.y;
-      const width = platform.width;
-      const height = platform.height;
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(x + radius, y);
-      this.ctx.lineTo(x + width - radius, y);
-      this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-      this.ctx.lineTo(x + width, y + height - radius);
-      this.ctx.quadraticCurveTo(
-        x + width,
-        y + height,
-        x + width - radius,
-        y + height
-      );
-      this.ctx.lineTo(x + radius, y + height);
-      this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-      this.ctx.lineTo(x, y + radius);
-      this.ctx.quadraticCurveTo(x, y, x + radius, y);
-      this.ctx.closePath();
-      this.ctx.lineWidth = 3;
-      this.ctx.stroke();
-      this.ctx.fill();
+      const isVertical = platform.isVertical ?? false;
+      const slots = layoutPlatformTiles(platform.width, platform.height, isVertical);
+      for (const slot of slots) {
+        const img = tiles[slot.piece];
+        const dx = platform.x + slot.localX;
+        const dy = platform.y + slot.localY;
+        if (isVertical) {
+          // Rotate 90° CW around the slot center; pre-rotation rect is (height × width).
+          ctx.save();
+          ctx.translate(dx + slot.width / 2, dy + slot.height / 2);
+          ctx.rotate(Math.PI / 2);
+          ctx.drawImage(img, -slot.height / 2, -slot.width / 2, slot.height, slot.width);
+          ctx.restore();
+        } else {
+          ctx.drawImage(img, dx, dy, slot.width, slot.height);
+        }
+      }
     });
+
+    ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
   private renderBombs(bombs: Bomb[]): void {
+    const prevSmoothing = this.ctx.imageSmoothingEnabled;
+    this.ctx.imageSmoothingEnabled = false;
+
     bombs.forEach((bomb) => {
       // Don't render collected bombs
       if (bomb.isCollected) {
@@ -210,6 +310,8 @@ export class RenderManager {
         );
       }
     });
+
+    this.ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
   private renderCoins(coins: Coin[], coinManager?: CoinManagerInterface): void {

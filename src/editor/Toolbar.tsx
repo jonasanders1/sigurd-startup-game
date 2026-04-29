@@ -14,6 +14,7 @@ import {
   Grid3x3,
   Magnet,
   Image as ImageIcon,
+  Sparkles,
   Undo2,
   Redo2,
   AlertTriangle,
@@ -190,10 +191,12 @@ export const Toolbar: React.FC = () => {
     gridSize,
     snapToGrid,
     showBackground,
+    showSprites,
     toggleGrid,
     setGridSize,
     toggleSnap,
     toggleBackground,
+    toggleSprites,
     undo,
     redo,
     past,
@@ -504,6 +507,13 @@ export const Toolbar: React.FC = () => {
           title="Toggle background image"
         >
           <ImageIcon size={14} /> BG
+        </button>
+        <button
+          onClick={toggleSprites}
+          style={showSprites ? btnActive : btn}
+          title="Toggle sprite preview (shows actual game sprites)"
+        >
+          <Sparkles size={14} /> Sprites
         </button>
 
         <div style={{ flex: 1 }} />
