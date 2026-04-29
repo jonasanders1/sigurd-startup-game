@@ -71,133 +71,142 @@ const centerPoint = (offsetWidth: number, offsetHeight: number) => {
   };
 };
 
-export const newLevelMap: MapDefinition = {
-  id: "newLevel",
-  name: "new level",
-  width: GAME_CONFIG.CANVAS_WIDTH,
-  height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
-  playerStart: { x: 387.5, y: 282.5 },
-  spawnIndicatorColor: "#ff9ff3",
-
-  groupSequence: [1, 2, 3, 4, 5, 6, 7, 8],
-
-  ground: {
-    x: 0,
-    y: 560,
-    width: 800,
-    height: 40,
-    color: "#4c6986",
-  },
-
-  platforms: [
-    createPlatform(225, 425, { width: 350, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(225, 300, 125, "#2f3543", "#000"),
-    createVerticalPlatform(575, 225, 225, "#2f3543", "#000"),
-    createPlatform(450, 275, { width: 125, height: 25 }, "#2f3543", "#000"),
-    createPlatform(175, 275, { width: 150, height: 25 }, "#2f3543", "#000"),
-  ],
-
-  bombs: [],
-
-  monsters: [],
-};
-
 export const level0Map: MapDefinition = {
   id: "level0",
   name: "garasjen",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "soverommet",
-  playerStart: { x: 387.5, y: 282.5 },
+  playerStart: { x: 400, y: 300 },
   spawnIndicatorColor: "#ff9ff3",
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7, 8],
 
   ground: {
     x: 0,
-    y: 560,
+    y: 558,
     width: 800,
     height: 40,
     color: "#4c6986",
+    tileTheme: "construction",
+    tileNoise: 0.25,
   },
 
   platforms: [
-    createPlatform(75, 475, { width: 150, height: 15 }, "#2f3543", "#000"),
-    createPlatform(207, 387, { width: 150, height: 15 }, "#2f3543", "#000"),
-    createPlatform(400, 200, { width: 150, height: 15 }, "#2f3543", "#000"),
-    createPlatform(575, 100, { width: 150, height: 15 }, "#2f3543", "#000"),
-    createVerticalPlatform(475, 325, 150, "#2f3543", "#000"),
-    createVerticalPlatform(142, 258, 150, "#2f3543", "#000"),
-    createVerticalPlatform(644, 183, 150, "#2f3543", "#000"),
-    createVerticalPlatform(730, 328, 150, "#2f3543", "#000"),
+    {
+      ...createPlatform(75, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
+      tileTheme: "construction",
+    },
+    {
+      ...createVerticalPlatform(75, 325, 150, "#2f3543", "#000"),
+      tileTheme: "construction",
+    },
+    {
+      ...createPlatform(
+        100,
+        450,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "construction",
+    },
+    {
+      ...createVerticalPlatform(75, 175, 150, "#2f3543", "#000"),
+      tileTheme: "construction",
+    },
+    {
+      ...createPlatform(
+        550,
+        150,
+        { width: 175, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "construction",
+    },
+    {
+      ...createVerticalPlatform(700, 325, 150, "#2f3543", "#000"),
+      tileTheme: "construction",
+    },
+    {
+      ...createPlatform(
+        550,
+        450,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "construction",
+    },
+    {
+      ...createVerticalPlatform(700, 175, 150, "#2f3543", "#000"),
+      tileTheme: "construction",
+    },
+    {
+      ...createPlatform(
+        325,
+        150,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "construction",
+    },
   ],
 
   bombs: [
-    createBomb(650, 525, 1, 1),
-    createBomb(700, 525, 2, 1),
-    createBomb(750, 525, 3, 1),
-    createBomb(750, 450, 4, 2),
-    createBomb(750, 400, 5, 2),
-    createBomb(750, 350, 6, 2),
-    createBomb(591, 141, 7, 3),
-    createBomb(636, 141, 8, 3),
-    createBomb(678, 141, 9, 3),
-    createBomb(187, 525, 10, 4),
-    createBomb(138, 525, 11, 4),
-    createBomb(88, 525, 12, 4),
-    createBomb(503, 438, 13, 5),
-    createBomb(503, 388, 14, 5),
-    createBomb(503, 340, 15, 5),
-    createBomb(314, 353, 16, 6),
-    createBomb(268, 353, 17, 6),
-    createBomb(219, 353, 18, 6),
-    createBomb(186, 444, 19, 7),
-    createBomb(140, 444, 20, 7),
-    createBomb(88, 444, 21, 7),
-    createBomb(437, 165, 22, 8),
-    createBomb(486, 164, 23, 8),
+    createBomb(563, 425, 1, 1),
+    createBomb(612, 425, 2, 1),
+    createBomb(663, 425, 3, 1),
+    createBomb(664, 179, 4, 2),
+    createBomb(613, 179, 5, 2),
+    createBomb(564, 179, 6, 2),
+    createBomb(438, 175, 7, 3),
+    createBomb(387, 175, 8, 3),
+    createBomb(338, 175, 9, 3),
+    createBomb(213, 425, 10, 4),
+    createBomb(161, 425, 11, 4),
+    createBomb(112, 425, 12, 4),
+    createBomb(189, 125, 13, 5),
+    createBomb(138, 125, 14, 5),
+    createBomb(88, 125, 15, 5),
+    createBomb(575, 125, 16, 6),
+    createBomb(625, 125, 17, 6),
+    createBomb(675, 125, 18, 6),
+    createBomb(413, 25, 19, 7),
+    createBomb(363, 25, 20, 7),
+    createBomb(438, 525, 21, 8),
+    createBomb(388, 525, 22, 8),
+    createBomb(338, 525, 23, 8),
   ],
 
   monsters: [
-    createFloaterMonster(38, 388, 45, 1, 0),
-    createHorizontalPatrolMonster(303, 561, 150, "left", 1, 1, 1, 0, "green"),
-    createHorizontalPatrolMonster(400, 200, 150, "left", 1, 1, 1, 0, "black"),
-    createAmbusherMonster(515, 38, 0.8, 8000, 0),
+    createVerticalPatrolMonster(75, 150, 325, "left", 1, 1, 0),
+    createChaserMonster(213, 513, 0.8, 0.2, 500, 0),
+    createFloaterMonster(50, 75, 41, 1, 0),
   ],
 
-  coinSpawnPoints: [
+  monsterSpawnPoints: [
     {
-      x: 188,
-      y: 289,
-      type: CoinType.POWER,
-      spawnAngle: 60,
+      spawnDelay: 4000,
+      createMonster: () =>
+        createVerticalPatrolMonster(700, 175, 250, "left", 1, 1, 4000),
     },
     {
-      x: 714,
-      y: 213,
-      type: CoinType.POWER,
-      spawnAngle: 65,
-    },
-    {
-      x: 414,
-      y: 168,
-      type: CoinType.BONUS_MULTIPLIER,
-    },
-    {
-      x: 688,
-      y: 69,
-      type: CoinType.BONUS_MULTIPLIER,
-    },
-    {
-      x: 413,
-      y: 132,
-      type: CoinType.EXTRA_LIFE,
-    },
-    {
-      x: 687,
-      y: 32,
-      type: CoinType.EXTRA_LIFE,
+      spawnDelay: 5000,
+      createMonster: () =>
+        createHorizontalPatrolMonster(
+          325,
+          150,
+          150,
+          "left",
+          1,
+          1,
+          1,
+          5000,
+          "green",
+        ),
     },
   ],
 };
@@ -209,125 +218,117 @@ export const level1Map: MapDefinition = {
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "soverommet",
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#ff9ff3", // Pink for blue background
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ff9ff3",
 
   groupSequence: [1, 2, 3, 4, 5, 6],
 
   ground: {
     x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
+    y: 560,
+    width: 800,
     height: 40,
     color: "#4c6986",
+    tileTheme: "stone-gray",
+    tileNoise: 0,
   },
 
   platforms: [
-    // Floating platforms in spiral pattern
-    createPlatform(125, 170, { width: 150, height: 15 }, "#ebb185"),
-    createPlatform(525, 170, { width: 150, height: 15 }, "#ebb185"),
-
-    createPlatform(0, 270, { width: 50, height: 15 }, "#ebb185"),
-    createPlatform(750, 270, { width: 50, height: 15 }, "#ebb185"),
-
-    createPlatform(100, 400, { width: 200, height: 15 }, "#ebb185"),
-    createPlatform(500, 400, { width: 200, height: 15 }, "#ebb185"),
+    {
+      ...createPlatform(
+        500,
+        400,
+        { width: 200, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(
+        100,
+        400,
+        { width: 200, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(
+        525,
+        175,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(
+        125,
+        175,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(750, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(0, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
+      tileTheme: "plastic",
+    },
   ],
 
   bombs: [
-    createBomb(260, 525, 1, 1),
-    createBomb(210, 525, 2, 1),
-    createBomb(160, 525, 3, 1),
-
-    createBomb(510, 525, 4, 2),
-    createBomb(560, 525, 5, 2),
-    createBomb(610, 525, 6, 2),
-    createBomb(660, 525, 7, 2),
-
-    createBomb(260, 368, 8, 3),
-    createBomb(210, 368, 9, 3),
-    createBomb(160, 368, 10, 3),
-    createBomb(110, 368, 11, 3),
-
-    createBomb(10, 240, 12, 4),
-
-    createBomb(140, 138, 13, 5),
-    createBomb(190, 138, 14, 5),
-    createBomb(240, 138, 15, 5),
-
-    createBomb(510, 368, 16, 6),
-    createBomb(560, 368, 17, 6),
-    createBomb(610, 368, 18, 6),
-    createBomb(660, 368, 19, 6),
-
-    createBomb(765, 240, 20, 7),
-
-    createBomb(640, 138, 21, 8),
-    createBomb(590, 138, 22, 8),
-    createBomb(540, 138, 23, 8),
+    createBomb(275, 533, 1, 1),
+    createBomb(225, 533, 2, 1),
+    createBomb(175, 533, 3, 1),
+    createBomb(500, 533, 4, 2),
+    createBomb(550, 533, 5, 2),
+    createBomb(600, 533, 6, 2),
+    createBomb(650, 533, 7, 2),
+    createBomb(263, 375, 8, 3),
+    createBomb(213, 375, 9, 3),
+    createBomb(163, 375, 10, 3),
+    createBomb(113, 375, 11, 3),
+    createBomb(12, 250, 12, 4),
+    createBomb(138, 150, 13, 5),
+    createBomb(188, 150, 14, 5),
+    createBomb(238, 150, 15, 5),
+    createBomb(511, 375, 16, 6),
+    createBomb(561, 375, 17, 6),
+    createBomb(611, 375, 18, 6),
+    createBomb(661, 375, 19, 6),
+    createBomb(763, 250, 20, 7),
+    createBomb(637, 150, 21, 8),
+    createBomb(587, 150, 22, 8),
+    createBomb(537, 150, 23, 8),
   ],
 
   monsters: [
-    createHorizontalPatrolMonster(
-      125,
-      170,
-      150,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createHorizontalPatrolMonster(
-      525,
-      170,
-      150,
-      "right",
-      1,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-
-    createHorizontalPatrolMonster(
-      100,
-      400,
-      200,
-      "right",
-      1,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createHorizontalPatrolMonster(
-      500,
-      400,
-      200,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
+    createHorizontalPatrolMonster(125, 175, 150, "left", 1, 1, 1, 0, "green"),
+    createHorizontalPatrolMonster(525, 175, 150, "right", 1, 1, -1, 0, "black"),
+    createHorizontalPatrolMonster(100, 400, 200, "right", 1, 1, -1, 0, "green"),
+    createHorizontalPatrolMonster(500, 400, 200, "left", 1, 1, 1, 0, "black"),
   ],
 
   monsterSpawnPoints: [
     {
       spawnDelay: 10000,
-      createMonster: () => createChaserMonster(500, 500, 1),
+      createMonster: () => createChaserMonster(500, 500, 1, 0.2, 500, 10000),
     },
     {
       spawnDelay: 13000,
-      createMonster: () => createAmbusherMonster(600, 100, 1),
+      createMonster: () => createAmbusherMonster(600, 100, 1, 8000, 13000),
     },
   ],
 
   coinSpawnPoints: [
-    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
     {
       x: 300,
       y: 100,
@@ -335,8 +336,8 @@ export const level1Map: MapDefinition = {
       spawnAngle: 65,
     },
     {
-      x: centerX(GAME_CONFIG.COIN_SIZE),
-      y: centerY(GAME_CONFIG.COIN_SIZE),
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
       spawnAngle: -55,
     },
@@ -365,79 +366,94 @@ export const level1Map: MapDefinition = {
 
 // Level 2 - Startup Lab - Norge
 export const level2Map: MapDefinition = {
-  id: "level1",
+  id: "level2",
   name: "startup lab",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#00ffff", // Cyan for light background
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#00ffff",
 
   groupSequence: [1, 2, 3, 4, 5],
 
   ground: {
     x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
+    y: 560,
+    width: 800,
     height: 40,
     color: "#88a2bc",
+    tileTheme: "store-redish",
+    tileNoise: 0.15,
   },
 
   platforms: [
-    // bottom left
-    createVerticalPlatform(96, 220, 150, "#abccee", "#4f6a8f"),
-    createVerticalPlatform(684, 220, 150, "#abccee", "#4f6a8f"),
-
-    // Top right
-    createPlatform(95, 450, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
-    createPlatform(480, 150, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
-
-    createPlatform(430, 430, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
-    createPlatform(170, 170, { width: 200, height: 15 }, "#abccee", "#4f6a8f"),
+    createPlatform(475, 125, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createVerticalPlatform(675, 225, 150, "#2f3543", "#000"),
+    createPlatform(425, 425, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(100, 450, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(175, 175, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createVerticalPlatform(100, 225, 150, "#2f3543", "#000"),
   ],
 
   bombs: [
-    // Group 1
     createBomb(440, 400, 1, 1),
     createBomb(490, 400, 2, 1),
     createBomb(540, 400, 3, 1),
     createBomb(590, 400, 4, 1),
-
-    // Group 2
-    createBomb(180, 140, 5, 2),
-    createBomb(230, 140, 6, 2),
-    createBomb(280, 140, 7, 2),
-    createBomb(330, 140, 8, 2),
-
-    // Group 3
+    createBomb(184, 150, 5, 2),
+    createBomb(234, 150, 6, 2),
+    createBomb(284, 150, 7, 2),
+    createBomb(334, 150, 8, 2),
     createBomb(710, 230, 9, 3),
     createBomb(710, 280, 10, 3),
     createBomb(710, 330, 11, 3),
+    createBomb(130, 478, 12, 4),
+    createBomb(180, 478, 13, 4),
+    createBomb(230, 478, 14, 4),
+    createBomb(515, 100, 15, 5),
+    createBomb(563, 100, 16, 5),
+    createBomb(615, 100, 17, 5),
+    createBomb(126, 236, 18, 6),
+    createBomb(126, 286, 19, 6),
+    createBomb(126, 336, 20, 6),
+    createBomb(130, 422, 21, 7),
+    createBomb(180, 422, 22, 7),
+    createBomb(230, 422, 23, 7),
+  ],
 
-    // Group 4
-    createBomb(130, 470, 12, 4),
-    createBomb(180, 470, 13, 4),
-    createBomb(230, 470, 14, 4),
+  monsters: [
+    createVerticalPatrolMonster(110, 225, 225, "right", 1, 1, 0),
+    createVerticalPatrolMonster(685, 225, 325, "right", 2, 1, 0),
+    createHorizontalPatrolMonster(175, 175, 200, "left", 1, 1, 1, 0, "black"),
+    createChaserMonster(250, 300, 1, 0.3, 1000, 0),
+  ],
 
-    // Group 5
-    createBomb(520, 70, 15, 5),
-    createBomb(570, 70, 16, 5),
-    createBomb(620, 70, 17, 5),
-
-    // Group 6
-    createBomb(120, 230, 18, 6),
-    createBomb(120, 280, 19, 6),
-    createBomb(120, 330, 20, 6),
-
-    // Group 7
-    createBomb(130, 420, 21, 7),
-    createBomb(180, 420, 22, 7),
-    createBomb(230, 420, 23, 7),
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 4000,
+      createMonster: () =>
+        createHorizontalPatrolMonster(
+          425,
+          425,
+          200,
+          "left",
+          1,
+          1,
+          1,
+          4000,
+          "green",
+        ),
+    },
+    {
+      spawnDelay: 5000,
+      createMonster: () => createAmbusherMonster(500, 500, 1, 8000, 5000),
+    },
   ],
 
   coinSpawnPoints: [
     {
-      x: centerX(GAME_CONFIG.COIN_SIZE),
-      y: centerY(GAME_CONFIG.COIN_SIZE),
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
       spawnAngle: 45,
     },
@@ -447,7 +463,6 @@ export const level2Map: MapDefinition = {
       type: CoinType.POWER,
       spawnAngle: 135,
     },
-
     {
       x: 200,
       y: 75,
@@ -468,212 +483,120 @@ export const level2Map: MapDefinition = {
       y: 75,
       type: CoinType.EXTRA_LIFE,
     },
-  ],
-
-  monsterSpawnPoints: [
-    {
-      spawnDelay: 4000,
-      createMonster: () =>
-        createHorizontalPatrolMonster(
-          430,
-          430,
-          200,
-          "left",
-          1,
-          1.0,
-          undefined,
-          0,
-          "green",
-        ),
-    },
-
-    {
-      spawnDelay: 5000,
-      createMonster: () => createAmbusherMonster(500, 500, 1),
-    },
-  ],
-
-  monsters: [
-    createVerticalPatrolMonster(105, 220, 220, "right"),
-    createVerticalPatrolMonster(695, 220, 220, "right", 2, 1),
-    createHorizontalPatrolMonster(
-      170,
-      170,
-      200,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-    createChaserMonster(250, 300, 1, 0.3, 1000),
   ],
 };
 
 // Level 3 - Innovasjon Norge
 export const level3Map: MapDefinition = {
-  id: "level2",
+  id: "level3",
   name: "innovasjon norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#ff6b6b", // Red-orange for dark background
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ff6b6b",
 
   groupSequence: [1, 2, 3, 4, 5],
 
   ground: {
     x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
+    y: 560,
+    width: 800,
     height: 40,
     color: "#262335",
   },
 
   platforms: [
-    // Bottom platforms
-    createPlatform(165, 475, { width: 150, height: 15 }, "#d4896a", "#262335"),
-    createPlatform(485, 475, { width: 150, height: 15 }, "#d4896a", "#262335"),
-    // Middle platforms
-    createPlatform(300, 380, { width: 200, height: 15 }, "#d4896a", "#262335"),
-    createPlatform(300, 240, { width: 200, height: 15 }, "#d4896a", "#262335"),
-    // Top platforms
-    createPlatform(165, 130, { width: 150, height: 15 }, "#d4896a", "#262335"),
-    createPlatform(485, 130, { width: 150, height: 15 }, "#d4896a", "#262335"),
+    createPlatform(150, 125, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(500, 125, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(300, 250, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(300, 375, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(150, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(500, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
   ],
 
   bombs: [
-    // Group 1
-    createBomb(600, 95, 1, 1),
-    createBomb(550, 95, 2, 1),
-    createBomb(500, 95, 3, 1),
+    createBomb(612, 100, 1, 1),
+    createBomb(562, 100, 2, 1),
+    createBomb(512, 100, 3, 1),
+    createBomb(163, 450, 4, 2),
+    createBomb(213, 450, 5, 2),
+    createBomb(263, 450, 6, 2),
+    createBomb(261, 100, 7, 3),
+    createBomb(211, 100, 8, 3),
+    createBomb(161, 100, 9, 3),
+    createBomb(613, 450, 10, 4),
+    createBomb(563, 450, 11, 4),
+    createBomb(513, 450, 12, 4),
+    createBomb(388, 75, 13, 5),
+    createBomb(388, 125, 14, 5),
+    createBomb(388, 175, 15, 5),
+    createBomb(513, 500, 16, 6),
+    createBomb(563, 500, 17, 6),
+    createBomb(613, 500, 18, 6),
+    createBomb(163, 500, 19, 7),
+    createBomb(213, 500, 20, 7),
+    createBomb(263, 500, 21, 7),
+    createBomb(361, 350, 22, 8),
+    createBomb(411, 350, 23, 8),
+  ],
 
-    // Group 2
-    createBomb(180, 440, 4, 2),
-    createBomb(230, 440, 5, 2),
-    createBomb(280, 440, 6, 2),
+  monsters: [
+    createHorizontalPatrolMonster(150, 125, 150, "left", 0, 0.7, 1, 0, "green"),
+    createHorizontalPatrolMonster(500, 125, 150, "right", 0, 1, -1, 0, "black"),
+    createHorizontalPatrolMonster(300, 250, 200, "left", 0, 1, 1, 0, "green"),
+    createFloaterMonster(50, 300, 45, 1, 0),
+    createFloaterMonster(750, 500, 155, 1, 0),
+  ],
 
-    // Group 3
-    createBomb(280, 95, 7, 3),
-    createBomb(230, 95, 8, 3),
-    createBomb(180, 95, 9, 3),
-
-    // Group 4
-    createBomb(600, 440, 10, 4),
-    createBomb(550, 440, 11, 4),
-    createBomb(500, 440, 12, 4),
-
-    // Group 5
-    createBomb(385, 70, 13, 5),
-    createBomb(385, 120, 14, 5),
-    createBomb(385, 170, 15, 5),
-
-    // Group 6
-    createBomb(500, 500, 16, 6),
-    createBomb(550, 500, 17, 6),
-    createBomb(600, 500, 18, 6),
-
-    // Group 7
-    createBomb(180, 500, 19, 7),
-    createBomb(230, 500, 20, 7),
-    createBomb(280, 500, 21, 7),
-
-    // Group 8
-    createBomb(360, 345, 22, 8),
-    createBomb(410, 345, 23, 8),
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 7000,
+      createMonster: () => createChaserMonster(750, 500, 1, 0.2, 500, 7000),
+    },
+    {
+      spawnDelay: 15000,
+      createMonster: () => createAmbusherMonster(50, 500, 1, 8000, 15000),
+    },
   ],
 
   coinSpawnPoints: [
     {
       x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 150,
+      y: 477,
       type: CoinType.POWER,
-      spawnAngle: 60,
+      spawnAngle: 49,
     },
     {
-      x: 400,
-      y: GAME_CONFIG.CANVAS_HEIGHT - 250,
+      x: 475,
+      y: 275,
       type: CoinType.POWER,
       spawnAngle: 120,
     },
     {
-      x: 520,
-      y: 100,
+      x: 500,
+      y: 75,
       type: CoinType.BONUS_MULTIPLIER,
       spawnAngle: 120,
     },
     {
-      x: 180,
-      y: 100,
+      x: 275,
+      y: 50,
       type: CoinType.BONUS_MULTIPLIER,
       spawnAngle: 120,
     },
     {
-      x: 520,
-      y: 100,
+      x: 500,
+      y: 50,
       type: CoinType.EXTRA_LIFE,
       spawnAngle: 120,
     },
     {
-      x: 180,
-      y: 100,
+      x: 275,
+      y: 75,
       type: CoinType.EXTRA_LIFE,
       spawnAngle: 120,
     },
-  ],
-
-  monsterSpawnPoints: [
-    // // More aggressive early spawns for level 2
-    {
-      spawnDelay: 7000,
-      createMonster: () => createChaserMonster(750, 500, 1),
-    },
-    {
-      spawnDelay: 15000,
-      createMonster: () => createAmbusherMonster(50, 500, 1),
-    },
-  ],
-
-  monsters: [
-    // Monster on top left platform (left side, 3 walks)
-    createHorizontalPatrolMonster(
-      165,
-      130,
-      150,
-      "left",
-      0,
-      0.7,
-      undefined,
-      0,
-      "green",
-    ),
-    // Monster on top right platform (right side, 2 walks)
-    createHorizontalPatrolMonster(
-      485,
-      130,
-      150,
-      "right",
-      0,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-    // Monster on upper middle platform (left side, 1 walk)
-    createHorizontalPatrolMonster(
-      300,
-      240,
-      200,
-      "left",
-      0,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createFloaterMonster(50, 300, 45, 1),
-    createFloaterMonster(750, 500, 155, 1),
-    // createAmbusherMonster(50, 500),
   ],
 };
 
@@ -1496,7 +1419,6 @@ export const level8Map: MapDefinition = {
 };
 
 export const mapDefinitions = [
-  newLevelMap,
   level0Map,
   level1Map,
   level2Map,
