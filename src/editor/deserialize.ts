@@ -21,7 +21,7 @@ const monsterToEntity = (m: Monster, delayed: boolean): MonsterEntity => {
   };
 
   switch (m.type) {
-    case MonsterType.HORIZONTAL_PATROL: {
+    case MonsterType.MUMMY: {
       const platformWidth = (m.patrolEndX ?? m.x) - (m.patrolStartX ?? m.x);
       return {
         ...base,
@@ -32,6 +32,7 @@ const monsterToEntity = (m: Monster, delayed: boolean): MonsterEntity => {
         walkLengths: m.walkLengths ?? 1,
         direction: m.direction,
         variant: m.variant ?? "green",
+        transformTarget: m.transformTarget ?? "SPHERE",
       };
     }
     case MonsterType.VERTICAL_PATROL: {
@@ -44,19 +45,22 @@ const monsterToEntity = (m: Monster, delayed: boolean): MonsterEntity => {
         direction: m.direction ?? 1,
       };
     }
-    case MonsterType.FLOATER:
+    case MonsterType.HORN:
       return { ...base, startAngle: m.startAngle ?? 45 };
-    case MonsterType.CHASER:
+    case MonsterType.BIRD:
       return {
         ...base,
         directness: m.directness ?? 0.2,
         updateInterval: m.chaseUpdateInterval ?? 500,
       };
-    case MonsterType.AMBUSHER:
+    case MonsterType.UFO:
       return {
         ...base,
         ambushInterval: 8000,
       };
+    case MonsterType.SPHERE:
+    case MonsterType.ORB:
+      return base;
   }
 };
 
@@ -64,18 +68,6 @@ export const mapToEditor = (
   map: MapDefinition
 ): { entities: EditorEntity[]; meta: MapMeta } => {
   const entities: EditorEntity[] = [];
-
-  entities.push({
-    id: newId("ground"),
-    kind: "ground",
-    x: map.ground.x,
-    y: map.ground.y,
-    width: map.ground.width,
-    height: map.ground.height,
-    color: map.ground.color,
-    tileTheme: map.ground.tileTheme,
-    tileNoise: map.ground.tileNoise,
-  });
 
   entities.push({
     id: newId("spawn"),
@@ -120,6 +112,12 @@ export const mapToEditor = (
         const m = sp.createMonster();
         const ent = monsterToEntity(m, true);
         ent.spawnDelay = sp.spawnDelay;
+        if (sp.respawnInterval && sp.respawnInterval > 0) {
+          ent.respawnInterval = sp.respawnInterval;
+          if (sp.maxSpawns && sp.maxSpawns > 0) {
+            ent.maxSpawns = sp.maxSpawns;
+          }
+        }
         entities.push(ent);
       } catch {
         // skip malformed factory

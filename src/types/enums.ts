@@ -33,11 +33,15 @@ export enum TutorialMissionId {
 }
 
 export enum MonsterType {
-  HORIZONTAL_PATROL = "HORIZONTAL_PATROL",
+  MUMMY = "MUMMY",
   VERTICAL_PATROL = "VERTICAL_PATROL",
-  CHASER = "CHASER",
-  AMBUSHER = "AMBUSHER",
-  FLOATER = "FLOATER",
+  // BJ-aligned name (game-specs §5.1.1). Was CHASER pre-rename.
+  BIRD = "BIRD",
+  UFO = "UFO",
+  HORN = "HORN",
+  // BJ-style airborne forms (Monster-Movments.md).
+  SPHERE = "SPHERE", // aligns Jack's X column, bobs Y uncontrollably
+  ORB = "ORB", // aligns Jack's Y row, bobs X uncontrollably
 }
 
 export enum CoinType {
@@ -45,6 +49,8 @@ export enum CoinType {
   BONUS_MULTIPLIER = "BONUS_MULTIPLIER",
   EXTRA_LIFE = "EXTRA_LIFE",
   MONSTER_FREEZE = "MONSTER_FREEZE",
+  // BJ "Special" coin: rare per-level spawn, awards points + skips level.
+  SPECIAL = "SPECIAL",
 }
 
 export enum AudioEvent {
@@ -60,6 +66,9 @@ export enum AudioEvent {
   MONSTER_KILL = "MONSTER_KILL",
   COIN_COLLECT = "COIN_COLLECT",
   POWER_COIN_ACTIVATE = "POWER_COIN_ACTIVATE",
+  PLAYER_JUMP = "PLAYER_JUMP",
+  POWER_COIN_AMBIENT_START = "POWER_COIN_AMBIENT_START",
+  POWER_COIN_AMBIENT_STOP = "POWER_COIN_AMBIENT_STOP",
 }
 
 export enum CollisionType {

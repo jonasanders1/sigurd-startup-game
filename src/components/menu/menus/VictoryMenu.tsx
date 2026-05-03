@@ -67,13 +67,13 @@ const VictoryMenu: React.FC = () => {
             <table className="w-full text-sm font-mono">
               <thead>
                 <tr className="border-b border-[var(--surface-line)]">
-                  <th className="text-left py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-left py-2 px-3 text-primary text-xs tracking-widest">
                     Bane
                   </th>
-                  <th className="text-right py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-right py-2 px-3 text-primary text-xs tracking-widest">
                     Finansiering
                   </th>
-                  <th className="text-right py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-right py-2 px-3 text-primary text-xs tracking-widest">
                     Bonus
                   </th>
                 </tr>
@@ -83,17 +83,17 @@ const VictoryMenu: React.FC = () => {
                   <tr key={index} className="border-b border-[var(--surface-line)]/30">
                     <td className="py-2 px-3 text-left text-foreground">
                       <Check className="w-4 h-4 text-primary inline mr-2" />
-                      <span className="font-medium">{level.mapName}</span>
+                      <span className="font-pixel font-medium capitalize">{level.mapName}</span>
                       <span className="text-xs text-[var(--foreground-dim)] ml-2">
-                        (Nivå {level.level})
+                        (Nivå <span className="font-pixel">{level.level}</span>)
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-right text-foreground">
+                    <td className="py-2 px-3 text-right text-foreground font-pixel tabular-nums">
                       {level.score.toLocaleString()} kr
                     </td>
                     <td className="py-2 px-3 text-right">
                       {level.bonus > 0 ? (
-                        <span className="text-amber-700 font-semibold">
+                        <span className="text-[var(--coin-yellow)] font-semibold font-pixel tabular-nums">
                           {level.bonus.toLocaleString()} kr
                         </span>
                       ) : (
@@ -111,7 +111,7 @@ const VictoryMenu: React.FC = () => {
                   <td className="py-3 px-3 text-right font-pixel text-primary text-lg">
                     {totalFinancing.toLocaleString()} kr
                   </td>
-                  <td className="py-3 px-3 text-right font-pixel text-amber-700 text-lg">
+                  <td className="py-3 px-3 text-right font-pixel text-[var(--coin-yellow)] text-lg">
                     {totalBonus > 0 ? `${totalBonus.toLocaleString()} kr` : "-"}
                   </td>
                 </tr>

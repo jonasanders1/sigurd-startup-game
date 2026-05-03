@@ -18,11 +18,14 @@ export const COLORS = {
 
   // Monster type variants — KAPLAY accent palette
   MONSTER_TYPES: {
-    HORIZONTAL_PATROL: "#ee90cb", // Pink - horizontal patrol
+    MUMMY: "#ee90cb", // Pink - horizontal patrol
     VERTICAL_PATROL: "#abdd64", // Lime - vertical patrol
-    CHASER: "#f2ae99", // Peach - chaser
-    AMBUSHER: "#8465ec", // Purple - ambusher
-    FLOATER: "#22d3ee", // Cyan - floater
+    BIRD: "#f2ae99", // Peach — bird (BJ §5.1.1, was CHASER)
+    UFO: "#8465ec", // Purple - ambusher
+    HORN: "#22d3ee", // Cyan - floater
+    // BJ airborne forms — distinct accent colors for the simple-rect render.
+    SPHERE: "#fbbf24", // Amber
+    ORB: "#a78bfa", // Lavender
   },
 
   // Environment

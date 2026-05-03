@@ -11,16 +11,20 @@ import { getDefaultHitbox } from "../config/monsterHitboxes";
 // Get the appropriate color for a monster type
 const getMonsterColor = (type: MonsterType): string => {
   switch (type) {
-    case MonsterType.HORIZONTAL_PATROL:
-      return COLORS.MONSTER_TYPES.HORIZONTAL_PATROL;
+    case MonsterType.MUMMY:
+      return COLORS.MONSTER_TYPES.MUMMY;
     case MonsterType.VERTICAL_PATROL:
       return COLORS.MONSTER_TYPES.VERTICAL_PATROL;
-    case MonsterType.CHASER:
-      return COLORS.MONSTER_TYPES.CHASER;
-    case MonsterType.AMBUSHER:
-      return COLORS.MONSTER_TYPES.AMBUSHER;
-    case MonsterType.FLOATER:
-      return COLORS.MONSTER_TYPES.FLOATER;
+    case MonsterType.BIRD:
+      return COLORS.MONSTER_TYPES.BIRD;
+    case MonsterType.UFO:
+      return COLORS.MONSTER_TYPES.UFO;
+    case MonsterType.HORN:
+      return COLORS.MONSTER_TYPES.HORN;
+    case MonsterType.SPHERE:
+      return COLORS.MONSTER_TYPES.SPHERE;
+    case MonsterType.ORB:
+      return COLORS.MONSTER_TYPES.ORB;
     default:
       return COLORS.MONSTER;
   }
@@ -48,6 +52,15 @@ const createBaseMonster = (
     direction: 1,
     isActive: true,
     spawnDelay,
+    // BJ §5.4 spawn-invuln baseline. ScalingManager.recordSpawn overwrites
+    // individualSpawnTime when the monster actually enters the playfield
+    // (after spawnDelay), so the 500ms safe window starts at the right moment.
+    spawnTime: Date.now(),
+    // Event-based spawn invuln (game-specs §5.4): newly spawned enemy isn't
+    // lethal until its movement class flips this on its first AI decision.
+    // The 500ms timer in `isCollisionLethal` acts as a safety net so a
+    // monster that never moves can't stay invuln forever.
+    isLethal: false,
   };
 };
 
@@ -62,7 +75,7 @@ const createBaseMonster = (
  * @param direction - Initial direction (optional, auto-determined by spawn side)
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createHorizontalPatrolMonster = (
+export const createMummyMonster = (
   platformX: number,
   platformY: number,
   platformWidth: number,
@@ -71,7 +84,8 @@ export const createHorizontalPatrolMonster = (
   speed: number = 1,
   direction?: number,
   spawnDelay: number = 0,
-  variant: "green" | "black" = "green"
+  variant: "green" | "black" = "green",
+  transformTarget: "SPHERE" | "ORB" | "NONE" = "SPHERE"
 ): Monster => {
   const x =
     spawnSide === "left"
@@ -81,12 +95,13 @@ export const createHorizontalPatrolMonster = (
   const initialDirection = direction || (spawnSide === "left" ? 1 : -1);
 
   return {
-    ...createBaseMonster(x, y, MonsterType.HORIZONTAL_PATROL, speed, spawnDelay),
+    ...createBaseMonster(x, y, MonsterType.MUMMY, speed, spawnDelay),
     patrolStartX: platformX,
     patrolEndX: platformX + platformWidth,
     direction: initialDirection,
     walkLengths,
     variant,
+    transformTarget,
   } as Monster;
 };
 
@@ -132,7 +147,7 @@ export const createVerticalPatrolMonster = (
  * @param speed - Movement speed
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createFloaterMonster = (
+export const createHornMonster = (
   startX: number,
   startY: number,
   startAngle: number = 45,
@@ -140,7 +155,7 @@ export const createFloaterMonster = (
   spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.FLOATER, speed, spawnDelay),
+    ...createBaseMonster(startX, startY, MonsterType.HORN, speed, spawnDelay),
     startAngle,
     spawnTime: Date.now(),
   } as Monster;
@@ -155,7 +170,7 @@ export const createFloaterMonster = (
  * @param updateInterval - How often to update the chase target (ms)
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createChaserMonster = (
+export const createBirdMonster = (
   startX: number,
   startY: number,
   speed: number = 0.8, // Reduced from 1
@@ -164,8 +179,8 @@ export const createChaserMonster = (
   spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.CHASER, speed, spawnDelay),
-    direction: 0, // Chaser doesn't use direction property
+    ...createBaseMonster(startX, startY, MonsterType.BIRD, speed, spawnDelay),
+    direction: 0, // Bird doesn't use direction property
     directness,
     chaseUpdateInterval: updateInterval,
   } as Monster;
@@ -179,7 +194,7 @@ export const createChaserMonster = (
  * @param ambushInterval - Time between ambushes (ms)
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createAmbusherMonster = (
+export const createUfoMonster = (
   startX: number,
   startY: number,
   speed: number = 0.8, // Reduced from 1
@@ -187,10 +202,41 @@ export const createAmbusherMonster = (
   spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.AMBUSHER, speed, spawnDelay),
+    ...createBaseMonster(startX, startY, MonsterType.UFO, speed, spawnDelay),
     ambushCooldown: 0, // Initialize ambush cooldown
   } as Monster;
 };
+
+// ─── BJ airborne forms (game-specs §5.1.3 / Monster-Movments.md) ────────────
+
+/**
+ * SPHERE — vertical-column chase. Tracks Jack's X (homing), bobs Y edge to
+ * edge bouncing off top/bottom boundaries. Mummy's transform target.
+ * `speed` drives both the bounce velocity and the homing rate.
+ */
+export const createSphereMonster = (
+  startX: number,
+  startY: number,
+  speed: number = 1.2,
+  spawnDelay: number = 0
+): Monster => ({
+  ...createBaseMonster(startX, startY, MonsterType.SPHERE, speed, spawnDelay),
+  direction: 1,
+} as Monster);
+
+/**
+ * ORB — horizontal-row chase. Tracks Jack's Y (homing), bobs X edge to edge
+ * bouncing off left/right boundaries.
+ */
+export const createOrbMonster = (
+  startX: number,
+  startY: number,
+  speed: number = 1.4,
+  spawnDelay: number = 0
+): Monster => ({
+  ...createBaseMonster(startX, startY, MonsterType.ORB, speed, spawnDelay),
+  direction: 1,
+} as Monster);
 
 /**
  * Utility function to create a monster from a spawn point configuration
@@ -200,8 +246,8 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
   const { x, y, type, speed = 1, ...config } = spawnPoint;
 
   switch (type) {
-    case MonsterType.HORIZONTAL_PATROL:
-      return createHorizontalPatrolMonster(
+    case MonsterType.MUMMY:
+      return createMummyMonster(
         config.patrolStartX || x,
         y + GAME_CONFIG.MONSTER_SIZE,
         (config.patrolEndX || x + 200) - (config.patrolStartX || x),
@@ -219,16 +265,16 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
         config.direction || 1
       );
 
-    case MonsterType.FLOATER:
-      return createFloaterMonster(
+    case MonsterType.HORN:
+      return createHornMonster(
         x,
         y,
         config.startAngle || 45,
         speed
       );
 
-    case MonsterType.CHASER:
-      return createChaserMonster(
+    case MonsterType.BIRD:
+      return createBirdMonster(
         x,
         y,
         speed,
@@ -236,8 +282,8 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
         config.updateInterval || 200
       );
 
-    case MonsterType.AMBUSHER:
-      return createAmbusherMonster(
+    case MonsterType.UFO:
+      return createUfoMonster(
         x,
         y,
         speed,

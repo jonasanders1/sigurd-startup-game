@@ -2,11 +2,13 @@ import { MapDefinition, Bomb, Platform, Monster } from "../types/interfaces";
 import { MonsterType, CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import {
-  createHorizontalPatrolMonster,
+  createMummyMonster,
   createVerticalPatrolMonster,
-  createFloaterMonster,
-  createChaserMonster,
-  createAmbusherMonster,
+  createHornMonster,
+  createBirdMonster,
+  createUfoMonster,
+  createSphereMonster,
+  createOrbMonster,
 } from "../managers/MonsterFactory";
 import {
   EditorEntity,
@@ -14,10 +16,10 @@ import {
   PlatformEntity,
   BombEntity,
   CoinSpawnEntity,
-  GroundEntity,
   PlayerStartEntity,
   MapMeta,
 } from "./types";
+import { isRecurring } from "./spawnUtils";
 
 const buildBomb = (b: BombEntity): Bomb => ({
   x: b.x,
@@ -43,8 +45,8 @@ const buildPlatform = (p: PlatformEntity): Platform => ({
 
 const buildMonster = (m: MonsterEntity): Monster => {
   switch (m.monsterType) {
-    case MonsterType.HORIZONTAL_PATROL:
-      return createHorizontalPatrolMonster(
+    case MonsterType.MUMMY:
+      return createMummyMonster(
         m.platformX ?? m.x,
         m.platformY ?? m.y + GAME_CONFIG.MONSTER_SIZE,
         m.platformWidth ?? 150,
@@ -53,7 +55,8 @@ const buildMonster = (m: MonsterEntity): Monster => {
         m.speed,
         m.direction,
         m.spawnDelay,
-        m.variant ?? "green"
+        m.variant ?? "green",
+        m.transformTarget ?? "SPHERE"
       );
     case MonsterType.VERTICAL_PATROL:
       return createVerticalPatrolMonster(
@@ -65,16 +68,16 @@ const buildMonster = (m: MonsterEntity): Monster => {
         m.direction ?? 1,
         m.spawnDelay
       );
-    case MonsterType.FLOATER:
-      return createFloaterMonster(
+    case MonsterType.HORN:
+      return createHornMonster(
         m.x,
         m.y,
         m.startAngle ?? 45,
         m.speed,
         m.spawnDelay
       );
-    case MonsterType.CHASER:
-      return createChaserMonster(
+    case MonsterType.BIRD:
+      return createBirdMonster(
         m.x,
         m.y,
         m.speed,
@@ -82,14 +85,18 @@ const buildMonster = (m: MonsterEntity): Monster => {
         m.updateInterval ?? 500,
         m.spawnDelay
       );
-    case MonsterType.AMBUSHER:
-      return createAmbusherMonster(
+    case MonsterType.UFO:
+      return createUfoMonster(
         m.x,
         m.y,
         m.speed,
         m.ambushInterval ?? 8000,
         m.spawnDelay
       );
+    case MonsterType.SPHERE:
+      return createSphereMonster(m.x, m.y, m.speed, m.spawnDelay);
+    case MonsterType.ORB:
+      return createOrbMonster(m.x, m.y, m.speed, m.spawnDelay);
   }
 };
 
@@ -102,7 +109,6 @@ export const buildMapFromEditor = (
   entities: EditorEntity[],
   meta: MapMeta
 ): MapDefinition => {
-  const grounds = entities.filter((e): e is GroundEntity => e.kind === "ground");
   const platforms = entities.filter((e): e is PlatformEntity => e.kind === "platform");
   const bombs = entities
     .filter((e): e is BombEntity => e.kind === "bomb")
@@ -113,14 +119,6 @@ export const buildMapFromEditor = (
     (e): e is PlayerStartEntity => e.kind === "playerStart"
   );
 
-  const ground = grounds[0] ?? {
-    x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
-    height: 40,
-    color: "#4c6986",
-  };
-
   const playerStart = playerStarts[0]
     ? { x: playerStarts[0].x, y: playerStarts[0].y }
     : {
@@ -128,12 +126,20 @@ export const buildMapFromEditor = (
         y: (GAME_CONFIG.CANVAS_HEIGHT - GAME_CONFIG.PLAYER_HEIGHT) / 2,
       };
 
-  const staticMonsters = monsters.filter((m) => !m.delayed).map(buildMonster);
-  const delayedMonsters = monsters
-    .filter((m) => m.delayed)
+  const staticMonsters = monsters
+    .filter((m) => !m.delayed && !isRecurring(m))
+    .map(buildMonster);
+
+  const spawnPointMonsters = monsters
+    .filter((m) => m.delayed || isRecurring(m))
     .map((m) => ({
-      spawnDelay: m.spawnDelay,
+      spawnDelay: m.delayed ? m.spawnDelay : 0,
       createMonster: () => buildMonster(m),
+      respawnInterval: isRecurring(m) ? m.respawnInterval : undefined,
+      maxSpawns:
+        isRecurring(m) && m.maxSpawns && m.maxSpawns > 0
+          ? m.maxSpawns
+          : undefined,
     }));
 
   return {
@@ -145,19 +151,10 @@ export const buildMapFromEditor = (
     playerStart,
     spawnIndicatorColor: meta.spawnIndicatorColor,
     groupSequence: meta.groupSequence.length > 0 ? meta.groupSequence : [1],
-    ground: {
-      x: ground.x,
-      y: ground.y,
-      width: ground.width,
-      height: ground.height,
-      color: ground.color,
-      tileTheme: (ground as GroundEntity).tileTheme,
-      tileNoise: (ground as GroundEntity).tileNoise,
-    },
     platforms: platforms.map(buildPlatform),
     bombs: bombs.map(buildBomb),
     monsters: staticMonsters,
-    monsterSpawnPoints: delayedMonsters,
+    monsterSpawnPoints: spawnPointMonsters,
     coinSpawnPoints: coins.map((c) => ({
       x: c.x,
       y: c.y,

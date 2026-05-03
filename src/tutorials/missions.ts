@@ -11,10 +11,10 @@ import { GAME_CONFIG } from "../types/constants";
 import { MapDefinition } from "../types/interfaces";
 import { P_COIN_COLORS } from "../config/coinTypes";
 import {
-  createAmbusherMonster,
-  createChaserMonster,
-  createFloaterMonster,
-  createHorizontalPatrolMonster,
+  createUfoMonster,
+  createBirdMonster,
+  createHornMonster,
+  createMummyMonster,
   createVerticalPatrolMonster,
 } from "../managers/MonsterFactory";
 
@@ -47,14 +47,6 @@ const centerPoint = (offsetWidth: number, offsetHeight: number) => ({
   y: centerY(offsetHeight),
 });
 
-const baseGround = {
-  x: 0,
-  y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-  width: GAME_CONFIG.CANVAS_WIDTH,
-  height: 40,
-  color: "#4c6986",
-};
-
 const platform = (
   x: number,
   y: number,
@@ -86,7 +78,6 @@ const baseMap = (overrides: Partial<MapDefinition> & { id: string }): MapDefinit
   playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
   spawnIndicatorColor: "#ff9ff3",
   groupSequence: [1],
-  ground: baseGround,
   platforms: [],
   bombs: [],
   monsters: [],
@@ -162,11 +153,11 @@ const surviveMap: MapDefinition = baseMap({
     platform(500, 400, 200),
   ],
   monsters: [
-    createHorizontalPatrolMonster(150, 170, 200, "left", 1, 1, undefined, 0, "green"),
+    createMummyMonster(150, 170, 200, "left", 1, 1, undefined, 0, "green"),
     createVerticalPatrolMonster(680, 220, 180, "left"),
-    createChaserMonster(250, 300, 1, 0.3, 1000),
-    createFloaterMonster(100, 250, 35, 1),
-    createAmbusherMonster(600, 80, 1),
+    createBirdMonster(250, 300, 1, 0.3, 1000),
+    createHornMonster(100, 250, 35, 1),
+    createUfoMonster(600, 80, 1),
   ],
   coinSpawnPoints: [],
 });
@@ -184,10 +175,10 @@ const killMap: MapDefinition = baseMap({
     platform(500, 400, 200),
   ],
   monsters: [
-    createHorizontalPatrolMonster(125, 170, 150, "left", 1, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(525, 170, 150, "right", 1, 1, undefined, 0, "black"),
-    createHorizontalPatrolMonster(100, 400, 200, "right", 1, 1, undefined, 0, "green"),
-    createHorizontalPatrolMonster(500, 400, 200, "left", 1, 1, undefined, 0, "black"),
+    createMummyMonster(125, 170, 150, "left", 1, 1, undefined, 0, "green"),
+    createMummyMonster(525, 170, 150, "right", 1, 1, undefined, 0, "black"),
+    createMummyMonster(100, 400, 200, "right", 1, 1, undefined, 0, "green"),
+    createMummyMonster(500, 400, 200, "left", 1, 1, undefined, 0, "black"),
   ],
   coinSpawnPoints: [
     {

@@ -1,8 +1,9 @@
 import { create } from "zustand";
-import { MapDefinition } from "../types/interfaces";
+import { MapDefinition, Bomb } from "../types/interfaces";
 import { CoinManager } from "../managers/coinManager";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { BackgroundManager } from "../managers/BackgroundManager";
+import { GAME_CONFIG } from "../types/constants";
 
 // Import all individual stores
 import { usePlayerStore } from "./entities/playerStore";
@@ -85,15 +86,24 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const coinStore = useCoinStore.getState();
     const monsterStore = useMonsterStore.getState();
     const playerStore = usePlayerStore.getState();
-    
+
     // IMPORTANT: Reset bomb state first to clear collectedBombs from previous level
     stateStore.resetBombState();
-    
-    // Initialize level
-    const { bombManager, firstBomb } = levelStore.initializeLevel(mapData);
+
+    // Use the map's bombs as authored. The win condition (LevelManager
+    // checkWinCondition) compares against currentMap.bombs.length so partial
+    // editor previews can still be won. Legacy padBombsTo to TOTAL_BOMBS at
+    // (0,0) was removed — it left visible placeholder bombs piled in the
+    // top-left corner of editor previews.
+    const paddedMap: MapDefinition = mapData;
+    const paddedBombs = mapData.bombs;
+
+    // Initialize level using padded bombs so BombManager and the level store
+    // both see all 24.
+    const { bombManager, firstBomb } = levelStore.initializeLevel(paddedMap);
 
     // Set up bombs without initial blinking (blinking will start after first bomb is collected)
-    const bombsWithState = mapData.bombs.map((bomb) => ({
+    const bombsWithState = paddedBombs.map((bomb) => ({
       ...bomb,
       isBlinking: false, // No initial blinking - will be set after first bomb collection
       isCollected: false,
@@ -109,24 +119,24 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const existingCoinManager = coinStore.coinManager;
     if (existingCoinManager) {
       // Update spawn points for new level but preserve score tracking
-      existingCoinManager.updateSpawnPoints(mapData.coinSpawnPoints || []);
+      existingCoinManager.updateSpawnPoints(paddedMap.coinSpawnPoints || []);
       // Clear active coins but preserve score tracking
       existingCoinManager.clearActiveCoins();
     } else {
       // First time initialization
-    const coinManager = new CoinManager(mapData.coinSpawnPoints || []);
+    const coinManager = new CoinManager(paddedMap.coinSpawnPoints || []);
     coinStore.setCoinManager(coinManager);
     }
 
     // Initialize monsters
-    monsterStore.initializeMonsters(mapData.monsters);
+    monsterStore.initializeMonsters(paddedMap.monsters);
 
     // Reset bomb collection state
     stateStore.setBombs(bombsWithState);
     stateStore.setBombManager(bombManager);
     
     // Set player position
-    playerStore.setPlayerPosition(mapData.playerStart.x, mapData.playerStart.y);
+    playerStore.setPlayerPosition(paddedMap.playerStart.x, paddedMap.playerStart.y);
 
     return { bombManager, firstBomb };
   },
@@ -219,7 +229,6 @@ export const getGameState = () => {
     levelStartTime: level.levelStartTime,
     levelCompletionTime: level.levelCompletionTime,
     platforms: level.platforms,
-    ground: level.ground,
     sendLevelCompletionData: level.sendLevelCompletionData,
     resetLevelState: level.resetLevelState,
 

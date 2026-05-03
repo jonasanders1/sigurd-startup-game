@@ -3,6 +3,7 @@ import { logger, LogCategory } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 import { useStateStore } from "../stores/game/stateStore";
 import { TutorialMissionId } from "../types/enums";
+import { getTuned } from "../stores/systems/tuningStore";
 
 export interface RespawnConfig {
   ambusher: number;
@@ -28,6 +29,9 @@ export class OptimizedRespawnManager {
   private totalPausedTime: number = 0;
 
   private constructor() {
+    // respawnConfig kept for the public read/update API, but per-type delays
+    // are now read live via getTuned() in getRespawnDelay() — so panel edits
+    // take effect on the next monster kill without restart.
     this.respawnConfig = this.getDefaultRespawnConfig();
     this.scalingManager = ScalingManager.getInstance();
     logger.debug("Respawn manager initialized");
@@ -43,10 +47,10 @@ export class OptimizedRespawnManager {
   // ===== CONFIGURATION =====
   private getDefaultRespawnConfig(): RespawnConfig {
     return {
-      ambusher: 10000, // 10 seconds
-      chaser: 7000, // 7 seconds
-      floater: 15000, // 15 seconds
-      patrol: 8000, // 8 seconds
+      ambusher: getTuned("RESPAWN_UFO_MS"),
+      chaser: getTuned("RESPAWN_BIRD_MS"),
+      floater: getTuned("RESPAWN_HORN_MS"),
+      patrol: getTuned("RESPAWN_MUMMY_MS"),
     };
   }
 
@@ -256,21 +260,22 @@ export class OptimizedRespawnManager {
   }
 
   private getRespawnDelay(monsterType: string): number {
+    // Live-read each kill so the Tuning Panel takes effect immediately.
     switch (monsterType) {
-      case "AMBUSHER":
-        return this.respawnConfig.ambusher;
-      case "CHASER":
-        return this.respawnConfig.chaser;
-      case "FLOATER":
-        return this.respawnConfig.floater;
-      case "HORIZONTAL_PATROL":
+      case "UFO":
+        return getTuned("RESPAWN_UFO_MS");
+      case "BIRD":
+        return getTuned("RESPAWN_BIRD_MS");
+      case "HORN":
+        return getTuned("RESPAWN_HORN_MS");
+      case "MUMMY":
       case "VERTICAL_PATROL":
-        return this.respawnConfig.patrol;
+        return getTuned("RESPAWN_MUMMY_MS");
       default:
         logger.warn(
           `Unknown monster type for respawn delay: ${monsterType}, using default`
         );
-        return this.respawnConfig.patrol;
+        return getTuned("RESPAWN_MUMMY_MS");
     }
   }
 

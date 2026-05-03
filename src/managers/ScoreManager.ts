@@ -10,6 +10,7 @@ import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
 import { sendScoreToHost } from "../lib/communicationUtils";
 import type { Monster } from "../types/interfaces";
+import { getTuned } from "../stores/systems/tuningStore";
 
 export class ScoreManager {
   public addScore(points: number): void {
@@ -42,7 +43,7 @@ export class ScoreManager {
     correctCount: number,
     lives: number
   ): number {
-    const livesLost = GAME_CONFIG.STARTING_LIVES - lives;
+    const livesLost = getTuned("STARTING_LIVES") - lives;
     return Math.max(0, correctCount - livesLost);
   }
 
@@ -76,12 +77,12 @@ export class ScoreManager {
 
   public handleBombCollection(bomb: any): any {
     const { collectBomb } = useStateStore.getState();
-    const { onFirebombCollected } = useCoinStore.getState();
+    const { coinManager } = useCoinStore.getState();
     const result = collectBomb(bomb.order);
 
-    // Check if this was a firebomb (correct order)
-    if (result && result.isCorrect) {
-      onFirebombCollected();
+    // BJ P-coin tokens count BOTH firebombs (2) and normal bombs (1).
+    if (result && result.isValid && coinManager) {
+      coinManager.onBombCollected(result.isCorrect);
     }
 
     return result;
@@ -89,7 +90,7 @@ export class ScoreManager {
 
   public handleMonsterKill(monster: Monster): void {
     const { multiplier } = useScoreStore.getState();
-    const { activeEffects } = useCoinStore.getState();
+    const { onPointsEarned } = useCoinStore.getState();
 
     // Calculate points using progressive bonus system
     const points = this.calculateMonsterKillPoints(multiplier);
@@ -102,11 +103,11 @@ export class ScoreManager {
       monster.y + monster.height / 2
     );
 
-    // NOTE: Monster kill points should NOT count towards B-coin spawning
-    // Only coin collection points should count
-    // Therefore, we don't call coinManager.onPointsEarned for monster kills
+    // BJ canonical: monster kills DO count toward B-coin threshold (only
+    // coin pickups and end-of-level bonus are excluded).
+    onPointsEarned(points, false);
 
-    log.debug(`Monster killed during power mode: ${points} points (not counted for B-coin spawning)`);
+    log.debug(`Monster killed during power mode: ${points} points (counted toward B-coin threshold)`);
   }
 
   public handleBonusPoints(bonusPoints: number): void {

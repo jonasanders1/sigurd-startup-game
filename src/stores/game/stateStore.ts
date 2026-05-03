@@ -4,6 +4,8 @@ import { Bomb } from "../../types/interfaces";
 import { BombManager } from "../../managers/bombManager";
 import { GAME_CONFIG } from "../../types/constants";
 import { calculateBombScore, formatScoreLog } from "../../lib/scoringUtils";
+import { clampLives } from "../../lib/bjRules";
+import { getTuned } from "../systems/tuningStore";
 import {
   sendScoreToHost,
   sendGameStateUpdate,
@@ -23,6 +25,9 @@ import { TUTORIAL_MISSIONS } from "../../tutorials/missions";
 interface StateData {
   currentState: GameState;
   lives: number;
+  // Lifetime lives lost this game (NOT decremented by extra-life pickups).
+  // Drives BJ-style E-coin death-generosity. Resets on resetGameState.
+  livesLostThisGame: number;
   currentLevel: number;
   showMenu: MenuType;
   previousMenu: MenuType | null;
@@ -89,6 +94,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
   // State
   currentState: GameState.MENU,
   lives: GAME_CONFIG.STARTING_LIVES,
+  livesLostThisGame: 0,
   currentLevel: 1,
   showMenu: MenuType.START,
   previousMenu: null,
@@ -166,11 +172,11 @@ export const useStateStore = create<StateStore>((set, get) => ({
   },
 
   loseLife: () => {
-    const { lives } = get();
+    const { lives, livesLostThisGame } = get();
     const newLives = lives - 1;
 
     log.player(`Losing life: ${lives} → ${newLives}`);
-    set({ lives: newLives });
+    set({ lives: newLives, livesLostThisGame: livesLostThisGame + 1 });
 
     // Reset multiplier when player dies
     const scoreStore = useScoreStore.getState();
@@ -233,8 +239,14 @@ export const useStateStore = create<StateStore>((set, get) => ({
 
   addLife: () => {
     const { lives } = get();
-    const newLives = lives + 1;
+    // BJ HUD constraint (game-specs §11): cap at 9 lives. Live-tunable.
+    const cap = getTuned("MAX_LIVES");
+    const newLives = clampLives(lives + 1, cap);
 
+    if (newLives === lives) {
+      log.player(`Add-life ignored — already at cap (${cap})`);
+      return;
+    }
     log.player(`Adding life: ${lives} → ${newLives}`);
     set({ lives: newLives });
   },
@@ -259,7 +271,8 @@ export const useStateStore = create<StateStore>((set, get) => ({
   resetGameState: () => {
     set({
       currentState: GameState.MENU,
-      lives: GAME_CONFIG.STARTING_LIVES,
+      lives: getTuned("STARTING_LIVES"),
+      livesLostThisGame: 0,
       currentLevel: 1,
       showMenu: MenuType.START,
       previousMenu: null,
@@ -301,18 +314,14 @@ export const useStateStore = create<StateStore>((set, get) => ({
     // Add score to game state
     scoreStore.addScore(scoreCalculation.actualPoints);
 
-    // Add points to multiplier system
-    scoreStore.addMultiplierScore(scoreCalculation.actualPoints);
+    // BJ: multiplier advances ONLY via B-coin pickup, not via score thresholds.
 
-    // Notify coin manager about firebomb points earned
-    // These points WILL count for B-coin spawning (per user requirement)
+    // Notify coin manager. Bomb points (correct + incorrect) count toward
+    // the BJ B-coin 5K threshold (bjRules.isThresholdablePointSource).
     const coinStore = useCoinStore.getState();
     if (coinStore.coinManager) {
-      // Track firebomb points for B-coin spawning
-      // This includes both correct (200 base) and incorrect (100 base) bombs
-      coinStore.coinManager.onFirebombPointsEarned(
-        scoreCalculation.actualPoints
-      );
+      coinStore.coinManager.onFirebombPointsEarned(scoreCalculation.actualPoints); // stats only
+      coinStore.coinManager.onPointsEarned(scoreCalculation.actualPoints, false);
     }
 
     // Log the score (only for firebombs or high scores to reduce spam)

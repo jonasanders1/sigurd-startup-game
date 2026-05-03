@@ -1,6 +1,6 @@
-import { Monster } from "../../types/interfaces";
+import { Monster, isPatrolMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
-import { useGameStore } from "../../stores/gameStore";
+import { useLevelStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
 
 export class VerticalPatrolMovement {
@@ -9,8 +9,7 @@ export class VerticalPatrolMovement {
     const newY = monster.y + monster.speed * monster.direction;
 
     // Check platform collision
-    const gameState = useGameStore.getState();
-    const platforms = gameState.platforms || [];
+    const platforms = useLevelStore.getState().platforms || [];
     let canMove = true;
 
     for (const platform of platforms) {
@@ -33,13 +32,17 @@ export class VerticalPatrolMovement {
       monster.lastDirectionChange = currentTime;
     }
 
-    // Change direction at boundaries
-    if (
-      monster.y <= (monster.patrolStartY || 0) ||
-      monster.y >= (monster.patrolEndY || GAME_CONFIG.CANVAS_HEIGHT)
-    ) {
-      monster.direction *= -1;
-      monster.lastDirectionChange = currentTime;
+    // Change direction at boundaries. patrolStartY/EndY only exist on the
+    // patrol/chaser/floater subtypes, not on UfoMonster — type guard
+    // before reading.
+    if (isPatrolMonster(monster)) {
+      if (
+        monster.y <= (monster.patrolStartY ?? 0) ||
+        monster.y >= (monster.patrolEndY ?? GAME_CONFIG.CANVAS_HEIGHT)
+      ) {
+        monster.direction *= -1;
+        monster.lastDirectionChange = currentTime;
+      }
     }
   }
-} 
+}

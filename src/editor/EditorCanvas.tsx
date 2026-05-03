@@ -2,19 +2,13 @@ import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useEditorStore, commitHistory } from "./store";
 import { GAME_CONFIG } from "../types/constants";
 import { MonsterType, CoinType } from "../types/enums";
-import { EditorEntity, MonsterEntity, PlatformEntity, GroundEntity } from "./types";
+import { EditorEntity, MonsterEntity, PlatformEntity } from "./types";
 import {
   DEFAULT_PLATFORM_THEME,
   getPlatformTileUrls,
   layoutPlatformTiles,
   type PlatformTheme,
 } from "../config/platformTiles";
-import {
-  DEFAULT_GROUND_THEME,
-  getGroundTileUrls,
-  layoutGroundCells,
-  type GroundTheme,
-} from "../config/groundTiles";
 import { getSpriteImagePath } from "../config/assets";
 import {
   defaultPlatform,
@@ -23,18 +17,19 @@ import {
   defaultPlayerStart,
   defaultMonster,
   defaultCoinSpawn,
-  defaultGround,
 } from "./defaults";
 
 const CANVAS_W = GAME_CONFIG.CANVAS_WIDTH;
 const CANVAS_H = GAME_CONFIG.CANVAS_HEIGHT;
 
 const MONSTER_COLORS: Record<MonsterType, string> = {
-  [MonsterType.HORIZONTAL_PATROL]: "#22c55e",
+  [MonsterType.MUMMY]: "#22c55e",
   [MonsterType.VERTICAL_PATROL]: "#3b82f6",
-  [MonsterType.CHASER]: "#ef4444",
-  [MonsterType.AMBUSHER]: "#a855f7",
-  [MonsterType.FLOATER]: "#f59e0b",
+  [MonsterType.BIRD]: "#ef4444",
+  [MonsterType.UFO]: "#a855f7",
+  [MonsterType.HORN]: "#f59e0b",
+  [MonsterType.SPHERE]: "#fbbf24",
+  [MonsterType.ORB]: "#a78bfa",
 };
 
 const COIN_COLORS: Record<CoinType, string> = {
@@ -42,6 +37,7 @@ const COIN_COLORS: Record<CoinType, string> = {
   [CoinType.BONUS_MULTIPLIER]: "#34d399",
   [CoinType.EXTRA_LIFE]: "#f472b6",
   [CoinType.MONSTER_FREEZE]: "#67e8f9",
+  [CoinType.SPECIAL]: "#f97316",
 };
 
 const snap = (value: number, gridSize: number, enabled: boolean) =>
@@ -50,7 +46,6 @@ const snap = (value: number, gridSize: number, enabled: boolean) =>
 const getEntityRect = (e: EditorEntity) => {
   switch (e.kind) {
     case "platform":
-    case "ground":
       return { x: e.x, y: e.y, width: e.width, height: e.height };
     case "bomb":
       return { x: e.x, y: e.y, width: GAME_CONFIG.BOMB_SIZE, height: GAME_CONFIG.BOMB_SIZE };
@@ -126,9 +121,9 @@ const ArrowOverlay: React.FC<ArrowProps> = ({ fromX, fromY, angleDeg, length, co
 
 const monsterArrowAngle = (m: MonsterEntity): number | null => {
   switch (m.monsterType) {
-    case MonsterType.FLOATER:
+    case MonsterType.HORN:
       return m.startAngle ?? 45;
-    case MonsterType.HORIZONTAL_PATROL:
+    case MonsterType.MUMMY:
       return (m.spawnSide ?? "left") === "left" ? 0 : 180;
     case MonsterType.VERTICAL_PATROL:
       return (m.direction ?? 1) >= 0 ? 90 : -90;
@@ -148,7 +143,7 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
   onStartHandle,
   onEndHandle,
 }) => {
-  const isHoriz = monster.monsterType === MonsterType.HORIZONTAL_PATROL;
+  const isHoriz = monster.monsterType === MonsterType.MUMMY;
   const color = isHoriz ? "#22c55e" : "#3b82f6";
 
   let x1: number, y1: number, x2: number, y2: number;
@@ -294,43 +289,6 @@ const PlatformSprite: React.FC<{ entity: PlatformEntity }> = ({ entity }) => {
   );
 };
 
-const GroundSprite: React.FC<{ entity: GroundEntity }> = ({ entity }) => {
-  const theme = entity.tileTheme || DEFAULT_GROUND_THEME;
-  const urls = getGroundTileUrls(theme);
-  const cells = layoutGroundCells(
-    0,
-    0,
-    entity.width,
-    entity.height,
-    theme,
-    entity.tileNoise
-  );
-  return (
-    <>
-      {cells.map((cell) => {
-        const variants = cell.layer === "surface" ? urls.surface : urls.ground;
-        const src = variants[cell.variantIndex % variants.length];
-        return (
-          <img
-            key={`${cell.col}-${cell.row}`}
-            src={src}
-            draggable={false}
-            alt=""
-            style={{
-              ...PIXEL_IMG,
-              position: "absolute",
-              left: cell.x,
-              top: cell.y,
-              width: cell.width,
-              height: cell.height,
-            }}
-          />
-        );
-      })}
-    </>
-  );
-};
-
 interface EntityVisualProps {
   entity: EditorEntity;
   selected: boolean;
@@ -396,7 +354,7 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
     );
   };
 
-  if (entity.kind === "platform" || entity.kind === "ground") {
+  if (entity.kind === "platform") {
     if (showSprites) {
       return (
         <div
@@ -408,11 +366,7 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
             overflow: "hidden",
           }}
         >
-          {entity.kind === "platform" ? (
-            <PlatformSprite entity={entity} />
-          ) : (
-            <GroundSprite entity={entity} />
-          )}
+          <PlatformSprite entity={entity} />
           {renderResizeHandle()}
         </div>
       );
@@ -423,7 +377,7 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
         style={{
           ...baseStyle,
           background: entity.color,
-          border: `1px solid ${entity.kind === "platform" ? entity.borderColor ?? "#000" : "#000"}`,
+          border: `1px solid ${entity.borderColor ?? "#000"}`,
         }}
       >
         {renderResizeHandle()}
@@ -683,8 +637,6 @@ export const EditorCanvas: React.FC = () => {
     let entity: EditorEntity | null = null;
     if (tool.entity === "platform") {
       entity = tool.subType === "vertical" ? defaultVerticalWall(sx, sy) : defaultPlatform(sx, sy);
-    } else if (tool.entity === "ground") {
-      entity = { ...defaultGround(), x: sx, y: sy };
     } else if (tool.entity === "bomb") {
       const existing = entities.filter((en) => en.kind === "bomb").length;
       const next = defaultBomb(sx, sy);
@@ -798,7 +750,7 @@ export const EditorCanvas: React.FC = () => {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    const isHoriz = monster.monsterType === MonsterType.HORIZONTAL_PATROL;
+    const isHoriz = monster.monsterType === MonsterType.MUMMY;
     if (isHoriz) {
       const startX = monster.platformX ?? monster.x;
       const width = monster.platformWidth ?? 150;
@@ -1047,7 +999,7 @@ export const EditorCanvas: React.FC = () => {
           (e): e is MonsterEntity =>
             e.kind === "monster" &&
             selectedIds.has(e.id) &&
-            (e.monsterType === MonsterType.HORIZONTAL_PATROL ||
+            (e.monsterType === MonsterType.MUMMY ||
               e.monsterType === MonsterType.VERTICAL_PATROL)
         )
         .map((m) => (

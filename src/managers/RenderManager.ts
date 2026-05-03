@@ -3,7 +3,6 @@ import {
   Monster,
   Bomb,
   Platform,
-  Ground,
   Coin,
   FloatingText,
   MapDefinition,
@@ -30,12 +29,6 @@ import {
   DEFAULT_PLATFORM_THEME,
   layoutPlatformTiles,
 } from "../config/platformTiles";
-import {
-  getGroundTileSet,
-  DEFAULT_GROUND_THEME,
-  layoutGroundCells,
-  type GroundCell,
-} from "../config/groundTiles";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
@@ -64,8 +57,6 @@ export class RenderManager {
   private currentSpawnManager: OptimizedSpawnManager | null = null;
   private currentGameState: GameStateSnapshot | null = null;
   private frameTime: number = 0; // Cached Date.now() for current frame
-  /** Per-Ground tile layout cache; survives until the Ground reference changes. */
-  private groundLayoutCache: WeakMap<Ground, GroundCell[]> = new WeakMap();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -79,7 +70,6 @@ export class RenderManager {
     platforms: Platform[],
     bombs: Bomb[],
     monsters: Monster[],
-    ground: Ground | null,
     coins: Coin[] = [],
     floatingTexts: FloatingText[] = [],
     coinManager?: CoinManagerInterface,
@@ -97,8 +87,8 @@ export class RenderManager {
     // Render background first
     this.renderBackground();
 
-    // Render game elements on top
-    this.renderGround(ground);
+    // Render game elements on top. Ground entity removed — canvas bottom is
+    // the floor; nothing drawn for it (the parallax background fills there).
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
     this.renderCoins(coins, coinManager);
@@ -107,7 +97,7 @@ export class RenderManager {
     this.renderFloatingTexts(floatingTexts, deltaTime);
 
     if (SHOW_HITBOXES) {
-      this.renderHitboxes(player, platforms, bombs, monsters, ground, coins);
+      this.renderHitboxes(player, platforms, bombs, monsters, coins);
     }
   }
 
@@ -128,7 +118,6 @@ export class RenderManager {
     platforms: Platform[],
     bombs: Bomb[],
     monsters: Monster[],
-    ground: Ground | null,
     coins: Coin[]
   ): void {
     const ctx = this.ctx;
@@ -136,7 +125,6 @@ export class RenderManager {
     ctx.imageSmoothingEnabled = false;
     ctx.lineWidth = 1;
 
-    if (ground) this.strokeRect("#888888", ground.x, ground.y, ground.width, ground.height);
     platforms.forEach((p) => this.strokeRect("#00BFFF", p.x, p.y, p.width, p.height));
     bombs.forEach((b) => {
       if (!b.isCollected) this.strokeEllipse("#FF3030", b.x, b.y, b.width, b.height);
@@ -152,53 +140,6 @@ export class RenderManager {
 
   private renderBackground(): void {
     this.backgroundManager.render(this.ctx);
-  }
-
-  private renderGround(ground: Ground): void {
-    const ctx = this.ctx;
-    const theme = ground.tileTheme || DEFAULT_GROUND_THEME;
-    const tiles = getGroundTileSet(theme);
-    const ready =
-      tiles.surface.every((img) => img.complete && img.naturalWidth > 0) &&
-      tiles.ground.every((img) => img.complete && img.naturalWidth > 0);
-
-    if (!ready) {
-      // Tiles still loading — solid fill so the player has ground to stand on.
-      ctx.fillStyle = ground.color || DEV_CONFIG.COLORS.GROUND;
-      ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
-      return;
-    }
-
-    const prevSmoothing = ctx.imageSmoothingEnabled;
-    ctx.imageSmoothingEnabled = false;
-
-    // Clip to ground bounds so overflow cells (when width/height isn't a
-    // clean multiple of the block size) get cropped instead of bleeding past.
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(ground.x, ground.y, ground.width, ground.height);
-    ctx.clip();
-
-    let cells = this.groundLayoutCache.get(ground);
-    if (!cells) {
-      cells = layoutGroundCells(
-        ground.x,
-        ground.y,
-        ground.width,
-        ground.height,
-        theme,
-        ground.tileNoise
-      );
-      this.groundLayoutCache.set(ground, cells);
-    }
-    for (const cell of cells) {
-      const variants = cell.layer === "surface" ? tiles.surface : tiles.ground;
-      const img = variants[cell.variantIndex % variants.length];
-      ctx.drawImage(img, cell.x, cell.y, cell.width, cell.height);
-    }
-
-    ctx.restore();
-    ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
   private renderPlayer(player: Player): void {
@@ -407,27 +348,22 @@ export class RenderManager {
     monsters.forEach((monster, index) => {
       // Byråkrat-klonen handles its own activity check so dead monsters can
       // render through the death animation before disappearing.
-      if (monster.type === MonsterType.HORIZONTAL_PATROL) {
+      if (monster.type === MonsterType.MUMMY) {
         this.renderByrakrat(monster);
         return;
       }
 
-      if (monster.type === MonsterType.VERTICAL_PATROL) {
-        this.renderVertikalByrakrat(monster, deltaTime);
-        return;
-      }
-
-      if (monster.type === MonsterType.AMBUSHER) {
+      if (monster.type === MonsterType.UFO) {
         this.renderRegelRoboten(monster);
         return;
       }
 
-      if (monster.type === MonsterType.CHASER) {
+      if (monster.type === MonsterType.BIRD) {
         this.renderSkatteSpokelset(monster, deltaTime, player);
         return;
       }
 
-      if (monster.type === MonsterType.FLOATER) {
+      if (monster.type === MonsterType.HORN) {
         this.renderHodelosKonsulent(monster, deltaTime);
         return;
       }
@@ -652,8 +588,19 @@ export class RenderManager {
     if (monster.isDead && sprite.isDeathAnimComplete()) return;
 
     const NATURAL = GAME_CONFIG.MONSTER_SIZE;
+    // Asset has ~3px of transparent padding at the bottom of the sprite
+    // sheet. Shift the draw rect down so the visible feet sit flush with the
+    // platform top instead of hovering above it. The padding pixels now fall
+    // behind the platform and are hidden.
+    const FOOT_PADDING = 3;
     const { x: feetX, y: feetY } = getNaturalAnchor(monster, "feet");
-    sprite.draw(this.ctx, feetX - NATURAL / 2, feetY - NATURAL, NATURAL, NATURAL);
+    sprite.draw(
+      this.ctx,
+      feetX - NATURAL / 2,
+      feetY - NATURAL + FOOT_PADDING,
+      NATURAL,
+      NATURAL
+    );
   }
 
   /**
@@ -668,9 +615,9 @@ export class RenderManager {
     idleOnly: boolean = false
   ): void {
     for (const monster of monsters) {
-      if (monster.type === MonsterType.HORIZONTAL_PATROL) {
+      if (monster.type === MonsterType.MUMMY) {
         this.updateByrakratState(monster, deltaTime, idleOnly);
-      } else if (monster.type === MonsterType.AMBUSHER) {
+      } else if (monster.type === MonsterType.UFO) {
         this.updateRegelRobotenState(monster, deltaTime, player, idleOnly);
       }
       // Add other monsters here as they get per-frame hitbox configs.
@@ -785,22 +732,36 @@ export class RenderManager {
       this.skatteSpokelsetSprites.set(monster, sprite);
     }
 
-    // Face the player. Front when player is roughly directly above/below.
-    const FRONT_THRESHOLD = 10;
-    const dx =
+    // Hop-direction sprite: face left/right when hopping horizontally,
+    // front when hopping vertically (no up/down frames in this asset) or
+    // resting between hops.
+    const m = monster as {
+      hopTargetX?: number;
+      hopTargetY?: number;
+    };
+    const isResting = m.hopTargetX === undefined;
+    const hopDx = isResting ? 0 : (m.hopTargetX as number) - monster.x;
+    const hopDirSign = Math.abs(hopDx) < 1 ? 0 : Math.sign(hopDx);
+    const hopDir = dirNameSkatte(hopDirSign);
+
+    // Dead / frozen still face the player so the death-direction matches
+    // who killed the bird visually; live behavior (walk/idle) follows
+    // the hop axis.
+    const playerDx =
       player.x + player.width / 2 - (monster.x + monster.width / 2);
-    const dirSign = Math.abs(dx) < FRONT_THRESHOLD ? 0 : Math.sign(dx);
-    const dir = dirNameSkatte(dirSign);
+    const playerDirSign = Math.abs(playerDx) < 10 ? 0 : Math.sign(playerDx);
+    const playerDir = dirNameSkatte(playerDirSign);
 
     if (monster.isDead) {
       if (sprite.isDeathAnimComplete()) return;
-      sprite.setAnimation(`death-${dir}`);
+      sprite.setAnimation(`death-${playerDir}`);
     } else if (monster.isFrozen) {
       const phase = monster.isBlinking ? "blink" : "still";
-      sprite.setAnimation(`freeze-${phase}-${dir}`);
+      sprite.setAnimation(`freeze-${phase}-${playerDir}`);
+    } else if (isResting) {
+      sprite.setAnimation("idle-front");
     } else {
-      // Chasers are essentially always pursuing — default to walk.
-      sprite.setAnimation(`walk-${dir}`);
+      sprite.setAnimation(`walk-${hopDir}`);
     }
 
     sprite.update(deltaTime);

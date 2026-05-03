@@ -1,5 +1,6 @@
 import { Monster } from "../types/interfaces";
 import { logger, LogCategory } from "../lib/logger";
+import { getTuned, getTuningVersion } from "../stores/systems/tuningStore";
 
 // Unified scaling configuration
 export interface ScalingConfig {
@@ -24,7 +25,6 @@ export interface PauseState {
 
 export class ScalingManager {
   private static instance: ScalingManager;
-  private config: ScalingConfig;
   private globalPauseState: PauseState;
   private monsterCache: Map<
     string,
@@ -37,10 +37,19 @@ export class ScalingManager {
   private cacheTimeout: number = 1000; // 1 second cache
 
   private constructor() {
-    this.config = this.getDefaultConfig();
+    // `this.config` is a getter that reads live from the tuning store.
     this.globalPauseState = this.createPauseState();
     this.monsterCache = new Map();
     this.globalCache = null;
+  }
+
+  /**
+   * Live-read scaling config. Each access rebuilds from tuning store; cheap
+   * (a dozen Map lookups). Holders of `valuesToUse` keep their snapshot for
+   * the call's duration.
+   */
+  private get config(): ScalingConfig {
+    return this.getDefaultConfig();
   }
 
   public static getInstance(): ScalingManager {
@@ -51,33 +60,83 @@ export class ScalingManager {
   }
 
   // ===== CONFIGURATION =====
+  /**
+   * Build the scaling config from the live tuning store. Called fresh each
+   * time `this.config` is accessed (the property is a getter below).
+   * Per-monster scaled-value caches invalidate when the tuning version
+   * changes (see maybeInvalidateForTuning).
+   */
   private getDefaultConfig(): ScalingConfig {
     return {
       base: {
-        ambusher: { ambushInterval: 5000, speed: 2 }, // Slower, less frequent ambushes
-        chaser: { speed: 1, directness: 0.3, updateInterval: 200 }, // Slower, less direct, less frequent updates
-        floater: { speed: 2, bounceAngle: 0.2 }, // Slower, less erratic
-        patrol: { speed: 1 }, // Slower patrol
+        ambusher: {
+          ambushInterval: getTuned("UFO_BASE_AMBUSH_INTERVAL"),
+          speed: getTuned("UFO_BASE_SPEED"),
+        },
+        chaser: {
+          speed: getTuned("BIRD_BASE_SPEED"),
+          directness: getTuned("BIRD_BASE_DIRECTNESS"),
+          updateInterval: getTuned("BIRD_BASE_UPDATE_INTERVAL"),
+        },
+        floater: {
+          speed: getTuned("HORN_BASE_SPEED"),
+          bounceAngle: getTuned("HORN_BASE_BOUNCE_ANGLE"),
+        },
+        patrol: { speed: getTuned("MUMMY_BASE_SPEED") },
       },
       scaling: {
-        // ~25% slower progression than before
-        ambusher: { ambushInterval: -380, speed: 0.06 },
-        chaser: { speed: 0.15, directness: 0.06, updateInterval: -6 },
-        floater: { speed: 0.38, bounceAngle: 0.006 },
-        patrol: { speed: 0.15 },
+        ambusher: {
+          ambushInterval: getTuned("UFO_AMBUSH_INTERVAL_SCALING"),
+          speed: getTuned("UFO_SPEED_SCALING"),
+        },
+        chaser: {
+          speed: getTuned("BIRD_SPEED_SCALING"),
+          directness: getTuned("BIRD_DIRECTNESS_SCALING"),
+          updateInterval: getTuned("BIRD_UPDATE_INTERVAL_SCALING"),
+        },
+        floater: {
+          speed: getTuned("HORN_SPEED_SCALING"),
+          bounceAngle: getTuned("HORN_BOUNCE_ANGLE_SCALING"),
+        },
+        patrol: { speed: getTuned("MUMMY_SPEED_SCALING") },
       },
       max: {
-        // ~15% lower ceiling than before
-        ambusher: { ambushInterval: 700, speed: 8.5 },
-        chaser: { speed: 4.2, directness: 0.85, updateInterval: 130 },
-        floater: { speed: 4.2, bounceAngle: 0.42 },
-        patrol: { speed: 4.2 },
+        ambusher: {
+          ambushInterval: getTuned("UFO_MIN_AMBUSH_INTERVAL"),
+          speed: getTuned("UFO_MAX_SPEED"),
+        },
+        chaser: {
+          speed: getTuned("BIRD_MAX_SPEED"),
+          directness: getTuned("BIRD_MAX_DIRECTNESS"),
+          updateInterval: getTuned("BIRD_MIN_UPDATE_INTERVAL"),
+        },
+        floater: {
+          speed: getTuned("HORN_MAX_SPEED"),
+          bounceAngle: getTuned("HORN_MAX_BOUNCE_ANGLE"),
+        },
+        patrol: { speed: getTuned("MUMMY_MAX_SPEED") },
       },
     };
   }
 
-  public updateConfig(newConfig: Partial<ScalingConfig>): void {
-    this.config = { ...this.config, ...newConfig };
+  /**
+   * If the tuning version has bumped since last check, dump the cache so the
+   * next scaled-value computation uses fresh tuned values. Called at the
+   * top of any method that returns cached scaling.
+   */
+  private maybeInvalidateForTuning(): void {
+    const v = getTuningVersion();
+    if (v !== this.tuningVersionAtCache) {
+      this.tuningVersionAtCache = v;
+      this.clearCache();
+    }
+  }
+  private tuningVersionAtCache = -1;
+
+  public updateConfig(_newConfig: Partial<ScalingConfig>): void {
+    // `config` is now a getter that reads live from the tuning store, so
+    // mutation here is a no-op. Kept for API compatibility; just bust the
+    // cache so subsequent reads pick up any external tuning changes.
     this.clearCache();
     logger.debug("ScalingManager: Configuration updated");
   }
@@ -155,6 +214,7 @@ export class ScalingManager {
   }
 
   public getGlobalScaledValues(): MonsterScalingValues {
+    this.maybeInvalidateForTuning();
     const now = Date.now();
 
     // Check cache first
@@ -214,6 +274,7 @@ export class ScalingManager {
 
   // ===== INDIVIDUAL MONSTER SCALING =====
   public getMonsterScaledValues(monster: Monster): MonsterScalingValues {
+    this.maybeInvalidateForTuning();
     this.initializeMonster(monster);
 
     // Check both individual and global pause states
@@ -252,24 +313,24 @@ export class ScalingManager {
       let initialInfo = "";
 
       switch (monster.type) {
-        case "AMBUSHER":
+        case "UFO":
           initialInfo = `ambush interval: ${
             baseValues.ambusher.ambushInterval
           }ms, speed: ${baseValues.ambusher.speed.toFixed(2)}`;
           break;
-        case "CHASER":
+        case "BIRD":
           initialInfo = `speed: ${baseValues.chaser.speed.toFixed(
             2
           )}, directness: ${baseValues.chaser.directness.toFixed(
             3
           )}, update interval: ${baseValues.chaser.updateInterval}ms`;
           break;
-        case "FLOATER":
+        case "HORN":
           initialInfo = `speed: ${baseValues.floater.speed.toFixed(
             2
           )}, bounce angle: ${baseValues.floater.bounceAngle.toFixed(3)}`;
           break;
-        case "HORIZONTAL_PATROL":
+        case "MUMMY":
         case "VERTICAL_PATROL":
           initialInfo = `speed: ${baseValues.patrol.speed.toFixed(2)}`;
           break;
@@ -346,7 +407,7 @@ export class ScalingManager {
 
       // Only show relevant changes for the specific monster type
       switch (monster.type) {
-        case "AMBUSHER":
+        case "UFO":
           if (
             Math.abs(oldValues.ambusher.speed - newValues.ambusher.speed) > 0.01
           ) {
@@ -368,7 +429,7 @@ export class ScalingManager {
           }
           break;
 
-        case "CHASER":
+        case "BIRD":
           if (
             Math.abs(oldValues.chaser.speed - newValues.chaser.speed) > 0.01
           ) {
@@ -400,7 +461,7 @@ export class ScalingManager {
           }
           break;
 
-        case "FLOATER":
+        case "HORN":
           if (
             Math.abs(oldValues.floater.speed - newValues.floater.speed) > 0.01
           ) {
@@ -423,7 +484,7 @@ export class ScalingManager {
           }
           break;
 
-        case "HORIZONTAL_PATROL":
+        case "MUMMY":
         case "VERTICAL_PATROL":
           if (
             Math.abs(oldValues.patrol.speed - newValues.patrol.speed) > 0.01

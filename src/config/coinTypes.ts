@@ -5,13 +5,14 @@ import {
   GameStateInterface,
   Coin,
   Platform,
-  Ground,
 } from "../types/interfaces";
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
+import { COIN_SPAWNING } from "./coins";
 import { ScalingManager } from "../managers/ScalingManager";
 import { useAudioStore } from "../stores/systems/audioStore";
 import { log } from "../lib/logger";
+import { getTuned } from "../stores/systems/tuningStore";
 
 // Define coin effects
 export const COIN_EFFECTS = {
@@ -93,9 +94,13 @@ export const COIN_EFFECTS = {
         log.warn("AudioManager not available to stop PowerUp melody");
       }
       
-      // Unfreeze monsters (safely handle undefined monsters)
+      // Unfreeze monsters (safely handle undefined monsters).
+      // BJ mutation pass-through: tunable safe window when monster unfreezes.
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
+        const now = Date.now();
+        const passthrough = getTuned("MUTATION_PASSTHROUGH_MS");
         gameState.monsters.forEach((monster) => {
+          if (monster.isFrozen) monster.mutationEndTime = now + passthrough;
           monster.isFrozen = false;
         });
       }
@@ -130,6 +135,15 @@ export const COIN_EFFECTS = {
       // This effect is intentionally empty to avoid double-counting
     },
   },
+
+  SPECIAL: {
+    type: "SPECIAL",
+    points: 1000,
+    apply: () => {
+      // Score, level-skip, and audio are handled by coinStore.collectCoin()
+      // and gameStateManager.triggerSCoinLevelSkip().
+    },
+  },
 };
 
 // Define coin physics configurations
@@ -150,7 +164,7 @@ export const COIN_PHYSICS = {
     hasGravity: false, // We'll handle gravity manually
     bounces: false,
     reflects: false,
-    customUpdate: (coin, platforms, ground, deltaTime) => {
+    customUpdate: (coin, platforms, deltaTime) => {
       const FALL_SPEED = 2;
       const HORIZONTAL_SPEED = 1;
       const LANDING_TOLERANCE = 4; // For detecting when coin lands on platform
@@ -163,9 +177,9 @@ export const COIN_PHYSICS = {
         coin.velocityY = FALL_SPEED * frameMultiplier;
       }
 
-      // Check for ground collision
-      if (ground && coin.y + coin.height >= ground.y) {
-        coin.y = ground.y - coin.height;
+      // Canvas-bottom collision (Ground entity removed; canvas bottom = floor).
+      if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
+        coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
         coin.velocityY = 0;
         // If not already moving horizontally, pick a direction
         if (!coin.groundDirection) {
@@ -249,7 +263,7 @@ export const P_COIN_COLORS = [
   { color: "#8465ec", points: 300, name: "Purple", duration: 5000 }, // coin-purple - 5 seconds
   { color: "#abdd64", points: 500, name: "Lime", duration: 6000 }, // coin-lime - 6 seconds
   { color: "#22d3ee", points: 800, name: "Cyan", duration: 7000 }, // coin-cyan - 7 seconds
-  { color: "#eab308", points: 1200, name: "Yellow", duration: 8000 }, // coin-yellow - 8 seconds
+  { color: "#eab308", points: 1000, name: "Yellow", duration: 8000 }, // coin-yellow - 8 seconds
   { color: "#91a6b0", points: 2000, name: "Gray", duration: 10000 }, // coin-gray - 10 seconds
 ] as const;
 
@@ -289,10 +303,10 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     points: 0, // Points will be calculated dynamically based on color
     physics: COIN_PHYSICS.POWER,
     effects: [COIN_EFFECTS.POWER_MODE],
-    spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every POWER_COIN_SPAWN_INTERVAL firebombs collected in correct order
-      return gameState.firebombCount % GAME_CONFIG.POWER_COIN_SPAWN_INTERVAL === 0;
-    },
+    // BJ P-coin spawning is driven by a token counter (firebomb=2, normal=1,
+    // threshold=9), gated on no live P-coin. Implemented in
+    // CoinManager.checkPcoinSpawnConditions; this function is unused.
+    spawnCondition: () => false,
     maxActive: 1,
   },
 
@@ -314,18 +328,33 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     maxActive: 1,
   },
 
+  [CoinType.SPECIAL]: {
+    type: CoinType.SPECIAL,
+    color: "#f97316", // tailwind orange-500 — distinctive vs B/E coins
+    points: 1000,
+    physics: COIN_PHYSICS.GRAVITY_ONLY,
+    effects: [COIN_EFFECTS.SPECIAL],
+    // Per-level chance is rolled inside CoinManager (see rollSCoinForLevel);
+    // this gate is unused but kept for COIN_TYPES iteration consistency.
+    spawnCondition: () => false,
+    maxActive: 1,
+  },
+
   [CoinType.EXTRA_LIFE]: {
     type: CoinType.EXTRA_LIFE,
     color: "#ee90cb", // coin-pink
     points: GAME_CONFIG.EXTRA_LIFE_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.EXTRA_LIFE],
+    // BJ E-coin: every 8 B-coins, with each life lost giving 2 credits toward
+    // the next milestone. Gate is "potential" only; downstream dedup handles
+    // milestone uniqueness via triggeredSpawnConditions.
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn for every EXTRA_LIFE_COIN_RATIO bonus multiplier coins collected
       const bonusCount = gameState.totalBonusMultiplierCoinsCollected || 0;
-      return (
-        bonusCount > 0 && bonusCount % GAME_CONFIG.EXTRA_LIFE_COIN_RATIO === 0
-      );
+      const livesLost = gameState.livesLostThisGame ?? 0;
+      const effective =
+        bonusCount + COIN_SPAWNING.EXTRA_LIFE_DEATH_GENEROSITY * livesLost;
+      return effective >= COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO;
     },
     maxActive: 1,
   },

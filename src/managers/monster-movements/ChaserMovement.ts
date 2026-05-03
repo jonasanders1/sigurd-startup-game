@@ -1,417 +1,241 @@
-import { Monster, isChaserMonster } from "../../types/interfaces";
-import { logger } from "../../lib/logger";
+import { Monster, isBirdMonster } from "../../types/interfaces";
+import { armMonsterAsLethal } from "../../lib/bjRules";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
 import { GAME_CONFIG } from "../../types/constants";
+import { getTuned } from "../../stores/systems/tuningStore";
+import * as PF from "pathfinding";
 
-// Cardinal directions only (N, S, E, W)
-const CARDINAL_DIRS = [
-  { x: 1, y: 0 },  // East
-  { x: -1, y: 0 }, // West
-  { x: 0, y: 1 },  // South
-  { x: 0, y: -1 }, // North
-];
+/**
+ * Bird movement: discrete cardinal hops along an A*-planned path toward a
+ * delayed snapshot of Jack's position. Bird is the only monster that uses
+ * pathfinding — everything else uses simpler ricochet/blend movement.
+ *
+ * Per hop:
+ *   1. Refresh the delayed player snapshot if BIRD_TARGET_DELAY_MS has
+ *      elapsed since the last sample.
+ *   2. If resting, stand still until the rest window expires.
+ *   3. If no hop in flight, plan one: A* from the bird's current cell to
+ *      the target; step BIRD_HOP_DISTANCE in the cardinal direction toward
+ *      the path's first waypoint. (No cache — a 50 px hop overshoots
+ *      multiple cell-sized waypoints, so cached paths read stale
+ *      "backwards" waypoints next plan.)
+ *   4. Animate toward the hop target at the bird's scaled speed; on
+ *      arrival, clear the target and start the rest timer.
+ *
+ * A* inflates platforms/ground by the bird's body so the full hitbox fits
+ * through gaps; bounded at ASTAR_MAX_ITERATIONS to prevent runaway costs.
+ */
 
-// A* grid cell size — half the monster size for smoother navigation
 const CELL_SIZE = Math.ceil(GAME_CONFIG.MONSTER_SIZE / 2);
-
-interface GridNode {
-  x: number;
-  y: number;
-  g: number;
-  h: number;
-  f: number;
-  parent: GridNode | null;
-}
-
-// Unique ID counter for chasers (stable across frames)
-let nextChaserId = 0;
+const PF_FINDER = new PF.AStarFinder({
+  // Cardinal-only — bird hops on a single axis at a time.
+  diagonalMovement: PF.DiagonalMovement.Never,
+  heuristic: PF.Heuristic.manhattan,
+});
 
 export class ChaserMovement {
-  private pathCache: Map<number, { path: { x: number; y: number }[]; targetX: number; targetY: number; timestamp: number }> = new Map();
-  private static PATH_RECALC_INTERVAL = 400;
-  private static PATH_TARGET_DRIFT = 40; // Recalc if target moved more than this
-
-  public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
-    if (!isChaserMonster(monster)) return;
+  public update(
+    monster: Monster,
+    currentTime: number,
+    gameState: any,
+    deltaTime?: number
+  ): void {
+    if (!isBirdMonster(monster)) return;
     if (gameState.currentState !== "PLAYING") return;
-
     const player = gameState.player;
     if (!player) return;
 
-    const scalingManager = ScalingManager.getInstance();
-    const valuesToUse = scalingManager.getMonsterScaledValues(monster);
-    const monsterAge = scalingManager.getMonsterAge(monster);
-
-    if (monsterAge < 2) {
-      logger.debug(
-        `Chaser scaling - Age: ${monsterAge.toFixed(1)}s, Speed: ${valuesToUse.chaser.speed.toFixed(2)}`
-      );
-    }
-
-    // Initialize chaser state if not set
-    if (!monster.behaviorState) {
-      monster.behaviorState = "chasing";
-      monster.lastDirectionChange = currentTime;
-      monster.chaseTargetX = player.x;
-      monster.chaseTargetY = player.y;
-
-      (monster as any).updateIntervalMultiplier = 0.8 + Math.random() * 0.4;
-      (monster as any).directnessMultiplier = 0.85 + Math.random() * 0.3;
-      (monster as any).speedMultiplier = 0.9 + Math.random() * 0.2;
-      // Assign a stable ID for path caching
-      (monster as any)._chaserId = nextChaserId++;
-
-      const targetOffsetX = (Math.random() - 0.5) * 50;
-      const targetOffsetY = (Math.random() - 0.5) * 50;
-      monster.chaseTargetX = player.x + targetOffsetX;
-      monster.chaseTargetY = player.y + targetOffsetY;
-
-      monster.lastDirectionChange =
-        currentTime + Math.random() * valuesToUse.chaser.updateInterval;
-    }
-
+    const speed =
+      ScalingManager.getInstance().getMonsterScaledValues(monster).chaser.speed;
+    const frameSpeed = deltaTime ? speed * (deltaTime / 16.67) : speed;
     const platforms = gameState.platforms || [];
-    const ground = gameState.ground;
-    const directness =
-      valuesToUse.chaser.directness *
-      ((monster as any).directnessMultiplier || 1);
-    const updateInterval =
-      valuesToUse.chaser.updateInterval *
-      ((monster as any).updateIntervalMultiplier || 1);
 
-    // Update chase target periodically
-    const timeSinceLastUpdate =
-      currentTime - (monster.lastDirectionChange || currentTime);
-    if (timeSinceLastUpdate > updateInterval) {
-      const currentTargetX = monster.chaseTargetX || monster.x;
-      const currentTargetY = monster.chaseTargetY || monster.y;
-
-      const shouldAddOffset = Math.random() < 0.3;
-      const randomOffsetX = shouldAddOffset ? (Math.random() - 0.5) * 15 : 0;
-      const randomOffsetY = shouldAddOffset ? (Math.random() - 0.5) * 15 : 0;
-
-      monster.chaseTargetX =
-        currentTargetX +
-        (player.x + randomOffsetX - currentTargetX) * directness;
-      monster.chaseTargetY =
-        currentTargetY +
-        (player.y + randomOffsetY - currentTargetY) * directness;
-
-      monster.lastDirectionChange = currentTime;
-    }
-
-    const targetX = monster.chaseTargetX || monster.x;
-    const targetY = monster.chaseTargetY || monster.y;
-    const dx = targetX - monster.x;
-    const dy = targetY - monster.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance <= 5) return;
-
-    const individualSpeed =
-      valuesToUse.chaser.speed * ((monster as any).speedMultiplier || 1);
-    const speedScale = distance > 20 ? 1 : 0.5;
-    const frameSpeed = deltaTime
-      ? individualSpeed * speedScale * (deltaTime / 16.67)
-      : individualSpeed * speedScale;
-
-    // Try direct cardinal movement first (fast path)
-    const moved = this.tryCardinalMove(monster, dx, dy, frameSpeed, platforms, ground);
-
-    if (!moved) {
-      // Blocked — use A* pathfinding to navigate around the obstacle
-      this.followPath(monster, targetX, targetY, frameSpeed, platforms, ground, currentTime);
-    }
-  }
-
-  /**
-   * Try primary then secondary cardinal direction.
-   */
-  private tryCardinalMove(
-    monster: Monster,
-    dx: number,
-    dy: number,
-    speed: number,
-    platforms: any[],
-    ground: any
-  ): boolean {
-    const primary =
-      Math.abs(dx) >= Math.abs(dy)
-        ? { x: Math.sign(dx) * speed, y: 0 }
-        : { x: 0, y: Math.sign(dy) * speed };
-
-    const secondary =
-      Math.abs(dx) >= Math.abs(dy)
-        ? { x: 0, y: Math.sign(dy) * speed }
-        : { x: Math.sign(dx) * speed, y: 0 };
-
-    if (this.applyCardinalMove(monster, primary.x, primary.y, platforms, ground)) {
-      return true;
-    }
-
+    // Refresh the delayed player snapshot.
+    const delay = getTuned("BIRD_TARGET_DELAY_MS");
     if (
-      (secondary.x !== 0 || secondary.y !== 0) &&
-      this.applyCardinalMove(monster, secondary.x, secondary.y, platforms, ground)
+      monster.lastSeenAt === undefined ||
+      currentTime - monster.lastSeenAt >= delay
     ) {
-      return true;
+      monster.lastSeenPlayerX = player.x;
+      monster.lastSeenPlayerY = player.y;
+      monster.lastSeenAt = currentTime;
     }
 
-    return false;
+    // Resting between hops.
+    if (monster.nextHopTime !== undefined && currentTime < monster.nextHopTime) {
+      return;
+    }
+
+    // Plan the next hop if none is in flight.
+    if (monster.hopTargetX === undefined || monster.hopTargetY === undefined) {
+      const tx = monster.lastSeenPlayerX ?? player.x;
+      const ty = monster.lastSeenPlayerY ?? player.y;
+      this.planNextHop(
+        monster,
+        { x: tx, y: ty },
+        platforms,
+        currentTime
+      );
+      if (monster.hopTargetX === undefined) return; // both axes blocked
+      armMonsterAsLethal(monster);
+    }
+
+    // Animate toward the hop target.
+    const dx = (monster.hopTargetX as number) - monster.x;
+    const dy = (monster.hopTargetY as number) - monster.y;
+    const dist = Math.abs(dx) + Math.abs(dy); // axis-locked → Manhattan = Euclidean
+    if (dist <= frameSpeed) {
+      monster.x = monster.hopTargetX as number;
+      monster.y = monster.hopTargetY as number;
+      monster.hopTargetX = undefined;
+      monster.hopTargetY = undefined;
+      monster.nextHopTime = currentTime + getTuned("BIRD_HOP_REST_MS");
+      return;
+    }
+    monster.x += Math.sign(dx) * Math.min(frameSpeed, Math.abs(dx));
+    monster.y += Math.sign(dy) * Math.min(frameSpeed, Math.abs(dy));
   }
 
   /**
-   * Apply a single cardinal move. Returns true if the move succeeded.
+   * Pick the next hop direction. Runs A* to the target, then walks along
+   * the path while it stays on the same cardinal axis, capping at
+   * BIRD_HOP_DISTANCE. The hop target = last waypoint reached before a
+   * direction change or distance cap.
+   *
+   * This is the key fix vs. naïve "hop hopDist toward path[0]": A*'s first
+   * waypoint is only one CELL_SIZE away (~12.5 px), so a full hopDist (50)
+   * hop in that direction overshoots and may crash into the obstacle the
+   * path was meant to detour around — producing wobble, not progress.
    */
-  private applyCardinalMove(
-    monster: Monster,
-    moveX: number,
-    moveY: number,
+  private planNextHop(
+    monster: Monster & {
+      hopTargetX?: number;
+      hopTargetY?: number;
+      nextHopTime?: number;
+    },
+    target: { x: number; y: number },
     platforms: any[],
-    ground: any
-  ): boolean {
-    const newX = monster.x + moveX;
-    const newY = monster.y + moveY;
-
-    if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
-      monster.x = newX;
-      monster.y = newY;
-      this.handleGroundCollision(monster, ground);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Use A* pathfinding to navigate around obstacles.
-   */
-  private followPath(
-    monster: Monster,
-    targetX: number,
-    targetY: number,
-    speed: number,
-    platforms: any[],
-    ground: any,
     currentTime: number
   ): void {
-    const monsterId: number = (monster as any)._chaserId ?? 0;
+    const hopDist = getTuned("BIRD_HOP_DISTANCE");
+    const path = this.findPath(monster, target, platforms);
 
-    const cached = this.pathCache.get(monsterId);
-    let path: { x: number; y: number }[] | null = null;
-
-    // Reuse cached path if recent and target hasn't drifted too far
-    const cacheValid =
-      cached &&
-      cached.path.length > 0 &&
-      currentTime - cached.timestamp < ChaserMovement.PATH_RECALC_INTERVAL &&
-      Math.abs(cached.targetX - targetX) < ChaserMovement.PATH_TARGET_DRIFT &&
-      Math.abs(cached.targetY - targetY) < ChaserMovement.PATH_TARGET_DRIFT;
-
-    if (cacheValid) {
-      path = cached!.path;
-    } else {
-      path = this.findPath(monster, targetX, targetY, platforms, ground);
-      this.pathCache.set(monsterId, {
-        path: path || [],
-        targetX,
-        targetY,
-        timestamp: currentTime,
-      });
-    }
-
-    if (!path || path.length === 0) return;
-
-    // Follow the first waypoint
-    const wp = path[0];
-    const wpDx = wp.x - monster.x;
-    const wpDy = wp.y - monster.y;
-    const wpDist = Math.abs(wpDx) + Math.abs(wpDy);
-
-    if (wpDist < CELL_SIZE) {
-      path.shift();
-      if (path.length === 0) return;
-      const next = path[0];
-      this.moveToward(monster, next.x - monster.x, next.y - monster.y, speed, platforms, ground);
-    } else {
-      this.moveToward(monster, wpDx, wpDy, speed, platforms, ground);
-    }
-  }
-
-  /**
-   * Move toward a direction using strict cardinal movement.
-   */
-  private moveToward(
-    monster: Monster,
-    dx: number,
-    dy: number,
-    speed: number,
-    platforms: any[],
-    ground: any
-  ): void {
-    let moveX = 0;
-    let moveY = 0;
-
-    if (Math.abs(dx) >= Math.abs(dy)) {
-      moveX = Math.sign(dx) * speed;
-    } else {
-      moveY = Math.sign(dy) * speed;
-    }
-
-    if (!this.applyCardinalMove(monster, moveX, moveY, platforms, ground)) {
-      if (moveX !== 0 && dy !== 0) {
-        this.applyCardinalMove(monster, 0, Math.sign(dy) * speed, platforms, ground);
-      } else if (moveY !== 0 && dx !== 0) {
-        this.applyCardinalMove(monster, Math.sign(dx) * speed, 0, platforms, ground);
+    // Direction-only extraction. We DON'T trust monster.x/y vs path[0].x/y
+    // for sign detection because the monster's pixel position can be
+    // off-cell (e.g. y=282.5, the cell at row 22 is at pixel 275). That
+    // off-cell offset makes BOTH axes' signs non-zero and produces a
+    // diagonal hop. Cell-space cardinal deltas are clean.
+    let dirX = 0;
+    let dirY = 0;
+    if (path && path.length > 0) {
+      const startCol = Math.floor(monster.x / CELL_SIZE);
+      const startRow = Math.floor(monster.y / CELL_SIZE);
+      const wpCol = Math.round(path[0].x / CELL_SIZE);
+      const wpRow = Math.round(path[0].y / CELL_SIZE);
+      dirX = Math.sign(wpCol - startCol);
+      dirY = Math.sign(wpRow - startRow);
+      // Defensive: if A* placed path[0] in the same cell as start (unlikely
+      // but possible at boundaries), pick the dominant direction toward
+      // the target instead so we still move.
+      if (dirX === 0 && dirY === 0) {
+        const dx = target.x - monster.x;
+        const dy = target.y - monster.y;
+        if (Math.abs(dx) >= Math.abs(dy)) dirX = Math.sign(dx);
+        else dirY = Math.sign(dy);
       }
+    } else {
+      const dx = target.x - monster.x;
+      const dy = target.y - monster.y;
+      if (Math.abs(dx) >= Math.abs(dy)) dirX = Math.sign(dx);
+      else dirY = Math.sign(dy);
     }
+
+    const tryStep = (sx: number, sy: number): boolean => {
+      if (sx === 0 && sy === 0) return false;
+      const nx = monster.x + sx;
+      const ny = monster.y + sy;
+      // isMovementSafe checks canvas boundaries + platform overlap. Canvas
+      // bottom is the floor and is walkable.
+      if (!MovementUtils.isMovementSafe(monster, nx, ny, platforms)) {
+        return false;
+      }
+      monster.hopTargetX = nx;
+      monster.hopTargetY = ny;
+      return true;
+    };
+
+    // Try a full hopDist in the chosen cardinal direction, then shorter
+    // strides if blocked. Cardinal-only — only one of dirX/dirY is
+    // non-zero, so this is never diagonal.
+    for (let dist = hopDist; dist >= CELL_SIZE; dist -= CELL_SIZE) {
+      if (tryStep(dirX * dist, dirY * dist)) return;
+    }
+
+    // Fully blocked in the primary direction — try perpendicular toward target.
+    const altX = dirY !== 0 ? Math.sign(target.x - monster.x) * hopDist : 0;
+    const altY = dirX !== 0 ? Math.sign(target.y - monster.y) * hopDist : 0;
+    if (tryStep(altX, altY)) return;
+
+    monster.nextHopTime = currentTime + getTuned("BIRD_HOP_REST_MS");
   }
 
   /**
-   * A* pathfinding on a grid with cardinal-only neighbors.
-   * Inflates obstacles by the monster's size so the full body fits through gaps.
-   * Includes ground as an obstacle.
+   * Build a PathFinding.js grid (1=walkable, 0=blocked), inflating platforms
+   * by the bird's body so the full hitbox fits through gaps. Run
+   * AStarFinder; return path as pixel-coord waypoints (top-left aligned to
+   * cell origin). Returns null on no path / same-cell start.
    */
   private findPath(
     monster: Monster,
-    targetX: number,
-    targetY: number,
-    platforms: any[],
-    ground: any
+    target: { x: number; y: number },
+    platforms: any[]
   ): { x: number; y: number }[] | null {
     const cols = Math.ceil(GAME_CONFIG.CANVAS_WIDTH / CELL_SIZE);
     const rows = Math.ceil(GAME_CONFIG.CANVAS_HEIGHT / CELL_SIZE);
 
-    const startCol = Math.floor(monster.x / CELL_SIZE);
-    const startRow = Math.floor(monster.y / CELL_SIZE);
-    const goalCol = Math.min(cols - 1, Math.max(0, Math.floor(targetX / CELL_SIZE)));
-    const goalRow = Math.min(rows - 1, Math.max(0, Math.floor(targetY / CELL_SIZE)));
+    const startCol = Math.min(cols - 1, Math.max(0, Math.floor(monster.x / CELL_SIZE)));
+    const startRow = Math.min(rows - 1, Math.max(0, Math.floor(monster.y / CELL_SIZE)));
+    const goalCol = Math.min(cols - 1, Math.max(0, Math.floor(target.x / CELL_SIZE)));
+    const goalRow = Math.min(rows - 1, Math.max(0, Math.floor(target.y / CELL_SIZE)));
 
     if (startCol === goalCol && startRow === goalRow) return null;
 
-    // How many extra cells the monster body extends beyond a single cell
+    // 0 = walkable, 1 = blocked (PathFinding.js convention).
+    const matrix: number[][] = Array.from({ length: rows }, () =>
+      new Array(cols).fill(0)
+    );
+
     const inflateX = Math.ceil(monster.width / CELL_SIZE) - 1;
     const inflateY = Math.ceil(monster.height / CELL_SIZE) - 1;
-
-    // Build blocked set — inflate each obstacle by the monster's body size
-    const blocked = new Set<string>();
 
     const blockRect = (ox: number, oy: number, ow: number, oh: number) => {
       const left = Math.floor(ox / CELL_SIZE) - inflateX;
       const top = Math.floor(oy / CELL_SIZE) - inflateY;
       const right = Math.ceil((ox + ow) / CELL_SIZE);
       const bottom = Math.ceil((oy + oh) / CELL_SIZE);
-
       for (let r = top; r < bottom; r++) {
         for (let c = left; c < right; c++) {
-          if (c >= 0 && c < cols && r >= 0 && r < rows) {
-            blocked.add(`${c},${r}`);
-          }
+          if (c >= 0 && c < cols && r >= 0 && r < rows) matrix[r][c] = 1;
         }
       }
     };
 
-    for (const platform of platforms) {
-      blockRect(platform.x, platform.y, platform.width, platform.height);
-    }
+    for (const p of platforms) blockRect(p.x, p.y, p.width, p.height);
 
-    // Include ground as an obstacle
-    if (ground) {
-      blockRect(ground.x, ground.y, ground.width, ground.height);
-    }
+    // Always allow the start (we're standing there) and goal (we want to
+    // reach it) cells, even if they fall inside an inflated obstacle.
+    matrix[startRow][startCol] = 0;
+    matrix[goalRow][goalCol] = 0;
 
-    // Ensure start and goal are never blocked (monster is already there / needs to reach there)
-    const startKey = `${startCol},${startRow}`;
-    const goalKey = `${goalCol},${goalRow}`;
-    blocked.delete(startKey);
-    blocked.delete(goalKey);
+    const grid = new PF.Grid(matrix);
+    const raw = PF_FINDER.findPath(startCol, startRow, goalCol, goalRow, grid);
+    if (raw.length === 0) return null;
 
-    const key = (c: number, r: number) => `${c},${r}`;
-    const manhattan = (c: number, r: number) =>
-      Math.abs(c - goalCol) + Math.abs(r - goalRow);
-
-    const start: GridNode = {
-      x: startCol,
-      y: startRow,
-      g: 0,
-      h: manhattan(startCol, startRow),
-      f: manhattan(startCol, startRow),
-      parent: null,
-    };
-
-    const open: GridNode[] = [start];
-    const closed = new Set<string>();
-
-    const MAX_ITERATIONS = 300;
-    let iterations = 0;
-
-    while (open.length > 0 && iterations < MAX_ITERATIONS) {
-      iterations++;
-
-      // Find node with lowest f
-      let bestIdx = 0;
-      for (let i = 1; i < open.length; i++) {
-        if (open[i].f < open[bestIdx].f) bestIdx = i;
-      }
-      const current = open[bestIdx];
-      open.splice(bestIdx, 1);
-
-      if (current.x === goalCol && current.y === goalRow) {
-        // Reconstruct path as pixel coords (top-left aligned to match monster position)
-        const path: { x: number; y: number }[] = [];
-        let node: GridNode | null = current;
-        while (node && node.parent) {
-          path.unshift({
-            x: node.x * CELL_SIZE,
-            y: node.y * CELL_SIZE,
-          });
-          node = node.parent;
-        }
-        return path;
-      }
-
-      closed.add(key(current.x, current.y));
-
-      for (const dir of CARDINAL_DIRS) {
-        const nx = current.x + dir.x;
-        const ny = current.y + dir.y;
-
-        if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
-        if (blocked.has(key(nx, ny))) continue;
-        if (closed.has(key(nx, ny))) continue;
-
-        const g = current.g + 1;
-        const h = manhattan(nx, ny);
-
-        const existing = open.find((n) => n.x === nx && n.y === ny);
-        if (existing) {
-          if (g < existing.g) {
-            existing.g = g;
-            existing.f = g + h;
-            existing.parent = current;
-          }
-          continue;
-        }
-
-        open.push({ x: nx, y: ny, g, h, f: g + h, parent: current });
-      }
-    }
-
-    return null;
-  }
-
-  private handleGroundCollision(monster: Monster, ground: any): void {
-    if (!ground) return;
-
-    const isColliding =
-      monster.x < ground.x + ground.width &&
-      monster.x + monster.width > ground.x &&
-      monster.y < ground.y + ground.height &&
-      monster.y + monster.height > ground.y;
-
-    if (isColliding) {
-      monster.y = ground.y - monster.height;
-      monster.velocityY = 0;
-      monster.isGrounded = true;
-    }
+    // PathFinding.js returns [[col, row], ...] starting at [startCol,startRow].
+    // Drop the start node and convert to pixel coords (cell top-left).
+    return raw
+      .slice(1)
+      .map(([c, r]) => ({ x: c * CELL_SIZE, y: r * CELL_SIZE }));
   }
 }

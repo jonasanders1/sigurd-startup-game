@@ -1,4 +1,4 @@
-import { Monster, Platform, Ground } from "../../types/interfaces";
+import { Monster, Platform } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 
 export class MovementUtils {
@@ -36,14 +36,6 @@ export class MovementUtils {
       }
     }
     return null;
-  }
-
-  /**
-   * Check if monster is on the ground
-   */
-  public static isMonsterOnGround(monster: Monster, ground: Ground): boolean {
-    const tolerance = 2;
-    return Math.abs(monster.y + monster.height - ground.y) <= tolerance;
   }
 
   /**
@@ -138,7 +130,11 @@ export class MovementUtils {
   }
 
   /**
-   * Check if movement to new position is safe (no platform collisions and within boundaries)
+   * Check if movement to new position is safe (no platform collisions and
+   * within canvas boundaries). The canvas bottom is the floor, so monsters
+   * are allowed to walk along it — the boundary check uses `<` / `>` rather
+   * than the inclusive variant in `isOutsideBoundaries` so the floor itself
+   * is walkable.
    */
   public static isMovementSafe(
     monster: Monster,
@@ -146,8 +142,13 @@ export class MovementUtils {
     newY: number,
     platforms: any[]
   ): boolean {
-    // Check boundary collisions
-    if (this.isOutsideBoundaries(monster, newX, newY)) {
+    // Stay strictly inside the canvas left/right and top; allow the floor.
+    if (
+      newX < 0 ||
+      newX + monster.width > GAME_CONFIG.CANVAS_WIDTH ||
+      newY < 0 ||
+      newY + monster.height > GAME_CONFIG.CANVAS_HEIGHT
+    ) {
       return false;
     }
 
@@ -160,36 +161,4 @@ export class MovementUtils {
 
     return true;
   }
-
-  /**
-   * Check if movement to new position is safe (including ground collision)
-   */
-  public static isMovementSafeWithGround(
-    monster: Monster,
-    newX: number,
-    newY: number,
-    platforms: any[],
-    ground: any
-  ): boolean {
-    // Check boundary collisions
-    if (this.isOutsideBoundaries(monster, newX, newY)) {
-      return false;
-    }
-
-    // Check platform collisions
-    for (const platform of platforms) {
-      if (this.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, platform)) {
-        return false;
-      }
-    }
-
-    // Check ground collision
-    if (ground) {
-      if (this.checkMonsterPlatformCollision({ ...monster, x: newX, y: newY }, ground)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-} 
+}

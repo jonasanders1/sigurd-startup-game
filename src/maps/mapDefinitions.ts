@@ -2,11 +2,13 @@ import { MapDefinition, Bomb, Platform } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
 import { CoinType } from "../types/enums";
 import {
-  createHorizontalPatrolMonster,
+  createMummyMonster,
   createVerticalPatrolMonster,
-  createFloaterMonster,
-  createChaserMonster,
-  createAmbusherMonster,
+  createHornMonster,
+  createBirdMonster,
+  createUfoMonster,
+  createSphereMonster,
+  createOrbMonster,
 } from "../managers/MonsterFactory";
 
 // Helper function to create bombs with default size
@@ -71,40 +73,30 @@ const centerPoint = (offsetWidth: number, offsetHeight: number) => {
   };
 };
 
-export const level0Map: MapDefinition = {
-  id: "level0",
+export const level1Map: MapDefinition = {
+  id: "level1",
   name: "garasjen",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "soverommet",
-  playerStart: { x: 400, y: 300 },
+  playerStart: { x: 388, y: 283 },
   spawnIndicatorColor: "#ff9ff3",
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7, 8],
 
-  ground: {
-    x: 0,
-    y: 558,
-    width: 800,
-    height: 40,
-    color: "#4c6986",
-    tileTheme: "construction",
-    tileNoise: 0.25,
-  },
-
   platforms: [
     {
-      ...createPlatform(75, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
+      ...createPlatform(75, 175, { width: 150, height: 25 }, "#2f3543", "#000"),
       tileTheme: "construction",
     },
     {
-      ...createVerticalPlatform(75, 325, 150, "#2f3543", "#000"),
+      ...createVerticalPlatform(75, 350, 150, "#2f3543", "#000"),
       tileTheme: "construction",
     },
     {
       ...createPlatform(
         100,
-        450,
+        475,
         { width: 150, height: 25 },
         "#2f3543",
         "#000",
@@ -112,13 +104,13 @@ export const level0Map: MapDefinition = {
       tileTheme: "construction",
     },
     {
-      ...createVerticalPlatform(75, 175, 150, "#2f3543", "#000"),
+      ...createVerticalPlatform(75, 200, 150, "#2f3543", "#000"),
       tileTheme: "construction",
     },
     {
       ...createPlatform(
         550,
-        150,
+        175,
         { width: 175, height: 25 },
         "#2f3543",
         "#000",
@@ -126,13 +118,13 @@ export const level0Map: MapDefinition = {
       tileTheme: "construction",
     },
     {
-      ...createVerticalPlatform(700, 325, 150, "#2f3543", "#000"),
+      ...createVerticalPlatform(700, 350, 150, "#2f3543", "#000"),
       tileTheme: "construction",
     },
     {
       ...createPlatform(
         550,
-        450,
+        475,
         { width: 150, height: 25 },
         "#2f3543",
         "#000",
@@ -140,13 +132,13 @@ export const level0Map: MapDefinition = {
       tileTheme: "construction",
     },
     {
-      ...createVerticalPlatform(700, 175, 150, "#2f3543", "#000"),
+      ...createVerticalPlatform(700, 200, 150, "#2f3543", "#000"),
       tileTheme: "construction",
     },
     {
       ...createPlatform(
         325,
-        150,
+        175,
         { width: 150, height: 25 },
         "#2f3543",
         "#000",
@@ -156,64 +148,122 @@ export const level0Map: MapDefinition = {
   ],
 
   bombs: [
-    createBomb(563, 425, 1, 1),
-    createBomb(612, 425, 2, 1),
-    createBomb(663, 425, 3, 1),
-    createBomb(664, 179, 4, 2),
-    createBomb(613, 179, 5, 2),
-    createBomb(564, 179, 6, 2),
-    createBomb(438, 175, 7, 3),
-    createBomb(387, 175, 8, 3),
-    createBomb(338, 175, 9, 3),
-    createBomb(213, 425, 10, 4),
-    createBomb(161, 425, 11, 4),
-    createBomb(112, 425, 12, 4),
-    createBomb(189, 125, 13, 5),
-    createBomb(138, 125, 14, 5),
-    createBomb(88, 125, 15, 5),
-    createBomb(575, 125, 16, 6),
-    createBomb(625, 125, 17, 6),
-    createBomb(675, 125, 18, 6),
-    createBomb(413, 25, 19, 7),
-    createBomb(363, 25, 20, 7),
-    createBomb(438, 525, 21, 8),
-    createBomb(388, 525, 22, 8),
-    createBomb(338, 525, 23, 8),
+    createBomb(563, 450, 1, 1),
+    createBomb(612, 450, 2, 1),
+    createBomb(663, 450, 3, 1),
+    createBomb(664, 204, 4, 2),
+    createBomb(613, 204, 5, 2),
+    createBomb(564, 204, 6, 2),
+    createBomb(438, 200, 7, 3),
+    createBomb(387, 200, 8, 3),
+    createBomb(338, 200, 9, 3),
+    createBomb(213, 450, 10, 4),
+    createBomb(161, 450, 11, 4),
+    createBomb(112, 450, 12, 4),
+    createBomb(189, 150, 13, 5),
+    createBomb(138, 150, 14, 5),
+    createBomb(88, 150, 15, 5),
+    createBomb(575, 150, 16, 6),
+    createBomb(625, 150, 17, 6),
+    createBomb(675, 150, 18, 6),
+    createBomb(413, 50, 19, 7),
+    createBomb(363, 50, 20, 7),
+    createBomb(438, 571, 21, 8),
+    createBomb(388, 571, 22, 8),
+    createBomb(338, 571, 23, 8),
   ],
 
-  monsters: [
-    createVerticalPatrolMonster(75, 150, 325, "left", 1, 1, 0),
-    createChaserMonster(213, 513, 0.8, 0.2, 500, 0),
-    createFloaterMonster(50, 75, 41, 1, 0),
-  ],
+  monsters: [],
 
   monsterSpawnPoints: [
     {
-      spawnDelay: 4000,
-      createMonster: () =>
-        createVerticalPatrolMonster(700, 175, 250, "left", 1, 1, 4000),
+      spawnDelay: 5000,
+      createMonster: () => createBirdMonster(150, 250, 0.8, 0.2, 500, 5000),
     },
     {
-      spawnDelay: 5000,
+      spawnDelay: 0,
+      respawnInterval: 10000,
+      maxSpawns: 2,
       createMonster: () =>
-        createHorizontalPatrolMonster(
+        createMummyMonster(75, 175, 150, "left", 3, 1, 1, 0, "green", "ORB"),
+    },
+    {
+      spawnDelay: 1500,
+      respawnInterval: 10000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          550,
+          175,
+          175,
+          "right",
+          3,
+          1,
+          -1,
+          1500,
+          "green",
+          "ORB",
+        ),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 7000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
           325,
-          150,
+          175,
           150,
           "left",
+          3,
           1,
           1,
-          1,
-          5000,
+          0,
           "green",
+          "SPHERE",
         ),
+    },
+  ],
+
+  coinSpawnPoints: [
+    {
+      x: 387.5,
+      y: 287.5,
+      type: CoinType.POWER,
+      spawnAngle: 43,
+    },
+    {
+      x: 388,
+      y: 289,
+      type: CoinType.POWER,
+      spawnAngle: 205,
+    },
+    {
+      x: 100,
+      y: 50,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 100,
+      y: 75,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 675,
+      y: 50,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 675,
+      y: 75,
+      type: CoinType.EXTRA_LIFE,
     },
   ],
 };
 
-// Level 1 - Bedroom
-export const level1Map: MapDefinition = {
-  id: "level1",
+// Level 2 - Bedroom
+export const level2Map: MapDefinition = {
+  id: "level2",
   name: "soverommet",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
@@ -222,16 +272,6 @@ export const level1Map: MapDefinition = {
   spawnIndicatorColor: "#ff9ff3",
 
   groupSequence: [1, 2, 3, 4, 5, 6],
-
-  ground: {
-    x: 0,
-    y: 560,
-    width: 800,
-    height: 40,
-    color: "#4c6986",
-    tileTheme: "stone-gray",
-    tileNoise: 0,
-  },
 
   platforms: [
     {
@@ -256,7 +296,7 @@ export const level1Map: MapDefinition = {
     },
     {
       ...createPlatform(
-        525,
+        550,
         175,
         { width: 150, height: 25 },
         "#2f3543",
@@ -266,7 +306,7 @@ export const level1Map: MapDefinition = {
     },
     {
       ...createPlatform(
-        125,
+        100,
         175,
         { width: 150, height: 25 },
         "#2f3543",
@@ -285,53 +325,94 @@ export const level1Map: MapDefinition = {
   ],
 
   bombs: [
-    createBomb(275, 533, 1, 1),
-    createBomb(225, 533, 2, 1),
-    createBomb(175, 533, 3, 1),
-    createBomb(500, 533, 4, 2),
-    createBomb(550, 533, 5, 2),
-    createBomb(600, 533, 6, 2),
-    createBomb(650, 533, 7, 2),
+    createBomb(275, 571, 1, 1),
+    createBomb(225, 571, 2, 1),
+    createBomb(175, 571, 3, 1),
+    createBomb(500, 571, 4, 2),
+    createBomb(550, 571, 5, 2),
+    createBomb(600, 571, 6, 2),
+    createBomb(650, 571, 7, 2),
     createBomb(263, 375, 8, 3),
     createBomb(213, 375, 9, 3),
     createBomb(163, 375, 10, 3),
     createBomb(113, 375, 11, 3),
     createBomb(12, 250, 12, 4),
-    createBomb(138, 150, 13, 5),
-    createBomb(188, 150, 14, 5),
-    createBomb(238, 150, 15, 5),
+    createBomb(113, 150, 13, 5),
+    createBomb(163, 150, 14, 5),
+    createBomb(213, 150, 15, 5),
     createBomb(511, 375, 16, 6),
     createBomb(561, 375, 17, 6),
     createBomb(611, 375, 18, 6),
     createBomb(661, 375, 19, 6),
     createBomb(763, 250, 20, 7),
-    createBomb(637, 150, 21, 8),
-    createBomb(587, 150, 22, 8),
-    createBomb(537, 150, 23, 8),
+    createBomb(663, 150, 21, 8),
+    createBomb(613, 150, 22, 8),
+    createBomb(563, 150, 23, 8),
   ],
 
-  monsters: [
-    createHorizontalPatrolMonster(125, 175, 150, "left", 1, 1, 1, 0, "green"),
-    createHorizontalPatrolMonster(525, 175, 150, "right", 1, 1, -1, 0, "black"),
-    createHorizontalPatrolMonster(100, 400, 200, "right", 1, 1, -1, 0, "green"),
-    createHorizontalPatrolMonster(500, 400, 200, "left", 1, 1, 1, 0, "black"),
-  ],
+  monsters: [],
 
   monsterSpawnPoints: [
     {
-      spawnDelay: 10000,
-      createMonster: () => createChaserMonster(500, 500, 1, 0.2, 500, 10000),
+      spawnDelay: 0,
+      respawnInterval: 8500,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(100, 175, 150, "left", 3, 1, 1, 0, "green", "ORB"),
     },
     {
-      spawnDelay: 13000,
-      createMonster: () => createAmbusherMonster(600, 100, 1, 8000, 13000),
+      spawnDelay: 0,
+      respawnInterval: 9000,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(550, 175, 150, "right", 3, 1, -1, 0, "green", "ORB"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 10000,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(
+          100,
+          400,
+          200,
+          "right",
+          5,
+          1,
+          -1,
+          0,
+          "black",
+          "SPHERE",
+        ),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 14000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          500,
+          400,
+          200,
+          "left",
+          5,
+          1,
+          1,
+          0,
+          "black",
+          "SPHERE",
+        ),
+    },
+    {
+      spawnDelay: 10000,
+      createMonster: () => createBirdMonster(500, 500, 1, 0.2, 500, 10000),
     },
   ],
 
   coinSpawnPoints: [
     {
-      x: 300,
-      y: 100,
+      x: 150,
+      y: 75,
       type: CoinType.POWER,
       spawnAngle: 65,
     },
@@ -342,31 +423,31 @@ export const level1Map: MapDefinition = {
       spawnAngle: -55,
     },
     {
-      x: 190,
+      x: 175,
       y: 100,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 590,
+      x: 650,
       y: 100,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 190,
+      x: 175,
       y: 100,
       type: CoinType.EXTRA_LIFE,
     },
     {
-      x: 590,
+      x: 650,
       y: 100,
       type: CoinType.EXTRA_LIFE,
     },
   ],
 };
 
-// Level 2 - Startup Lab - Norge
-export const level2Map: MapDefinition = {
-  id: "level2",
+// Level 3 - Startup Lab - Norge
+export const level3Map: MapDefinition = {
+  id: "level3",
   name: "startup lab",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
@@ -376,23 +457,13 @@ export const level2Map: MapDefinition = {
 
   groupSequence: [1, 2, 3, 4, 5],
 
-  ground: {
-    x: 0,
-    y: 560,
-    width: 800,
-    height: 40,
-    color: "#88a2bc",
-    tileTheme: "store-redish",
-    tileNoise: 0.15,
-  },
-
   platforms: [
-    createPlatform(475, 125, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(600, 125, { width: 200, height: 25 }, "#2f3543", "#000"),
     createVerticalPlatform(675, 225, 150, "#2f3543", "#000"),
     createPlatform(425, 425, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(100, 450, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(175, 175, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(100, 225, 150, "#2f3543", "#000"),
+    createPlatform(100, 498, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(0, 150, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createVerticalPlatform(75, 250, 150, "#2f3543", "#000"),
   ],
 
   bombs: [
@@ -400,53 +471,76 @@ export const level2Map: MapDefinition = {
     createBomb(490, 400, 2, 1),
     createBomb(540, 400, 3, 1),
     createBomb(590, 400, 4, 1),
-    createBomb(184, 150, 5, 2),
-    createBomb(234, 150, 6, 2),
-    createBomb(284, 150, 7, 2),
-    createBomb(334, 150, 8, 2),
+    createBomb(25, 125, 5, 2),
+    createBomb(75, 125, 6, 2),
+    createBomb(125, 125, 7, 2),
+    createBomb(175, 125, 8, 2),
     createBomb(710, 230, 9, 3),
     createBomb(710, 280, 10, 3),
     createBomb(710, 330, 11, 3),
-    createBomb(130, 478, 12, 4),
-    createBomb(180, 478, 13, 4),
-    createBomb(230, 478, 14, 4),
-    createBomb(515, 100, 15, 5),
-    createBomb(563, 100, 16, 5),
-    createBomb(615, 100, 17, 5),
-    createBomb(126, 236, 18, 6),
-    createBomb(126, 286, 19, 6),
-    createBomb(126, 336, 20, 6),
-    createBomb(130, 422, 21, 7),
-    createBomb(180, 422, 22, 7),
-    createBomb(230, 422, 23, 7),
+    createBomb(130, 526, 12, 4),
+    createBomb(180, 526, 13, 4),
+    createBomb(230, 526, 14, 4),
+    createBomb(625, 100, 15, 5),
+    createBomb(675, 100, 16, 5),
+    createBomb(725, 100, 17, 5),
+    createBomb(102, 262, 18, 6),
+    createBomb(102, 312, 19, 6),
+    createBomb(102, 362, 20, 6),
+    createBomb(130, 470, 21, 7),
+    createBomb(180, 470, 22, 7),
+    createBomb(230, 470, 23, 7),
   ],
 
-  monsters: [
-    createVerticalPatrolMonster(110, 225, 225, "right", 1, 1, 0),
-    createVerticalPatrolMonster(685, 225, 325, "right", 2, 1, 0),
-    createHorizontalPatrolMonster(175, 175, 200, "left", 1, 1, 1, 0, "black"),
-    createChaserMonster(250, 300, 1, 0.3, 1000, 0),
-  ],
+  monsters: [],
 
   monsterSpawnPoints: [
     {
-      spawnDelay: 4000,
+      spawnDelay: 0,
+      respawnInterval: 13000,
+      maxSpawns: 2,
       createMonster: () =>
-        createHorizontalPatrolMonster(
-          425,
-          425,
+        createMummyMonster(0, 150, 200, "left", 3, 1, 1, 0, "black", "SPHERE"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 15000,
+      maxSpawns: 3,
+      createMonster: () =>
+        createMummyMonster(
+          100,
+          500,
           200,
-          "left",
-          1,
+          "right",
+          3,
           1,
           1,
           4000,
           "green",
+          "ORB",
         ),
     },
     {
-      spawnDelay: 5000,
-      createMonster: () => createAmbusherMonster(500, 500, 1, 8000, 5000),
+      spawnDelay: 7000,
+      createMonster: () => createHornMonster(275, 175, -122, 1, 7000),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 16000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          600,
+          125,
+          200,
+          "right",
+          5,
+          1,
+          undefined,
+          0,
+          "green",
+          "ORB",
+        ),
     },
   ],
 
@@ -455,40 +549,40 @@ export const level2Map: MapDefinition = {
       x: 387.5,
       y: 287.5,
       type: CoinType.POWER,
-      spawnAngle: 45,
+      spawnAngle: -35,
     },
     {
-      x: 570,
-      y: 50,
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
-      spawnAngle: 135,
+      spawnAngle: 141,
     },
     {
-      x: 200,
-      y: 75,
+      x: 25,
+      y: 50,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 200,
-      y: 75,
+      x: 750,
+      y: 50,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 200,
-      y: 75,
+      x: 25,
+      y: 25,
       type: CoinType.EXTRA_LIFE,
     },
     {
-      x: 200,
-      y: 75,
+      x: 750,
+      y: 25,
       type: CoinType.EXTRA_LIFE,
     },
   ],
 };
 
-// Level 3 - Innovasjon Norge
-export const level3Map: MapDefinition = {
-  id: "level3",
+// Level 4 - Innovasjon Norge
+export const level4Map: MapDefinition = {
+  id: "level4",
   name: "innovasjon norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
@@ -497,14 +591,6 @@ export const level3Map: MapDefinition = {
   spawnIndicatorColor: "#ff6b6b",
 
   groupSequence: [1, 2, 3, 4, 5],
-
-  ground: {
-    x: 0,
-    y: 560,
-    width: 800,
-    height: 40,
-    color: "#262335",
-  },
 
   platforms: [
     createPlatform(150, 125, { width: 150, height: 25 }, "#2f3543", "#000"),
@@ -541,22 +627,50 @@ export const level3Map: MapDefinition = {
     createBomb(411, 350, 23, 8),
   ],
 
-  monsters: [
-    createHorizontalPatrolMonster(150, 125, 150, "left", 0, 0.7, 1, 0, "green"),
-    createHorizontalPatrolMonster(500, 125, 150, "right", 0, 1, -1, 0, "black"),
-    createHorizontalPatrolMonster(300, 250, 200, "left", 0, 1, 1, 0, "green"),
-    createFloaterMonster(50, 300, 45, 1, 0),
-    createFloaterMonster(750, 500, 155, 1, 0),
-  ],
+  monsters: [],
 
   monsterSpawnPoints: [
     {
-      spawnDelay: 7000,
-      createMonster: () => createChaserMonster(750, 500, 1, 0.2, 500, 7000),
+      spawnDelay: 0,
+      respawnInterval: 8000,
+      createMonster: () =>
+        createMummyMonster(
+          150,
+          125,
+          150,
+          "left",
+          3,
+          0.7,
+          1,
+          0,
+          "green",
+          "SPHERE",
+        ),
     },
     {
-      spawnDelay: 15000,
-      createMonster: () => createAmbusherMonster(50, 500, 1, 8000, 15000),
+      spawnDelay: 0,
+      respawnInterval: 8000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(500, 125, 150, "right", 3, 1, -1, 0, "black", "ORB"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 15000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          300,
+          250,
+          200,
+          "left",
+          4,
+          1,
+          1,
+          0,
+          "green",
+          "SPHERE",
+        ),
     },
   ],
 
@@ -600,298 +714,260 @@ export const level3Map: MapDefinition = {
   ],
 };
 
-// Level 4 - Skatteetaten
-export const level4Map: MapDefinition = {
-  id: "level3",
+// Level 5 - Skatteetaten
+export const level5Map: MapDefinition = {
+  id: "level5",
   name: "skatteetaten",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#4ecdc4", // Teal for blue-gray background
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 242.5 },
+  spawnIndicatorColor: "#4ecdc4",
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
-  ground: {
-    x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
-    height: 40,
-    color: "#3c4c56",
-  },
-
   platforms: [
-    // Bottom long platform
-    createPlatform(150, 490, { width: 500, height: 15 }, "#acc7d0", "#556d7b"),
-    // Middle lower platforms
-    createPlatform(100, 400, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
-    createPlatform(500, 400, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
-    // Middle upper platforms
-    createPlatform(100, 250, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
-    createPlatform(500, 250, { width: 200, height: 15 }, "#acc7d0", "#556d7b"),
-    // Top platforms
-    createPlatform(150, 130, { width: 500, height: 15 }, "#acc7d0", "#556d7b"),
+    createPlatform(0, 225, { width: 175, height: 25 }, "#2f3543", "#000"),
+    createPlatform(625, 225, { width: 175, height: 25 }, "#2f3543", "#000"),
+    createPlatform(75, 350, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(500, 350, { width: 200, height: 25 }, "#2f3543", "#000"),
+    createPlatform(150, 500, { width: 500, height: 25 }, "#2f3543", "#000"),
+    createPlatform(150, 125, { width: 500, height: 25 }, "#2f3543", "#000"),
   ],
 
   bombs: [
-    // Group 1
-    createBomb(540, 275, 1, 1),
-    createBomb(590, 275, 2, 1),
-    createBomb(640, 275, 3, 1),
-    // Group 2
-    createBomb(240, 275, 4, 2),
-    createBomb(190, 275, 5, 2),
-    createBomb(140, 275, 6, 2),
-    // Group 3
-    createBomb(325, 515, 7, 3),
-    createBomb(375, 515, 8, 3),
-    createBomb(425, 515, 9, 3),
-    // Group 4
-    createBomb(760, 360, 10, 4),
-    createBomb(760, 310, 11, 4),
-    createBomb(760, 260, 12, 4),
-    // Group 5
-    createBomb(15, 360, 13, 5),
-    createBomb(15, 310, 14, 5),
-    createBomb(15, 260, 15, 5),
-    // Group 6
-    createBomb(325, 155, 16, 6),
-    createBomb(375, 155, 17, 6),
-    createBomb(425, 155, 18, 6),
-    createBomb(375, 205, 19, 6),
-    createBomb(375, 255, 20, 6),
-    // Group 7
-    createBomb(580, 455, 21, 7),
-    createBomb(195, 455, 22, 7),
-    createBomb(375, 95, 23, 7),
+    createBomb(673, 257, 1, 1),
+    createBomb(723, 257, 2, 1),
+    createBomb(767, 258, 3, 1),
+    createBomb(767, 308, 4, 1),
+    createBomb(767, 358, 5, 1),
+    createBomb(600, 475, 6, 2),
+    createBomb(550, 475, 7, 2),
+    createBomb(500, 475, 8, 2),
+    createBomb(105, 257, 9, 3),
+    createBomb(55, 257, 10, 3),
+    createBomb(7, 257, 11, 3),
+    createBomb(7, 307, 12, 3),
+    createBomb(7, 357, 13, 3),
+    createBomb(175, 473, 14, 4),
+    createBomb(225, 473, 15, 4),
+    createBomb(275, 475, 16, 4),
+    createBomb(337, 155, 17, 5),
+    createBomb(387, 155, 18, 5),
+    createBomb(437, 155, 19, 5),
+    createBomb(425, 528, 20, 6),
+    createBomb(375, 528, 21, 6),
+    createBomb(325, 528, 22, 6),
+    createBomb(385, 95, 23, 7),
+  ],
+
+  monsters: [],
+
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 0,
+      respawnInterval: 13000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(150, 500, 500, "left", 1, 1, 1, 0, "black", "ORB"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 11000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(150, 125, 500, "left", 2, 1, 1, 0, "black", "ORB"),
+    },
+    {
+      spawnDelay: 3500,
+      respawnInterval: 4500,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          625,
+          225,
+          175,
+          "right",
+          1,
+          1,
+          -1,
+          3500,
+          "green",
+          "SPHERE",
+        ),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 12500,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(
+          75,
+          350,
+          200,
+          "right",
+          1,
+          1,
+          -1,
+          0,
+          "black",
+          "SPHERE",
+        ),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 12500,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(
+          500,
+          350,
+          200,
+          "left",
+          1,
+          1,
+          1,
+          0,
+          "green",
+          "SPHERE",
+        ),
+    },
   ],
 
   coinSpawnPoints: [
     {
-      x: centerX(GAME_CONFIG.COIN_SIZE),
-      y: centerY(GAME_CONFIG.COIN_SIZE),
+      x: 375,
+      y: 250,
       type: CoinType.POWER,
       spawnAngle: -30,
     },
     {
-      x: centerX(GAME_CONFIG.COIN_SIZE),
-      y: centerY(GAME_CONFIG.COIN_SIZE),
+      x: 400,
+      y: 250,
       type: CoinType.POWER,
       spawnAngle: -120,
     },
     {
-      x: 180,
-      y: 190,
+      x: 175,
+      y: 25,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 595,
-      y: 190,
+      x: 600,
+      y: 25,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 180,
-      y: 190,
+      x: 175,
+      y: 50,
       type: CoinType.EXTRA_LIFE,
     },
     {
-      x: 595,
-      y: 190,
+      x: 600,
+      y: 50,
       type: CoinType.EXTRA_LIFE,
-    },
-  ],
-
-  monsters: [
-    // Static monster on horizontal platform
-    createHorizontalPatrolMonster(
-      150,
-      490,
-      500,
-      "left",
-      0,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createHorizontalPatrolMonster(
-      150,
-      130,
-      500,
-      "left",
-      0,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-    createHorizontalPatrolMonster(
-      150,
-      130,
-      500,
-      "right",
-      0,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createHorizontalPatrolMonster(
-      100,
-      400,
-      200,
-      "right",
-      0,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-    createHorizontalPatrolMonster(
-      500,
-      400,
-      200,
-      "left",
-      0,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createChaserMonster(200, 200, 1, 0.1, 500),
-  ],
-
-  monsterSpawnPoints: [
-    // Vertical patrol monster - spawns after 3 seconds
-    {
-      spawnDelay: 3000,
-      createMonster: () =>
-        createFloaterMonster(
-          centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE),
-          150,
-          1,
-        ),
-    },
-    {
-      spawnDelay: 6000,
-      createMonster: () =>
-        createFloaterMonster(
-          centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE),
-          50,
-          1,
-        ),
-    },
-    // Chaser monster - spawns after 6 seconds
-
-    {
-      spawnDelay: 5000,
-      createMonster: () =>
-        createAmbusherMonster(
-          50, // startX
-          500, // startY
-          1.0, // speed (reduced from 1.5)
-          8000, // ambushInterval (increased from 500 to match new base value)
-        ),
     },
   ],
 };
 
-// Level 5 - NAV
-export const level5Map: MapDefinition = {
-  id: "level5",
+// Level 6 - NAV
+export const level6Map: MapDefinition = {
+  id: "level6",
   name: "nav",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#ffe66d", // Yellow for green background
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ffe66d",
 
   groupSequence: [1, 2, 3, 4, 5],
 
-  ground: {
-    x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
-    height: 40,
-    color: "#586c5c",
-  },
-
   platforms: [
-    /* BOTTOM TUNNELs */
-    // Bottom horizontal tunnel
-    createPlatform(580, 500, { width: 150, height: 15 }, "#586c5c", "#202e32"),
-    // Upper horizontal tunnel
-    createPlatform(580, 445, { width: 150, height: 15 }, "#586c5c", "#202e32"),
-    // left vetical tunnel
-    createVerticalPlatform(500, 245, 150, "#586c5c", "#202e32"),
-    // right vetical tunnel
-    createVerticalPlatform(555, 245, 150, "#586c5c", "#202e32"),
-
-    /* UPPER TUNNEL */
-    // Upper horizontal tunnel
-    createPlatform(90, 45, { width: 150, height: 15 }, "#586c5c", "#202e32"),
-    // Bottom horizontal tunnel
-    createPlatform(90, 100, { width: 150, height: 15 }, "#586c5c", "#202e32"),
-    // left vetical tunnel
-    createVerticalPlatform(240, 160, 150, "#586c5c", "#202e32"),
-    // right vetical tunnel
-    createVerticalPlatform(295, 160, 150, "#586c5c", "#202e32"),
-
-    // DIAGONAL PLATFORMS
-    // bottom platform
-    createPlatform(90, 500, { width: 200, height: 15 }, "#586c5c", "#202e32"),
-    // lower middel platform
-    createPlatform(235, 400, { width: 150, height: 15 }, "#586c5c", "#202e32"),
-    // upper middel platform
-    createPlatform(415, 145, { width: 150, height: 15 }, "#586c5c", "#202e32"),
-    // upper platform
-    createPlatform(530, 45, { width: 200, height: 15 }, "#586c5c", "#202e32"),
+    createVerticalPlatform(645, 225, 150, "#586c5c", "#202e32"),
+    createVerticalPlatform(705, 225, 150, "#586c5c", "#202e32"),
+    createVerticalPlatform(118, 199, 150, "#586c5c", "#202e32"),
+    createVerticalPlatform(178, 199, 150, "#586c5c", "#202e32"),
+    createPlatform(75, 50, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(75, 110, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(75, 525, { width: 175, height: 25 }, "#2f3543", "#000"),
+    createPlatform(275, 400, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(575, 509, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(575, 449, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(375, 200, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(525, 50, { width: 200, height: 25 }, "#2f3543", "#000"),
   ],
 
   bombs: [
-    // Bottom horizontal tunnel bombs - GROUP 1
-    createBomb(595, 467, 1, 1),
-    createBomb(645, 467, 2, 1),
-    createBomb(695, 467, 3, 1),
+    createBomb(587, 479, 1, 1),
+    createBomb(637, 479, 2, 1),
+    createBomb(687, 479, 3, 1),
+    createBomb(675, 237, 4, 2),
+    createBomb(675, 287, 5, 2),
+    createBomb(675, 337, 6, 2),
+    createBomb(112, 498, 7, 3),
+    createBomb(162, 498, 8, 3),
+    createBomb(212, 498, 9, 3),
+    createBomb(287, 373, 10, 4),
+    createBomb(337, 373, 11, 4),
+    createBomb(387, 373, 12, 4),
+    createBomb(148, 211, 13, 5),
+    createBomb(148, 261, 14, 5),
+    createBomb(148, 311, 15, 5),
+    createBomb(88, 80, 16, 6),
+    createBomb(138, 80, 17, 6),
+    createBomb(188, 80, 18, 6),
+    createBomb(387, 173, 19, 7),
+    createBomb(437, 173, 20, 7),
+    createBomb(487, 173, 21, 7),
+    createBomb(625, 79, 22, 8),
+    createBomb(675, 79, 23, 8),
+  ],
 
-    // Bottom vetical tunnel bombs - GROUP 2
-    createBomb(522, 255, 4, 2),
-    createBomb(522, 305, 5, 2),
-    createBomb(522, 355, 6, 2),
+  monsters: [],
 
-    // Bottom platform - GROUP 3
-    createBomb(130, 467, 7, 3),
-    createBomb(180, 467, 8, 3),
-    createBomb(230, 467, 9, 3),
-
-    // Lower middel platform bombs - GROUP 4
-    createBomb(250, 367, 10, 4),
-    createBomb(300, 367, 11, 4),
-    createBomb(350, 367, 12, 4),
-
-    // Upper vetical tunnel bombs - GROUP 5
-    createBomb(263, 170, 13, 5),
-    createBomb(263, 220, 14, 5),
-    createBomb(263, 270, 15, 5),
-
-    // Upper horizontal tunnel bombs - GROUP 6
-    createBomb(100, 67, 16, 6),
-    createBomb(150, 67, 17, 6),
-    createBomb(200, 67, 18, 6),
-
-    // Upper middel platform bombs - GROUP 7
-    createBomb(430, 113, 19, 7),
-    createBomb(480, 113, 20, 7),
-    createBomb(530, 113, 21, 7),
-    // Upper platform bombs - GROUP 8
-    createBomb(630, 68, 22, 8),
-    createBomb(680, 68, 23, 8),
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 0,
+      respawnInterval: 12000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(75, 525, 175, "left", 5, 1, 1, 0, "green", "SPHERE"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 16000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(75, 50, 150, "right", 2, 1, -1, 0, "black", "ORB"),
+    },
+    {
+      spawnDelay: 6000,
+      createMonster: () => createHornMonster(240, 350, 40, 1, 6000),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 12000,
+      maxSpawns: 3,
+      createMonster: () =>
+        createMummyMonster(
+          525,
+          50,
+          200,
+          "left",
+          2,
+          1,
+          undefined,
+          0,
+          "green",
+          "SPHERE",
+        ),
+    },
   ],
 
   coinSpawnPoints: [
     {
-      x: centerX(GAME_CONFIG.COIN_SIZE),
-      y: centerY(GAME_CONFIG.COIN_SIZE),
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
       spawnAngle: -20,
     },
@@ -902,8 +978,8 @@ export const level5Map: MapDefinition = {
       spawnAngle: 60,
     },
     {
-      x: 150,
-      y: 10,
+      x: 75,
+      y: 25,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
@@ -912,8 +988,8 @@ export const level5Map: MapDefinition = {
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 150,
-      y: 10,
+      x: 75,
+      y: 0,
       type: CoinType.EXTRA_LIFE,
     },
     {
@@ -921,441 +997,274 @@ export const level5Map: MapDefinition = {
       y: 10,
       type: CoinType.EXTRA_LIFE,
     },
-  ],
-  monsterSpawnPoints: [
-    // Vertical patrol monster - spawns after 3 seconds
-    // {
-    //   spawnDelay: 4000,
-    //   createMonster: () =>
-    //     createFloaterMonster(
-    //       centerX(GAME_CONFIG.MONSTER_SIZE),
-    //       centerY(GAME_CONFIG.MONSTER_SIZE),
-    //       65,
-    //       1
-    //     ),
-    // },
-    {
-      spawnDelay: 6000,
-      createMonster: () => createFloaterMonster(240, 350, 40, 1),
-    },
-    // // Chaser monster - spawns after 6 seconds
-
-    {
-      spawnDelay: 2000,
-      createMonster: () =>
-        createAmbusherMonster(
-          50, // startX
-          50, // startY
-          1.2, // speed (reduced from 2)
-          8000, // ambushInterval (increased from 300 to match new base value)
-        ),
-    },
-    {
-      spawnDelay: 10000,
-      createMonster: () =>
-        createAmbusherMonster(
-          725, // startX
-          100, // startY
-          1, // speed (reduced from 2)
-        ),
-    },
-    // {
-    //   spawnDelay: 4000,
-    //   createMonster: () =>
-    //     createChaserMonster(
-    //       centerX(GAME_CONFIG.MONSTER_SIZE), // startX
-    //       centerY(GAME_CONFIG.MONSTER_SIZE), // startY
-    //       3, // Speed
-    //       0.5 // Directness
-    //       // updateInterval
-    //     ),
-    // },
-    {
-      spawnDelay: 9000,
-      createMonster: () =>
-        createChaserMonster(
-          590, // startX
-          400, // startY
-          3, // Speed
-          0.5, // Directness
-          // updateInterval
-        ),
-    },
-  ],
-
-  monsters: [
-    createVerticalPatrolMonster(500, 170, 350, "right"),
-    createVerticalPatrolMonster(240, 60, 340, "right"),
-    createHorizontalPatrolMonster(
-      90,
-      500,
-      200,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createHorizontalPatrolMonster(
-      90,
-      45,
-      150,
-      "right",
-      1,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
   ],
 };
 
-// Level 6 - Kommunehuset
-export const level6Map: MapDefinition = {
-  id: "level5",
+// Level 7 - Kommunehuset
+export const level7Map: MapDefinition = {
+  id: "level7",
   name: "kommunehuset",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#a8e6cf", // Light green for purple background
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#a8e6cf",
 
   groupSequence: [1, 2, 3, 4, 5, 6],
 
-  ground: {
-    x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
-    height: 40,
-    color: "#8d4fc9",
-  },
-
   platforms: [
-    createPlatform(375, 300, { width: 50, height: 15 }, "#ff4700", "#631b09"),
-    createPlatform(88, 300, { width: 50, height: 15 }, "#ff4700", "#631b09"),
-    createPlatform(667, 300, { width: 50, height: 15 }, "#ff4700", "#631b09"),
+    createPlatform(50, 300, { width: 75, height: 25 }, "#2f3543", "#000"),
+    createPlatform(675, 300, { width: 75, height: 25 }, "#2f3543", "#000"),
+    createPlatform(375, 375, { width: 50, height: 25 }, "#2f3543", "#000"),
   ],
 
   bombs: [
-    // Top left
     createBomb(150, 60, 1, 1),
     createBomb(100, 60, 2, 1),
     createBomb(50, 60, 3, 1),
-    // Top right
     createBomb(625, 60, 4, 2),
     createBomb(675, 60, 5, 2),
     createBomb(725, 60, 6, 2),
-
-    // Bottom left
-    createBomb(150, 525, 7, 3),
-    createBomb(100, 525, 8, 3),
-    createBomb(50, 525, 9, 3),
-    // Bottom right
-    createBomb(625, 525, 10, 4),
-    createBomb(675, 525, 11, 4),
-    createBomb(725, 525, 12, 4),
-
-    // Top middle
+    createBomb(150, 573, 7, 3),
+    createBomb(100, 573, 8, 3),
+    createBomb(50, 573, 9, 3),
+    createBomb(625, 573, 10, 4),
+    createBomb(675, 573, 11, 4),
+    createBomb(725, 573, 12, 4),
     createBomb(438, 100, 13, 5),
     createBomb(388, 100, 14, 5),
     createBomb(338, 100, 15, 5),
-
-    // Bottom middle
-    createBomb(338, 525, 16, 6),
-    createBomb(388, 525, 17, 6),
-    createBomb(438, 525, 18, 6),
-
-    // Bottom middle vertical
-    createBomb(388, 330, 19, 6),
-    createBomb(388, 380, 20, 6),
-    createBomb(388, 430, 21, 6),
-
-    // left platform
-    createBomb(101, 270, 22, 7),
-    createBomb(680, 270, 23, 7),
+    createBomb(338, 572, 16, 6),
+    createBomb(388, 572, 17, 6),
+    createBomb(438, 572, 18, 6),
+    createBomb(388, 405, 19, 6),
+    createBomb(388, 455, 20, 6),
+    createBomb(388, 505, 21, 6),
+    createBomb(75, 273, 22, 7),
+    createBomb(700, 273, 23, 7),
   ],
 
   monsters: [
-    createVerticalPatrolMonster(520, 200, 350, "right"),
-    createVerticalPatrolMonster(225, 200, 350, "right"),
-
-    createVerticalPatrolMonster(520, 20, 350, "right"),
-    createVerticalPatrolMonster(225, 20, 350, "right"),
-    createHorizontalPatrolMonster(
-      0,
-      550,
-      800,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
+    createVerticalPatrolMonster(535, 300, 300, "right", 1, 1, 0),
+    createVerticalPatrolMonster(235, 0, 300, "right", 1, 1, 0),
   ],
 
   monsterSpawnPoints: [
-    // // Test monster - spawns immediately
     {
-      spawnDelay: 5000,
-      createMonster: () => createAmbusherMonster(700, 150),
+      spawnDelay: 750,
+      createMonster: () =>
+        createVerticalPatrolMonster(235, 300, 300, "right", 1, 1, 750),
+    },
+    {
+      spawnDelay: 850,
+      createMonster: () =>
+        createVerticalPatrolMonster(535, 0, 300, "right", 1, 1, 850),
     },
     {
       spawnDelay: 7000,
-      createMonster: () => createFloaterMonster(100, 150),
-    },
-    {
-      spawnDelay: 10000,
+      respawnInterval: 15500,
+      maxSpawns: 2,
       createMonster: () =>
-        createChaserMonster(
-          centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE + 200),
+        createMummyMonster(
+          175,
+          175,
+          25,
+          "left",
+          1,
+          1,
+          undefined,
+          7000,
+          "green",
+          "SPHERE",
         ),
     },
     {
-      spawnDelay: 15000,
+      spawnDelay: 5500,
+      respawnInterval: 13500,
+      maxSpawns: 2,
       createMonster: () =>
-        createFloaterMonster(
-          centerX(GAME_CONFIG.MONSTER_SIZE),
-          centerY(GAME_CONFIG.MONSTER_SIZE - 200),
+        createMummyMonster(
+          600,
+          175,
+          25,
+          "right",
+          1,
+          1,
+          undefined,
+          5500,
+          "green",
+          "ORB",
         ),
     },
   ],
 
   coinSpawnPoints: [
-    // Power coin spawn points for level 5 - only 2 per map with non-cardinal angles
     {
-      x: 400,
-      y: 500,
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
       spawnAngle: 46,
     },
     {
-      x: 500,
-      y: 200,
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
-      spawnAngle: 45,
+      spawnAngle: -45,
     },
     {
       x: 388,
-      y: 50,
+      y: 27,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 388,
-      y: 50,
+      x: 387,
+      y: 0,
       type: CoinType.EXTRA_LIFE,
     },
     {
-      x: 101,
-      y: 50,
+      x: 75,
+      y: 0,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 101,
-      y: 50,
+      x: 75,
+      y: 25,
       type: CoinType.EXTRA_LIFE,
     },
     {
-      x: 680,
-      y: 50,
+      x: 700,
+      y: 0,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 680,
-      y: 50,
+      x: 700,
+      y: 25,
       type: CoinType.EXTRA_LIFE,
     },
   ],
 };
 
-// Level 7 - Alltinn Norge
+// Level 8 - Alltinn Norge
 // Vertical-ascent zigzag: twin pillar walls anchor vertical patrols while a
 // center spine of horizontal platforms forces left↔right traversal upward.
 // Bomb groups are ordered floor→top — the climb itself is the difficulty curve.
-export const level7Map: MapDefinition = {
-  id: "level7",
+export const level8Map: MapDefinition = {
+  id: "level8",
   name: "alltinn norge",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#ff9ff3", // Pink — high contrast against navy ground
+  background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ff9ff3",
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
-  ground: {
-    x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
-    height: 40,
-    color: "#2a3858",
-  },
-
   platforms: [
-    // Twin pillar walls — vertical-patrol monster tracks
-    createVerticalPlatform(40, 200, 300, "#5d8fb3", "#1a2540"),
-    createVerticalPlatform(745, 200, 300, "#5d8fb3", "#1a2540"),
-
-    // Center bottom (lane 1)
-    createPlatform(300, 470, { width: 200, height: 15 }, "#5d8fb3", "#1a2540"),
-
-    // Mid layer (lane 2 — split left/right, forces a side commit)
-    createPlatform(100, 350, { width: 180, height: 15 }, "#5d8fb3", "#1a2540"),
-    createPlatform(510, 350, { width: 180, height: 15 }, "#5d8fb3", "#1a2540"),
-
-    // Lane 3 — center upper
-    createPlatform(300, 210, { width: 200, height: 15 }, "#5d8fb3", "#1a2540"),
-
-    // Top finale (lane 4 — narrow risk platform)
-    createPlatform(325, 110, { width: 150, height: 15 }, "#5d8fb3", "#1a2540"),
+    createVerticalPlatform(50, 175, 325, "#5d8fb3", "#1a2540"),
+    createVerticalPlatform(725, 175, 325, "#5d8fb3", "#1a2540"),
+    createPlatform(50, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(600, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(75, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(575, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(250, 225, { width: 300, height: 25 }, "#2f3543", "#000"),
   ],
 
   bombs: [
-    // Group 1 — left ground (intro). 4 bombs to land at exactly 23 total
-    // (GAME_CONFIG.TOTAL_BOMBS — strict equality gates level completion).
-    createBomb(270, 525, 1, 1),
-    createBomb(220, 525, 2, 1),
-    createBomb(170, 525, 3, 1),
-    createBomb(10, 325, 4, 1),
-
-    // Group 2 — right ground (4 bombs)
-    createBomb(530, 525, 5, 2),
-    createBomb(580, 525, 6, 2),
-    createBomb(630, 525, 7, 2),
-    createBomb(765, 325, 8, 2),
-
-    // Group 3 — center bottom platform
-    createBomb(320, 440, 9, 3),
-    createBomb(370, 440, 10, 3),
-    createBomb(420, 440, 11, 3),
-
-    // Group 4 — mid-left platform
-    createBomb(130, 320, 12, 4),
-    createBomb(180, 320, 13, 4),
-    createBomb(230, 320, 14, 4),
-
-    // Group 5 — mid-right platform
-    createBomb(530, 320, 15, 5),
-    createBomb(580, 320, 16, 5),
-    createBomb(630, 320, 17, 5),
-
-    // Group 6 — center upper platform (centered: platform spans x=300-500,
-    // center=400; bombs at 340/390/440 give visual centers around 398).
-    createBomb(340, 180, 18, 6),
-    createBomb(390, 180, 19, 6),
-    createBomb(440, 180, 20, 6),
-
-    // Group 7 — top finale (narrow platform, highest risk)
-    createBomb(345, 80, 21, 7),
-    createBomb(395, 80, 22, 7),
-    createBomb(445, 80, 23, 7),
+    createBomb(12, 400, 1, 1),
+    createBomb(12, 350, 2, 1),
+    createBomb(12, 300, 3, 1),
+    createBomb(12, 250, 4, 1),
+    createBomb(765, 250, 5, 2),
+    createBomb(765, 300, 6, 2),
+    createBomb(765, 350, 7, 2),
+    createBomb(765, 400, 8, 2),
+    createBomb(87, 447, 9, 3),
+    createBomb(137, 447, 10, 3),
+    createBomb(187, 447, 11, 3),
+    createBomb(64, 123, 12, 4),
+    createBomb(114, 123, 13, 4),
+    createBomb(164, 123, 14, 4),
+    createBomb(614, 123, 15, 5),
+    createBomb(664, 123, 16, 5),
+    createBomb(714, 123, 17, 5),
+    createBomb(338, 197, 18, 6),
+    createBomb(388, 197, 19, 6),
+    createBomb(438, 197, 20, 6),
+    createBomb(589, 448, 21, 7),
+    createBomb(639, 448, 22, 7),
+    createBomb(689, 448, 23, 7),
   ],
 
   monsters: [
-    // Spawn-pad platform (y=320) is intentionally clear so the centered drop
-    // lands safely. Threats start one lane in either direction.
-    createHorizontalPatrolMonster(
-      300,
-      470,
-      200,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "green",
-    ),
-    createHorizontalPatrolMonster(
-      80,
-      350,
-      180,
-      "right",
-      1,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-    createHorizontalPatrolMonster(
-      540,
-      350,
-      180,
-      "left",
-      1,
-      1,
-      undefined,
-      0,
-      "black",
-    ),
-
-    // Pillar verticals — make the side approaches dangerous
-    createVerticalPatrolMonster(45, 220, 280, "right"),
-    createVerticalPatrolMonster(700, 220, 280, "right"),
+    createMummyMonster(75, 475, 150, "left", 1, 1, 1, 0, "green", "SPHERE"),
   ],
 
   monsterSpawnPoints: [
-    // Mid-game: ambusher emerges from below the left pillar to push the
-    // player off the center-bottom platform mid-collection.
     {
-      spawnDelay: 5000,
-      createMonster: () => createAmbusherMonster(20, 525, 1, 8000),
+      spawnDelay: 0,
+      respawnInterval: 14000,
+      maxSpawns: 3,
+      createMonster: () =>
+        createMummyMonster(
+          50,
+          150,
+          150,
+          "right",
+          1,
+          1,
+          -1,
+          0,
+          "black",
+          "SPHERE",
+        ),
     },
-    // Late-game: chaser enters from above-right (clear of the right pillar
-    // at x=725-740) once the player is committed to the upper half.
     {
-      spawnDelay: 12000,
-      createMonster: () => createChaserMonster(770, 100, 1, 0.3, 1000),
-    },
-    // Top-platform pressure: floater drifts in once the climb begins.
-    {
-      spawnDelay: 18000,
-      createMonster: () => createFloaterMonster(400, 250, 50, 1),
+      spawnDelay: 0,
+      respawnInterval: 14500,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(600, 150, 150, "left", 1, 1, 1, 0, "black", "ORB"),
     },
   ],
 
   coinSpawnPoints: [
-    // P-coins spawn near the chokepoints (mid layer + top platform) so the
-    // player has to commit to a route to reach them.
     {
-      x: 400,
-      y: 380,
+      x: 388,
+      y: 290,
       type: CoinType.POWER,
       spawnAngle: 45,
     },
     {
-      x: 400,
-      y: 140,
+      x: 388,
+      y: 289,
       type: CoinType.POWER,
       spawnAngle: -125,
     },
-
-    // B-coin / E-coin candidates at the top-platform corners — reward for
-    // making it that high.
     {
-      x: 350,
-      y: 80,
+      x: 125,
+      y: 25,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 450,
-      y: 80,
+      x: 675,
+      y: 50,
       type: CoinType.BONUS_MULTIPLIER,
     },
     {
-      x: 350,
-      y: 80,
+      x: 125,
+      y: 50,
       type: CoinType.EXTRA_LIFE,
     },
     {
-      x: 450,
-      y: 80,
+      x: 675,
+      y: 25,
       type: CoinType.EXTRA_LIFE,
     },
   ],
 };
 
-export const level8Map: MapDefinition = {
-  id: "level7",
+export const level9Map: MapDefinition = {
+  id: "level9",
   name: "silicone vally",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
@@ -1363,14 +1272,6 @@ export const level8Map: MapDefinition = {
   spawnIndicatorColor: "#feca57", // Orange for dark gray background
 
   groupSequence: [1, 2, 3, 4, 5],
-
-  ground: {
-    x: 0,
-    y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-    width: GAME_CONFIG.CANVAS_WIDTH,
-    height: 40,
-    color: "#46474c",
-  },
 
   platforms: [],
 
@@ -1419,7 +1320,6 @@ export const level8Map: MapDefinition = {
 };
 
 export const mapDefinitions = [
-  level0Map,
   level1Map,
   level2Map,
   level3Map,
@@ -1428,4 +1328,5 @@ export const mapDefinitions = [
   level6Map,
   level7Map,
   level8Map,
+  level9Map,
 ];

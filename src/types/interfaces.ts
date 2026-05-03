@@ -13,6 +13,18 @@ export interface Player {
   jumpStartTime: number;
   moveSpeed: number;
   jumpPower: number;
+  // Index into the BJ gravity LUT (game-specs §4.3). Drives all vertical
+  // velocity. 0 = max upward, 64 = apex/hover, 127 = terminal downward.
+  // Resets to 64 (apex) when grounded so walking off a platform falls
+  // naturally; jumps snap it to 0; float (SPACE in air) snaps it to 64.
+  gravityIndex: number;
+  // Per-jump multiplier on the gravity-index advance rate during the
+  // ascending half (idx < APEX). Lower = slower ascent = higher peak.
+  // Set on jump initiation per JumpType (game-specs §4.4); reset to 1.0
+  // on landing.
+  jumpAdvanceRate: number;
+  // Legacy constant-gravity fields — kept for backwards-compat with code
+  // paths that still read them, but no longer drive physics.
   gravity: number;
   floatGravity: number;
 }
@@ -29,6 +41,17 @@ interface BaseMonster {
   isActive: boolean;
   isFrozen?: boolean;
   isBlinking?: boolean; // For power mode warning
+  // BJ "mutation" pass-through window: when a monster transitions form (e.g.,
+  // unfreezing at power-mode end), player-monster collision is ignored until
+  // this timestamp.
+  mutationEndTime?: number;
+  // BJ §5.4 spawn invulnerability — event-based. `false` means the monster
+  // hasn't made its first AI decision yet, so player-monster collision is
+  // ignored. Set to `true` by each movement class on its first direction
+  // change / target update / bounce. Undefined ≡ true (lethal) for monsters
+  // that don't go through a movement class with this wiring (e.g. airborne
+  // forms produced by Mummy transformation).
+  isLethal?: boolean;
   spawnTime?: number; // When this monster was spawned
   lastDirectionChange?: number; // For behavior timing
   behaviorState?: string; // Current behavior state
@@ -39,6 +62,9 @@ interface BaseMonster {
   isGrounded?: boolean;
   gravity?: number;
   isFalling?: boolean; // Whether the monster is currently falling
+  /** Y at the moment a Mummy started phase-2 gravity fall. Used by the
+   *  swept-landing detector and the source-platform clearance gate. */
+  fallStartY?: number;
   currentPlatform?: Platform | null; // Current platform the monster is on
   spawnSide?: 'left' | 'right'; // Which side of the platform it spawned on
   walkLengths?: number; // How many times to walk across the platform before falling
@@ -59,11 +85,17 @@ interface BaseMonster {
   directnessMultiplier?: number;
   speedMultiplier?: number;
   spawnPauseTime?: number;
+
+  // Hitbox bookkeeping written by applyHitboxToMonster — kept on the monster
+  // so the natural anchor stays stable across per-frame hitbox swaps.
+  _hitboxOffsetX?: number;
+  _hitboxOffsetY?: number;
+  _hitboxRotation?: number;
 }
 
 // Patrol monster (horizontal and vertical)
 interface PatrolMonster extends BaseMonster {
-  type: "HORIZONTAL_PATROL" | "VERTICAL_PATROL";
+  type: "MUMMY" | "VERTICAL_PATROL";
   patrolStartX: number;
   patrolEndX: number;
   patrolStartY?: number; // For vertical patrol
@@ -71,24 +103,40 @@ interface PatrolMonster extends BaseMonster {
   patrolSide?: "left" | "right"; // Which side of platform to patrol on (for vertical patrol)
   targetPlatformX?: number; // Target platform X position for vertical patrol monsters
   variant?: "green" | "black"; // Visual variant for byråkrat sprites
+  /** Per-mummy ground-impact transform target (BJ §5.1.2). Defaults to
+   *  "SPHERE" if absent. "NONE" = die instead of mutating. */
+  transformTarget?: "SPHERE" | "ORB" | "NONE";
 }
 
-// Chaser monster
-interface ChaserMonster extends BaseMonster {
-  type: "CHASER";
+// Bird monster (BJ §5.1.1) — Manhattan-cardinal hop-and-pause toward Jack.
+interface BirdMonster extends BaseMonster {
+  type: "BIRD";
   patrolStartX: number;
   patrolEndX: number;
   patrolStartY?: number;
   patrolEndY?: number;
-  directness?: number; // How direct they track the player (0.0-1.0)
-  chaseTargetX?: number; // Current chase target
-  chaseTargetY?: number; // Current chase target
-  chaseUpdateInterval?: number; // How often to update target (ms)
+  directness?: number; // legacy — currently unused, kept for tuning compat
+  chaseTargetX?: number; // legacy
+  chaseTargetY?: number; // legacy
+  chaseUpdateInterval?: number; // legacy
+  /** Destination of the current hop (axis-locked, fixed-distance). Cleared
+   *  on arrival; the bird then rests until `nextHopTime` before picking a
+   *  fresh hop direction. */
+  hopTargetX?: number;
+  hopTargetY?: number;
+  /** Earliest absolute time (ms) at which the next hop may begin. */
+  nextHopTime?: number;
+  /** Delayed snapshot of the player's position the bird is chasing. Refreshed
+   *  every `BIRD_TARGET_DELAY_MS`; planNextHop reads from this instead of
+   *  the live player so the bird tracks where Jack WAS, not where he is. */
+  lastSeenPlayerX?: number;
+  lastSeenPlayerY?: number;
+  lastSeenAt?: number;
 }
 
 // Ambusher monster
-interface AmbusherMonster extends BaseMonster {
-  type: "AMBUSHER";
+interface UfoMonster extends BaseMonster {
+  type: "UFO";
   targetX?: number; // For wandering behavior
   targetY?: number; // For wandering behavior
   ambushCooldown?: number; // Time until next ambush
@@ -97,8 +145,8 @@ interface AmbusherMonster extends BaseMonster {
 }
 
 // Floater monster
-interface FloaterMonster extends BaseMonster {
-  type: "FLOATER";
+interface HornMonster extends BaseMonster {
+  type: "HORN";
   patrolStartX: number;
   patrolEndX: number;
   patrolStartY?: number;
@@ -106,26 +154,40 @@ interface FloaterMonster extends BaseMonster {
   startAngle?: number; // Starting angle in degrees for straight-line movement
 }
 
+// BJ airborne forms (Monster-Movments.md). Sphere/Orb bounce edge-to-edge
+// on one axis while homing on the other; Club does inertial 2D pursuit
+// with edge bouncing.
+interface AirborneMonster extends BaseMonster {
+  type: "SPHERE" | "ORB";
+}
+
 // Union type for all monster types
 export type Monster =
   | PatrolMonster
-  | ChaserMonster
-  | AmbusherMonster
-  | FloaterMonster;
+  | BirdMonster
+  | UfoMonster
+  | HornMonster
+  | AirborneMonster;
+
+// Type guard for the new airborne family.
+export const isAirborneMonster = (
+  monster: Monster
+): monster is AirborneMonster =>
+  monster.type === "SPHERE" || monster.type === "ORB";
 
 // Type guards for monster types
 export const isPatrolMonster = (monster: Monster): monster is PatrolMonster =>
-  monster.type === "HORIZONTAL_PATROL" || monster.type === "VERTICAL_PATROL";
+  monster.type === "MUMMY" || monster.type === "VERTICAL_PATROL";
 
-export const isChaserMonster = (monster: Monster): monster is ChaserMonster =>
-  monster.type === "CHASER";
+export const isBirdMonster = (monster: Monster): monster is BirdMonster =>
+  monster.type === "BIRD";
 
-export const isAmbusherMonster = (
+export const isUfoMonster = (
   monster: Monster
-): monster is AmbusherMonster => monster.type === "AMBUSHER";
+): monster is UfoMonster => monster.type === "UFO";
 
-export const isFloaterMonster = (monster: Monster): monster is FloaterMonster =>
-  monster.type === "FLOATER";
+export const isHornMonster = (monster: Monster): monster is HornMonster =>
+  monster.type === "HORN";
 
 export interface Bomb {
   x: number;
@@ -168,10 +230,16 @@ export interface MonsterSpawnPoint {
   spawnDelay: number; // When this monster should spawn (in milliseconds)
   createMonster: () => Monster; // Function that creates the monster using MonsterFactory
   color?: string; // Optional custom color override for the monster
+  /** ms between repeated spawns. >0 = the spawn point fires continuously
+   *  every `respawnInterval` ms after the initial `spawnDelay`. 0 / undefined
+   *  = legacy one-shot behavior. */
+  respawnInterval?: number;
+  /** Hard cap on total fires for a recurring spawn point. 0 / undefined =
+   *  unlimited. Only meaningful when respawnInterval > 0. */
+  maxSpawns?: number;
 }
 
 import type { PlatformTheme } from "../config/platformTiles";
-import type { GroundTheme } from "../config/groundTiles";
 
 export interface Platform {
   x: number;
@@ -184,16 +252,6 @@ export interface Platform {
   tileTheme?: PlatformTheme;
 }
 
-export interface Ground {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  tileTheme?: GroundTheme;
-  tileNoise?: number;
-}
-
 export interface MapDefinition {
   id: string;
   name: string;
@@ -204,7 +262,6 @@ export interface MapDefinition {
     y: number;
   };
   platforms: Platform[];
-  ground: Ground;
   bombs: Bomb[];
   monsters: Monster[];
   coinSpawnPoints?: CoinSpawnPoint[];
@@ -263,7 +320,6 @@ export interface GameStateInterface {
   bombs: Bomb[];
   coins: Coin[];
   platforms: Platform[];
-  ground: Ground;
 
   // Effects
   activeEffects: {
@@ -276,6 +332,8 @@ export interface GameStateInterface {
   totalCoinsCollected: number;
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
+  // Lifetime lives lost this game (BJ E-coin death-generosity).
+  livesLostThisGame?: number;
 
   // Managers
   coinManager?: {
@@ -316,7 +374,7 @@ export interface CoinPhysicsConfig {
   hasGravity: boolean;
   bounces: boolean;
   reflects: boolean;
-  customUpdate?: (coin: Coin, platforms: Platform[], ground: Ground, deltaTime?: number) => void;
+  customUpdate?: (coin: Coin, platforms: Platform[], deltaTime?: number) => void;
 }
 
 export interface CoinTypeConfig {

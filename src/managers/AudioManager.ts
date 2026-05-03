@@ -24,6 +24,15 @@ export class AudioManager {
   private bonusCoinBuffer: AudioBuffer | null = null;
   private monsterKillBuffer: AudioBuffer | null = null;
   private playerDeathBuffer: AudioBuffer | null = null;
+  private jumpBuffer: AudioBuffer | null = null;
+
+  // P-coin ambient loop (plays while a Power coin is alive on screen).
+  private powerCoinAmbientBuffer: AudioBuffer | null = null;
+  private powerCoinAmbientSource: AudioBufferSourceNode | null = null;
+  private powerCoinAmbientGain: GainNode | null = null;
+  // Boost above the standard SFX bus so the menacing loop sits clearly
+  // above other one-shots and the (now-ducked) BGM.
+  private static readonly POWER_COIN_AMBIENT_VOLUME_MULT = 1.4;
 
   // Power-up melody management
   private powerUpMelodyActive = false;
@@ -39,6 +48,8 @@ export class AudioManager {
     this.loadSoundEffect("bonus-coin-colect").then((buf) => (this.bonusCoinBuffer = buf));
     this.loadSoundEffect("monster-kill").then((buf) => (this.monsterKillBuffer = buf));
     this.loadSoundEffect("player-death").then((buf) => (this.playerDeathBuffer = buf));
+    this.loadSoundEffect("jump").then((buf) => (this.jumpBuffer = buf));
+    this.loadSoundEffect("power-mode").then((buf) => (this.powerCoinAmbientBuffer = buf));
   }
 
   private initializeAudioContext(): void {
@@ -83,7 +94,7 @@ export class AudioManager {
     }
   }
 
-  private playSoundBuffer(buffer: AudioBuffer | null): void {
+  private playSoundBuffer(buffer: AudioBuffer | null, volumeMult = 1): void {
     if (!this.audioContext || !buffer) return;
 
     this.ensureAudioContext();
@@ -93,7 +104,7 @@ export class AudioManager {
     source.connect(gainNode);
     gainNode.connect(this.audioContext.destination);
 
-    const sfxVolume = this.getSFXVolume();
+    const sfxVolume = this.getSFXVolume() * volumeMult;
     gainNode.gain.setValueAtTime(sfxVolume, this.audioContext.currentTime);
 
     source.start();
@@ -146,10 +157,104 @@ export class AudioManager {
           this.startBackgroundMusic();
         }
         break;
+      case AudioEvent.PLAYER_JUMP:
+        // Jumps fire frequently — quieter than other one-shots so it
+        // doesn't dominate the mix.
+        this.playSoundBuffer(this.jumpBuffer, 0.55);
+        break;
+      case AudioEvent.POWER_COIN_AMBIENT_START:
+        this.startPowerCoinAmbient();
+        break;
+      case AudioEvent.POWER_COIN_AMBIENT_STOP:
+        this.stopPowerCoinAmbient();
+        break;
       default:
         log.debug(`Audio event ${event} not implemented yet`);
     }
   }
+
+  /**
+   * Start the looping P-coin ambient track. Idempotent: calling while
+   * already playing is a no-op so multiple spawn events don't stack
+   * sources.
+   */
+  private startPowerCoinAmbient(): void {
+    if (!this.audioContext || !this.powerCoinAmbientBuffer) return;
+    if (this.powerCoinAmbientSource) return; // already playing
+
+    this.ensureAudioContext();
+
+    const source = this.audioContext.createBufferSource();
+    const gain = this.audioContext.createGain();
+    source.buffer = this.powerCoinAmbientBuffer;
+    source.loop = true;
+    source.connect(gain);
+    gain.connect(this.audioContext.destination);
+    gain.gain.setValueAtTime(
+      this.getSFXVolume() * AudioManager.POWER_COIN_AMBIENT_VOLUME_MULT,
+      this.audioContext.currentTime
+    );
+
+    source.start();
+    this.powerCoinAmbientSource = source;
+    this.powerCoinAmbientGain = gain;
+
+    // Duck the background music while a P-coin is on screen — the loop
+    // is the dramatic cue, the BGM gets in its way.
+    this.pauseBackgroundMusic();
+  }
+
+  public stopPowerCoinAmbient(): void {
+    const wasPlaying = this.powerCoinAmbientSource !== null;
+    if (this.powerCoinAmbientSource) {
+      try {
+        this.powerCoinAmbientSource.stop();
+        this.powerCoinAmbientSource.disconnect();
+      } catch {
+        // Source already stopped — fine.
+      }
+      this.powerCoinAmbientSource = null;
+    }
+    if (this.powerCoinAmbientGain) {
+      try {
+        this.powerCoinAmbientGain.disconnect();
+      } catch {
+        // Already disconnected — fine.
+      }
+      this.powerCoinAmbientGain = null;
+    }
+
+    // Restore the BGM only if (a) we actually had the loop running and
+    // (b) the synthesized PowerUp melody isn't about to take over (it
+    // ducks the BGM itself, so resuming would just get re-paused).
+    if (wasPlaying && !this.powerUpMelodyActive) {
+      this.resumeBackgroundMusic();
+    }
+  }
+
+  /**
+   * Mute the P-coin loop without tearing down the source. Used by the
+   * pause flow so resuming back to PLAYING continues from the same offset
+   * without a hard restart.
+   */
+  public pausePowerCoinAmbient(): void {
+    if (this.powerCoinAmbientGain && this.audioContext) {
+      this.powerCoinAmbientGain.gain.setValueAtTime(
+        0,
+        this.audioContext.currentTime
+      );
+    }
+  }
+
+  public resumePowerCoinAmbient(): void {
+    if (this.powerCoinAmbientGain && this.audioContext) {
+      this.powerCoinAmbientGain.gain.setValueAtTime(
+        this.getSFXVolume() * AudioManager.POWER_COIN_AMBIENT_VOLUME_MULT,
+        this.audioContext.currentTime
+      );
+    }
+  }
+
 
   stopBackgroundMusic(): void {
     this._isBackgroundMusicPlaying = false;
@@ -465,6 +570,7 @@ export class AudioManager {
   cleanup(): void {
     this.stopBackgroundMusic();
     this.stopPowerUpMelody();
+    this.stopPowerCoinAmbient();
     if (this.audioContext) {
       this.audioContext.close();
     }

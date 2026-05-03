@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Player } from "../../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../../types/constants";
+import { GRAVITY_APEX_INDEX } from "../../lib/gravityLUT";
 
 interface PlayerState {
   player: Player;
@@ -29,6 +30,10 @@ const createInitialPlayer = (): Player => ({
   jumpStartTime: 0,
   moveSpeed: GAME_CONFIG.MOVE_SPEED,
   jumpPower: GAME_CONFIG.JUMP_POWER,
+  // BJ gravity LUT index (game-specs §4.3). Apex = neutral grounded state;
+  // walking off a platform advances naturally toward terminal velocity.
+  gravityIndex: GRAVITY_APEX_INDEX,
+  jumpAdvanceRate: 1.0,
   gravity: GAME_CONFIG.GRAVITY,
   floatGravity: GAME_CONFIG.FLOAT_GRAVITY,
 });
@@ -59,6 +64,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         isJumping: false,
         isFastFalling: false,
         jumpStartTime: 0,
+        gravityIndex: GRAVITY_APEX_INDEX,
+        jumpAdvanceRate: 1.0,
       },
     });
   },

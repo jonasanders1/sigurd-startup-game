@@ -1,10 +1,12 @@
-import { Player, Monster, Bomb, Platform, Ground, CollisionResult, Coin } from '../types/interfaces';
+import { Player, Monster, Bomb, Platform, CollisionResult, Coin } from '../types/interfaces';
 import {
   getMonsterShape,
   ellipseRectColliding,
   rotatedRectAabbColliding,
   getMonsterRotation,
 } from '../config/monsterHitboxes';
+import { isCollisionLethal } from '../lib/bjRules';
+import { GRAVITY_APEX_INDEX } from '../lib/gravityLUT';
 
 export class CollisionManager {
   checkPlayerPlatformCollision(player: Player, platforms: Platform[]): CollisionResult {
@@ -19,16 +21,6 @@ export class CollisionManager {
       }
     }
     return bestCollision;
-  }
-
-  checkPlayerGroundCollision(player: Player, ground: Ground): CollisionResult {
-    const collision = this.checkFullCollision(player, ground);
-    return collision;
-  }
-
-  checkMonsterGroundCollision(monster: Monster, ground: Ground): CollisionResult {
-    const collision = this.checkFullCollision(monster, ground);
-    return collision;
   }
 
   checkPlayerCoinCollision(player: Player, coins: Coin[]): Coin | null {
@@ -121,8 +113,17 @@ export class CollisionManager {
   }
 
   checkPlayerMonsterCollision(player: Player, monsters: Monster[]): Monster | null {
+    const now = Date.now();
     for (const monster of monsters) {
       if (!monster.isActive) continue;
+
+      // BJ §5.4 invulnerability conditions: spawn-window + mutation-window
+      // pass-through. Frozen monsters bypass these (caller's kill-monster
+      // path needs the collision to fire).
+      if (!monster.isFrozen && !isCollisionLethal(monster, now)) {
+        continue;
+      }
+
       const shape = getMonsterShape(monster.type);
       let hit: boolean;
       if (shape === "ellipse") {
@@ -200,12 +201,22 @@ export class CollisionManager {
       updatedPlayer.x = bounds.width - player.width;
       updatedPlayer.velocityX = 0;
     } else if (normal.y === 1) {
-      // Top boundary - move player to y = 0 and stop upward velocity
+      // Top boundary — clamp, kill upward velocity, AND snap the gravity
+      // index back to apex. Without the index reset, the player stays stuck
+      // at y=0 each frame because the LUT keeps producing negative vy
+      // throughout the rest of the ascending phase (especially long high
+      // jumps). Snapping to apex starts the natural descent immediately.
       updatedPlayer.y = 0;
       updatedPlayer.velocityY = 0;
+      updatedPlayer.gravityIndex = GRAVITY_APEX_INDEX;
     } else if (normal.y === -1) {
-      // Bottom boundary - player fell off screen
-      return { player: updatedPlayer, fellOffScreen: true };
+      // Bottom boundary now acts as a floor (Ground entity removed). Clamp,
+      // zero vertical velocity, and latch grounded so the LUT settles to
+      // apex on the next physics tick.
+      updatedPlayer.y = bounds.height - player.height;
+      updatedPlayer.velocityY = 0;
+      updatedPlayer.isGrounded = true;
+      return { player: updatedPlayer, fellOffScreen: false };
     }
     
     return { player: updatedPlayer, fellOffScreen: false };

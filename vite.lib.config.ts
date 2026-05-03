@@ -28,11 +28,15 @@ export default defineConfig({
         exports: "named",
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') return 'sigurd-startup.css';
-          // Handle assets with proper naming - assets from src/assets/ will be here
-          if (assetInfo.name?.endsWith('.png') || assetInfo.name?.endsWith('.wav')) {
-            return `assets/[name][extname]`;
+          // Route bundled binary assets (sprites, audio, fonts) under
+          // dist/assets/ with their original filenames so consumers can
+          // resolve them via the same path the @font-face / sprite
+          // imports reference.
+          const name = assetInfo.name ?? '';
+          if (/\.(png|jpe?g|gif|wav|mp3|ogg|ttf|otf|woff2?)$/i.test(name)) {
+            return 'assets/[name][extname]';
           }
-          return assetInfo.name || 'asset';
+          return name || 'asset';
         },
         // Ensure all assets are properly named
         chunkFileNames: 'chunks/[name]-[hash].js',
@@ -58,6 +62,8 @@ export default defineConfig({
   },
   // Assets are now in src/assets/ so they get processed by Vite
   publicDir: 'public',
-  // Asset handling
+  // Asset handling — `.ttf`/`.otf`/`.woff*` are already in Vite's default
+  // asset list; the others need to be listed explicitly so Vite treats
+  // them as importable URLs in dev too.
   assetsInclude: ['**/*.png', '**/*.wav', '**/*.jpg', '**/*.jpeg', '**/*.gif'],
 }); 

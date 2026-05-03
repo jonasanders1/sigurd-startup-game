@@ -5,10 +5,10 @@ import {
   PlatformEntity,
   BombEntity,
   CoinSpawnEntity,
-  GroundEntity,
   PlayerStartEntity,
   MapMeta,
 } from "./types";
+import { isRecurring } from "./spawnUtils";
 
 const num = (n: number): string => {
   return Number.isInteger(n) ? `${n}` : `${Number(n.toFixed(2))}`;
@@ -31,16 +31,20 @@ const bombLine = (b: BombEntity): string =>
 
 const monsterCall = (m: MonsterEntity): string => {
   switch (m.monsterType) {
-    case MonsterType.HORIZONTAL_PATROL:
-      return `createHorizontalPatrolMonster(${num(m.platformX ?? m.x)}, ${num(m.platformY ?? m.y)}, ${num(m.platformWidth ?? 150)}, ${str(m.spawnSide ?? "left")}, ${m.walkLengths ?? 1}, ${num(m.speed)}, ${m.direction === undefined ? "undefined" : m.direction}, ${m.spawnDelay}, ${str(m.variant ?? "green")})`;
+    case MonsterType.MUMMY:
+      return `createMummyMonster(${num(m.platformX ?? m.x)}, ${num(m.platformY ?? m.y)}, ${num(m.platformWidth ?? 150)}, ${str(m.spawnSide ?? "left")}, ${m.walkLengths ?? 1}, ${num(m.speed)}, ${m.direction === undefined ? "undefined" : m.direction}, ${m.spawnDelay}, ${str(m.variant ?? "green")}, ${str(m.transformTarget ?? "SPHERE")})`;
     case MonsterType.VERTICAL_PATROL:
       return `createVerticalPatrolMonster(${num(m.platformX ?? m.x)}, ${num(m.y)}, ${num(m.patrolHeight ?? 200)}, ${str(m.side ?? "left")}, ${num(m.speed)}, ${m.direction ?? 1}, ${m.spawnDelay})`;
-    case MonsterType.FLOATER:
-      return `createFloaterMonster(${num(m.x)}, ${num(m.y)}, ${m.startAngle ?? 45}, ${num(m.speed)}, ${m.spawnDelay})`;
-    case MonsterType.CHASER:
-      return `createChaserMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.directness ?? 0.2}, ${m.updateInterval ?? 500}, ${m.spawnDelay})`;
-    case MonsterType.AMBUSHER:
-      return `createAmbusherMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.ambushInterval ?? 8000}, ${m.spawnDelay})`;
+    case MonsterType.HORN:
+      return `createHornMonster(${num(m.x)}, ${num(m.y)}, ${m.startAngle ?? 45}, ${num(m.speed)}, ${m.spawnDelay})`;
+    case MonsterType.BIRD:
+      return `createBirdMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.directness ?? 0.2}, ${m.updateInterval ?? 500}, ${m.spawnDelay})`;
+    case MonsterType.UFO:
+      return `createUfoMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.ambushInterval ?? 8000}, ${m.spawnDelay})`;
+    case MonsterType.SPHERE:
+      return `createSphereMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.spawnDelay})`;
+    case MonsterType.ORB:
+      return `createOrbMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.spawnDelay})`;
   }
 };
 
@@ -78,7 +82,6 @@ export const serializeMap = (
 ): SerializeResult => {
   const warnings: string[] = [];
 
-  const grounds = entities.filter((e): e is GroundEntity => e.kind === "ground");
   const platforms = entities.filter((e): e is PlatformEntity => e.kind === "platform");
   const bombs = entities
     .filter((e): e is BombEntity => e.kind === "bomb")
@@ -89,12 +92,10 @@ export const serializeMap = (
     (e): e is PlayerStartEntity => e.kind === "playerStart"
   );
 
-  if (grounds.length === 0) warnings.push("No ground defined.");
-  if (grounds.length > 1) warnings.push(`${grounds.length} grounds — only first used.`);
   if (playerStarts.length === 0) warnings.push("No player spawn defined.");
   if (playerStarts.length > 1) warnings.push("Multiple player spawns — first used.");
   if (bombs.length !== 23) {
-    warnings.push(`Expected 23 bombs, got ${bombs.length}.`);
+    warnings.push(`Expected 23 bombs (Sigurd canonical), got ${bombs.length}.`);
   }
   const orders = bombs.map((b) => b.order);
   const orderDupes = orders.filter((o, i) => orders.indexOf(o) !== i);
@@ -102,11 +103,12 @@ export const serializeMap = (
     warnings.push(`Duplicate bomb orders: ${[...new Set(orderDupes)].join(", ")}`);
   }
 
-  const ground = grounds[0];
   const spawn = playerStarts[0];
 
-  const staticMonsters = monsters.filter((m) => !m.delayed);
-  const delayedMonsters = monsters.filter((m) => m.delayed);
+  // Mirror buildMap's promotion rule: any mummy with respawnInterval > 0 is
+  // a recurring spawn point regardless of the `delayed` checkbox.
+  const staticMonsters = monsters.filter((m) => !m.delayed && !isRecurring(m));
+  const delayedMonsters = monsters.filter((m) => m.delayed || isRecurring(m));
 
   const lines: string[] = [];
   lines.push(`export const ${meta.id}Map: MapDefinition = {`);
@@ -124,23 +126,6 @@ export const serializeMap = (
   lines.push(``);
   lines.push(`  groupSequence: [${meta.groupSequence.join(", ")}],`);
   lines.push(``);
-
-  if (ground) {
-    lines.push(`  ground: {`);
-    lines.push(`    x: ${num(ground.x)},`);
-    lines.push(`    y: ${num(ground.y)},`);
-    lines.push(`    width: ${num(ground.width)},`);
-    lines.push(`    height: ${num(ground.height)},`);
-    lines.push(`    color: ${str(ground.color)},`);
-    if (ground.tileTheme) {
-      lines.push(`    tileTheme: ${str(ground.tileTheme)},`);
-    }
-    if (ground.tileNoise !== undefined) {
-      lines.push(`    tileNoise: ${num(ground.tileNoise)},`);
-    }
-    lines.push(`  },`);
-    lines.push(``);
-  }
 
   lines.push(`  platforms: [`);
   for (const p of platforms) lines.push(platformLine(p));
@@ -160,8 +145,17 @@ export const serializeMap = (
     lines.push(``);
     lines.push(`  monsterSpawnPoints: [`);
     for (const m of delayedMonsters) {
+      // Recurring-but-not-delayed entries spawn immediately (delay 0) and
+      // then respawn every interval.
+      const initialDelay = m.delayed ? m.spawnDelay : 0;
       lines.push(`    {`);
-      lines.push(`      spawnDelay: ${m.spawnDelay},`);
+      lines.push(`      spawnDelay: ${initialDelay},`);
+      if (m.respawnInterval && m.respawnInterval > 0) {
+        lines.push(`      respawnInterval: ${m.respawnInterval},`);
+        if (m.maxSpawns && m.maxSpawns > 0) {
+          lines.push(`      maxSpawns: ${m.maxSpawns},`);
+        }
+      }
       lines.push(`      createMonster: () => ${monsterCall(m)},`);
       lines.push(`    },`);
     }

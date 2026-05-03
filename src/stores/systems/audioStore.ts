@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { DEFAULT_AUDIO_SETTINGS } from '../../types/constants';
+import { AudioEvent, GameState } from '../../types/enums';
 import { log } from '../../lib/logger';
 
 export interface AudioSettings {
@@ -16,6 +17,7 @@ interface AudioManagerInterface {
   startPowerUpMelodyWithDuration: (duration: number) => void;
   stopPowerUpMelody: () => void;
   isPowerUpMelodyActive: () => boolean;
+  playSound: (event: AudioEvent, gameState?: GameState) => void;
 }
 
 interface AudioState {

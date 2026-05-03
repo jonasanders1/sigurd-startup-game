@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Platform, Ground, MapDefinition } from '../../types/interfaces';
+import { Platform, MapDefinition } from '../../types/interfaces';
 import { BombManager } from '../../managers/bombManager';
 import { sendMapCompletionData } from '../../lib/communicationUtils';
 import { log } from '../../lib/logger';
@@ -28,7 +28,6 @@ interface LevelState {
   levelStartTime: number;
   levelCompletionTime: number | null;
   platforms: Platform[];
-  ground: Ground | null;
   levelHistory: LevelResult[];
   gameStartTime: number;
   sessionId: string;
@@ -67,7 +66,6 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
   levelStartTime: 0,
   levelCompletionTime: null,
   platforms: [],
-  ground: null,
   levelHistory: [],
   gameStartTime: 0,
   sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -82,7 +80,6 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
     set({
       currentMap: mapData,
       platforms: mapData.platforms,
-      ground: mapData.ground,
       levelStartTime: Date.now()
     });
     
@@ -95,7 +92,6 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
       levelStartTime: 0,
       levelCompletionTime: null,
       platforms: [],
-      ground: null
     });
   },
   

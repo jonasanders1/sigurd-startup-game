@@ -24,6 +24,7 @@ export class GameStateManager {
   private bonusTransitionInProgress = false;
   private activeTimers: Set<ReturnType<typeof setTimeout>> = new Set();
   private onRestartCallback?: () => void;
+  private onSCoinLevelSkip?: () => void;
 
   // Dependencies
   private audioManager: AudioManager;
@@ -63,6 +64,14 @@ export class GameStateManager {
 
   public setOnRestartCallback(callback: () => void): void {
     this.onRestartCallback = callback;
+  }
+
+  public setOnSCoinLevelSkip(callback: () => void): void {
+    this.onSCoinLevelSkip = callback;
+  }
+
+  public triggerSCoinLevelSkip(): void {
+    this.onSCoinLevelSkip?.();
   }
 
   public initializeDevMode(): void {
@@ -269,6 +278,9 @@ export class GameStateManager {
           coinManager.resume();
         }
 
+        // 4. Un-mute the P-coin ambient loop if a coin is still alive.
+        this.audioManager.resumePowerCoinAmbient();
+
         log.debug("Game state PLAYING: All managers resumed in correct order");
         break;
 
@@ -295,6 +307,10 @@ export class GameStateManager {
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
+
+        // 5. Mute the P-coin ambient loop without tearing it down so the
+        //    same playhead resumes when the user un-pauses.
+        this.audioManager.pausePowerCoinAmbient();
 
         log.debug("Game state PAUSED: All managers paused in correct order");
         break;
@@ -333,6 +349,9 @@ export class GameStateManager {
           this.isBackgroundMusicPlaying = false;
         }
 
+        // 5. Tear down the P-coin loop — the level/run is over.
+        this.audioManager.stopPowerCoinAmbient();
+
         log.debug(`Game state ${currentState}: All managers paused`);
         break;
 
@@ -359,6 +378,9 @@ export class GameStateManager {
           this.audioManager.stopPowerUpMelody();
           this.isBackgroundMusicPlaying = false;
         }
+
+        // 5. Tear down the P-coin loop — the map is done.
+        this.audioManager.stopPowerCoinAmbient();
 
         log.debug(
           "Game state MAP_CLEARED: All managers paused in correct order"

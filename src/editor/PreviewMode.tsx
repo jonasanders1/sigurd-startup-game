@@ -6,7 +6,6 @@ import { useEditorStore } from "./store";
 import { buildMapFromEditor } from "./buildMap";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { useStateStore } from "../stores/gameStore";
-import { GameState, MenuType } from "../types/enums";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { MapDefinition } from "../types/interfaces";
 
@@ -34,10 +33,14 @@ export const PreviewMode: React.FC = () => {
   const originalRef = useRef<MapDefinition | null>(null);
   const [statusMsg, setStatusMsg] = useState("Loading map…");
 
-  // Mount: swap mapDefinitions[0] with the editor's preview map.
+  // Mount: swap mapDefinitions[0] with the editor's preview map. GameCanvas's
+  // GameManager.start() ran before this effect, so the spawn manager was
+  // already configured against the ORIGINAL level0's monsterSpawnPoints — the
+  // tryStart effect below calls gsm.restartGame() which routes through
+  // levelManager.loadCurrentLevel and re-inits everything (bombs, monsters,
+  // coins, spawn manager queue) from the swapped previewMap.
   useEffect(() => {
     const previewMap = buildMapFromEditor(entities, meta);
-    // Force id="level1" so any "current level" logic that compares to level1 keeps working.
     previewMap.id = "level1";
     originalRef.current = mapDefinitions[0];
     mapDefinitions[0] = previewMap;
@@ -54,44 +57,35 @@ export const PreviewMode: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     let pollTimer: number | undefined;
-    let startTimer: number | undefined;
 
     const tryStart = () => {
       if (cancelled) return;
       const state = useStateStore.getState();
       const gsm = state.gameStateManager as
-        | {
-            startNewGame?: () => void;
-            setState?: (s: GameState, m?: MenuType) => void;
-          }
+        | { restartGame?: () => void }
         | undefined;
-      if (!gsm || typeof gsm.startNewGame !== "function") {
+      if (!gsm || typeof gsm.restartGame !== "function") {
         pollTimer = window.setTimeout(tryStart, 50);
         return;
       }
-      // Reset to menu so startNewGame's transition is valid, then trigger.
+      // restartGame is the only public API that does the full level reload
+      // (resetGame → onRestartCallback = levelManager.loadCurrentLevel →
+      // COUNTDOWN → PLAYING). The loadCurrentLevel step is what re-inits the
+      // OptimizedSpawnManager queue from the swapped mapDefinitions[0] —
+      // without that, ghost monsters from the original level keep spawning.
       try {
-        gsm.setState?.(GameState.MENU, MenuType.START);
-      } catch {
-        /* ignore */
+        gsm.restartGame();
+        useStateStore.setState({ lives: PREVIEW_LIVES });
+        setStatusMsg("");
+      } catch (err) {
+        setStatusMsg(`Failed to start: ${(err as Error).message}`);
       }
-      startTimer = window.setTimeout(() => {
-        if (cancelled) return;
-        try {
-          gsm.startNewGame!();
-          useStateStore.setState({ lives: PREVIEW_LIVES });
-          setStatusMsg("");
-        } catch (err) {
-          setStatusMsg(`Failed to start: ${(err as Error).message}`);
-        }
-      }, 100);
     };
     tryStart();
 
     return () => {
       cancelled = true;
       if (pollTimer !== undefined) window.clearTimeout(pollTimer);
-      if (startTimer !== undefined) window.clearTimeout(startTimer);
     };
   }, []);
 

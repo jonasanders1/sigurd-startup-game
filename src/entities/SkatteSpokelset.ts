@@ -42,9 +42,9 @@ const animMeta: Record<
   "walk-front": { frames: walkFront, frameDuration: 100, loop: true },
   "walk-left": { frames: walkLeft, frameDuration: 100, loop: true },
   "walk-right": { frames: walkRight, frameDuration: 100, loop: true },
-  "idle-front": { frames: idleFront, frameDuration: 180, loop: true },
-  "idle-left": { frames: idleLeft, frameDuration: 180, loop: true },
-  "idle-right": { frames: idleRight, frameDuration: 180, loop: true },
+  "idle-front": { frames: idleFront, frameDuration: 90, loop: true },
+  "idle-left": { frames: idleLeft, frameDuration: 90, loop: true },
+  "idle-right": { frames: idleRight, frameDuration: 90, loop: true },
   "freeze-still-front": {
     frames: [freezeFront[1]],
     frameDuration: 1000,

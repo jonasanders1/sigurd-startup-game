@@ -20,15 +20,15 @@ export type MonsterStore = MonsterState & MonsterActions;
 
 const getMonsterColor = (type: string): string => {
   switch (type) {
-    case MonsterType.HORIZONTAL_PATROL:
+    case MonsterType.MUMMY:
       return COLORS.MONSTER;
     case MonsterType.VERTICAL_PATROL:
       return '#FF6B6B'; // Red
-    case MonsterType.CHASER:
+    case MonsterType.BIRD:
       return '#FFD93D'; // Yellow
-    case MonsterType.AMBUSHER:
+    case MonsterType.UFO:
       return '#FF8800'; // Orange
-    case MonsterType.FLOATER:
+    case MonsterType.HORN:
       return '#4ECDC4'; // Cyan
     default:
       return COLORS.MONSTER;

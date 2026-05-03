@@ -1,9 +1,12 @@
 import { Monster, isPatrolMonster } from "../../types/interfaces";
-import { GAME_CONFIG } from "../../types/constants";
-import { useGameStore } from "../../stores/gameStore";
+import { GAME_CONFIG, COLORS } from "../../types/constants";
+import { useLevelStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
 import { logger } from "../../lib/logger";
+import { armMonsterAsLethal } from "../../lib/bjRules";
+import { getTuned } from "../../stores/systems/tuningStore";
+import { getDefaultHitbox } from "../../config/monsterHitboxes";
 
 export class PatrolMovement {
   public update(monster: Monster, currentTime: number, gameState?: any, deltaTime?: number): void {
@@ -13,7 +16,7 @@ export class PatrolMovement {
     }
 
     // Determine if this is horizontal or vertical patrol based on monster type
-    const isHorizontal = monster.type === "HORIZONTAL_PATROL";
+    const isHorizontal = monster.type === "MUMMY";
     
     if (isHorizontal) {
       this.updateHorizontalPatrol(monster, currentTime, deltaTime);
@@ -25,49 +28,215 @@ export class PatrolMovement {
   private updateHorizontalPatrol(monster: Monster, currentTime: number, deltaTime?: number): void {
     // Type guard to ensure this is a patrol monster
     if (!isPatrolMonster(monster)) return;
-    
-    // Get individual scaling values for this monster
+
     const scalingManager = ScalingManager.getInstance();
     const valuesToUse = scalingManager.getMonsterScaledValues(monster);
-    const baseValues = scalingManager.getBaseValues();
     const monsterAge = scalingManager.getMonsterAge(monster);
     const speed = valuesToUse.patrol.speed;
-    
-    // Log scaling info for debugging (only in debug mode)
+
     if (monsterAge < 2) {
       logger.debug(`Patrol scaling - Age: ${monsterAge.toFixed(1)}s, Speed: ${speed.toFixed(2)}`);
     }
 
-    // Simple back and forth movement on the platform (frame-rate independent)
-    const frameSpeed = deltaTime ? speed * (deltaTime / 16.67) : speed; // 16.67ms = 60fps
+    const frameMult = deltaTime ? deltaTime / 16.67 : 1;
+    const frameSpeed = speed * frameMult;
+
+    const levelState = useLevelStore.getState();
+    const platforms = levelState.platforms || [];
+    const isMummy = monster.type === "MUMMY";
+
+    // BJ §5.1.2: a mummy that dropped off a platform falls until it hits a
+    // platform below or the canvas bottom. On canvas-bottom hit it
+    // transforms (Ground entity removed; bottom edge is the new floor).
+    if (monster.isFalling) {
+      this.updateFallingMummy(monster, platforms, frameMult);
+      return;
+    }
+
+    // Normal patrol movement
     const newX = monster.x + frameSpeed * monster.direction;
 
-    // Check if we would walk off the platform
     if (
       newX < monster.patrolStartX ||
       newX + monster.width > monster.patrolEndX
     ) {
-      // Turn around
+      // Mummy drop trigger: deterministic by `walkLengths`. Each edge touch
+      // increments `currentWalkCount`; when it reaches `walkLengths`, the
+      // mummy drops off this platform (BJ §5.1.2). Other patrol types
+      // always turn.
+      if (isMummy) {
+        const walks = (monster.currentWalkCount ?? 0) + 1;
+        const limit = monster.walkLengths ?? 1;
+        if (walks >= limit) {
+          monster.currentWalkCount = 0;
+          monster.isFalling = true;
+          monster.velocityY = 0;
+          monster.x = newX;
+          monster.isGrounded = false;
+          // Stamp start-of-fall Y so updateFallingMummy gates re-landing on
+          // a minimum drop distance (otherwise we land back on the source
+          // platform within one frame).
+          monster.fallStartY = monster.y;
+          // CRITICAL: bail before findCurrentPlatform/handleGroundCollision
+          // below — those would snap the mummy back onto its source platform.
+          return;
+        }
+        monster.currentWalkCount = walks;
+      }
       monster.direction *= -1;
       monster.lastDirectionChange = currentTime;
+      armMonsterAsLethal(monster);
     } else {
-      // Safe to move
       monster.x = newX;
     }
 
-    // Keep monster on platform
-    const gameState = useGameStore.getState();
-    const platforms = gameState.platforms || [];
     const currentPlatform = MovementUtils.findCurrentPlatform(monster, platforms);
-    
     if (currentPlatform) {
       monster.y = currentPlatform.y - monster.height;
       monster.velocityY = 0;
       monster.isGrounded = true;
-    } else {
-      // Check ground collision if not on platform
-      this.handleGroundCollision(monster, gameState.ground);
+    } else if (monster.y + monster.height >= GAME_CONFIG.CANVAS_HEIGHT) {
+      // Standing on the canvas bottom (the new floor).
+      monster.y = GAME_CONFIG.CANVAS_HEIGHT - monster.height;
+      monster.velocityY = 0;
+      monster.isGrounded = true;
     }
+  }
+
+  /**
+   * BJ §5.1.2 dropped-mummy fall. Falls under gravity until it lands on a
+   * platform (continues patrolling there with new bounds) or the canvas
+   * bottom (transforms into SPHERE — the Ground entity was removed and the
+   * canvas bottom is now the floor).
+   *
+   * Re-landing is gated on minimum fallen distance: the mummy starts the
+   * fall on top of its source platform, so without this guard it would
+   * "land" back on that platform within one frame (findCurrentPlatform's
+   * 2-px tolerance + the 5-px landing tolerance both pass).
+   */
+  private updateFallingMummy(
+    monster: Monster,
+    platforms: import("../../types/interfaces").Platform[],
+    frameMult: number
+  ): void {
+    if (!isPatrolMonster(monster)) return;
+
+    // Phase 1: "scoot off the edge". When the drop fires, the mummy is only
+    // ONE walk-frame past its patrol bound — its body still overlaps the
+    // source platform horizontally. Letting gravity engage here would clip
+    // it down through the platform's edge. Walk past the footprint first.
+    const dir = monster.direction;
+    const fullyCleared =
+      dir > 0
+        ? monster.x >= monster.patrolEndX
+        : monster.x + monster.width <= monster.patrolStartX;
+
+    if (!fullyCleared) {
+      const speed = ScalingManager.getInstance()
+        .getMonsterScaledValues(monster).patrol.speed;
+      monster.x += speed * dir * frameMult;
+      // fallStartY tracks current y so the gate measures from the moment
+      // gravity actually starts, not from the trigger frame.
+      monster.fallStartY = monster.y;
+      return;
+    }
+
+    // Phase 2: gravity-driven fall. Snapshot prev-y BEFORE moving so the
+    // swept-landing check below can detect feet crossing a platform top in
+    // a single frame — a static y-tolerance test misses fast falls where
+    // vy > the tolerance window.
+    const prevY = monster.y;
+    monster.velocityY =
+      (monster.velocityY ?? 0) + getTuned("MUMMY_FALL_GRAVITY") * frameMult;
+    monster.y += (monster.velocityY ?? 0) * frameMult;
+
+    // Swept landing check. The scoot phase has already pushed us past the
+    // source platform's x-range, so source self-landing is naturally
+    // excluded by the x-overlap requirement.
+    const prevBottom = prevY + monster.height;
+    const newBottom = monster.y + monster.height;
+    if (newBottom >= prevBottom) {
+      for (const p of platforms) {
+        if (
+          prevBottom <= p.y &&
+          newBottom >= p.y &&
+          monster.x < p.x + p.width &&
+          monster.x + monster.width > p.x
+        ) {
+          monster.y = p.y - monster.height;
+          monster.velocityY = 0;
+          monster.isFalling = false;
+          monster.isGrounded = true;
+          monster.fallStartY = undefined;
+          monster.currentWalkCount = 0;
+          monster.patrolStartX = p.x;
+          monster.patrolEndX = p.x + p.width;
+          return;
+        }
+      }
+    }
+
+    // Canvas-bottom check after platforms — a platform sitting flush with
+    // the canvas bottom should still catch the mummy first.
+    if (monster.y + monster.height >= GAME_CONFIG.CANVAS_HEIGHT) {
+      monster.y = GAME_CONFIG.CANVAS_HEIGHT - monster.height;
+      monster.velocityY = 0;
+      monster.isFalling = false;
+      monster.fallStartY = undefined;
+      if (monster.type === "MUMMY") {
+        this.transformMummyOnGround(monster);
+      }
+      return;
+    }
+  }
+
+  /**
+   * BJ §5.1.2 / Monster-Movments.md: ground-impact transform. Each mummy
+   * carries a per-instance `transformTarget` set in the editor:
+   *   "SPHERE" (default — canonical BJ), "ORB", or "NONE" (die).
+   * Re-uses the `mutationEndTime` channel for the pass-through safe window
+   * so the player can cross the transformation point.
+   */
+  private transformMummyOnGround(monster: Monster): void {
+    if (!isPatrolMonster(monster)) return;
+    const target = monster.transformTarget ?? "SPHERE";
+
+    if (target === "NONE") {
+      monster.isActive = false;
+      monster.isDead = true;
+      logger.monster(`Mummy died on ground at (${monster.x}, ${monster.y})`);
+      return;
+    }
+
+    // Type and color move into the airborne family — the discriminated
+    // union doesn't permit cross-variant assignment, so cast through a
+    // narrow record for those two fields only.
+    const cross = monster as unknown as { type: string; color: string };
+    cross.type = target;
+    cross.color = (COLORS.MONSTER_TYPES as Record<string, string>)[target];
+
+    // Reset hitbox to the target type's default. Mummy's per-frame stride
+    // (32×18) leaves the wrong dimensions otherwise; anchor at the feet so
+    // the swap doesn't visually jump.
+    const newBox = getDefaultHitbox(target);
+    const feetX = monster.x + monster.width / 2;
+    const feetY = monster.y + monster.height;
+    monster.width = newBox.width;
+    monster.height = newBox.height;
+    monster.x = feetX - newBox.width / 2;
+    monster.y = feetY - newBox.height;
+    monster._hitboxOffsetX = 0;
+    monster._hitboxOffsetY = 0;
+    monster._hitboxRotation = 0;
+
+    monster.velocityX = 0;
+    monster.velocityY = 0;
+    monster.isGrounded = false;
+    monster.isFalling = false;
+    monster.mutationEndTime = Date.now() + getTuned("MUTATION_PASSTHROUGH_MS");
+    logger.monster(
+      `Mummy transformed into ${target} at (${monster.x}, ${monster.y})`
+    );
   }
 
   private updateVerticalPatrol(monster: Monster, currentTime: number, deltaTime?: number): void {
@@ -83,8 +252,7 @@ export class PatrolMovement {
     
     // Initialize target X position only once
     if (!monster.originalSpawnX) {
-      const gameState = useGameStore.getState();
-      const platforms = gameState.platforms || [];
+      const platforms = useLevelStore.getState().platforms || [];
       const patrolSide = (monster as any).patrolSide || "left";
       const targetPlatformX = (monster as any).targetPlatformX;
       
@@ -115,6 +283,7 @@ export class PatrolMovement {
       // Turn around
       monster.direction *= -1;
       monster.lastDirectionChange = currentTime;
+      armMonsterAsLethal(monster);
     } else {
       // Safe to move
       monster.y = newY;
@@ -134,22 +303,4 @@ export class PatrolMovement {
     }
   }
 
-  private handleGroundCollision(monster: Monster, ground: any): void {
-    if (!ground) return;
-
-    // Check if monster is colliding with ground
-    const isColliding = (
-      monster.x < ground.x + ground.width &&
-      monster.x + monster.width > ground.x &&
-      monster.y < ground.y + ground.height &&
-      monster.y + monster.height > ground.y
-    );
-    
-    if (isColliding) {
-      // Monster is colliding with ground - place it on top
-      monster.y = ground.y - monster.height;
-      monster.velocityY = 0;
-      monster.isGrounded = true;
-    }
-  }
-} 
+}

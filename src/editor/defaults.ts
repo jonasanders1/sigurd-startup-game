@@ -7,7 +7,6 @@ import {
   BombEntity,
   CoinSpawnEntity,
   PlayerStartEntity,
-  GroundEntity,
   MapMeta,
 } from "./types";
 
@@ -18,7 +17,6 @@ export const newId = (prefix: string = "e"): string => {
 };
 
 export const DEFAULT_PLATFORM_COLOR = COLORS.PLATFORM ?? "#ebb185";
-export const DEFAULT_GROUND_COLOR = "#4c6986";
 export const DEFAULT_BG = "soverommet";
 
 export const defaultPlatform = (x: number, y: number): PlatformEntity => ({
@@ -42,16 +40,6 @@ export const defaultVerticalWall = (x: number, y: number): PlatformEntity => ({
   color: DEFAULT_PLATFORM_COLOR,
   borderColor: "#000",
   isVertical: true,
-});
-
-export const defaultGround = (): GroundEntity => ({
-  id: newId("ground"),
-  kind: "ground",
-  x: 0,
-  y: GAME_CONFIG.CANVAS_HEIGHT - 40,
-  width: GAME_CONFIG.CANVAS_WIDTH,
-  height: 40,
-  color: DEFAULT_GROUND_COLOR,
 });
 
 export const defaultBomb = (x: number, y: number): BombEntity => ({
@@ -86,7 +74,7 @@ export const defaultMonster = (
     delayed: false,
   };
   switch (monsterType) {
-    case MonsterType.HORIZONTAL_PATROL:
+    case MonsterType.MUMMY:
       return {
         ...base,
         platformX: x,
@@ -104,21 +92,27 @@ export const defaultMonster = (
         side: "left",
         direction: 1,
       };
-    case MonsterType.FLOATER:
+    case MonsterType.HORN:
       return { ...base, startAngle: 45 };
-    case MonsterType.CHASER:
+    case MonsterType.BIRD:
       return {
         ...base,
         speed: 0.8,
         directness: 0.2,
         updateInterval: 500,
       };
-    case MonsterType.AMBUSHER:
+    case MonsterType.UFO:
       return {
         ...base,
         speed: 0.8,
         ambushInterval: 8000,
       };
+    // BJ airborne forms (Monster-Movments.md). Just need x/y/speed —
+    // wobble fields are factory defaults.
+    case MonsterType.SPHERE:
+      return { ...base, speed: 1.2 };
+    case MonsterType.ORB:
+      return { ...base, speed: 1.4 };
   }
 };
 
@@ -144,7 +138,6 @@ export const defaultMapMeta = (): MapMeta => ({
 });
 
 export const blankMapEntities = (): EditorEntity[] => [
-  defaultGround(),
   defaultPlayerStart(
     (GAME_CONFIG.CANVAS_WIDTH - GAME_CONFIG.PLAYER_WIDTH) / 2,
     (GAME_CONFIG.CANVAS_HEIGHT - GAME_CONFIG.PLAYER_HEIGHT) / 2

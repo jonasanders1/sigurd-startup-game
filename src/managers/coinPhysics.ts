@@ -1,4 +1,4 @@
-import { Coin, Platform, Ground, CoinPhysicsConfig } from "../types/interfaces";
+import { Coin, Platform, CoinPhysicsConfig } from "../types/interfaces";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_PHYSICS } from "../config/coinTypes";
 import { log } from "../lib/logger";
@@ -10,7 +10,6 @@ export class CoinPhysics {
   static updateCoin(
     coin: Coin,
     platforms: Platform[],
-    ground: Ground,
     physicsConfig?: CoinPhysicsConfig,
     deltaTime?: number
   ): void {
@@ -28,18 +27,18 @@ export class CoinPhysics {
       coin.y += coin.velocityY * frameMultiplier;
 
       if (physicsConfig.reflects) {
-        this.handleReflectiveCollisions(coin, platforms, ground);
+        this.handleReflectiveCollisions(coin, platforms);
       } else if (physicsConfig.bounces) {
-        this.handleBouncingCollisions(coin, platforms, ground);
+        this.handleBouncingCollisions(coin, platforms);
       }
 
       // Use custom update function if provided
       if (physicsConfig.customUpdate) {
-        physicsConfig.customUpdate(coin, platforms, ground, deltaTime);
+        physicsConfig.customUpdate(coin, platforms, deltaTime);
       }
     } else {
       // Fallback to standard physics
-      this.updateStandardCoin(coin, platforms, ground, deltaTime);
+      this.updateStandardCoin(coin, platforms, deltaTime);
     }
   }
 
@@ -49,10 +48,9 @@ export class CoinPhysics {
   static updateStandardCoin(
     coin: Coin,
     platforms: Platform[],
-    ground: Ground,
     deltaTime?: number
   ): void {
-    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.STANDARD, deltaTime);
+    this.updateCoin(coin, platforms, COIN_PHYSICS.STANDARD, deltaTime);
   }
 
   /**
@@ -61,10 +59,9 @@ export class CoinPhysics {
   static updatePowerCoin(
     coin: Coin,
     platforms: Platform[],
-    ground: Ground,
     deltaTime?: number
   ): void {
-    this.updateCoin(coin, platforms, ground, COIN_PHYSICS.POWER, deltaTime);
+    this.updateCoin(coin, platforms, COIN_PHYSICS.POWER, deltaTime);
   }
 
   /**
@@ -72,17 +69,13 @@ export class CoinPhysics {
    */
   private static handleBouncingCollisions(
     coin: Coin,
-    platforms: Platform[],
-    ground: Ground
+    platforms: Platform[]
   ): void {
-    // Check collisions with boundaries
+    // Check collisions with boundaries (incl. canvas bottom = floor)
     this.handleBoundaryCollisions(coin);
 
     // Check collisions with platforms
     this.handlePlatformCollisions(coin, platforms);
-
-    // Check collisions with ground
-    this.handleGroundCollisions(coin, ground);
   }
 
   /**
@@ -90,21 +83,18 @@ export class CoinPhysics {
    */
   private static handleReflectiveCollisions(
     coin: Coin,
-    platforms: Platform[],
-    ground: Ground
+    platforms: Platform[]
   ): void {
-    // Check collisions with boundaries and reflect
+    // Check collisions with boundaries and reflect (incl. canvas bottom)
     this.handlePowerCoinBoundaryCollisions(coin);
 
     // Check collisions with platforms and reflect
     this.handlePowerCoinPlatformCollisions(coin, platforms);
-
-    // Check collisions with ground and reflect
-    this.handlePowerCoinGroundCollisions(coin, ground);
   }
 
   /**
-   * Handles collisions with canvas boundaries
+   * Handles collisions with canvas boundaries.
+   * Canvas bottom = floor (Ground entity removed): bounces with damping.
    */
   private static handleBoundaryCollisions(coin: Coin): void {
     // Left and right boundaries
@@ -123,6 +113,16 @@ export class CoinPhysics {
       coin.y = 0;
       coin.velocityY =
         Math.abs(coin.velocityY) * GAME_CONFIG.COIN_BOUNCE_DAMPING;
+    }
+
+    // Bottom boundary — canvas floor. Bounce with damping; tiny bounces stop.
+    if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
+      coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
+      coin.velocityY =
+        -Math.abs(coin.velocityY) * GAME_CONFIG.COIN_BOUNCE_DAMPING;
+      if (Math.abs(coin.velocityY) < 0.5) {
+        coin.velocityY = 0;
+      }
     }
   }
 
@@ -146,7 +146,7 @@ export class CoinPhysics {
       coin.y = 0;
       coin.velocityY = Math.abs(coin.velocityY); // Reflect vertically
     }
-    // Bottom boundary - this should rarely happen since we have ground collision
+    // Bottom boundary (canvas floor) — perfect reflection.
     else if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
       coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
       coin.velocityY = -Math.abs(coin.velocityY); // Reflect vertically
@@ -262,44 +262,6 @@ export class CoinPhysics {
         // Only handle one collision per frame to avoid multiple reflections
         break;
       }
-    }
-  }
-
-  /**
-   * Handles collisions with ground
-   */
-  private static handleGroundCollisions(coin: Coin, ground: Ground): void {
-    if (this.isColliding(coin, ground)) {
-      coin.y = ground.y - coin.height;
-      coin.velocityY =
-        -Math.abs(coin.velocityY) * GAME_CONFIG.COIN_BOUNCE_DAMPING;
-
-      // Stop very small bounces
-      if (Math.abs(coin.velocityY) < 0.5) {
-        coin.velocityY = 0;
-      }
-    }
-  }
-
-  /**
-   * Handles collisions with ground for power coins (using FloaterMovement logic)
-   */
-  private static handlePowerCoinGroundCollisions(
-    coin: Coin,
-    ground: Ground
-  ): void {
-    if (this.isColliding(coin, ground)) {
-      // Use FloaterMovement's collision detection logic
-      const collisionNormal = this.calculateCollisionNormal(coin, ground);
-
-      // Reflect the velocity vector using the normal (same as FloaterMovement)
-      const dotProduct =
-        coin.velocityX * collisionNormal.x + coin.velocityY * collisionNormal.y;
-      coin.velocityX = coin.velocityX - 2 * dotProduct * collisionNormal.x;
-      coin.velocityY = coin.velocityY - 2 * dotProduct * collisionNormal.y;
-
-      // Simple repositioning - move coin above ground
-      coin.y = ground.y - coin.height - 1;
     }
   }
 

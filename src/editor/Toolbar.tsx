@@ -22,7 +22,9 @@ import {
   X,
   Trash2,
   Play,
+  Sliders,
 } from "lucide-react";
+import { TuningPanel } from "./TuningPanel";
 
 const buildBuiltinList = (): { id: string; map: MapDefinition; label: string }[] =>
   mapDefinitions.map((m, i) => ({
@@ -213,6 +215,7 @@ export const Toolbar: React.FC = () => {
 
   const [exportPayload, setExportPayload] = useState<ExportPayload | null>(null);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [tuningOpen, setTuningOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExportTs = () => {
@@ -298,6 +301,14 @@ export const Toolbar: React.FC = () => {
 
         <button onClick={resetBlank} style={btn} title="New blank map">
           <FilePlus2 size={14} /> New
+        </button>
+
+        <button
+          onClick={() => setTuningOpen(true)}
+          style={btn}
+          title="Open Tuning Panel — physics, monster behaviors, coin spawns, rules"
+        >
+          <Sliders size={14} /> Tuning
         </button>
 
         <div style={{ position: "relative" }}>
@@ -525,6 +536,7 @@ export const Toolbar: React.FC = () => {
       {exportPayload && (
         <ExportModal payload={exportPayload} onClose={() => setExportPayload(null)} />
       )}
+      <TuningPanel open={tuningOpen} onClose={() => setTuningOpen(false)} />
     </>
   );
 };

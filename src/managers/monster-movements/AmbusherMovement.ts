@@ -1,13 +1,15 @@
-import { Monster, isAmbusherMonster } from "../../types/interfaces";
+import { Monster, isUfoMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
+import { armMonsterAsLethal } from "../../lib/bjRules";
+import { getTuned } from "../../stores/systems/tuningStore";
 
 export class AmbusherMovement {
   public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
     // Type guard to ensure this is an ambusher monster
-    if (!isAmbusherMonster(monster)) return;
+    if (!isUfoMonster(monster)) return;
 
     // Check if game is paused
     if (gameState.currentState !== 'PLAYING') {
@@ -51,9 +53,19 @@ export class AmbusherMovement {
         this.chooseNewWanderingDirection(monster, currentTime);
       }
 
-      // Move toward current wandering target
-      const moveSpeed = valuesToUse.ambusher.speed * 0.5; // Use appropriate speed
-      const frameSpeed = deltaTime ? moveSpeed * (deltaTime / 16.67) : moveSpeed; // 16.67ms = 60fps
+      // Monster-Movments.md UFO rule: "fast far, slow close" — speed scales
+      // with distance to player. All three knobs live-tunable via panel.
+      const near = getTuned("UFO_DIST_FACTOR_NEAR");
+      const far = getTuned("UFO_DIST_FACTOR_FAR");
+      const ramp = getTuned("UFO_DIST_RAMP_PX");
+      const distToPlayer = Math.hypot(
+        player.x - monster.x,
+        player.y - monster.y
+      );
+      const proximity = Math.min(distToPlayer / ramp, 1);
+      const speedFactor = near + (far - near) * proximity;
+      const moveSpeed = valuesToUse.ambusher.speed * 0.5 * speedFactor;
+      const frameSpeed = deltaTime ? moveSpeed * (deltaTime / 16.67) : moveSpeed;
       const targetX = (monster as any).targetX || monster.x;
       const targetY = (monster as any).targetY || monster.y;
 
@@ -72,11 +84,13 @@ export class AmbusherMovement {
         const newY = monster.y + frameSpeed * normY;
 
         // Check if new position is safe (platforms, boundaries, and ground)
-        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, gameState.ground)) {
+        if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
           monster.x = newX;
           monster.y = newY;
         } else {
-          // If blocked, choose new direction
+          // Monster-Movments.md UFO rule: "Changes velocity upon hitting
+          // something." Re-pick a wander direction immediately on impact —
+          // produces the billiard-ball ricochet feel.
           this.chooseNewWanderingDirection(monster, currentTime);
         }
       } else {
@@ -118,7 +132,7 @@ export class AmbusherMovement {
         const newY = monster.y + frameSpeed * normY;
 
         // Check if movement is safe (platforms, boundaries, and ground)
-        if (MovementUtils.isMovementSafeWithGround(monster, newX, newY, platforms, gameState.ground)) {
+        if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
           monster.x = newX;
           monster.y = newY;
         } else {
@@ -175,5 +189,7 @@ export class AmbusherMovement {
     (monster as any).targetX = newTargetX;
     (monster as any).targetY = newTargetY;
     monster.lastDirectionChange = currentTime;
+    // BJ §5.4: first direction change arms the UFO as lethal.
+    armMonsterAsLethal(monster);
   }
 }

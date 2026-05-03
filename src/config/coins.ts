@@ -11,9 +11,20 @@ export const COIN_PHYSICS = {
 
 export const COIN_SPAWNING = {
   // Spawning intervals
-  POWER_COIN_SPAWN_INTERVAL: 9, // Power coin appears after every 9 firebombs
-  BONUS_COIN_SPAWN_INTERVAL: 5000, // Bonus multiplier coin appears every 5000 points
-  EXTRA_LIFE_COIN_RATIO: 4, // Extra life coin appears for every 4 bonus multiplier coin
+  // BJ canonical: "P-coin every 9 firebombs". With weighted tokens
+  // (firebomb=2, normal=1), threshold 18 means 9 firebombs alone = 1 P-coin
+  // and 18 normal bombs = 1 P-coin (the "twice as many for firebombs" rule).
+  POWER_COIN_SPAWN_INTERVAL: 18,
+  POWER_COIN_MAX_PER_LEVEL: 2, // BJ: max 2 P-coin spawns per level (game-specs §7.1)
+  BONUS_COIN_SPAWN_INTERVAL: 5000, // B-coin: every 5000 points of total score
+  BONUS_COIN_MAX_PER_LEVEL: 5, // BJ: max 5 B-coin spawns per level
+  EXTRA_LIFE_COIN_RATIO: 8, // E-coin: every 8 B-coins collected (with death-generosity)
+  EXTRA_LIFE_DEATH_GENEROSITY: 2, // Each life lost adds this many credits toward next E-coin
+  // S-coin: rolled once per level. If hit, schedules a single spawn at a random
+  // time in the [min, max] window (ms) after level start.
+  S_COIN_LEVEL_CHANCE: 0.15,
+  S_COIN_SPAWN_MIN_DELAY_MS: 10000,
+  S_COIN_SPAWN_MAX_DELAY_MS: 90000,
 } as const;
 
 export const COIN_EFFECTS = {

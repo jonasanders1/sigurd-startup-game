@@ -16,7 +16,6 @@ import {
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { DEV_CONFIG } from "../config/dev";
 import { getAllPlatformTilePaths } from "../config/platformTiles";
-import { getAllGroundTilePaths } from "../config/groundTiles";
 
 export interface LoadingStep {
   id: string;
@@ -407,7 +406,6 @@ export class LoadingManager {
       "funding/funding_6.png",
       "funding/funding_7.png",
       ...getAllPlatformTilePaths(),
-      ...getAllGroundTilePaths(),
     ];
 
     await Promise.all(

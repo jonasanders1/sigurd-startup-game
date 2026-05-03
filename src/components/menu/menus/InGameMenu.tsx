@@ -99,7 +99,7 @@ const InGameMenu: React.FC = () => {
           {/* ── Score ── */}
           <div className="shrink-0 min-w-[90px]">
             <div
-              className={`font-pixel text-sm tabular-nums transition-colors duration-150 ${
+              className={`text-sm tabular-nums transition-colors duration-150 ${
                 isScoreAnimating ? "text-[var(--primary-light)]" : "text-primary"
               }`}
               style={isScoreAnimating ? { textShadow: "0 0 8px rgba(171,221,100,.5)" } : undefined}

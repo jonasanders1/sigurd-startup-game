@@ -13,6 +13,8 @@ export interface ScheduledSpawn {
   spawnPoint: MonsterSpawnPoint;
   scheduledTime: number;
   executed: boolean;
+  /** Times this spawn point has fired so far (used by the maxSpawns cap). */
+  spawnCount: number;
 }
 
 interface PauseState {
@@ -131,6 +133,7 @@ export class OptimizedSpawnManager {
       spawnPoint,
       scheduledTime: this.levelStartTime + spawnPoint.spawnDelay,
       executed: false,
+      spawnCount: 0,
     }));
   }
 
@@ -161,7 +164,7 @@ export class OptimizedSpawnManager {
 
     const { monsters, updateMonsters } = useMonsterStore.getState();
     const { player } = usePlayerStore.getState();
-    const { platforms, ground } = useLevelStore.getState();
+    const { platforms } = useLevelStore.getState();
     const adjustedTime = this.getAdjustedTime();
 
     // Debug: Log that update is being called (every 5 seconds)
@@ -183,7 +186,6 @@ export class OptimizedSpawnManager {
       updateMonsters,
       player, // Needed by Chaser and Ambusher monsters
       platforms, // Needed by all monster types for collision detection
-      ground, // Needed for ground collision detection
       currentState: "PLAYING", // Add this for movement classes to check pause state
     };
 
@@ -273,10 +275,42 @@ export class OptimizedSpawnManager {
       try {
         const monster = this.createMonster(spawn.spawnPoint);
         spawnedMonsters.push(monster);
-        spawn.executed = true;
+
+        spawn.spawnCount += 1;
+
+        // Continuous spawn points (respawnInterval > 0) re-arm by bumping
+        // scheduledTime forward by the interval and leaving `executed=false`
+        // so the next tick can fire them again. One-shot spawns mark
+        // `executed=true` and never run again. A `maxSpawns` cap, once
+        // reached, also marks the spawn permanently executed.
+        const interval = spawn.spawnPoint.respawnInterval ?? 0;
+        const max = spawn.spawnPoint.maxSpawns ?? 0;
+        const capReached = max > 0 && spawn.spawnCount >= max;
+        if (interval > 0 && !capReached) {
+          spawn.scheduledTime += interval;
+          // Catch-up guard: if the tab was backgrounded long enough that the
+          // new scheduledTime is still in the past, snap forward to one
+          // interval from now. Without this, a long pause would fire a
+          // burst of "owed" spawns on the next tick.
+          const nowAbs = this.getAdjustedAbsoluteTime();
+          if (spawn.scheduledTime < nowAbs) {
+            spawn.scheduledTime = nowAbs + interval;
+          }
+          spawn.executed = false;
+        } else {
+          spawn.executed = true;
+        }
 
         logger.monster(
-          `Spawned ${monster.type} at (${monster.x}, ${monster.y})`
+          `Spawned ${monster.type} at (${monster.x}, ${monster.y})${
+            interval > 0
+              ? capReached
+                ? ` (final spawn — cap ${max} reached)`
+                : ` (next in ${interval}ms${
+                    max > 0 ? `, ${spawn.spawnCount}/${max}` : ""
+                  })`
+              : ""
+          }`
         );
       } catch (error) {
         logger.error(`Failed to spawn monster: ${error}`);

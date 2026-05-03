@@ -7,6 +7,7 @@ import {
 import { GAME_CONFIG, DEV_CONFIG } from "../../../types/constants";
 import { mapDefinitions } from "../../../maps/mapDefinitions";
 import { log } from "../../../lib/logger";
+import { getTuned } from "../../../stores/systems/tuningStore";
 
 import { useAnimatedCounter } from "../../../hooks/useAnimatedCounter";
 
@@ -16,7 +17,7 @@ const BonusScreen: React.FC = () => {
   const { setBonusAnimationComplete } = useStateStore();
   const { currentMap } = useLevelStore();
 
-  const livesLost = GAME_CONFIG.STARTING_LIVES - lives;
+  const livesLost = getTuned("STARTING_LIVES") - lives;
   const effectiveCount = Math.max(0, correctOrderCount - livesLost);
 
   const bonusPoints =
@@ -37,18 +38,19 @@ const BonusScreen: React.FC = () => {
 
   return (
     <div className="text-center max-w-md">
-      <h1 className="text-4xl font-pixel text-primary tracking-wide mb-4 uppercase">
-        {currentMap?.name} Fullført!
+      <h1
+        className="text-5xl font-pixel text-primary tracking-wide mb-4 capitalize"
+        style={{ textShadow: "0 0 18px rgba(171,221,100,0.45)" }}
+      >
+        {currentMap?.name} fullført!
       </h1>
 
       <div className="text-foreground mb-6 space-y-4">
         {bonusPoints > 0 && (
           <div className="flex flex-col items-center justify-center gap-5">
-            <div className="text-xl text-[var(--foreground-muted)]">
+            <div className="text-xl font-pixel text-[var(--foreground-muted)]">
               Du samlet{" "}
-              <span className="font-pixel text-primary">
-                {effectiveCount}
-              </span>{" "}
+              <span className="text-primary">{effectiveCount}</span>{" "}
               av 23 finansieringer!
             </div>
             <div className="text-5xl font-pixel text-primary animate-pulse" style={{ textShadow: "0 0 12px rgba(171,221,100,.5)" }}>

@@ -19,6 +19,13 @@ import {
   calculateGameStats,
 } from "../lib/communicationUtils";
 import { log } from "../lib/logger";
+import { endOfLevelBonus } from "../lib/bjRules";
+import {
+  cornerToBirdSpawnPosition,
+  decideBirdSpawnCorner,
+} from "../lib/birdSpawn";
+import { useInputStore } from "../stores/systems/inputStore";
+import { MonsterType } from "../types/enums";
 import type { RenderManager } from "./RenderManager";
 import type { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
@@ -175,6 +182,12 @@ export class LevelManager {
             originalSpawnPoint: { x: monster.x, y: monster.y },
           })
         );
+
+        // BJ §5.1.1: re-position the first BIRD to the corner OPPOSITE the
+        // direction the player is holding at level start. Player input on
+        // this exact frame is the canonical trigger.
+        this.applyBirdCornerSpawn(monstersWithSpawnPoints);
+
         updateMonsters(monstersWithSpawnPoints);
         log.debug(
           `Set up spawn points for ${monstersWithSpawnPoints.length} static monsters`
@@ -186,11 +199,49 @@ export class LevelManager {
     }
   }
 
+  /**
+   * BJ §5.1.1 bird corner-spawn. Mutates the FIRST BIRD monster's x/y based
+   * on directional input held at this moment. No-op if no BIRD on the map.
+   * Mutates `monsters` in place — only the corner-spawned bird's position
+   * changes; everything else is preserved.
+   */
+  private applyBirdCornerSpawn(monsters: import("../types/interfaces").Monster[]): void {
+    const birdIndex = monsters.findIndex((m) => m.type === MonsterType.BIRD);
+    if (birdIndex < 0) return;
+
+    const input = useInputStore.getState().input;
+    const corner = decideBirdSpawnCorner({
+      left: input.left,
+      right: input.right,
+      // Sigurd's "jump" key === ↑/W; "fastFall" === ↓/S.
+      up: input.jump,
+      down: input.fastFall,
+    });
+    const pos = cornerToBirdSpawnPosition(corner, {
+      width: GAME_CONFIG.CANVAS_WIDTH,
+      height: GAME_CONFIG.CANVAS_HEIGHT,
+      monsterSize: GAME_CONFIG.MONSTER_SIZE,
+    });
+
+    monsters[birdIndex] = {
+      ...monsters[birdIndex],
+      x: pos.x,
+      y: pos.y,
+      originalSpawnPoint: { x: pos.x, y: pos.y },
+    };
+    log.debug(`BJ §5.1.1: bird re-spawned at corner ${corner} (${pos.x}, ${pos.y})`);
+  }
+
   public checkWinCondition(): void {
     const { collectedBombs } = useStateStore.getState();
     const { player } = usePlayerStore.getState();
+    const { currentMap } = useLevelStore.getState();
 
-    if (collectedBombs.length === GAME_CONFIG.TOTAL_BOMBS) {
+    // Win when every bomb in THIS map is collected. Reading currentMap.bombs.length
+    // (instead of getTuned("TOTAL_BOMBS")) lets editor previews with N<23 bombs
+    // also win cleanly without runtime padding.
+    const targetCount = currentMap?.bombs?.length ?? 0;
+    if (targetCount > 0 && collectedBombs.length === targetCount) {
       log.game("Level completed - proceeding to next phase");
 
       // Record if player was grounded when map was cleared
@@ -235,14 +286,10 @@ export class LevelManager {
     // Stop power-up melody if active
     gameStateManager.stopPowerUpMelodyIfActive();
 
-    // Calculate effective bomb count
-    const livesLost = GAME_CONFIG.STARTING_LIVES - lives;
-    const effectiveCount = Math.max(0, correctOrderCount - livesLost);
-
-    const bonusPoints =
-      GAME_CONFIG.BONUS_POINTS[
-        effectiveCount as keyof typeof GAME_CONFIG.BONUS_POINTS
-      ] || 0;
+    // BJ end-of-level bonus is purely on firebombs collected in correct order
+    // (no Sigurd-specific livesLost penalty). Lookup table in bjRules.
+    const effectiveCount = correctOrderCount;
+    const bonusPoints = endOfLevelBonus(effectiveCount);
 
     // Calculate completion time
     const completionTime = Date.now() - this.mapStartTime;
@@ -448,7 +495,6 @@ export class LevelManager {
     deltaTime?: number
   ): void {
     const { player, updatePlayer } = usePlayerStore.getState();
-    const { ground } = useLevelStore.getState();
     // Only apply gravity if player wasn't already grounded
     if (!wasGroundedWhenMapCleared) {
       const updatedPlayer = { ...player };
@@ -457,18 +503,25 @@ export class LevelManager {
       updatedPlayer.velocityY += player.gravity * frameMultiplier;
       updatedPlayer.y += updatedPlayer.velocityY * frameMultiplier;
 
-      // Check for ground collision
+      // Resolve against platforms first.
+      let finalPlayer = this.playerManager.handlePlatformCollision(
+        updatedPlayer,
+        []
+      );
 
-      if (ground) {
-        const finalPlayer = this.playerManager.handlePlatformCollision(
-          updatedPlayer,
-          [],
-          ground
-        );
-        updatePlayer(finalPlayer);
-      } else {
-        updatePlayer(updatedPlayer);
+      // Clamp to the canvas bottom — without this, the post-clear fall
+      // path skips boundary resolution (only the live PLAYING update
+      // calls resolveBoundaryCollision) and Jack drops off-screen.
+      if (finalPlayer.y + finalPlayer.height >= GAME_CONFIG.CANVAS_HEIGHT) {
+        finalPlayer = {
+          ...finalPlayer,
+          y: GAME_CONFIG.CANVAS_HEIGHT - finalPlayer.height,
+          velocityY: 0,
+          isGrounded: true,
+        };
       }
+
+      updatePlayer(finalPlayer);
     }
   }
 

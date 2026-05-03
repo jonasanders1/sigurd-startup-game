@@ -22,7 +22,7 @@ export default {
       fontFamily: {
         sans: ["JetBrains Mono", "ui-monospace", "monospace"],
         mono: ["JetBrains Mono", "ui-monospace", "monospace"],
-        pixel: ["Pixelify Sans", "Press Start 2P", "cursive"],
+        pixel: ["Pixelify Sans", "Press Start 2P", "monospace"],
         lcd: ["VT323", "JetBrains Mono", "monospace"],
       },
       colors: {

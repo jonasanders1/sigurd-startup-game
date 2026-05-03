@@ -25,8 +25,11 @@ export const PHYSICS_CONFIG = {
 } as const;
 
 export const GAME_RULES = {
-  TOTAL_BOMBS: 23,
+  TOTAL_BOMBS: 23, // Sigurd's canonical (was 24 BJ-canonical; reverted per design)
   STARTING_LIVES: 3,
+  // BJ HUD constraint — Jack icons must fit on screen. E-coin grants +1 life
+  // capped here. (game-specs §11)
+  MAX_LIVES: 9,
 } as const;
 
 export const RENDERING_CONFIG = {

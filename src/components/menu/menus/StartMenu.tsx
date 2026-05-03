@@ -43,8 +43,14 @@ const StartMenu: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-pixel text-foreground tracking-wide mb-2">
-          SIGURD STARTUP
+        <h1
+          className="flicker font-pixel leading-none m-0 relative z-10 text-7xl"
+          style={{
+            textShadow: "3px 3px 0 var(--primary-dark)",
+          }}
+        >
+          SIGURD
+          <span className="text-primary ml-4">STARTUP</span>
         </h1>
         <p className="text-sm text-[var(--foreground-dim)]">
           Samle så mye finansiering som mulig!
@@ -59,11 +65,13 @@ const StartMenu: React.FC = () => {
         )}
       </div>
 
-      <div className="space-y-3 w-[70%]">
+      <div className="space-y-3 w-[50%]">
         {insufficientFunds && hasBridge ? (
-          <div className="text-center py-3 px-4 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-sm">
-            <p className="text-[var(--accent-red)] font-pixel text-sm">IKKE NOK MYNTER</p>
-            <p className="text-[var(--foreground-dim)] text-xs font-mono mt-1">
+          <div className="text-center py-3 px-4 bg-[var(--accent-red)] rounded-sm">
+            <p className="text-[var(--foreground)] font-pixel text-sm">
+              IKKE NOK MYNTER
+            </p>
+            <p className="text-[var(--foreground)] text-xs font-mono mt-1">
               Kjøp flere mynter for å spille
             </p>
           </div>
@@ -74,21 +82,37 @@ const StartMenu: React.FC = () => {
             className={`w-full uppercase text-lg ${isDeducting ? "opacity-70" : ""}`}
           >
             <Play size={20} />
-            {isDeducting ? "Venter..." : hasBridge ? "Spill (1 mynt)" : "Press Start"}
+            {isDeducting
+              ? "Venter..."
+              : hasBridge
+                ? "Spill (1 mynt)"
+                : "Press Start"}
           </Button>
         )}
 
-        <Button onClick={openSettings} variant="secondary" className="w-full uppercase">
+        <Button
+          onClick={openSettings}
+          variant="secondary"
+          className="w-full uppercase"
+        >
           <Settings size={20} />
           Innstillinger
         </Button>
 
-        <Button onClick={openControls} variant="secondary" className="w-full uppercase">
+        <Button
+          onClick={openControls}
+          variant="secondary"
+          className="w-full uppercase"
+        >
           <Joystick size={20} />
           Kontroller
         </Button>
 
-        <Button onClick={openTutorial} variant="secondary" className="w-full uppercase">
+        <Button
+          onClick={openTutorial}
+          variant="secondary"
+          className="w-full uppercase"
+        >
           <Box size={20} />
           Sandkassa
         </Button>

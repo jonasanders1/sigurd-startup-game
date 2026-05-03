@@ -1,10 +1,8 @@
 import { MonsterType, CoinType } from "../types/enums";
 import type { PlatformTheme } from "../config/platformTiles";
-import type { GroundTheme } from "../config/groundTiles";
 
 export type EntityKind =
   | "platform"
-  | "ground"
   | "bomb"
   | "playerStart"
   | "monster"
@@ -21,18 +19,6 @@ export interface PlatformEntity {
   borderColor?: string;
   isVertical?: boolean;
   tileTheme?: PlatformTheme;
-}
-
-export interface GroundEntity {
-  id: string;
-  kind: "ground";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  tileTheme?: GroundTheme;
-  tileNoise?: number;
 }
 
 export interface BombEntity {
@@ -60,7 +46,7 @@ export interface MonsterEntity {
   speed: number;
   spawnDelay: number;
   delayed: boolean;
-  // HORIZONTAL_PATROL
+  // MUMMY
   platformX?: number;
   platformY?: number;
   platformWidth?: number;
@@ -68,15 +54,25 @@ export interface MonsterEntity {
   walkLengths?: number;
   direction?: number;
   variant?: "green" | "black";
+  /** What this mummy turns into on hitting the ground (BJ §5.1.2). Default
+   *  "SPHERE" matches canonical BJ. "NONE" = die on impact. */
+  transformTarget?: "SPHERE" | "ORB" | "NONE";
+  /** ms between repeat spawns (only for delayed/spawn-point monsters).
+   *  0 / undefined = one-shot (legacy). >0 = continuous respawn after the
+   *  initial delay. */
+  respawnInterval?: number;
+  /** Hard cap on how many times this spawn point fires. 0 / undefined =
+   *  unlimited (only meaningful when respawnInterval > 0). */
+  maxSpawns?: number;
   // VERTICAL_PATROL
   patrolHeight?: number;
   side?: "left" | "right";
-  // FLOATER
+  // HORN
   startAngle?: number;
   // CHASER
   directness?: number;
   updateInterval?: number;
-  // AMBUSHER
+  // UFO
   ambushInterval?: number;
 }
 
@@ -91,7 +87,6 @@ export interface CoinSpawnEntity {
 
 export type EditorEntity =
   | PlatformEntity
-  | GroundEntity
   | BombEntity
   | PlayerStartEntity
   | MonsterEntity

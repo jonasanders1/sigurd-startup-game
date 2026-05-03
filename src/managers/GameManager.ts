@@ -129,6 +129,11 @@ export class GameManager {
       this.levelManager.loadCurrentLevel();
     });
 
+    // BJ S-coin level-skip: dispatch from coin collection to LevelManager.
+    this.gameStateManager.setOnSCoinLevelSkip(() => {
+      this.levelManager.proceedToNextLevel();
+    });
+
     // Tutorial map loading — bypasses currentLevel + mapDefinitions index.
     this.gameStateManager.setOnTutorialMapLoad((id) => {
       const mission = TUTORIAL_MISSIONS[id];
@@ -311,7 +316,7 @@ export class GameManager {
    */
   private handleCollisions(): void {
     const { player } = usePlayerStore.getState();
-    const { platforms, ground } = useLevelStore.getState();
+    const { platforms } = useLevelStore.getState();
     const { bombs } = useStateStore.getState();
     const { monsters } = useMonsterStore.getState();
     const { coins } = useCoinStore.getState();
@@ -319,8 +324,7 @@ export class GameManager {
     // Platform collisions
     const updatedPlayer = this.playerManager.handlePlatformCollision(
       player,
-      platforms,
-      ground
+      platforms
     );
     if (updatedPlayer !== player) {
       usePlayerStore.getState().updatePlayer(updatedPlayer);

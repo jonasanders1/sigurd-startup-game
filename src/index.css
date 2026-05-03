@@ -1,10 +1,36 @@
-/* Google Fonts (Pixelify Sans / JetBrains Mono / VT323) are injected into
-   document.head from src/game-wrapper.tsx. @import here would be applied to
-   the shadow root, where Chrome/Safari ignore @font-face for inherited text. */
+/* JetBrains Mono / VT323 come from Google Fonts, injected into document.head
+   from src/lib/loadFonts.ts (so they resolve inside the shadow DOM the
+   production custom element renders into). Pixelify Sans is bundled locally
+   via the @font-face below — dev mode uses this stylesheet directly, and
+   the production build (game-wrapper.tsx) ALSO calls ensureFontsLoaded()
+   which injects the same @font-face into document.head as a belt-and-
+   suspenders against shadow-DOM font-loading quirks. */
+
+@font-face {
+    font-family: "Pixelify Sans";
+    src: url("./assets/Font/PixelifySans-VariableFont_wght.ttf");
+    font-weight: 400 700;
+    font-style: normal;
+    /* `block` hides text for up to ~3s while loading instead of flashing
+       the cursive fallback. Local font loads in ~tens of ms so the gap is
+       imperceptible. Combined with the <link rel="preload"> in
+       loadFonts.ts, the font is usually ready before first render. */
+    font-display: block;
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Authored backup for Tailwind's `.font-pixel` utility — observed empty in
+   some dev-server states (suspected JIT/HMR cache miss). Wrapped in
+   @layer utilities so it sits in the same cascade layer as Tailwind's
+   own utilities and merges instead of fighting them. */
+@layer utilities {
+    .font-pixel {
+        font-family: "Pixelify Sans", "Press Start 2P", monospace;
+    }
+}
 
 /* KAPLAY Dark
    Primary: Lime  #abdd64
@@ -20,7 +46,7 @@
        var(--font-pixel, …) reference resolves in either context. */
     :root,
     :host {
-        --font-pixel: "Pixelify Sans", "Press Start 2P", cursive;
+        --font-pixel: "Pixelify Sans", "Press Start 2P", monospace;
         --font-mono: "JetBrains Mono", ui-monospace, monospace;
         --font-lcd: "VT323", "JetBrains Mono", monospace;
     }
@@ -128,7 +154,6 @@
         /* Shadows */
         --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
         --shadow-base: 0 2px 4px rgba(0, 0, 0, 0.55);
-        --shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
         --shadow-lg:
             0 4px 8px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--surface-line) inset;
         --shadow-inset: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -144,7 +169,6 @@
         --glow-purple:
             0 0 0 2px rgba(132, 101, 236, 0.25),
             0 0 12px rgba(132, 101, 236, 0.4);
-        --glow-red: 0 0 12px rgba(238, 144, 203, 0.35);
         --glow-ok: 0 0 14px var(--ok-glow);
 
         /* Power-coin colors (in-game only — pulled from KAPLAY's vivid set) */
@@ -156,6 +180,8 @@
         --coin-cyan: #22d3ee;
         --coin-yellow: #eab308;
         --coin-gray: #91a6b0;
+        --coin-red: #e05555;
+        --coin-green: #6bcc3a;
     }
 
     .dark {
@@ -270,7 +296,7 @@
     }
 }
 .menu-blur-out {
-    animation: menu-blur-out 3000ms linear forwards;
+    animation: menu-blur-out 7000ms linear forwards;
 }
 
 /* Marquee ticker — lime strip */

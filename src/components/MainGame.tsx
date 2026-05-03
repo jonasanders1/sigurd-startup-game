@@ -2,10 +2,10 @@ import React from "react";
 import { useGameStore, useStateStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import GameCanvas from "./GameCanvas";
+import BottomBar from "./menu/menus/BottomBar";
 import StartMenu from "./menu/menus/StartMenu";
 import CountdownOverlay from "./menu/menus/CountdownOverlay";
 import InGameMenu from "./menu/menus/InGameMenu";
-import LivesOverlay from "./menu/menus/LivesOverlay";
 import PauseMenu from "./menu/menus/PauseMenu";
 import SettingsMenu from "./menu/menus/SettingsMenu";
 import BonusScreen from "./menu/menus/BonusScreen";
@@ -17,7 +17,6 @@ import { DEV_CONFIG } from "@/types/constants";
 import { Circle } from "lucide-react";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useFullscreen } from "../hooks/useFullscreen";
-import { VERSION_STRING, getVersion } from "../version";
 import ControlsMenu from "./menu/menus/ControlsMenu";
 import TutorialSelectMenu from "./menu/menus/TutorialSelectMenu";
 import MissionBriefMenu from "./menu/menus/MissionBriefMenu";
@@ -56,9 +55,6 @@ const MainGame: React.FC = () => {
       <div className="relative bg-black">
         <GameCanvas />
 
-        {/* Lives overlay — bottom-left of the canvas */}
-        {currentState === GameState.PLAYING && <LivesOverlay />}
-
         {/* Tutorial info card — top-right when a mission is active */}
         {currentState === GameState.PLAYING && <TutorialOverlay />}
 
@@ -69,15 +65,6 @@ const MainGame: React.FC = () => {
             <Circle className="w-4 h-4" fill="white" />
           </div>
         )}
-
-        {/* Version display */}
-        <div
-          className={`absolute bottom-3 right-3 ${
-            isFullscreen ? "text-md" : "text-xs"
-          } text-muted-foreground z-40 ${isFullscreen ? "bottom-4" : "bottom-3"}`}
-        >
-          v{VERSION_STRING} (Build {getVersion().build})
-        </div>
 
         {/* Menu overlays positioned relative to the canvas */}
         {showMenu === MenuType.START && (
@@ -135,6 +122,11 @@ const MainGame: React.FC = () => {
             <MissionCompleteMenu />
           </Menu>
         )}
+      </div>
+
+      {/* ── Bottom HUD bar — lives + version ── */}
+      <div className="relative z-50">
+        <BottomBar />
       </div>
     </div>
   );

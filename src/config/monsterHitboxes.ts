@@ -42,7 +42,7 @@ type MonsterHitboxConfig = {
 const STRIDE: FrameHitbox = { width: 32, height: 18 };
 
 export const MONSTER_HITBOXES: Record<MonsterType, MonsterHitboxConfig> = {
-  [MonsterType.HORIZONTAL_PATROL]: {
+  [MonsterType.MUMMY]: {
     shape: "ellipse",
     default: { width: 25, height: 25 },
     perFrame: {
@@ -54,11 +54,11 @@ export const MONSTER_HITBOXES: Record<MonsterType, MonsterHitboxConfig> = {
     shape: "ellipse",
     default: { width: 25, height: 25 },
   },
-  [MonsterType.CHASER]: {
+  [MonsterType.BIRD]: {
     shape: "ellipse",
     default: { width: 25, height: 25 },
   },
-  [MonsterType.AMBUSHER]: {
+  [MonsterType.UFO]: {
     shape: "rect",
     default: { width: 20, height: 40, offsetY: -10 }, // 1:2 ratio (taller than wide)
     perFrame: {
@@ -75,19 +75,34 @@ export const MONSTER_HITBOXES: Record<MonsterType, MonsterHitboxConfig> = {
       },
     },
   },
-  [MonsterType.FLOATER]: {
+  [MonsterType.HORN]: {
     shape: "ellipse",
+    default: { width: 25, height: 25 },
+  },
+  // BJ airborne forms — simple square hitboxes matching the rect render.
+  [MonsterType.SPHERE]: {
+    shape: "rect",
+    default: { width: 25, height: 25 },
+  },
+  [MonsterType.ORB]: {
+    shape: "rect",
     default: { width: 25, height: 25 },
   },
 };
 
 const FALLBACK: FrameHitbox = { width: 25, height: 25 };
 
-export const getDefaultHitbox = (type: MonsterType): FrameHitbox =>
-  MONSTER_HITBOXES[type]?.default ?? FALLBACK;
+// Parameter typed as `MonsterType | string` so callers can pass `monster.type`
+// directly. Monster.type is a string-literal union with the same values as the
+// enum, but TS treats them as distinct types — relaxing here avoids casts at
+// every call site without losing runtime safety (lookup falls back).
+type MonsterTypeKey = MonsterType | string;
 
-export const getMonsterShape = (type: MonsterType): "rect" | "ellipse" =>
-  MONSTER_HITBOXES[type]?.shape ?? "rect";
+export const getDefaultHitbox = (type: MonsterTypeKey): FrameHitbox =>
+  MONSTER_HITBOXES[type as MonsterType]?.default ?? FALLBACK;
+
+export const getMonsterShape = (type: MonsterTypeKey): "rect" | "ellipse" =>
+  MONSTER_HITBOXES[type as MonsterType]?.shape ?? "rect";
 
 /**
  * SAT collision between a (possibly-rotated) rect and an axis-aligned rect.
@@ -157,7 +172,7 @@ export const rotatedRectAabbColliding = (
 };
 
 export const getMonsterRotation = (monster: MonsterLike): number =>
-  (monster._hitboxRotation as number | undefined) ?? 0;
+  monster._hitboxRotation ?? 0;
 
 /**
  * Ellipse-vs-rect collision. The ellipse fills `ellipseBox` (rx = width/2,
@@ -189,11 +204,11 @@ export const ellipseRectColliding = (
 };
 
 export const getHitboxForFrame = (
-  type: MonsterType,
+  type: MonsterTypeKey,
   animName: string,
   frameIndex: number,
 ): FrameHitbox => {
-  const cfg = MONSTER_HITBOXES[type];
+  const cfg = MONSTER_HITBOXES[type as MonsterType];
   if (!cfg) return FALLBACK;
   return cfg.perFrame?.[animName]?.[frameIndex] ?? cfg.default;
 };
@@ -204,12 +219,18 @@ export const getHitboxForFrame = (
  */
 export type AnchorType = "feet" | "center";
 
-type MonsterLike = {
+// Spec: only the geometry fields are required; the underscore-prefixed
+// state is mutated by applyHitboxToMonster and read back later. All optional
+// so callers can pass a real Monster (which doesn't carry these by default
+// but does after applyHitboxToMonster has run on it).
+export type MonsterLike = {
   x: number;
   y: number;
   width: number;
   height: number;
-  [key: string]: unknown;
+  _hitboxOffsetX?: number;
+  _hitboxOffsetY?: number;
+  _hitboxRotation?: number;
 };
 
 /**
@@ -224,8 +245,8 @@ export const applyHitboxToMonster = (
 ): void => {
   const offsetX = hitbox.offsetX ?? 0;
   const offsetY = hitbox.offsetY ?? 0;
-  const prevOffsetX = (monster._hitboxOffsetX as number | undefined) ?? 0;
-  const prevOffsetY = (monster._hitboxOffsetY as number | undefined) ?? 0;
+  const prevOffsetX = monster._hitboxOffsetX ?? 0;
+  const prevOffsetY = monster._hitboxOffsetY ?? 0;
 
   const prevCenterX = monster.x + monster.width / 2;
   const naturalAnchorX = prevCenterX - prevOffsetX;
@@ -258,8 +279,8 @@ export const getNaturalAnchor = (
   monster: MonsterLike,
   anchor: AnchorType,
 ): { x: number; y: number } => {
-  const prevOffsetX = (monster._hitboxOffsetX as number | undefined) ?? 0;
-  const prevOffsetY = (monster._hitboxOffsetY as number | undefined) ?? 0;
+  const prevOffsetX = monster._hitboxOffsetX ?? 0;
+  const prevOffsetY = monster._hitboxOffsetY ?? 0;
   const x = monster.x + monster.width / 2 - prevOffsetX;
   const y =
     anchor === "feet"

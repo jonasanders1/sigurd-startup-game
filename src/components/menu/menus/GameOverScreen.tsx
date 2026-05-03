@@ -62,16 +62,16 @@ const GameOverScreen: React.FC = () => {
             <table className="w-full text-sm font-mono">
               <thead>
                 <tr className="border-b border-[var(--surface-line)]">
-                  <th className="text-center py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-center py-2 px-3 text-primary text-xs tracking-widest">
                     <Check className="w-4 h-4 inline" />
                   </th>
-                  <th className="text-left py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-left py-2 px-3 text-primary text-xs tracking-widest">
                     Bane
                   </th>
-                  <th className="text-right py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-right py-2 px-3 text-primary text-xs tracking-widest">
                     Finansiering
                   </th>
-                  <th className="text-right py-2 px-3 text-primary font-pixel text-xs tracking-widest">
+                  <th className="text-right py-2 px-3 text-primary text-xs tracking-widest">
                     Bonus
                   </th>
                 </tr>
@@ -97,17 +97,17 @@ const GameOverScreen: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-2 px-3 text-left text-foreground">
-                      <span className="font-medium">{level.mapName}</span>
+                      <span className="font-pixel font-medium capitalize">{level.mapName}</span>
                       <span className="text-xs text-[var(--foreground-dim)] ml-2">
-                        (Nivå {level.level})
+                        (Nivå <span className="font-pixel">{level.level}</span>)
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-right text-foreground">
+                    <td className="py-2 px-3 text-right text-foreground font-pixel tabular-nums">
                       {level.score.toLocaleString()} kr
                     </td>
                     <td className="py-2 px-3 text-right">
                       {level.bonus > 0 ? (
-                        <span className="text-amber-700 font-semibold">
+                        <span className="text-[var(--coin-yellow)] font-semibold font-pixel tabular-nums">
                           {level.bonus.toLocaleString()} kr
                         </span>
                       ) : (

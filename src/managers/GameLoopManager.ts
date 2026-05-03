@@ -210,9 +210,8 @@ export class GameLoopManager {
     const { currentMap } = useLevelStore.getState();
     const { coinManager, updateMonsterStates } = useCoinStore.getState();
     const platforms = currentMap?.platforms || [];
-    const ground = currentMap?.ground;
 
-    if (ground && coinManager) {
+    if (coinManager) {
       const state = getGameState();
 
       // Check spawn conditions for all coin types
@@ -221,7 +220,7 @@ export class GameLoopManager {
       );
 
       // Let CoinManager handle all coin physics updates
-      coinManager.update(platforms, ground, state, deltaTime);
+      coinManager.update(platforms, state, deltaTime);
 
       // Update the store with the latest coin state
       useCoinStore.getState().setCoins(coinManager.getCoins());
@@ -246,7 +245,6 @@ export class GameLoopManager {
       state.platforms,
       state.bombs,
       state.monsters,
-      state.ground,
       state.coins,
       state.floatingTexts,
       state.coinManager,

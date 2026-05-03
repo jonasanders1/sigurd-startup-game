@@ -4,12 +4,6 @@ import { EditorEntity, MonsterEntity } from "./types";
 import { MonsterType, CoinType } from "../types/enums";
 import { Trash2, Copy, Layers } from "lucide-react";
 import { PLATFORM_THEMES, DEFAULT_PLATFORM_THEME } from "../config/platformTiles";
-import {
-  GROUND_THEMES,
-  DEFAULT_GROUND_THEME,
-  DEFAULT_GROUND_NOISE,
-  GROUND_BLOCK_SIZE,
-} from "../config/groundTiles";
 
 const labelStyle: React.CSSProperties = {
   display: "block",
@@ -212,7 +206,7 @@ const MonsterEditor: React.FC<{
         />
       )}
 
-      {entity.monsterType === MonsterType.HORIZONTAL_PATROL && (
+      {entity.monsterType === MonsterType.MUMMY && (
         <>
           <NumField
             label="Platform X"
@@ -247,6 +241,47 @@ const MonsterEditor: React.FC<{
             ]}
             onChange={(v) => update({ variant: v } as Partial<EditorEntity>)}
           />
+          <NumField
+            label="Walk lengths (drops after)"
+            value={entity.walkLengths ?? 1}
+            min={1}
+            step={1}
+            onChange={(v) => update({ walkLengths: v } as Partial<EditorEntity>)}
+          />
+          <SelectField
+            label="Transform target (on ground)"
+            value={entity.transformTarget ?? "SPHERE"}
+            options={[
+              { value: "SPHERE", label: "Sphere (default)" },
+              { value: "ORB", label: "Orb" },
+              { value: "NONE", label: "None (die on impact)" },
+            ]}
+            onChange={(v) =>
+              update({ transformTarget: v } as Partial<EditorEntity>)
+            }
+          />
+          <NumField
+            label="Respawn interval (ms, 0 = once)"
+            value={entity.respawnInterval ?? 0}
+            min={0}
+            step={500}
+            onChange={(v) =>
+              update({
+                respawnInterval: v > 0 ? v : undefined,
+              } as Partial<EditorEntity>)
+            }
+          />
+          <NumField
+            label="Max spawns (0 = unlimited)"
+            value={entity.maxSpawns ?? 0}
+            min={0}
+            step={1}
+            onChange={(v) =>
+              update({
+                maxSpawns: v > 0 ? v : undefined,
+              } as Partial<EditorEntity>)
+            }
+          />
         </>
       )}
 
@@ -279,7 +314,7 @@ const MonsterEditor: React.FC<{
         </>
       )}
 
-      {entity.monsterType === MonsterType.FLOATER && (
+      {entity.monsterType === MonsterType.HORN && (
         <NumField
           label="Start Angle (deg)"
           value={entity.startAngle ?? 45}
@@ -287,7 +322,7 @@ const MonsterEditor: React.FC<{
         />
       )}
 
-      {entity.monsterType === MonsterType.CHASER && (
+      {entity.monsterType === MonsterType.BIRD && (
         <>
           <NumField
             label="Directness (0-1)"
@@ -306,7 +341,7 @@ const MonsterEditor: React.FC<{
         </>
       )}
 
-      {entity.monsterType === MonsterType.AMBUSHER && (
+      {entity.monsterType === MonsterType.UFO && (
         <NumField
           label="Ambush Interval (ms)"
           value={entity.ambushInterval ?? 8000}
@@ -314,6 +349,7 @@ const MonsterEditor: React.FC<{
           onChange={(v) => update({ ambushInterval: v } as Partial<EditorEntity>)}
         />
       )}
+
     </>
   );
 };
@@ -580,71 +616,39 @@ export const PropertiesPanel: React.FC = () => {
             onChange={(v) => update({ y: v })}
           />
 
-          {(selected.kind === "platform" || selected.kind === "ground") && (
+          {selected.kind === "platform" && (
             <>
               <NumField
                 label="Width"
                 value={selected.width}
                 onChange={(v) => update({ width: v } as Partial<EditorEntity>)}
               />
-              {selected.kind === "ground" ? (
-                <NumField
-                  label={`Depth (blocks of ${GROUND_BLOCK_SIZE}px)`}
-                  value={Math.max(1, Math.round(selected.height / GROUND_BLOCK_SIZE))}
-                  min={1}
-                  onChange={(v) =>
-                    update({
-                      height: Math.max(1, Math.round(v)) * GROUND_BLOCK_SIZE,
-                    } as Partial<EditorEntity>)
-                  }
-                />
-              ) : (
-                <NumField
-                  label="Height"
-                  value={selected.height}
-                  onChange={(v) => update({ height: v } as Partial<EditorEntity>)}
-                />
-              )}
+              <NumField
+                label="Height"
+                value={selected.height}
+                onChange={(v) => update({ height: v } as Partial<EditorEntity>)}
+              />
               <ColorField
                 label="Color"
                 value={selected.color}
                 onChange={(v) => update({ color: v } as Partial<EditorEntity>)}
               />
-              {selected.kind === "platform" && (
-                <>
-                  <ColorField
-                    label="Border Color"
-                    value={selected.borderColor ?? "#000000"}
-                    onChange={(v) => update({ borderColor: v } as Partial<EditorEntity>)}
-                  />
-                  <CheckField
-                    label="Vertical wall"
-                    value={selected.isVertical ?? false}
-                    onChange={(b) => update({ isVertical: b } as Partial<EditorEntity>)}
-                  />
-                  <SelectField
-                    label="Tile Theme"
-                    value={selected.tileTheme ?? DEFAULT_PLATFORM_THEME}
-                    options={PLATFORM_THEMES.map((t) => ({ value: t, label: t }))}
-                    onChange={(v) => update({ tileTheme: v } as Partial<EditorEntity>)}
-                  />
-                </>
-              )}
-              {selected.kind === "ground" && (
-                <>
-                  <SelectField
-                    label="Tile Theme"
-                    value={selected.tileTheme ?? DEFAULT_GROUND_THEME}
-                    options={GROUND_THEMES.map((t) => ({ value: t, label: t }))}
-                    onChange={(v) => update({ tileTheme: v } as Partial<EditorEntity>)}
-                  />
-                  <SliderField
-                    label="Tile Noise"
-                    value={selected.tileNoise ?? DEFAULT_GROUND_NOISE}
-                    onChange={(v) => update({ tileNoise: v } as Partial<EditorEntity>)}
-                  />
-                </>
-              )}
+              <ColorField
+                label="Border Color"
+                value={selected.borderColor ?? "#000000"}
+                onChange={(v) => update({ borderColor: v } as Partial<EditorEntity>)}
+              />
+              <CheckField
+                label="Vertical wall"
+                value={selected.isVertical ?? false}
+                onChange={(b) => update({ isVertical: b } as Partial<EditorEntity>)}
+              />
+              <SelectField
+                label="Tile Theme"
+                value={selected.tileTheme ?? DEFAULT_PLATFORM_THEME}
+                options={PLATFORM_THEMES.map((t) => ({ value: t, label: t }))}
+                onChange={(v) => update({ tileTheme: v } as Partial<EditorEntity>)}
+              />
             </>
           )}
 

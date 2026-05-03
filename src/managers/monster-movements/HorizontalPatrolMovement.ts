@@ -1,11 +1,10 @@
 import { Monster, Platform } from "../../types/interfaces";
-import { useGameStore } from "../../stores/gameStore";
+import { useLevelStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
 
 export class HorizontalPatrolMovement {
   public update(monster: Monster, currentTime: number): void {
-    const gameState = useGameStore.getState();
-    const platforms = gameState.platforms || [];
+    const platforms = useLevelStore.getState().platforms || [];
 
     // Initialize monster properties if not set
     this.initializeMonster(monster, platforms);

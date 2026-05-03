@@ -11,6 +11,8 @@ import {
   PCoinTierCollections,
   emptyPCoinTierCollections,
 } from "../../config/coinTypes";
+import { bCoinBasePoints, eCoinBasePoints, sCoinBasePoints } from "../../lib/bjRules";
+import { getTuned } from "../systems/tuningStore";
 
 interface CoinState {
   coins: Coin[];
@@ -272,36 +274,37 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     const stateStore = useStateStore.getState();
 
     if (coin.type === "POWER") {
-      // Add points for POWER coin
-      scoreStore.addScore(GAME_CONFIG.POWER_COIN_POINTS);
+      // BJ P-coin: points depend on current color tier (100/200/300/500/
+      // 800/1000/2000 base). Read the live coin's color from the manager;
+      // addScore applies the multiplier so we pass BASE only.
+      const colorPoints =
+        coin.spawnTime !== undefined && coinManager.getPcoinColorForTime
+          ? coinManager.getPcoinColorForTime(coin.spawnTime).points
+          : 100; // blue tier fallback
+      scoreStore.addScore(colorPoints);
     } else if (coin.type === "BONUS_MULTIPLIER") {
-      // Handle BONUS_MULTIPLIER coin effects
+      // BJ canonical (game-specs §7.2): flat 500 (NOT multiplied), then bump
+      // multiplier by 1 (capped at MAX). addRawScore avoids re-multiplying.
       const currentMultiplier = scoreStore.multiplier;
-      const points = 1000 * currentMultiplier;
-      scoreStore.addScore(points);
-
-      // Increase multiplier if not at max
+      scoreStore.addRawScore(bCoinBasePoints());
       if (currentMultiplier < GAME_CONFIG.MAX_MULTIPLIER) {
-        // Add enough points to reach the next multiplier threshold
-        const { MULTIPLIER_THRESHOLDS } = GAME_CONFIG;
-        const nextThreshold =
-          MULTIPLIER_THRESHOLDS[
-            (currentMultiplier + 1) as keyof typeof MULTIPLIER_THRESHOLDS
-          ];
-        if (nextThreshold !== undefined) {
-          const pointsNeeded = nextThreshold - scoreStore.multiplierScore;
-          scoreStore.addMultiplierScore(pointsNeeded);
-        }
+        scoreStore.setMultiplier(currentMultiplier + 1, 0);
       }
     } else if (coin.type === "EXTRA_LIFE") {
-      // Handle EXTRA_LIFE coin effects
-      const currentMultiplier = scoreStore.multiplier;
-      const points = GAME_CONFIG.EXTRA_LIFE_COIN_POINTS * currentMultiplier;
-      scoreStore.addScore(points);
-
-      // Add extra life
+      // BJ: E-coin awards 1000 BASE × multiplier and grants +1 life.
+      scoreStore.addScore(eCoinBasePoints());
       stateStore.addLife();
       log.player(`Extra life added via coin store!`);
+    } else if (coin.type === "SPECIAL") {
+      // BJ S-coin (game-specs §7.4): flat 5000 (NOT multiplied) + immediate
+      // level skip (forfeit firebomb bonus). addRawScore avoids the multiply.
+      scoreStore.addRawScore(sCoinBasePoints());
+      const gsm = stateStore.gameStateManager;
+      if (gsm && typeof gsm.triggerSCoinLevelSkip === "function") {
+        gsm.triggerSCoinLevelSkip();
+      } else {
+        log.warn("S-coin collected but no gameStateManager.triggerSCoinLevelSkip available");
+      }
     }
 
     log.coin(
@@ -435,8 +438,12 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     const isPowerModeActive = coinManager.isPowerModeActive();
 
     if (wasPowerModeActive && !isPowerModeActive) {
-      // Power mode just ended, unfreeze all monsters
+      // Power mode just ended, unfreeze all monsters.
+      // BJ mutation pass-through: tunable safe window when monster unfreezes.
+      const now = Date.now();
+      const passthrough = getTuned("MUTATION_PASSTHROUGH_MS");
       monsters.forEach((monster) => {
+        if (monster.isFrozen) monster.mutationEndTime = now + passthrough;
         monster.isFrozen = false;
       });
     } else {

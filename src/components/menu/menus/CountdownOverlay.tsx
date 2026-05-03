@@ -22,12 +22,15 @@ const CountdownOverlay: React.FC = () => {
       <div className="text-8xl font-pixel text-primary" style={{ textShadow: "0 0 24px rgba(171,221,100,.4)" }}>
         {count}
       </div>
-      <div className="flex items-center justify-center gap-2 mt-2">
-        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-        <p className="text-xl text-foreground uppercase font-pixel tracking-wider">
+      <div className="flex items-center justify-center gap-3 mt-4">
+        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+        <p
+          className="text-4xl text-foreground capitalize font-pixel tracking-wide"
+          style={{ textShadow: "0 0 16px rgba(171,221,100,0.45)" }}
+        >
           {currentMap?.name}
         </p>
-        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
       </div>
     </div>
   );
