@@ -49,8 +49,25 @@ export enum CoinType {
   BONUS_MULTIPLIER = "BONUS_MULTIPLIER",
   EXTRA_LIFE = "EXTRA_LIFE",
   MONSTER_FREEZE = "MONSTER_FREEZE",
-  // BJ "Special" coin: rare per-level spawn, awards points + skips level.
-  SPECIAL = "SPECIAL",
+  // F-coin (Founder Mode, FAFO): super-rare run-level spawn. Pickup grants
+  // +1 Forretningsidee to the host balance via the bridge. Replaces the
+  // old "SPECIAL" / level-skip coin.
+  FOUNDER_MODE = "FOUNDER_MODE",
+}
+
+// Reason tokens for the reason-set pause API on ScalingManager,
+// OptimizedSpawnManager, and OptimizedRespawnManager. Stringly-typed reasons
+// were error-prone — a typo in one call site silently broke pause/resume
+// pairing. Using a const enum keeps runtime values as plain strings (so
+// existing `pauseReasons: Set<string>` storage works unchanged) while
+// catching typos at the call site.
+export enum PauseReason {
+  /** Game-state transitions (countdown, pause menu, bonus, etc.). */
+  Default = "default",
+  /** P-coin power mode is active — managers stay paused for the duration. */
+  PowerMode = "power_mode",
+  /** Per-monster scaling pause used during state transitions. */
+  MonsterScaling = "monster_scaling",
 }
 
 export enum AudioEvent {
@@ -65,10 +82,12 @@ export enum AudioEvent {
   MONSTER_HIT = "MONSTER_HIT",
   MONSTER_KILL = "MONSTER_KILL",
   COIN_COLLECT = "COIN_COLLECT",
+  F_COIN_COLLECT = "F_COIN_COLLECT",
   POWER_COIN_ACTIVATE = "POWER_COIN_ACTIVATE",
   PLAYER_JUMP = "PLAYER_JUMP",
   POWER_COIN_AMBIENT_START = "POWER_COIN_AMBIENT_START",
   POWER_COIN_AMBIENT_STOP = "POWER_COIN_AMBIENT_STOP",
+  TUTORIAL_SUBTASK_COMPLETE = "TUTORIAL_SUBTASK_COMPLETE",
 }
 
 export enum CollisionType {

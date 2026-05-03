@@ -129,11 +129,6 @@ export class GameManager {
       this.levelManager.loadCurrentLevel();
     });
 
-    // BJ S-coin level-skip: dispatch from coin collection to LevelManager.
-    this.gameStateManager.setOnSCoinLevelSkip(() => {
-      this.levelManager.proceedToNextLevel();
-    });
-
     // Tutorial map loading — bypasses currentLevel + mapDefinitions index.
     this.gameStateManager.setOnTutorialMapLoad((id) => {
       const mission = TUTORIAL_MISSIONS[id];
@@ -457,6 +452,7 @@ export class GameManager {
           coinsCollected: coinStats.totalCoinsCollected,
           powerModeActivations: coinStats.totalPowerCoinsCollected,
           pCoinTierCollections: coinStats.pCoinTierCollections,
+          founderCoinsCollected: coinStats.totalFounderCoinsCollected,
           timestamp: Date.now(),
           correctOrderCount: correctOrderCount,
           totalBombs: bombs.filter((b) => b.isCollected).length,

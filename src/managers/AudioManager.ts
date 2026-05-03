@@ -1,6 +1,6 @@
 import { AudioEvent, GameState } from "../types/enums";
 import { getAudioPath } from "../config/assets";
-import { useGameStore } from "../stores/gameStore";
+import { useStateStore } from "../stores/game/stateStore";
 import { useAudioStore } from "../stores/systems/audioStore";
 import { GAME_CONFIG } from "../types/constants";
 import { log } from "../lib/logger";
@@ -25,6 +25,7 @@ export class AudioManager {
   private monsterKillBuffer: AudioBuffer | null = null;
   private playerDeathBuffer: AudioBuffer | null = null;
   private jumpBuffer: AudioBuffer | null = null;
+  private tutorialSubTaskBuffer: AudioBuffer | null = null;
 
   // P-coin ambient loop (plays while a Power coin is alive on screen).
   private powerCoinAmbientBuffer: AudioBuffer | null = null;
@@ -50,6 +51,7 @@ export class AudioManager {
     this.loadSoundEffect("player-death").then((buf) => (this.playerDeathBuffer = buf));
     this.loadSoundEffect("jump").then((buf) => (this.jumpBuffer = buf));
     this.loadSoundEffect("power-mode").then((buf) => (this.powerCoinAmbientBuffer = buf));
+    this.loadSoundEffect("mission-complete").then((buf) => (this.tutorialSubTaskBuffer = buf));
   }
 
   private initializeAudioContext(): void {
@@ -145,6 +147,10 @@ export class AudioManager {
       case AudioEvent.COIN_COLLECT:
         this.playSoundBuffer(this.bonusCoinBuffer);
         break;
+      case AudioEvent.F_COIN_COLLECT:
+        log.audio("F-coin collect (Founder Mode)");
+        this.playFCoinCollectSound();
+        break;
       case AudioEvent.POWER_COIN_ACTIVATE:
         log.audio("Power coin activate sound");
         this.playPowerCoinActivateSound();
@@ -168,6 +174,9 @@ export class AudioManager {
       case AudioEvent.POWER_COIN_AMBIENT_STOP:
         this.stopPowerCoinAmbient();
         break;
+      case AudioEvent.TUTORIAL_SUBTASK_COMPLETE:
+        this.playSoundBuffer(this.tutorialSubTaskBuffer);
+        break;
       default:
         log.debug(`Audio event ${event} not implemented yet`);
     }
@@ -184,16 +193,22 @@ export class AudioManager {
 
     this.ensureAudioContext();
 
+    // Start muted when the game isn't actively playing (countdown / menus /
+    // bonus screens); resumePowerCoinAmbient unmutes on the PLAYING-state
+    // transition.
+    const isPlaying =
+      useStateStore.getState().currentState === GameState.PLAYING;
+    const initialGain = isPlaying
+      ? this.getSFXVolume() * AudioManager.POWER_COIN_AMBIENT_VOLUME_MULT
+      : 0;
+
     const source = this.audioContext.createBufferSource();
     const gain = this.audioContext.createGain();
     source.buffer = this.powerCoinAmbientBuffer;
     source.loop = true;
     source.connect(gain);
     gain.connect(this.audioContext.destination);
-    gain.gain.setValueAtTime(
-      this.getSFXVolume() * AudioManager.POWER_COIN_AMBIENT_VOLUME_MULT,
-      this.audioContext.currentTime
-    );
+    gain.gain.setValueAtTime(initialGain, this.audioContext.currentTime);
 
     source.start();
     this.powerCoinAmbientSource = source;
@@ -426,6 +441,57 @@ export class AudioManager {
 
     oscillator.start();
     oscillator.stop(this.audioContext.currentTime + 0.15);
+  }
+
+  // F-coin (Founder Mode): two-note rising arpeggio with a wider, warmer
+  // tail than the standard coin chime — distinctive enough to register as
+  // "this is a different, rarer thing" but still subtle per the design.
+  private playFCoinCollectSound(): void {
+    if (!this.audioContext) return;
+
+    const ctx = this.audioContext;
+    const sfxVolume = this.getSFXVolume();
+    const t0 = ctx.currentTime;
+
+    // Notes (Hz): G5 → C6 → E6 — a rising major arpeggio.
+    const notes: Array<{ freq: number; start: number; dur: number }> = [
+      { freq: 783.99, start: 0.0, dur: 0.12 },
+      { freq: 1046.5, start: 0.07, dur: 0.14 },
+      { freq: 1318.5, start: 0.14, dur: 0.22 },
+    ];
+
+    notes.forEach(({ freq, start, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, t0 + start);
+
+      gain.gain.setValueAtTime(0.0001, t0 + start);
+      gain.gain.exponentialRampToValueAtTime(0.28 * sfxVolume, t0 + start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dur);
+
+      osc.start(t0 + start);
+      osc.stop(t0 + start + dur);
+    });
+
+    // Soft sub-octave shimmer for body (sine, lower amplitude).
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.connect(subGain);
+    subGain.connect(ctx.destination);
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(523.25, t0); // C5
+    sub.frequency.exponentialRampToValueAtTime(659.25, t0 + 0.36); // E5
+
+    subGain.gain.setValueAtTime(0.0001, t0);
+    subGain.gain.exponentialRampToValueAtTime(0.12 * sfxVolume, t0 + 0.02);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+
+    sub.start(t0);
+    sub.stop(t0 + 0.4);
   }
 
   private playPowerCoinActivateSound(): void {

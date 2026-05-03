@@ -2,7 +2,7 @@ import { Monster } from "../types/interfaces";
 import { logger, LogCategory } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 import { useStateStore } from "../stores/game/stateStore";
-import { TutorialMissionId } from "../types/enums";
+import { TutorialMissionId, PauseReason } from "../types/enums";
 import { getTuned } from "../stores/systems/tuningStore";
 
 export interface RespawnConfig {
@@ -23,10 +23,17 @@ export class OptimizedRespawnManager {
   private respawnConfig: RespawnConfig;
   private scalingManager: ScalingManager;
   private lastUpdateTime: number = 0;
-  private updateInterval: number = 500; // Update every 500ms instead of every frame
+  // 50ms (≈3 frames at 60fps) keeps the loop cheap (sorted-list + Date.now
+  // compare) while keeping the respawn within ~3 frames of the indicator
+  // hitting zero. The previous 500ms allowed up to half a second of visible
+  // "0 on the indicator but monster invisible" desync.
+  private updateInterval: number = 50;
   private paused: boolean = false;
   private pauseStartTime: number = 0;
   private totalPausedTime: number = 0;
+  // Reason-set so independent pausers (game-state, power_mode) compose:
+  // both must clear before the manager unpauses.
+  private pauseReasons: Set<PauseReason> = new Set();
 
   private constructor() {
     // respawnConfig kept for the public read/update API, but per-type delays
@@ -174,23 +181,41 @@ export class OptimizedRespawnManager {
   }
 
   // ===== PAUSE MANAGEMENT =====
-  public pause(): void {
-    // Only log if we weren't already paused
+  public pause(reason: PauseReason = PauseReason.Default): void {
     if (!this.paused) {
       this.paused = true;
       this.pauseStartTime = Date.now();
-      // Use throttled logging to prevent spam
-      logger.throttled(LogCategory.GAME, "respawn_paused", "Respawn system paused", 5000);
     }
+    this.pauseReasons.add(reason);
+    logger.throttled(
+      LogCategory.GAME,
+      `respawn_paused_${reason}`,
+      `Respawn system paused (${reason})`,
+      5000
+    );
   }
 
-  public resume(): void {
-    // Only log if we were actually paused
+  public resume(reason: PauseReason = PauseReason.Default): void {
+    this.pauseReasons.delete(reason);
+    // Stay paused if any other reason still holds the lock.
+    if (this.pauseReasons.size > 0) {
+      logger.throttled(
+        LogCategory.GAME,
+        `respawn_resume_partial_${reason}`,
+        `Respawn resume(${reason}) — still paused by: ${Array.from(this.pauseReasons).join(", ")}`,
+        5000
+      );
+      return;
+    }
     if (this.paused) {
       this.paused = false;
       this.totalPausedTime += Date.now() - this.pauseStartTime;
-      // Use throttled logging to prevent spam
-      logger.throttled(LogCategory.GAME, "respawn_resumed", "Respawn system resumed", 5000);
+      logger.throttled(
+        LogCategory.GAME,
+        `respawn_resumed_${reason}`,
+        `Respawn system resumed (${reason})`,
+        5000
+      );
     } else {
       this.paused = false;
     }
@@ -198,6 +223,18 @@ export class OptimizedRespawnManager {
 
   public isPaused(): boolean {
     return this.paused;
+  }
+
+  public getPauseStatus(): {
+    isPaused: boolean;
+    pauseReasons: PauseReason[];
+    totalPausedTime: number;
+  } {
+    return {
+      isPaused: this.paused,
+      pauseReasons: Array.from(this.pauseReasons),
+      totalPausedTime: this.totalPausedTime,
+    };
   }
 
   private respawnMonster(monster: Monster): Monster {
@@ -218,6 +255,24 @@ export class OptimizedRespawnManager {
     monster: Monster,
     spawnPoint: { x: number; y: number }
   ): void {
+    // If the monster transformed during its previous life (Mummy → SPHERE/ORB),
+    // restore its pre-transform shape so it respawns as a mummy. Skip when
+    // no snapshot exists (monster never transformed).
+    if (monster.originalType !== undefined) {
+      const cross = monster as unknown as { type: string; color: string };
+      cross.type = monster.originalType;
+      if (monster.originalColor !== undefined) cross.color = monster.originalColor;
+      if (monster.originalWidth !== undefined) monster.width = monster.originalWidth;
+      if (monster.originalHeight !== undefined) monster.height = monster.originalHeight;
+      monster._hitboxOffsetX = 0;
+      monster._hitboxOffsetY = 0;
+      monster._hitboxRotation = 0;
+      monster.originalType = undefined;
+      monster.originalColor = undefined;
+      monster.originalWidth = undefined;
+      monster.originalHeight = undefined;
+    }
+
     // Reset basic state
     monster.isDead = false;
     monster.isActive = true;
@@ -240,6 +295,20 @@ export class OptimizedRespawnManager {
     // Clear respawn properties
     monster.deathTime = undefined;
     monster.respawnTime = undefined;
+
+    // Clear power-mode + movement-class wall-clock timestamps. If a monster
+    // is killed during power mode, leftover frozenAt would corrupt the next
+    // life: the unfreeze loop in POWER_MODE.remove computes
+    // `now - frozenAt` and shifts lastSeenAt / nextHopTime by that amount,
+    // which would inject a multi-second offset from the prior life.
+    monster.frozenAt = undefined;
+    monster.mutationEndTime = undefined;
+    monster.lastSeenAt = undefined;
+    monster.nextHopTime = undefined;
+    delete (monster as any).lastSeenPlayerX;
+    delete (monster as any).lastSeenPlayerY;
+    delete (monster as any).hopTargetX;
+    delete (monster as any).hopTargetY;
 
     // Reset individual movement properties that are stored on the monster object
     // These properties are used by movement classes and need to be cleared on respawn
@@ -292,7 +361,13 @@ export class OptimizedRespawnManager {
     if (!monster.isDead || !monster.respawnTime) {
       return 0;
     }
-    return Math.max(0, monster.respawnTime - Date.now());
+    // respawnTime was set in adjusted-time space (Date.now - totalPausedTime),
+    // so the indicator must compare against the same clock. Otherwise pauses
+    // (notably power-mode) cause "indicator hits 0 but monster doesn't appear
+    // for `totalPausedTime` ms" because the actual respawn check in update()
+    // also uses adjusted time.
+    const adjustedNow = Date.now() - this.totalPausedTime;
+    return Math.max(0, monster.respawnTime - adjustedNow);
   }
 
   public getNextRespawnTime(): number | null {
@@ -307,6 +382,7 @@ export class OptimizedRespawnManager {
     this.paused = false;
     this.pauseStartTime = 0;
     this.totalPausedTime = 0;
+    this.pauseReasons.clear();
     logger.debug("OptimizedRespawnManager: Reset - cleared all dead monsters and pause state");
   }
 
@@ -323,5 +399,6 @@ export class OptimizedRespawnManager {
     this.paused = false;
     this.pauseStartTime = 0;
     this.totalPausedTime = 0;
+    this.pauseReasons.clear();
   }
 }

@@ -37,7 +37,7 @@ const COIN_COLORS: Record<CoinType, string> = {
   [CoinType.BONUS_MULTIPLIER]: "#34d399",
   [CoinType.EXTRA_LIFE]: "#f472b6",
   [CoinType.MONSTER_FREEZE]: "#67e8f9",
-  [CoinType.SPECIAL]: "#f97316",
+  [CoinType.FOUNDER_MODE]: "#f97316",
 };
 
 const snap = (value: number, gridSize: number, enabled: boolean) =>

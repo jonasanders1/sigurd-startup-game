@@ -40,6 +40,10 @@ export interface MapCompletionData {
   // Per-tier P-coin breakdown for this map. Sum of values equals
   // powerModeActivations. Keyed by canonical tier name (Blue, Pink, …, Gray).
   pCoinTierCollections?: PCoinTierCollections;
+  // F-coins (Founder Mode) collected on this map. Each F-coin pickup also
+  // calls grantBusinessIdea(1) on the bridge for the real-time grant; this
+  // field is for analytics / reconciliation.
+  founderCoinsCollected?: number;
 }
 
 export interface LevelHistoryEntry {
@@ -58,6 +62,8 @@ export interface LevelHistoryEntry {
   isPartial?: boolean; // True for failed/incomplete levels
   // Per-tier P-coin breakdown for this level
   pCoinTierCollections?: PCoinTierCollections;
+  // F-coins collected on this level. See note on MapCompletionData.
+  founderCoinsCollected?: number;
 }
 
 export interface GameCompletionData {
@@ -83,6 +89,9 @@ export interface GameCompletionData {
   // Game-wide P-coin breakdown by tier. Sum of values equals
   // totalPowerModeActivations.
   totalPCoinTierCollections?: PCoinTierCollections;
+  // Total F-coins collected this run. Mirrors per-pickup grantBusinessIdea
+  // calls — host can reconcile against its own grant log to detect drift.
+  totalFounderCoinsCollected?: number;
 }
 
 export interface AudioSettingsUpdateData {
@@ -252,6 +261,10 @@ export const calculateGameStats = (
   const totalPCoinTierCollections = sumPCoinTierCollections(
     levelHistory.map((l) => l.pCoinTierCollections)
   );
+  const totalFounderCoinsCollected = levelHistory.reduce(
+    (sum, level) => sum + (level.founderCoinsCollected ?? 0),
+    0
+  );
   const totalPlayTime = endTime - startTime;
   const averageCompletionTime =
     levelHistory.length > 0 ? totalPlayTime / levelHistory.length / 1000 : 0; // Convert to seconds
@@ -262,6 +275,7 @@ export const calculateGameStats = (
     totalCoinsCollected,
     totalPowerModeActivations,
     totalPCoinTierCollections,
+    totalFounderCoinsCollected,
     averageCompletionTime: Math.round(averageCompletionTime),
     totalPlayTime: Math.round(totalPlayTime / 1000), // Convert to seconds
   };

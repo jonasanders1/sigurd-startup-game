@@ -10,7 +10,7 @@ import {
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import { CoinPhysics } from "./coinPhysics";
-import { COIN_TYPES, P_COIN_COLORS, COIN_EFFECTS } from "../config/coinTypes";
+import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import { COIN_SPAWNING } from "../config/coins";
 import { log, LogCategory, logger } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
@@ -41,8 +41,6 @@ export class CoinManager {
   // BJ P-coin tokens: firebomb=2, normal=1, threshold=9. Increment paused while
   // a P-coin is alive on screen. Spawn at 9, subtract 9 (don't reset to 0).
   private pCoinTokens: number = 0;
-  private powerModeActive: boolean = false;
-  private powerModeEndTime: number = 0;
   private activeEffects: Map<string, EffectData> = new Map();
   private triggeredSpawnConditions: Set<string> = new Set(); // Track which spawn conditions have been triggered
   private lastProcessedScore: number = 0; // Track the last score threshold that was processed
@@ -54,9 +52,18 @@ export class CoinManager {
   private pCoinColorIndex: number = 0; // Track current P-coin color index
   private bCoinSpawnsThisLevel: number = 0; // BJ: max 5 B-coin spawns per level
   private pCoinSpawnsThisLevel: number = 0; // BJ: max 2 P-coin spawns per level
-  // BJ S-coin: rolled once per level. If hit, schedules a single spawn.
-  private sCoinScheduledSpawnTime: number | null = null;
-  private sCoinSpawnedThisLevel: boolean = false;
+  // F-coin (Founder Mode): rolled once per RUN at game start. If hit, picks
+  // a random target level (in [F_COIN_MIN_LEVEL..F_COIN_MAX_LEVEL]). On entry
+  // to that level, picks a random bomb-count in [F_COIN_TRIGGER_MIN_BOMB..
+  // F_COIN_TRIGGER_MAX_BOMB] — the F-coin spawns when that many bombs have
+  // been collected on the level. Bomb-count triggering ties spawn to player
+  // progress instead of wall clock (level may finish in <30s).
+  private fCoinTargetLevel: number | null = null;
+  private fCoinTargetBombCount: number | null = null;
+  private fCoinBombsThisLevel: number = 0;
+  private fCoinSetupLevel: number | null = null; // Dedup guard for repeated softReset()
+  private fCoinSpawnedThisLevel: boolean = false;
+  private fCoinSpawnsThisRun: number = 0; // Hard cap (defense in depth).
   private lastBonusCountLogged: number = 0; // Track last logged bonus count to avoid duplicate logging
   private lastFirebombCountLogged: number = 0; // Track last logged firebomb count to avoid duplicate logging
 
@@ -131,8 +138,6 @@ export class CoinManager {
     this.coins = [];
     this.firebombCount = 0;
     this.pCoinTokens = 0;
-    this.powerModeActive = false;
-    this.powerModeEndTime = 0;
     this.activeEffects.clear();
     this.triggeredSpawnConditions.clear();
     this.lastProcessedScore = 0;
@@ -145,7 +150,10 @@ export class CoinManager {
     this.pCoinSpawnsThisLevel = 0;
     this.lastBonusCountLogged = 0;
     this.lastFirebombCountLogged = 0;
-    this.rollSCoinForLevel();
+    this.fCoinSpawnsThisRun = 0;
+    this.fCoinSetupLevel = null; // Allow setup to fire fresh for the new run.
+    this.rollFCoinForRun();
+    this.setupFCoinForCurrentLevel();
     // Don't reset pCoinColorIndex - let it persist across sessions
     log.data("CoinManager: Full reset (game over) - all counters cleared");
   }
@@ -154,12 +162,12 @@ export class CoinManager {
   softReset(): void {
     this.stopPowerCoinAmbientIfAny();
     this.coins = [];
-    this.powerModeActive = false;
-    this.powerModeEndTime = 0;
     this.activeEffects.clear();
     this.bCoinSpawnsThisLevel = 0; // BJ: B-coin per-level cap resets each map
     this.pCoinSpawnsThisLevel = 0; // BJ: P-coin per-level cap resets each map
-    this.rollSCoinForLevel(); // S-coin per-level roll
+    // F-coin setup is NOT done here — softReset runs before currentLevel
+    // bumps, so it would read the stale level. setup happens in
+    // onLevelStarted(), called from LevelManager.loadCurrentLevel().
     // lastScoreCheck tracks bombAndMonsterPoints (the threshold counter), which
     // already persists across levels — no sync needed. Coin pickups and bonus
     // never write to bombAndMonsterPoints, so there's no retro-trigger risk.
@@ -190,8 +198,6 @@ export class CoinManager {
   clearActiveCoins(): void {
     this.stopPowerCoinAmbientIfAny();
     this.coins = [];
-    this.powerModeActive = false;
-    this.powerModeEndTime = 0;
     this.activeEffects.clear();
     // Don't clear score tracking or firebomb count - these persist across levels
     log.data(
@@ -231,57 +237,131 @@ export class CoinManager {
 
     // BJ B-coin spawn (driven by total score from any source).
     this.checkBcoinSpawnConditions();
-
-    // BJ S-coin: per-level scheduled roll.
-    this.checkSCoinSpawn();
+    // F-coin spawn is event-driven from onBombCollected, not per-frame.
 
     // Remove collected coins
     this.coins = this.coins.filter((coin) => !coin.isCollected);
   }
 
-  // BJ S-coin: rolled at level start. If the roll hits, schedule a single
-  // spawn during the [min, max] window after now. Reads tuning live so
-  // panel changes apply on the NEXT level roll.
-  private rollSCoinForLevel(): void {
-    this.sCoinScheduledSpawnTime = null;
-    this.sCoinSpawnedThisLevel = false;
-    const chance = getTuned("S_COIN_LEVEL_CHANCE");
-    if (Math.random() >= chance) return;
-    const min = getTuned("S_COIN_SPAWN_MIN_DELAY_MS");
-    const max = getTuned("S_COIN_SPAWN_MAX_DELAY_MS");
-    this.sCoinScheduledSpawnTime = Date.now() + min + Math.random() * (max - min);
+  // F-coin (Founder Mode): rolled once per RUN at game start. If the roll
+  // hits, picks a random target level (rookie-gated to F_COIN_MIN_LEVEL+).
+  // Level 1 is intentionally excluded.
+  private rollFCoinForRun(): void {
+    this.fCoinTargetLevel = null;
+    this.fCoinTargetBombCount = null;
+    this.fCoinBombsThisLevel = 0;
+    this.fCoinSpawnedThisLevel = false;
+
+    const chance = getTuned("F_COIN_RUN_CHANCE");
+    const roll = Math.random();
+    const minLevel = COIN_SPAWNING.F_COIN_MIN_LEVEL;
+    const maxLevel = COIN_SPAWNING.F_COIN_MAX_LEVEL;
+    const minBomb = getTuned("F_COIN_TRIGGER_MIN_BOMB");
+    const maxBomb = getTuned("F_COIN_TRIGGER_MAX_BOMB");
+
+    if (roll >= chance) {
+      log.coin(
+        `F-coin roll MISS — chance=${chance}, roll=${roll.toFixed(3)}. No F-coin this run.`
+      );
+      return;
+    }
+
+    const range = maxLevel - minLevel + 1;
+    this.fCoinTargetLevel = minLevel + Math.floor(Math.random() * range);
+
     log.coin(
-      `S-coin scheduled for this level in ${Math.round(
-        ((this.sCoinScheduledSpawnTime ?? 0) - Date.now()) / 1000
-      )}s`
+      `💡 F-coin ROLL HIT — chance=${chance}, roll=${roll.toFixed(3)}, ` +
+        `target level=${this.fCoinTargetLevel} (range ${minLevel}-${maxLevel}), ` +
+        `bomb-trigger window=${minBomb}-${maxBomb}`
     );
   }
 
-  private checkSCoinSpawn(): void {
-    if (this.isPaused) return;
-    if (this.sCoinSpawnedThisLevel) return;
-    if (this.sCoinScheduledSpawnTime === null) return;
-    if (Date.now() < this.sCoinScheduledSpawnTime) return;
+  // Public entry point — called by LevelManager.loadCurrentLevel() AFTER
+  // currentLevel has been bumped to the level being loaded. Idempotent
+  // (the dedup guard inside setupFCoinForCurrentLevel handles repeats).
+  public onLevelStarted(): void {
+    this.setupFCoinForCurrentLevel();
+  }
+
+  // Called on level transition. If the entered level is this run's F-coin
+  // target level, picks a random target bomb count to trigger spawn.
+  // Dedup guard prevents repeated calls from rerolling mid-level.
+  private setupFCoinForCurrentLevel(): void {
+    const currentLevel = useStateStore.getState().currentLevel;
+
+    // Dedup: identical-level repeat calls (multiple softReset paths) skip.
+    if (this.fCoinSetupLevel === currentLevel) return;
+    this.fCoinSetupLevel = currentLevel;
+
+    // Reset level-scoped state.
+    this.fCoinTargetBombCount = null;
+    this.fCoinBombsThisLevel = 0;
+    this.fCoinSpawnedThisLevel = false;
+
+    if (this.fCoinTargetLevel === null) return;
+    if (this.fCoinSpawnsThisRun >= COIN_SPAWNING.F_COIN_RUN_CAP) return;
+    if (currentLevel !== this.fCoinTargetLevel) return;
+
+    const min = getTuned("F_COIN_TRIGGER_MIN_BOMB");
+    const max = getTuned("F_COIN_TRIGGER_MAX_BOMB");
+    const range = Math.max(1, max - min + 1);
+    this.fCoinTargetBombCount = min + Math.floor(Math.random() * range);
+
+    log.coin(
+      `🎯 F-coin target level ${currentLevel} reached — will spawn on bomb #${this.fCoinTargetBombCount}`
+    );
+  }
+
+  // Called from onBombCollected. Increments the level-scoped bomb counter and
+  // spawns the F-coin if the random target is reached.
+  private checkFCoinSpawnOnBomb(): void {
+    if (this.fCoinSpawnedThisLevel) return;
+    if (this.fCoinTargetBombCount === null) return;
+    if (this.fCoinSpawnsThisRun >= COIN_SPAWNING.F_COIN_RUN_CAP) return;
+
+    // Defense: only spawn on the actual target level. Protects against any
+    // pathological case where bomb collection fires after level transition.
+    const currentLevel = useStateStore.getState().currentLevel;
+    if (currentLevel !== this.fCoinTargetLevel) return;
 
     const tm = useStateStore.getState().tutorialMission;
     if (tm) return; // Tutorials don't spawn coins.
 
-    // Prefer a configured SPECIAL spawn point; otherwise reuse another coin
-    // type's spawn point so it lands somewhere sensible on the map.
-    const sp =
-      this.spawnPoints.find((p) => p.type === CoinType.SPECIAL) ??
-      this.spawnPoints[Math.floor(Math.random() * this.spawnPoints.length)];
+    this.fCoinBombsThisLevel += 1;
+    if (this.fCoinBombsThisLevel < this.fCoinTargetBombCount) return;
 
-    if (sp) {
-      this.spawnCoin(CoinType.SPECIAL, sp.x, sp.y, sp.spawnAngle);
+    // F-coin inherits B-coin's gravity-only physics, so it must use the same
+    // class of spawn point — those are placed by the level designer above
+    // platforms where gravity-only coins land cleanly. Falling back to a
+    // random spawn point would put it at a P-coin position (mid-air, designed
+    // for reflective physics), which makes it look like it's "moving fast"
+    // as it falls and walks weird paths.
+    const fOwnSpawns = this.spawnPoints.filter(
+      (p) => p.type === CoinType.FOUNDER_MODE
+    );
+    const bSpawns = this.spawnPoints.filter(
+      (p) => p.type === CoinType.BONUS_MULTIPLIER
+    );
+    const candidates = fOwnSpawns.length > 0 ? fOwnSpawns : bSpawns;
+
+    let sp = null;
+    if (candidates.length > 0) {
+      sp = candidates[Math.floor(Math.random() * candidates.length)];
+      this.spawnCoin(CoinType.FOUNDER_MODE, sp.x, sp.y, sp.spawnAngle);
     } else {
       const x = 100 + Math.random() * (GAME_CONFIG.CANVAS_WIDTH - 200);
-      this.spawnCoin(CoinType.SPECIAL, x, 50);
+      this.spawnCoin(CoinType.FOUNDER_MODE, x, 50);
     }
 
-    this.sCoinSpawnedThisLevel = true;
-    this.sCoinScheduledSpawnTime = null;
-    log.coin("⭐ S-coin spawned (rare)");
+    this.fCoinSpawnedThisLevel = true;
+    this.fCoinSpawnsThisRun += 1;
+
+    log.coin(
+      `💡 F-coin SPAWNED on level ${currentLevel} at (` +
+        `${sp ? Math.round(sp.x) : "?"}, ${sp ? Math.round(sp.y) : "?"}) ` +
+        `after bomb #${this.fCoinBombsThisLevel}. ` +
+        `Run total: ${this.fCoinSpawnsThisRun}/${COIN_SPAWNING.F_COIN_RUN_CAP}`
+    );
   }
 
   spawnCoin(type: CoinType, x: number, y: number, spawnAngle?: number): void {
@@ -365,6 +445,7 @@ export class CoinManager {
     );
 
     this.checkPcoinSpawnConditions();
+    this.checkFCoinSpawnOnBomb();
   }
 
   // Track points from bombs and monsters (excluding bonus points)
@@ -897,21 +978,6 @@ export class CoinManager {
               this.getPcoinColorForTime(spawnTime),
             getPowerModeEndTime: () => this.getPowerModeEndTime(),
           },
-          difficultyManager: {
-            pause: () => {
-              // Access the global scaling manager instance
-              const scalingManager = ScalingManager.getInstance();
-              scalingManager.pause();
-              log.debug("Difficulty scaling paused (power mode active)");
-            },
-            resume: () => {
-              // Access the global scaling manager instance
-              const scalingManager = ScalingManager.getInstance();
-              scalingManager.resume();
-              log.debug("Difficulty scaling resumed (power mode ended)");
-            },
-          },
-          // Ensure audioManager is included from the original gameState
           audioManager: (gameState as any).audioManager,
           // Add the missing methods
           addScore: (points: number) => {
@@ -937,9 +1003,25 @@ export class CoinManager {
         effect.apply(gameStateWithManager, coin);
         log.debug(`Effect ${effect.type} applied successfully`);
 
+        // Pause spawn + respawn managers for the duration of POWER_MODE so
+        // new monsters and respawn timers don't keep accruing during freeze
+        // (otherwise kills during power mode all respawn in a flood right
+        // when power mode ends, feeling like "10× speed").
+        if (effect.type === "POWER_MODE") {
+          const gsm = useStateStore.getState().gameStateManager;
+          gsm?.pauseForPowerMode?.();
+          const status = gsm?.getPowerModePauseStatus?.();
+          if (status) {
+            log.power(
+              `paused spawn/respawn — ` +
+                `spawnReasons=${JSON.stringify(status.spawnReasons)}, ` +
+                `respawnReasons=${JSON.stringify(status.respawnReasons)}`
+            );
+          }
+        }
+
         // Track timed effects - for POWER_MODE, get the duration from the activeEffects
         if (effect.type === "POWER_MODE") {
-          // POWER_MODE effect calculates its own duration, so get it from the updated gameState
           const powerModeEndTime = (gameStateWithManager as any).activeEffects
             .powerModeEndTime;
           if (powerModeEndTime > 0) {
@@ -947,16 +1029,8 @@ export class CoinManager {
               endTime: powerModeEndTime,
               effect,
             });
-
-            // Also update the coin manager's internal power mode state
-            this.powerModeActive = true;
-            this.powerModeEndTime = powerModeEndTime;
-
             log.debug(
-              `POWER_MODE effect tracked with endTime: ${powerModeEndTime}, internal state updated`
-            );
-            log.debug(
-              `Current time: ${Date.now()}, Effect will end at: ${powerModeEndTime}, Duration: ${
+              `POWER_MODE tracked: endTime=${powerModeEndTime}, duration=${
                 powerModeEndTime - Date.now()
               }ms`
             );
@@ -972,18 +1046,7 @@ export class CoinManager {
         }
       });
     } else {
-      // Legacy behavior - just use the old system for now
-      // Only warn if it's not a known coin type (to avoid spam)
-      if (
-        coin.type !== CoinType.POWER &&
-        coin.type !== CoinType.BONUS_MULTIPLIER &&
-        coin.type !== CoinType.EXTRA_LIFE
-      ) {
-        log.warn(`Unknown coin type: ${coin.type}, using legacy behavior`);
-      }
-      if (coin.type === CoinType.POWER) {
-        this.activatePowerMode();
-      }
+      log.warn(`Coin type ${coin.type} has no effects configured`);
     }
   }
 
@@ -1035,18 +1098,6 @@ export class CoinManager {
                 this.getPcoinColorForTime(spawnTime),
               getPowerModeEndTime: () => this.getPowerModeEndTime(),
             },
-            difficultyManager: {
-              pause: () => {
-                const scalingManager = ScalingManager.getInstance();
-                scalingManager.pause();
-                log.debug("Difficulty scaling paused (power mode active)");
-              },
-              resume: () => {
-                const scalingManager = ScalingManager.getInstance();
-                scalingManager.resumeFromPowerMode();
-                log.debug("Difficulty scaling resumed (power mode ended)");
-              },
-            },
           };
 
           try {
@@ -1054,6 +1105,22 @@ export class CoinManager {
             log.debug(`Effect ${effectType} removed successfully`);
           } catch (error) {
             log.error(`Error removing effect ${effectType}:`, error);
+          }
+
+          // Resume spawn + respawn managers (mirrors the pause around
+          // effect.apply for POWER_MODE).
+          if (effectType === "POWER_MODE") {
+            const gsm = useStateStore.getState().gameStateManager;
+            const before = gsm?.getPowerModePauseStatus?.();
+            gsm?.resumeFromPowerMode?.();
+            const after = gsm?.getPowerModePauseStatus?.();
+            if (before && after) {
+              log.power(
+                `resumed spawn/respawn — ` +
+                  `spawnReasons ${JSON.stringify(before.spawnReasons)}→${JSON.stringify(after.spawnReasons)}, ` +
+                  `respawnReasons ${JSON.stringify(before.respawnReasons)}→${JSON.stringify(after.respawnReasons)}`
+              );
+            }
           }
         }
       }
@@ -1069,13 +1136,8 @@ export class CoinManager {
 
     effectsToRemove.forEach((effectType) => {
       this.activeEffects.delete(effectType);
-
-      // Handle legacy power mode state when POWER_MODE effect is removed
       if (effectType === "POWER_MODE") {
-        this.powerModeActive = false;
-        this.powerModeEndTime = 0;
-        log.debug("Power mode deactivated, internal state updated");
-        // Note: Difficulty scaling resume is handled by the effect's remove function
+        log.debug("Power mode deactivated");
       }
     });
   }
@@ -1162,18 +1224,15 @@ export class CoinManager {
   }
 
   isPowerModeActive(): boolean {
-    // Check if POWER_MODE effect is active
+    // Pure read — no mutation. checkEffectsEnd is the single owner of
+    // expiration cleanup; mutating here created a race where the POWER_MODE
+    // entry could be deleted by an isPowerModeActive() caller (e.g.
+    // updateMonsterStates) before checkEffectsEnd's 100ms grace fired
+    // effect.remove. That skipped the scaling-resume + spawn/respawn-resume
+    // side effects, leaving managers stuck paused.
     const powerModeEffect = this.activeEffects.get("POWER_MODE");
-    if (powerModeEffect) {
-      const isActive = Date.now() < powerModeEffect.endTime;
-      if (!isActive) {
-        // Effect has expired, remove it
-        this.activeEffects.delete("POWER_MODE");
-        this.powerModeActive = false;
-      }
-      return isActive;
-    }
-    return this.powerModeActive; // Fallback to legacy property
+    if (!powerModeEffect) return false;
+    return Date.now() < powerModeEffect.endTime;
   }
 
   getCoins(): Coin[] {
@@ -1211,22 +1270,8 @@ export class CoinManager {
   }
 
   updateMonsters(monsters: Monster[]): void {
-    // Check both new effect system and legacy system
-    const isPowerModeActive = this.isPowerModeActive() || this.powerModeActive;
-
-    if (isPowerModeActive) {
-      // Calculate remaining time from either system
-      let timeLeft = 0;
-
-      // Check new effect system first
-      const powerModeEffect = this.activeEffects.get("POWER_MODE");
-      if (powerModeEffect) {
-        timeLeft = powerModeEffect.endTime - Date.now();
-      } else {
-        // Fall back to legacy system
-        timeLeft = this.powerModeEndTime - Date.now();
-      }
-
+    if (this.isPowerModeActive()) {
+      const timeLeft = this.getPowerModeEndTime() - Date.now();
       const shouldBlink = timeLeft <= 2000 && timeLeft > 0; // Blink when 2 seconds or less remaining
 
       monsters.forEach((monster) => {
@@ -1277,11 +1322,6 @@ export class CoinManager {
       }
     });
 
-    // Also handle legacy powerModeEndTime
-    if (this.powerModeActive && this.powerModeEndTime > Date.now()) {
-      const remainingTime = this.powerModeEndTime - Date.now();
-      log.debug(`Pausing legacy power mode with ${remainingTime}ms remaining`);
-    }
   }
 
   resume(): void {
@@ -1323,31 +1363,10 @@ export class CoinManager {
       }
     });
 
-    // Also update legacy powerModeEndTime if it was active
-    if (this.powerModeActive && this.powerModeEndTime > 0) {
-      // Only adjust if the power mode hasn't expired during pause
-      const originalRemainingTime = this.powerModeEndTime - this.pauseStartTime;
-      if (originalRemainingTime > 0) {
-        this.powerModeEndTime = Date.now() + originalRemainingTime;
-        log.debug(
-          `Resuming legacy power mode, new endTime: ${this.powerModeEndTime}`
-        );
-      }
-    }
-
     this.pauseStartTime = 0;
   }
 
   resetEffects(): void {
-    // Stop power-up melody if active when resetting effects
-    if (this.powerModeActive) {
-      log.debug(
-        "Resetting effects while power mode is active, this should stop PowerUp melody"
-      );
-    }
-
-    this.powerModeActive = false;
-    this.powerModeEndTime = 0;
     this.firebombCount = 0;
     this.coins = [];
     this.activeEffects.clear();
@@ -1361,25 +1380,17 @@ export class CoinManager {
     log.debug("Coin effects reset");
   }
 
-  // Method to force stop power mode and melody (for game state changes)
+  // Force-stop path used when game state changes (level transitions, menu,
+  // game over) cut a power mode short before its timer expires. Mirrors the
+  // resume side effects of POWER_MODE.remove without going through the
+  // effect.remove flow (which the game-state pause already disabled).
   forceStopPowerMode(): void {
-    if (this.powerModeActive) {
-      log.debug("Force stopping power mode");
-      this.powerModeActive = false;
-      this.powerModeEndTime = 0;
-      this.activeEffects.delete("POWER_MODE");
+    if (!this.isPowerModeActive()) return;
 
-      // Resume difficulty scaling
-      try {
-        const scalingManager = ScalingManager.getInstance();
-        scalingManager.resumeFromPowerMode();
-        log.debug("Difficulty scaling resumed after force stop");
-      } catch (error) {
-        log.debug(
-          "Could not resume difficulty scaling (ScalingManager not available)"
-        );
-      }
-    }
+    log.debug("Force stopping power mode");
+    this.activeEffects.delete("POWER_MODE");
+    ScalingManager.getInstance().resumeFromPowerMode();
+    useStateStore.getState().gameStateManager?.resumeFromPowerMode?.();
   }
 
   // New method to get coin configuration
@@ -1398,48 +1409,4 @@ export class CoinManager {
     return powerModeEffect ? powerModeEffect.endTime : 0;
   }
 
-  // Legacy method with dynamic duration
-  private activatePowerMode(): void {
-    this.powerModeActive = true;
-
-    // Get duration based on current P-coin color (if we have a recent P-coin)
-    let duration: number = GAME_CONFIG.POWER_COIN_DURATION; // Default fallback
-
-    // Find the most recent P-coin to get its color
-    const recentPcoin = this.coins.find(
-      (coin) => coin.type === CoinType.POWER && coin.spawnTime
-    );
-    if (recentPcoin && recentPcoin.spawnTime) {
-      const colorData = this.getPcoinColorForTime(recentPcoin.spawnTime);
-      duration = colorData.duration || GAME_CONFIG.POWER_COIN_DURATION;
-    }
-
-    this.powerModeEndTime = Date.now() + duration;
-    this.resetMonsterKillCount();
-
-    // Also add to activeEffects Map so checkEffectsEnd can handle it properly
-    this.activeEffects.set("POWER_MODE", {
-      endTime: this.powerModeEndTime,
-      effect: COIN_EFFECTS.POWER_MODE,
-    });
-
-    log.debug(
-      `Power mode timing - duration: ${duration}ms, endTime: ${
-        this.powerModeEndTime
-      }, currentTime: ${Date.now()}`
-    );
-
-    // Pause difficulty scaling during power mode
-    try {
-      const scalingManager = ScalingManager.getInstance();
-      scalingManager.pauseForPowerMode();
-      log.debug("Difficulty scaling paused (power mode active)");
-    } catch (error) {
-      log.debug(
-        "Could not pause difficulty scaling (ScalingManager not available)"
-      );
-    }
-
-    log.debug(`Power mode activated for ${duration}ms (${duration / 1000}s)`);
-  }
 }

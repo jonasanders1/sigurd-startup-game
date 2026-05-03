@@ -20,11 +20,20 @@ export const COIN_SPAWNING = {
   BONUS_COIN_MAX_PER_LEVEL: 5, // BJ: max 5 B-coin spawns per level
   EXTRA_LIFE_COIN_RATIO: 8, // E-coin: every 8 B-coins collected (with death-generosity)
   EXTRA_LIFE_DEATH_GENEROSITY: 2, // Each life lost adds this many credits toward next E-coin
-  // S-coin: rolled once per level. If hit, schedules a single spawn at a random
-  // time in the [min, max] window (ms) after level start.
-  S_COIN_LEVEL_CHANCE: 0.15,
-  S_COIN_SPAWN_MIN_DELAY_MS: 10000,
-  S_COIN_SPAWN_MAX_DELAY_MS: 90000,
+  // F-coin (Founder Mode): rolled once per RUN at game start. If hit, picks
+  // a random target level in [F_COIN_MIN_LEVEL .. F_COIN_MAX_LEVEL] and
+  // schedules a single spawn during that level. Hard cap of 2 spawns per
+  // run as defense in depth (very rarely reached at the default 5% rate).
+  F_COIN_RUN_CHANCE: 0.05,
+  F_COIN_MIN_LEVEL: 2, // Rookie gate — never spawns on level 1.
+  F_COIN_MAX_LEVEL: 8,
+  F_COIN_RUN_CAP: 2,
+  // F-coin spawns when the Nth bomb of the target level is collected, where
+  // N is randomly chosen in [F_COIN_TRIGGER_MIN_BOMB..F_COIN_TRIGGER_MAX_BOMB]
+  // at level start. Default range is the full level (1..23) — fully random
+  // across all bomb collections so the spawn moment is unpredictable.
+  F_COIN_TRIGGER_MIN_BOMB: 1,
+  F_COIN_TRIGGER_MAX_BOMB: 23,
 } as const;
 
 export const COIN_EFFECTS = {

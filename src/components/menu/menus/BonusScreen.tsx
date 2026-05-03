@@ -39,10 +39,13 @@ const BonusScreen: React.FC = () => {
   return (
     <div className="text-center max-w-md">
       <h1
-        className="text-5xl font-pixel text-primary tracking-wide mb-4 capitalize"
-        style={{ textShadow: "0 0 18px rgba(171,221,100,0.45)" }}
+        className="flicker font-pixel leading-none relative z-10 text-5xl uppercase whitespace-nowrap mb-6"
+        style={{
+          textShadow: "3px 1px 0 var(--primary-dark)",
+        }}
       >
-        {currentMap?.name} fullført!
+        {currentMap?.name}
+        <span className="text-primary ml-4">FULLFØRT</span>
       </h1>
 
       <div className="text-foreground mb-6 space-y-4">

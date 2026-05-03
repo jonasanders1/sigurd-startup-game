@@ -25,6 +25,11 @@ export interface SigurdGameBridge {
   refreshBalance: () => Promise<number>;
   onBalanceChanged: (callback: (info: BalanceInfo) => void) => () => void;
 
+  // Forretningsidee grant (F-coin pickup). Fire-and-forget.
+  // Host MUST validate server-side: signed session token, per-run cap,
+  // rate limit, amount === 1. Without those, devtools = free credits.
+  grantBusinessIdea: (amount: number) => void;
+
   ready: boolean;
 }
 
@@ -110,4 +115,24 @@ export function subscribeBalance(callback: (info: BalanceInfo) => void): () => v
   }
 
   return window.sigurdGame.onBalanceChanged(callback);
+}
+
+/**
+ * Grant Forretningsidee credit on F-coin pickup. Fire-and-forget.
+ * Standalone mode: no-op + warning so the visual feedback still shows.
+ */
+export function grantBusinessIdea(amount: number): void {
+  if (!window.sigurdGame?.ready) {
+    log.warn(
+      `grantBusinessIdea(${amount}) called in standalone mode — no host bridge to credit. Visual feedback only.`
+    );
+    return;
+  }
+
+  try {
+    window.sigurdGame.grantBusinessIdea(amount);
+    log.debug(`grantBusinessIdea(${amount}) sent to host`);
+  } catch (error) {
+    log.warn("grantBusinessIdea failed:", error);
+  }
 }

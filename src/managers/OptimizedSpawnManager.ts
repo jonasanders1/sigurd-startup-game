@@ -1,4 +1,5 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
+import { PauseReason } from "../types/enums";
 import { logger, LogCategory } from "../lib/logger";
 import {
   useGameStore,
@@ -21,7 +22,7 @@ interface PauseState {
   isPaused: boolean;
   pauseStartTime: number;
   totalPausedTime: number;
-  pauseReasons: Set<string>;
+  pauseReasons: Set<PauseReason>;
 }
 
 export class OptimizedSpawnManager {
@@ -350,7 +351,7 @@ export class OptimizedSpawnManager {
   }
 
   // ===== PAUSE MANAGEMENT =====
-  public pause(reason: string = "default"): void {
+  public pause(reason: PauseReason = PauseReason.Default): void {
     if (!this.pauseState.isPaused) {
       this.pauseState.isPaused = true;
       this.pauseState.pauseStartTime = Date.now();
@@ -370,7 +371,7 @@ export class OptimizedSpawnManager {
     );
   }
 
-  public resume(reason: string = "default"): void {
+  public resume(reason: PauseReason = PauseReason.Default): void {
     this.pauseState.pauseReasons.delete(reason);
 
     if (this.pauseState.pauseReasons.size === 0 && this.pauseState.isPaused) {
@@ -396,7 +397,11 @@ export class OptimizedSpawnManager {
     return this.pauseState.isPaused;
   }
 
-  public getPauseStatus(): any {
+  public getPauseStatus(): {
+    isPaused: boolean;
+    pauseReasons: PauseReason[];
+    totalPausedTime: number;
+  } {
     return {
       isPaused: this.pauseState.isPaused,
       pauseReasons: Array.from(this.pauseState.pauseReasons),

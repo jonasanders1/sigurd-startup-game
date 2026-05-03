@@ -160,7 +160,7 @@ export const bCoinBasePoints = (): number => 500;
  *  - Monster kills during power mode: YES
  *  - Trampoline (jump / wall-hit / fall-off): YES
  *  - B-coin pickup reward: NO
- *  - E-coin / S-coin / P-coin pickup reward: NO
+ *  - E-coin / P-coin pickup reward: NO (F-coin grants Forretningsidee, no score)
  *  - End-of-level firebomb bonus: NO
  *
  * This rule is what prevents the "money glitch" cascade entirely — the
@@ -241,15 +241,6 @@ export const mCoinSpawnDecision = (
 
 /** E/M-coin awards 1000 base × current multiplier (same shape as B-coin). */
 export const eCoinBasePoints = (): number => 1000;
-
-// ─── S-coin (Special) ────────────────────────────────────────────────────────
-
-/**
- * S-coin (Special): flat 5000 (NOT multiplied) plus immediate level skip
- * (forfeit firebomb bonus). Per game-specs §7.4 modern reinterpretation —
- * arcade's "+1 free credit" semantics doesn't apply to a Stripe-credit host.
- */
-export const sCoinBasePoints = (): number => 5000;
 
 // ─── Spawn invulnerability ───────────────────────────────────────────────────
 

@@ -40,6 +40,11 @@ interface BaseMonster {
   direction: number;
   isActive: boolean;
   isFrozen?: boolean;
+  // Timestamp (Date.now()) when the monster was last frozen. Used by the
+  // power-mode unfreeze path to shift wall-clock timestamps (lastSeenAt,
+  // nextHopTime, lastDirectionChange) forward by the freeze duration so
+  // movement classes don't see a bogus 7s gap on the first post-freeze frame.
+  frozenAt?: number;
   isBlinking?: boolean; // For power mode warning
   // BJ "mutation" pass-through window: when a monster transitions form (e.g.,
   // unfreezing at power-mode end), player-monster collision is ignored until
@@ -54,6 +59,11 @@ interface BaseMonster {
   isLethal?: boolean;
   spawnTime?: number; // When this monster was spawned
   lastDirectionChange?: number; // For behavior timing
+  // Wall-clock timestamps used by Bird's hop-and-pause logic. Lifted onto
+  // BaseMonster so the power-mode unfreeze path can shift them generically
+  // without a cast. Undefined for non-Bird types.
+  lastSeenAt?: number;
+  nextHopTime?: number;
   behaviorState?: string; // Current behavior state
   spawnDelay?: number; // When this monster should spawn (in milliseconds)
   // New properties for gravity-based movement
@@ -75,6 +85,15 @@ interface BaseMonster {
   deathTime?: number; // When the monster was killed
   respawnTime?: number; // When the monster should respawn
   originalSpawnPoint?: { x: number; y: number }; // Original spawn position for respawning
+  // Pre-transform snapshot. Set by Mummy's ground-impact transformation
+  // (PatrolMovement.transformMummyOnGround) so a mummy killed AFTER it has
+  // mutated into SPHERE/ORB respawns as a fresh mummy instead of the
+  // transformed form. Cleared by resetMonsterState on respawn. Undefined
+  // for monsters that never transformed.
+  originalType?: string;
+  originalColor?: string;
+  originalWidth?: number;
+  originalHeight?: number;
   
   // Individual scaling properties
   individualSpawnTime?: number; // When this specific monster was spawned (for individual scaling)
@@ -120,18 +139,16 @@ interface BirdMonster extends BaseMonster {
   chaseTargetY?: number; // legacy
   chaseUpdateInterval?: number; // legacy
   /** Destination of the current hop (axis-locked, fixed-distance). Cleared
-   *  on arrival; the bird then rests until `nextHopTime` before picking a
-   *  fresh hop direction. */
+   *  on arrival; the bird then rests until `nextHopTime` (on BaseMonster)
+   *  before picking a fresh hop direction. */
   hopTargetX?: number;
   hopTargetY?: number;
-  /** Earliest absolute time (ms) at which the next hop may begin. */
-  nextHopTime?: number;
   /** Delayed snapshot of the player's position the bird is chasing. Refreshed
    *  every `BIRD_TARGET_DELAY_MS`; planNextHop reads from this instead of
-   *  the live player so the bird tracks where Jack WAS, not where he is. */
+   *  the live player so the bird tracks where Jack WAS, not where he is.
+   *  Refreshed timestamp lives on BaseMonster.lastSeenAt. */
   lastSeenPlayerX?: number;
   lastSeenPlayerY?: number;
-  lastSeenAt?: number;
 }
 
 // Ambusher monster
@@ -346,10 +363,6 @@ export interface GameStateInterface {
       duration?: number;
     };
     getPowerModeEndTime?: () => number;
-  };
-  difficultyManager?: {
-    pause: () => void;
-    resume: () => void;
   };
   audioManager?: {
     startPowerUpMelodyWithDuration: (duration: number) => void;

@@ -1,4 +1,5 @@
 import { Monster } from "../types/interfaces";
+import { PauseReason } from "../types/enums";
 import { logger, LogCategory } from "../lib/logger";
 import { getTuned, getTuningVersion } from "../stores/systems/tuningStore";
 
@@ -20,7 +21,7 @@ export interface PauseState {
   isPaused: boolean;
   pauseStartTime: number;
   totalPausedTime: number;
-  pauseReasons: Set<string>;
+  pauseReasons: Set<PauseReason>;
 }
 
 export class ScalingManager {
@@ -151,7 +152,7 @@ export class ScalingManager {
     };
   }
 
-  public pause(reason: string = "default"): void {
+  public pause(reason: PauseReason = PauseReason.Default): void {
     if (!this.globalPauseState.isPaused) {
       this.globalPauseState.isPaused = true;
       this.globalPauseState.pauseStartTime = Date.now();
@@ -161,7 +162,7 @@ export class ScalingManager {
     logger.throttled(LogCategory.GAME, `scaling_paused_${reason}`, `Scaling paused (${reason})`, 5000);
   }
 
-  public resume(reason: string = "default"): void {
+  public resume(reason: PauseReason = PauseReason.Default): void {
     this.globalPauseState.pauseReasons.delete(reason);
 
     if (
@@ -181,11 +182,18 @@ export class ScalingManager {
     return this.globalPauseState.isPaused;
   }
 
-  public getPauseReasons(): string[] {
+  public getPauseReasons(): PauseReason[] {
     return Array.from(this.globalPauseState.pauseReasons);
   }
 
-  public getPauseStatus(): any {
+  public getPauseStatus(): {
+    isPaused: boolean;
+    pauseReasons: PauseReason[];
+    totalPausedTime: number;
+    timeElapsed: number;
+    globalStartTime: number;
+    currentTime: number;
+  } {
     return {
       isPaused: this.globalPauseState.isPaused,
       pauseReasons: this.getPauseReasons(),
@@ -238,36 +246,30 @@ export class ScalingManager {
   }
 
   public pauseForPowerMode(): void {
-    this.pause("power_mode");
-    // Use throttled logging to prevent spam
+    this.pause(PauseReason.PowerMode);
     logger.throttled(LogCategory.POWER, "power_mode_activated", "Power mode activated - scaling paused", 5000);
   }
 
   public resumeFromPowerMode(): void {
-    this.resume("power_mode");
-    // Use throttled logging to prevent spam
+    this.resume(PauseReason.PowerMode);
     logger.throttled(LogCategory.POWER, "power_mode_ended", "Power mode ended - scaling resumed", 5000);
   }
 
   public isCurrentlyPausedByPowerMode(): boolean {
-    return this.globalPauseState.pauseReasons.has("power_mode");
+    return this.globalPauseState.pauseReasons.has(PauseReason.PowerMode);
   }
 
   // ===== GLOBAL MONSTER SCALING CONTROL =====
   public pauseAllMonsterScaling(): void {
-    this.pause("monster_scaling");
-    // Only log if this is a new pause (not already paused)
+    this.pause(PauseReason.MonsterScaling);
     if (this.globalPauseState.pauseReasons.size === 1) {
-      // Use throttled logging to prevent spam
       logger.throttled(LogCategory.GAME, "monster_scaling_paused", "All monster scaling paused", 5000);
     }
   }
 
   public resumeAllMonsterScaling(): void {
-    this.resume("monster_scaling");
-    // Only log if this was the last pause reason (completely resumed)
+    this.resume(PauseReason.MonsterScaling);
     if (this.globalPauseState.pauseReasons.size === 0) {
-      // Use throttled logging to prevent spam
       logger.throttled(LogCategory.GAME, "monster_scaling_resumed", "All monster scaling resumed", 5000);
     }
   }

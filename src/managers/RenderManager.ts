@@ -300,10 +300,11 @@ export class RenderManager {
       this.ctx.fillRect(ox + px, oy + px * 2, px, px * 2);
 
       // Letter
-      let coinSymbol = "C";
+      let coinSymbol = "?";
       if (coin.type === "POWER") coinSymbol = "P";
       else if (coin.type === "BONUS_MULTIPLIER") coinSymbol = "B";
       else if (coin.type === "EXTRA_LIFE") coinSymbol = "M";
+      else if (coin.type === "FOUNDER_MODE") coinSymbol = "F";
 
       this.ctx.fillStyle = "#fff";
       this.ctx.font = `bold ${Math.round(s * 0.55)}px Pixelify Sans`;
@@ -801,6 +802,15 @@ export class RenderManager {
   }
 
   private renderRespawnIndicators(monsters: Monster[]): void {
+    // Mirror renderSpawnIndicators: hide the countdown outside PLAYING so
+    // pause/menu/bonus screens don't show a ticking "3" over a frozen scene.
+    if (
+      !this.currentGameState ||
+      this.currentGameState.currentState !== "PLAYING"
+    ) {
+      return;
+    }
+
     const respawnManager = OptimizedRespawnManager.getInstance();
 
     monsters.forEach((monster) => {

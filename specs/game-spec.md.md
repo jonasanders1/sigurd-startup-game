@@ -248,16 +248,40 @@ collision = (a.x < b.x + b.width) && (a.x + a.width > b.x) &&
 **Physics:** Same as B-coin (gravity-only)
 **Effect:** Awards 1000 × multiplier points, grants +1 life
 
-### 7.4 Spawn Point Persistence
+### 7.4 F-Coin (Founder Mode, FAFO)
+
+**Theme:** "Send it." Sigurd rolls the dice on a wild idea and the universe rewards him with a new business idea (Forretningsidee).
+
+**Spawn:** Rolled **once per run** at game start. 5% chance the run gets an F-coin at all (`F_COIN_RUN_CHANCE`). If the roll hits, a random target level in `[F_COIN_MIN_LEVEL .. F_COIN_MAX_LEVEL]` is selected. **Levels 1-2 are excluded** (rookie gate).
+
+**Per-run cap:** 2 (`F_COIN_RUN_CAP`) — defense in depth; rarely reached at the default 5% rate.
+
+**Max active:** 1
+**Color:** Orange `#f97316`
+**Letter:** F
+**Physics:** Same as B/M-coin (gravity-only, walks platforms)
+
+**Effect on collection:**
+1. Calls `window.sigurdGame.grantBusinessIdea(1)` via the bridge — fire-and-forget.
+2. Shows subtle "+1 💡" floating text at pickup position (1500 ms, orange).
+3. Plays a unique synthesized rising-arpeggio SFX (distinct from the standard coin chime).
+4. **Awards no in-game score.** The reward is the +1 Forretningsidee credit on the host balance.
+
+**Failure handling:** Fire-and-forget. No reconcile, no toast. Standalone dev mode logs a warning and the visual feedback still shows.
+
+**Host responsibility (CRITICAL):** Because the call mints paid currency, the landing-page backend MUST validate server-side: signed game-session token, per-run cap (mirror of `F_COIN_RUN_CAP`), rate limit, and `amount === 1`. Without these, browser devtools = free credits.
+
+### 7.5 Spawn Point Persistence
 - `firebombCount`, `firebombPoints`, `totalBonusMultiplierCoinsCollected` persist across levels
 - Full reset on game over/restart
 - `triggeredSpawnConditions` (set of spawn keys) prevents duplicate spawns
+- F-coin run-level state (`fCoinTargetLevel`, `fCoinSpawnsThisRun`) resets only on full game-over reset, not on level transition
 
-### 7.5 Pixel-Art Rendering
+### 7.6 Pixel-Art Rendering
 - Coins rendered as pixel octagon shape (no anti-aliasing)
 - Built from horizontal `fillRect` strips with indented corners (symmetric top/bottom)
 - Shadow (1px offset), depth border, specular highlight pixels
-- Letter centered in pixel font (P, B, M, C)
+- Letter centered in pixel font (P, B, M, F)
 - Subtle pulse animation: `scale = sin(time / 200) * 0.06 + 1`
 
 ---

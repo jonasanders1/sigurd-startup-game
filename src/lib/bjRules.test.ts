@@ -32,7 +32,6 @@ import {
   pCoinSpawnsAt,
   pCoinTokensForBomb,
   registerWallContact,
-  sCoinBasePoints,
   SPAWN_INVULN_MS,
   tokensAddedOnBomb,
   trampolineBasePoints,
@@ -459,15 +458,12 @@ describe("lives cap (BJ HUD constraint)", () => {
   });
 });
 
-describe("E/S coin awards", () => {
+describe("E coin award", () => {
   it("E-coin (extra life) awards 1000 base + 1 life", () => {
     expect(eCoinBasePoints()).toBe(1000);
   });
-
-  // game-specs §7.4: flat 5000 (not multiplied) + immediate level skip.
-  it("S-coin (special) awards a FLAT 5000 + skip level (not multiplied)", () => {
-    expect(sCoinBasePoints()).toBe(5000);
-  });
+  // F-coin (Founder Mode) intentionally awards no score; reward is +1
+  // Forretningsidee via the host bridge. No bjRules assertion required.
 });
 
 // ─── P-coin token pause while P alive ────────────────────────────────────────

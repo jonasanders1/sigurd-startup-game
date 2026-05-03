@@ -85,11 +85,13 @@ export class CoinPhysics {
     coin: Coin,
     platforms: Platform[]
   ): void {
-    // Check collisions with boundaries and reflect (incl. canvas bottom)
-    this.handlePowerCoinBoundaryCollisions(coin);
-
-    // Check collisions with platforms and reflect
+    // Platforms first — they may reposition the coin past a canvas edge if
+    // the platform sits flush against (or extends past) the wall.
     this.handlePowerCoinPlatformCollisions(coin, platforms);
+
+    // Boundaries last — final clamp + reflect ensures the coin can never
+    // end a frame outside the canvas, regardless of platform geometry.
+    this.handlePowerCoinBoundaryCollisions(coin);
   }
 
   /**

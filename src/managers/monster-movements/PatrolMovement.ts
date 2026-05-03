@@ -208,6 +208,14 @@ export class PatrolMovement {
       return;
     }
 
+    // Snapshot pre-transform shape so a kill on the transformed monster
+    // respawns as a fresh mummy. resetMonsterState restores from these
+    // fields and clears them.
+    monster.originalType = monster.type;
+    monster.originalColor = monster.color;
+    monster.originalWidth = monster.width;
+    monster.originalHeight = monster.height;
+
     // Type and color move into the airborne family — the discriminated
     // union doesn't permit cross-variant assignment, so cast through a
     // narrow record for those two fields only.

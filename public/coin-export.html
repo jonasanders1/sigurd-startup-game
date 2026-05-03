@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sigurd Coin Sprite Export</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        font-family: system-ui, sans-serif;
+        background: #1a1a1a;
+        color: #eee;
+        margin: 0;
+        padding: 24px;
+      }
+      h1 { margin: 0 0 4px; font-size: 18px; }
+      p.note { margin: 0 0 16px; color: #888; font-size: 13px; }
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      label { font-size: 13px; }
+      input[type="number"] { width: 64px; padding: 4px 6px; }
+      button {
+        background: #2563eb;
+        border: 0;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      button:hover { background: #1d4ed8; }
+      button.secondary { background: #444; }
+      button.secondary:hover { background: #555; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+      }
+      .cell {
+        background: #222;
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+      }
+      .cell canvas {
+        background: transparent;
+        display: block;
+        margin: 0 auto 8px;
+        image-rendering: pixelated;
+      }
+      .cell .name { font-size: 12px; color: #aaa; }
+      .cell .swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        vertical-align: middle;
+        margin-right: 4px;
+      }
+      #sheetWrap { margin-top: 24px; }
+      #sheetWrap canvas {
+        background: #111;
+        max-width: 100%;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sigurd Coin Sprite Export</h1>
+    <p class="note">
+      Renders coins using the exact same logic as
+      <code>RenderManager.renderCoins</code>. PNGs have transparent background.
+    </p>
+
+    <div class="controls">
+      <label>Size (px):
+        <input id="size" type="number" value="64" min="16" max="512" step="1" />
+      </label>
+      <label>Padding (px):
+        <input id="pad" type="number" value="4" min="0" max="64" step="1" />
+      </label>
+      <button id="redraw">Redraw</button>
+      <button id="downloadAll">Download all PNGs (zip-free)</button>
+      <button id="downloadSheet" class="secondary">Download sprite sheet</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div id="sheetWrap">
+      <h2 style="font-size: 14px; margin: 0 0 8px;">Sprite sheet preview</h2>
+      <canvas id="sheet"></canvas>
+    </div>
+
+    <script type="module">
+      // ---- Coin data (mirrors src/config/coinTypes.ts) ----------------------
+      const P_COIN_COLORS = [
+        { color: "#8fb7ff", name: "Blue" },
+        { color: "#ee90cb", name: "Pink" },
+        { color: "#8465ec", name: "Purple" },
+        { color: "#abdd64", name: "Lime" },
+        { color: "#22d3ee", name: "Cyan" },
+        { color: "#eab308", name: "Yellow" },
+        { color: "#91a6b0", name: "Gray" },
+      ];
+
+      // Each variant: { id, letter, color }
+      const VARIANTS = [
+        { id: "coin-B", letter: "B", color: "#eab308" }, // BONUS_MULTIPLIER
+        { id: "coin-M", letter: "M", color: "#ee90cb" }, // EXTRA_LIFE
+        { id: "coin-F", letter: "F", color: "#f97316" }, // FOUNDER_MODE (FAFO)
+        ...P_COIN_COLORS.map((c) => ({
+          id: `coin-P-${c.name.toLowerCase()}`,
+          letter: "P",
+          color: c.color,
+        })),
+      ];
+
+      // ---- Drawing (mirrors RenderManager.drawPixelOctagon + renderCoins) ---
+      function drawPixelOctagon(ctx, x, y, size, px) {
+        const indent = Math.round(size * 0.25);
+        const rows = Math.round(size / px);
+        const cornerRows = Math.round(rows * 0.2);
+        for (let r = 0; r < rows; r++) {
+          const distFromEdge = Math.min(r, rows - 1 - r);
+          let rowIndent = 0;
+          if (distFromEdge < cornerRows) {
+            rowIndent = Math.round(indent * (1 - distFromEdge / cornerRows));
+          }
+          ctx.fillRect(
+            Math.round(x + rowIndent),
+            Math.round(y + r * px),
+            Math.round(size - rowIndent * 2),
+            px
+          );
+        }
+      }
+
+      function drawCoin(ctx, variant, size, padding) {
+        const s = size;
+        const px = Math.max(1, Math.round(s / 8));
+        const ox = padding;
+        const oy = padding;
+
+        ctx.imageSmoothingEnabled = false;
+
+        // Shadow (1px offset)
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        drawPixelOctagon(ctx, ox + 1, oy + 1, s, px);
+
+        // Main body
+        ctx.fillStyle = variant.color;
+        drawPixelOctagon(ctx, ox, oy, s, px);
+
+        // Dark inner border for depth
+        ctx.fillStyle = "rgba(0,0,0,0.25)";
+        drawPixelOctagon(ctx, ox + px, oy + px, s - px * 2, Math.max(1, px - 1));
+
+        // Highlight top-left
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.fillRect(ox + px * 2, oy + px, px * 2, px);
+        ctx.fillRect(ox + px, oy + px * 2, px, px * 2);
+
+        // Letter
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${Math.round(s * 0.55)}px "Pixelify Sans", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          variant.letter,
+          Math.round(ox + s / 2),
+          Math.round(oy + s / 2) + 1
+        );
+      }
+
+      // ---- UI -----------------------------------------------------------------
+      const $size = document.getElementById("size");
+      const $pad = document.getElementById("pad");
+      const $grid = document.getElementById("grid");
+      const $sheet = document.getElementById("sheet");
+      const $redraw = document.getElementById("redraw");
+      const $downloadAll = document.getElementById("downloadAll");
+      const $downloadSheet = document.getElementById("downloadSheet");
+
+      const cellCanvases = new Map(); // id -> canvas
+
+      function makeCell(variant) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const canvas = document.createElement("canvas");
+        const name = document.createElement("div");
+        name.className = "name";
+        name.innerHTML =
+          `<span class="swatch" style="background:${variant.color}"></span>` +
+          variant.id;
+        cell.appendChild(canvas);
+        cell.appendChild(name);
+        $grid.appendChild(cell);
+        cellCanvases.set(variant.id, canvas);
+        return canvas;
+      }
+
+      function renderAll() {
+        const size = Number($size.value) || 64;
+        const padding = Number($pad.value) || 0;
+        const dim = size + padding * 2;
+
+        for (const v of VARIANTS) {
+          let canvas = cellCanvases.get(v.id);
+          if (!canvas) canvas = makeCell(v);
+          canvas.width = dim;
+          canvas.height = dim;
+          // Display at fixed preview size for readability
+          canvas.style.width = Math.min(96, dim) + "px";
+          canvas.style.height = Math.min(96, dim) + "px";
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, dim, dim);
+          drawCoin(ctx, v, size, padding);
+        }
+
+        renderSheet(size, padding);
+      }
+
+      function renderSheet(size, padding) {
+        const dim = size + padding * 2;
+        const cols = VARIANTS.length;
+        $sheet.width = dim * cols;
+        $sheet.height = dim;
+        const ctx = $sheet.getContext("2d");
+        ctx.clearRect(0, 0, $sheet.width, $sheet.height);
+        VARIANTS.forEach((v, i) => {
+          ctx.save();
+          ctx.translate(i * dim, 0);
+          drawCoin(ctx, v, size, padding);
+          ctx.restore();
+        });
+        $sheet.style.width = Math.min(960, $sheet.width) + "px";
+        $sheet.style.height = "auto";
+      }
+
+      function downloadCanvas(canvas, filename) {
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }, "image/png");
+      }
+
+      $redraw.addEventListener("click", renderAll);
+      $size.addEventListener("change", renderAll);
+      $pad.addEventListener("change", renderAll);
+
+      $downloadAll.addEventListener("click", async () => {
+        // Stagger downloads slightly so the browser doesn't choke
+        for (const v of VARIANTS) {
+          const canvas = cellCanvases.get(v.id);
+          if (!canvas) continue;
+          downloadCanvas(canvas, `${v.id}.png`);
+          await new Promise((r) => setTimeout(r, 80));
+        }
+      });
+
+      $downloadSheet.addEventListener("click", () => {
+        downloadCanvas($sheet, "coins-sheet.png");
+      });
+
+      // Wait for the font to load before first render so the letter uses
+      // Pixelify Sans rather than the fallback.
+      document.fonts.ready.then(renderAll);
+    </script>
+  </body>
+</html>

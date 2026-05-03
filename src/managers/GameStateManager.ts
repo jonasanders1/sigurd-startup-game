@@ -6,7 +6,7 @@ import {
   useCoinStore,
 } from "../stores/gameStore";
 
-import { GameState, MenuType, AudioEvent, TutorialMissionId } from "../types/enums";
+import { GameState, MenuType, AudioEvent, TutorialMissionId, PauseReason } from "../types/enums";
 import { TUTORIAL_MISSIONS, TUTORIAL_MISSION_ORDER } from "../tutorials/missions";
 import type { TutorialManager } from "./TutorialManager";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
@@ -24,7 +24,6 @@ export class GameStateManager {
   private bonusTransitionInProgress = false;
   private activeTimers: Set<ReturnType<typeof setTimeout>> = new Set();
   private onRestartCallback?: () => void;
-  private onSCoinLevelSkip?: () => void;
 
   // Dependencies
   private audioManager: AudioManager;
@@ -66,12 +65,30 @@ export class GameStateManager {
     this.onRestartCallback = callback;
   }
 
-  public setOnSCoinLevelSkip(callback: () => void): void {
-    this.onSCoinLevelSkip = callback;
+  // Pause/resume the spawn + respawn managers under the PowerMode reason,
+  // matching how ScalingManager.pauseForPowerMode/resumeFromPowerMode work.
+  // Encapsulating the pair here keeps the spawn/respawn manager refs
+  // private and gives coinManager a single named call instead of three
+  // optional-chained reach-ins.
+  public pauseForPowerMode(): void {
+    this.monsterSpawnManager.pause(PauseReason.PowerMode);
+    this.monsterRespawnManager.pause(PauseReason.PowerMode);
   }
 
-  public triggerSCoinLevelSkip(): void {
-    this.onSCoinLevelSkip?.();
+  public resumeFromPowerMode(): void {
+    this.monsterSpawnManager.resume(PauseReason.PowerMode);
+    this.monsterRespawnManager.resume(PauseReason.PowerMode);
+  }
+
+  // Expose statuses for diagnostic logging in coinManager.
+  public getPowerModePauseStatus(): {
+    spawnReasons: PauseReason[];
+    respawnReasons: PauseReason[];
+  } {
+    return {
+      spawnReasons: this.monsterSpawnManager.getPauseStatus().pauseReasons,
+      respawnReasons: this.monsterRespawnManager.getPauseStatus().pauseReasons,
+    };
   }
 
   public initializeDevMode(): void {
@@ -212,19 +229,28 @@ export class GameStateManager {
       );
     }
 
-    // Handle music based on state
+    // Tutorials run silent — kill any leftover loop and bail before the
+    // PLAYING start branch can fire.
+    const inTutorial = useStateStore.getState().tutorialMission !== null;
+    if (inTutorial) {
+      if (this.isBackgroundMusicPlaying) {
+        this.audioManager.stopBackgroundMusic();
+        this.isBackgroundMusicPlaying = false;
+      }
+      this.previousGameState = currentState;
+      return;
+    }
+
     if (
       currentState === GameState.PLAYING &&
       !this.audioManager.isPowerUpMelodyActive()
     ) {
-      // Start music if not already playing
       if (!this.isBackgroundMusicPlaying) {
         log.audio("Starting background music");
         this.audioManager.playSound(AudioEvent.BACKGROUND_MUSIC, currentState);
         this.isBackgroundMusicPlaying = true;
       }
     } else if (currentState !== GameState.PLAYING) {
-      // Stop music for all non-playing states (paused, menu, bonus, etc.)
       if (this.isBackgroundMusicPlaying) {
         log.audio(`Stopping background music (state: ${currentState})`);
         this.audioManager.stopBackgroundMusic();

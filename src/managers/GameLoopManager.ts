@@ -194,16 +194,23 @@ export class GameLoopManager {
     // Update respawn manager
     const respawnedMonsters = this.monsterRespawnManager.update();
 
-    let { monsters } = useMonsterStore.getState();
-
     if (respawnedMonsters.length > 0) {
-      monsters = [...monsters, ...respawnedMonsters];
-      log.debug(
-        `Added ${respawnedMonsters.length} respawned monsters to active list`
-      );
+      // Respawn manager mutates the dead monster in place; its ref is still
+      // in the store array (kills set isDead=true, never remove). Dedupe
+      // before reinserting — naive concat would duplicate the ref and the
+      // behavior loop would run movement N times per frame.
+      const { monsters } = useMonsterStore.getState();
+      const respawnedSet = new Set(respawnedMonsters);
+      const next = [
+        ...monsters.filter((m) => !respawnedSet.has(m)),
+        ...respawnedMonsters,
+      ];
+      useMonsterStore.getState().updateMonsters(next);
     }
-
-    useMonsterStore.getState().updateMonsters(monsters);
+    // No respawn this frame: monster mutations (position, velocity) happen
+    // directly on existing object refs in the store array, so subscribers
+    // observe them without a `set` call. Skipping the no-op set avoids a
+    // 60Hz Zustand notification cycle.
   }
 
   private updateCoins(deltaTime: number): void {

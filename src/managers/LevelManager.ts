@@ -157,6 +157,11 @@ export class LevelManager {
       // Record level start time
       this.mapStartTime = Date.now();
 
+      // F-coin: notify coin manager now that currentLevel reflects the level
+      // actually being played. Must run AFTER nextLevel() bumps the store.
+      const { coinManager } = useCoinStore.getState();
+      coinManager?.onLevelStarted();
+
       // Initialize monster spawn manager
       if (mapDefinition.monsterSpawnPoints) {
         log.info(
@@ -233,9 +238,25 @@ export class LevelManager {
   }
 
   public checkWinCondition(): void {
-    const { collectedBombs } = useStateStore.getState();
+    const {
+      collectedBombs,
+      tutorialMission,
+      tutorialResult,
+      currentState,
+    } = useStateStore.getState();
     const { player } = usePlayerStore.getState();
     const { currentMap } = useLevelStore.getState();
+
+    // Tutorials own their own completion; skip while a mission is active,
+    // is finishing this same frame (tutorialResult set, tutorialMission
+    // cleared), or has already flipped state out of PLAYING.
+    if (
+      tutorialMission !== null ||
+      tutorialResult !== null ||
+      currentState !== GameState.PLAYING
+    ) {
+      return;
+    }
 
     // Win when every bomb in THIS map is collected. Reading currentMap.bombs.length
     // (instead of getTuned("TOTAL_BOMBS")) lets editor previews with N<23 bombs
@@ -299,6 +320,7 @@ export class LevelManager {
     const coinsCollected = coinStats.totalCoinsCollected;
     const powerModeActivations = coinStats.totalPowerCoinsCollected;
     const pCoinTierCollections = coinStats.pCoinTierCollections;
+    const founderCoinsCollected = coinStats.totalFounderCoinsCollected;
 
     // Clear floating texts
     clearAllFloatingTexts();
@@ -322,6 +344,7 @@ export class LevelManager {
         coinsCollected: coinsCollected,
         powerModeActivations: powerModeActivations,
         pCoinTierCollections: pCoinTierCollections,
+        founderCoinsCollected: founderCoinsCollected,
         completionTime: completionTime,
         timestamp: Date.now(),
         lives: lives,
@@ -561,6 +584,7 @@ export class LevelManager {
       totalCoinsCollected: gameStats.totalCoinsCollected,
       totalPowerModeActivations: gameStats.totalPowerModeActivations,
       totalPCoinTierCollections: gameStats.totalPCoinTierCollections,
+      totalFounderCoinsCollected: gameStats.totalFounderCoinsCollected,
       totalBombs: gameStats.totalBombs,
       totalCorrectOrders: gameStats.totalCorrectOrders,
       averageCompletionTime: gameStats.averageCompletionTime,

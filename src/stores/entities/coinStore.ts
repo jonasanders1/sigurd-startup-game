@@ -11,8 +11,12 @@ import {
   PCoinTierCollections,
   emptyPCoinTierCollections,
 } from "../../config/coinTypes";
-import { bCoinBasePoints, eCoinBasePoints, sCoinBasePoints } from "../../lib/bjRules";
+import { bCoinBasePoints, eCoinBasePoints } from "../../lib/bjRules";
 import { getTuned } from "../systems/tuningStore";
+import { grantBusinessIdea } from "../../lib/gameBridge";
+import { useRenderStore } from "../systems/renderStore";
+import { useAudioStore } from "../systems/audioStore";
+import { AudioEvent } from "../../types/enums";
 
 interface CoinState {
   coins: Coin[];
@@ -26,6 +30,7 @@ interface CoinState {
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
   totalExtraLifeCoinsCollected: number;
+  totalFounderCoinsCollected: number;
   // Per-tier P-coin breakdown (game-wide, accumulates across levels)
   totalPCoinTierCollections: PCoinTierCollections;
   // Level-specific counters that accumulate across respawns
@@ -33,6 +38,7 @@ interface CoinState {
   levelPowerCoinsCollected: number;
   levelBonusMultiplierCoinsCollected: number;
   levelExtraLifeCoinsCollected: number;
+  levelFounderCoinsCollected: number;
   // Per-tier P-coin breakdown for the current level only
   levelPCoinTierCollections: PCoinTierCollections;
 }
@@ -56,6 +62,7 @@ interface CoinActions {
     totalPowerCoinsCollected: number;
     totalBonusMultiplierCoinsCollected: number;
     totalExtraLifeCoinsCollected: number;
+    totalFounderCoinsCollected: number;
     pCoinTierCollections: PCoinTierCollections;
   };
   getLevelCoinStats: () => {
@@ -63,6 +70,7 @@ interface CoinActions {
     totalPowerCoinsCollected: number;
     totalBonusMultiplierCoinsCollected: number;
     totalExtraLifeCoinsCollected: number;
+    totalFounderCoinsCollected: number;
     pCoinTierCollections: PCoinTierCollections;
   };
 }
@@ -82,12 +90,14 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
   totalPowerCoinsCollected: 0,
   totalBonusMultiplierCoinsCollected: 0,
   totalExtraLifeCoinsCollected: 0,
+  totalFounderCoinsCollected: 0,
   totalPCoinTierCollections: emptyPCoinTierCollections(),
   // Level-specific counters
   levelCoinsCollected: 0,
   levelPowerCoinsCollected: 0,
   levelBonusMultiplierCoinsCollected: 0,
   levelExtraLifeCoinsCollected: 0,
+  levelFounderCoinsCollected: 0,
   levelPCoinTierCollections: emptyPCoinTierCollections(),
 
   // Actions
@@ -214,6 +224,11 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       const newTotalExtraLifeCoinsCollected =
         currentState.totalExtraLifeCoinsCollected +
         (coin.type === "EXTRA_LIFE" || coin.type === CoinType.EXTRA_LIFE ? 1 : 0);
+      const isFounderCoin =
+        coin.type === "FOUNDER_MODE" || coin.type === CoinType.FOUNDER_MODE;
+      const founderIncrement = isFounderCoin ? 1 : 0;
+      const newTotalFounderCoinsCollected =
+        currentState.totalFounderCoinsCollected + founderIncrement;
 
       // Update level-specific counters (these accumulate across respawns)
       const newLevelCoinsCollected = currentState.levelCoinsCollected + 1;
@@ -224,6 +239,8 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       const newLevelExtraLifeCoinsCollected =
         currentState.levelExtraLifeCoinsCollected +
         (coin.type === "EXTRA_LIFE" || coin.type === CoinType.EXTRA_LIFE ? 1 : 0);
+      const newLevelFounderCoinsCollected =
+        currentState.levelFounderCoinsCollected + founderIncrement;
 
       // IMPORTANT: Spread existing state to preserve all fields, then update only what changed
       const updatedState = {
@@ -234,11 +251,13 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         totalPowerCoinsCollected: newTotalPowerCoinsCollected,
         totalBonusMultiplierCoinsCollected: newTotalBonusMultiplierCoinsCollected,
         totalExtraLifeCoinsCollected: newTotalExtraLifeCoinsCollected,
+        totalFounderCoinsCollected: newTotalFounderCoinsCollected,
         totalPCoinTierCollections: newTotalPCoinTierCollections,
         levelCoinsCollected: newLevelCoinsCollected,
         levelPowerCoinsCollected: newLevelPowerCoinsCollected,
         levelBonusMultiplierCoinsCollected: newLevelBonusMultiplierCoinsCollected,
         levelExtraLifeCoinsCollected: newLevelExtraLifeCoinsCollected,
+        levelFounderCoinsCollected: newLevelFounderCoinsCollected,
         levelPCoinTierCollections: newLevelPCoinTierCollections,
       };
 
@@ -295,16 +314,24 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       scoreStore.addScore(eCoinBasePoints());
       stateStore.addLife();
       log.player(`Extra life added via coin store!`);
-    } else if (coin.type === "SPECIAL") {
-      // BJ S-coin (game-specs §7.4): flat 5000 (NOT multiplied) + immediate
-      // level skip (forfeit firebomb bonus). addRawScore avoids the multiply.
-      scoreStore.addRawScore(sCoinBasePoints());
-      const gsm = stateStore.gameStateManager;
-      if (gsm && typeof gsm.triggerSCoinLevelSkip === "function") {
-        gsm.triggerSCoinLevelSkip();
-      } else {
-        log.warn("S-coin collected but no gameStateManager.triggerSCoinLevelSkip available");
-      }
+    } else if (coin.type === "FOUNDER_MODE") {
+      // F-coin (Founder Mode, FAFO): grant +1 Forretningsidee to host balance.
+      // No score award, no level skip — the reward is the credit itself.
+      // Fire-and-forget; host MUST validate server-side.
+      grantBusinessIdea(1);
+
+      // Subtle pickup feedback: floating "+1 💡" text + unique sound variant.
+      useRenderStore.getState().addFloatingText?.(
+        "+1 💡",
+        coin.x + coin.width / 2,
+        coin.y + coin.height / 2,
+        1500,
+        "#f97316",
+        18
+      );
+      useAudioStore
+        .getState()
+        .audioManager?.playSound(AudioEvent.F_COIN_COLLECT);
     }
 
     log.coin(
@@ -349,7 +376,9 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalPowerCoinsCollected: 0,
       totalBonusMultiplierCoinsCollected: 0,
       totalExtraLifeCoinsCollected: 0,
+      totalFounderCoinsCollected: 0,
       totalPCoinTierCollections: emptyPCoinTierCollections(),
+      levelFounderCoinsCollected: 0,
       levelPCoinTierCollections: emptyPCoinTierCollections(),
     });
 
@@ -384,6 +413,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         totalPowerCoinsCollected: currentState.totalPowerCoinsCollected,
         totalBonusMultiplierCoinsCollected: currentState.totalBonusMultiplierCoinsCollected,
         totalExtraLifeCoinsCollected: currentState.totalExtraLifeCoinsCollected,
+        totalFounderCoinsCollected: currentState.totalFounderCoinsCollected,
       };
     });
     
@@ -401,6 +431,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       levelPowerCoinsCollected: 0,
       levelBonusMultiplierCoinsCollected: 0,
       levelExtraLifeCoinsCollected: 0,
+      levelFounderCoinsCollected: 0,
       levelPCoinTierCollections: emptyPCoinTierCollections(),
     });
   },
@@ -413,6 +444,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalBonusMultiplierCoinsCollected:
         state.totalBonusMultiplierCoinsCollected,
       totalExtraLifeCoinsCollected: state.totalExtraLifeCoinsCollected,
+      totalFounderCoinsCollected: state.totalFounderCoinsCollected,
       pCoinTierCollections: state.totalPCoinTierCollections,
     };
   },
@@ -425,6 +457,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
       totalBonusMultiplierCoinsCollected:
         state.levelBonusMultiplierCoinsCollected,
       totalExtraLifeCoinsCollected: state.levelExtraLifeCoinsCollected,
+      totalFounderCoinsCollected: state.levelFounderCoinsCollected,
       pCoinTierCollections: state.levelPCoinTierCollections,
     };
   },

@@ -18,7 +18,7 @@ import { getTuned } from "../stores/systems/tuningStore";
 export const COIN_EFFECTS = {
   POWER_MODE: {
     type: "POWER_MODE",
-    duration: GAME_CONFIG.POWER_COIN_DURATION as number, // Default duration (will be overridden)
+    duration: GAME_CONFIG.POWER_COIN_DURATION, // Default; overridden per pickup by coin color
     points: GAME_CONFIG.POWER_COIN_POINTS,
     apply: (gameState: GameStateInterface, coin?: any) => {
       // Calculate duration based on coin color if available
@@ -43,16 +43,21 @@ export const COIN_EFFECTS = {
         }
       }
 
-      // Freeze monsters (safely handle undefined monsters)
+      // Freeze monsters (safely handle undefined monsters). Stamp frozenAt
+      // so we can shift wall-clock timestamps on unfreeze; otherwise
+      // movement classes see a bogus 7s gap on the first post-freeze frame
+      // (e.g. Bird snaps onto player, Ambusher instantly redirects).
+      const freezeStart = Date.now();
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
         gameState.monsters.forEach((monster) => {
           monster.isFrozen = true;
+          monster.frozenAt = freezeStart;
         });
       }
 
       // Enable monster killing
       gameState.activeEffects.powerMode = true;
-      gameState.activeEffects.powerModeEndTime = Date.now() + duration;
+      gameState.activeEffects.powerModeEndTime = freezeStart + duration;
 
       // Reset monster kill count for new power mode session
       if (gameState.coinManager) {
@@ -69,8 +74,10 @@ export const COIN_EFFECTS = {
         );
       }
 
+      // Spawn/respawn pause is owned by coinManager around effect.apply
+      // (importing useStateStore here would create a circular dependency).
+
       // Start power-up melody with the correct duration
-      // Get audioManager from the audioStore instead of gameState
       const audioStore = useAudioStore.getState();
       if (audioStore.audioManager && typeof audioStore.audioManager.startPowerUpMelodyWithDuration === 'function') {
         log.audio(`Starting PowerUp melody from coin effect for ${duration}ms`);
@@ -96,12 +103,36 @@ export const COIN_EFFECTS = {
       
       // Unfreeze monsters (safely handle undefined monsters).
       // BJ mutation pass-through: tunable safe window when monster unfreezes.
+      // Also shift wall-clock timestamps forward by the freeze duration so
+      // movement classes resume cleanly (no 7s gap that would cause Bird to
+      // snap onto player, etc.).
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
         const now = Date.now();
         const passthrough = getTuned("MUTATION_PASSTHROUGH_MS");
         gameState.monsters.forEach((monster) => {
-          if (monster.isFrozen) monster.mutationEndTime = now + passthrough;
+          if (monster.isFrozen) {
+            monster.mutationEndTime = now + passthrough;
+
+            // Shift any wall-clock timestamps the monster carries forward by
+            // the freeze duration so `currentTime - <ts>` returns the same
+            // elapsed value it would have without the freeze.
+            const freezeDuration = monster.frozenAt
+              ? now - monster.frozenAt
+              : 0;
+            if (freezeDuration > 0) {
+              if (monster.lastDirectionChange !== undefined) {
+                monster.lastDirectionChange += freezeDuration;
+              }
+              if (monster.lastSeenAt !== undefined) {
+                monster.lastSeenAt += freezeDuration;
+              }
+              if (monster.nextHopTime !== undefined) {
+                monster.nextHopTime += freezeDuration;
+              }
+            }
+          }
           monster.isFrozen = false;
+          monster.frozenAt = undefined;
         });
       }
       gameState.activeEffects.powerMode = false;
@@ -136,12 +167,12 @@ export const COIN_EFFECTS = {
     },
   },
 
-  SPECIAL: {
-    type: "SPECIAL",
-    points: 1000,
+  FOUNDER_MODE: {
+    type: "FOUNDER_MODE",
+    points: 0, // F-coin awards no in-game score; reward is the +1 Forretningsidee.
     apply: () => {
-      // Score, level-skip, and audio are handled by coinStore.collectCoin()
-      // and gameStateManager.triggerSCoinLevelSkip().
+      // Bridge call (grantBusinessIdea), floating text, and audio are
+      // handled by coinStore.collectCoin().
     },
   },
 };
@@ -161,53 +192,55 @@ export const COIN_PHYSICS = {
   },
 
   GRAVITY_ONLY: {
-    hasGravity: false, // We'll handle gravity manually
+    hasGravity: false,
     bounces: false,
     reflects: false,
-    customUpdate: (coin, platforms, deltaTime) => {
-      const FALL_SPEED = 2;
-      const HORIZONTAL_SPEED = 1;
-      const LANDING_TOLERANCE = 4; // For detecting when coin lands on platform
-      const EDGE_TOLERANCE = 0; // For detecting when coin should fall off platform
+    // Bomb-Jack-style gravity-only coins (B / M / F):
+    //  1. Fall straight down at constant FALL_SPEED until they hit a platform
+    //     or the canvas floor.
+    //  2. On a platform: pick a random direction (left/right) and walk.
+    //     - Hitting a canvas wall reverses direction (bounce, keep walking).
+    //     - Reaching the open platform edge → fall off, continue falling.
+    //  3. On the canvas floor: bounce wall-to-wall forever until collected.
+    //
+    // Velocity values are PER FRAME at 60 FPS. The standard updateCoin loop
+    // already applies `frameMultiplier` once when integrating position, so
+    // do NOT pre-multiply velocity here and do NOT touch coin.x/coin.y
+    // directly except to clamp.
+    customUpdate: (coin, platforms) => {
+      const FALL_SPEED = 2; // px/frame at 60 FPS — slow, fixed.
+      const HORIZONTAL_SPEED = 2; // px/frame at 60 FPS.
+      const LANDING_TOLERANCE = 4;
+      // 0 (not 1) so the fall-off threshold lines up with the landing
+      // threshold: the coin only falls when it's fully past the platform
+      // edge, at which point the landing check correctly says "not aligned"
+      // and won't re-snap the coin back onto the platform.
+      const EDGE_TOLERANCE = 0;
 
-      // If falling
-      if (coin.velocityY > 0 || coin.velocityY === undefined) {
-        coin.velocityX = 0;
-        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-        coin.velocityY = FALL_SPEED * frameMultiplier;
-      }
-
-      // Canvas-bottom collision (Ground entity removed; canvas bottom = floor).
+      // ── On the canvas floor ────────────────────────────────────────────
       if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
         coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
         coin.velocityY = 0;
-        // If not already moving horizontally, pick a direction
+        coin.platformDirection = null;
+
         if (!coin.groundDirection) {
           coin.groundDirection = Math.random() < 0.5 ? -1 : 1;
-          const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-          coin.velocityX = coin.groundDirection * HORIZONTAL_SPEED * frameMultiplier;
         }
-        // Move horizontally
-        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-        coin.x += coin.velocityX * frameMultiplier;
-        // Bounce off map boundaries
+
+        // Bounce off canvas walls: reverse direction.
         if (coin.x <= 0) {
           coin.x = 0;
           coin.groundDirection = 1;
-          const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-          coin.velocityX = HORIZONTAL_SPEED * frameMultiplier;
         } else if (coin.x + coin.width >= GAME_CONFIG.CANVAS_WIDTH) {
           coin.x = GAME_CONFIG.CANVAS_WIDTH - coin.width;
           coin.groundDirection = -1;
-          const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-          coin.velocityX = -HORIZONTAL_SPEED * frameMultiplier;
         }
+        coin.velocityX = coin.groundDirection * HORIZONTAL_SPEED;
         return;
       }
 
-      // Check for platform collision (landing)
-      let landedOnPlatform = false;
-      let currentPlatform = null;
+      // ── Look for a platform under the coin ─────────────────────────────
+      let landedPlatform: typeof platforms[number] | null = null;
       for (const platform of platforms) {
         const coinBottom = coin.y + coin.height;
         const platformTop = platform.y;
@@ -217,41 +250,55 @@ export const COIN_PHYSICS = {
         const isHorizontallyAligned =
           coin.x < platform.x + platform.width &&
           coin.x + coin.width > platform.x;
-        if (isOnTop && isHorizontallyAligned) {
-          landedOnPlatform = true;
-          currentPlatform = platform;
+        // Only LAND when descending (velocityY >= 0). Coins shouldn't snap
+        // onto a platform while passing through from below.
+        if (isOnTop && isHorizontallyAligned && coin.velocityY >= 0) {
+          landedPlatform = platform;
           coin.y = platformTop - coin.height;
           coin.velocityY = 0;
-          // Pick a random horizontal direction if not already moving
           if (!coin.platformDirection) {
             coin.platformDirection = Math.random() < 0.5 ? -1 : 1;
-            const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-            coin.velocityX = coin.platformDirection * HORIZONTAL_SPEED * frameMultiplier;
+            coin.velocityX = coin.platformDirection * HORIZONTAL_SPEED;
           }
           break;
         }
       }
 
-      if (landedOnPlatform && currentPlatform) {
-        // Move horizontally
-        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-        coin.x += coin.velocityX * frameMultiplier;
-        // If at edge, fall off
-        if (
-          coin.x + coin.width <= currentPlatform.x + EDGE_TOLERANCE ||
-          coin.x >= currentPlatform.x + currentPlatform.width - EDGE_TOLERANCE
-        ) {
+      // ── Walking on a platform ──────────────────────────────────────────
+      if (landedPlatform) {
+        // Canvas wall takes priority over platform edge: bounce, keep walking.
+        if (coin.x <= 0) {
+          coin.x = 0;
+          coin.platformDirection = 1;
+          coin.velocityX = HORIZONTAL_SPEED;
+          return;
+        }
+        if (coin.x + coin.width >= GAME_CONFIG.CANVAS_WIDTH) {
+          coin.x = GAME_CONFIG.CANVAS_WIDTH - coin.width;
+          coin.platformDirection = -1;
+          coin.velocityX = -HORIZONTAL_SPEED;
+          return;
+        }
+
+        // Platform edge (no wall blocking) → fall off.
+        const offLeft =
+          coin.x + coin.width <= landedPlatform.x + EDGE_TOLERANCE;
+        const offRight =
+          coin.x >= landedPlatform.x + landedPlatform.width - EDGE_TOLERANCE;
+        if (offLeft || offRight) {
           coin.platformDirection = null;
           coin.velocityX = 0;
-          coin.velocityY = FALL_SPEED * frameMultiplier;
+          coin.velocityY = FALL_SPEED;
         }
-      } else if (!landedOnPlatform) {
-        // If not on platform or ground, fall
-        coin.platformDirection = null;
-        coin.velocityX = 0;
-        const frameMultiplier = deltaTime ? deltaTime / 16.67 : 1; // 16.67ms = 60fps
-        coin.velocityY = FALL_SPEED * frameMultiplier;
+        // else: keep walking — velocityX is already set, std update advances x.
+        return;
       }
+
+      // ── Free-falling: not on platform, not on floor ────────────────────
+      coin.platformDirection = null;
+      coin.groundDirection = null;
+      coin.velocityX = 0;
+      coin.velocityY = FALL_SPEED;
     },
   },
 };
@@ -328,14 +375,14 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     maxActive: 1,
   },
 
-  [CoinType.SPECIAL]: {
-    type: CoinType.SPECIAL,
-    color: "#f97316", // tailwind orange-500 — distinctive vs B/E coins
-    points: 1000,
+  [CoinType.FOUNDER_MODE]: {
+    type: CoinType.FOUNDER_MODE,
+    color: "#f97316", // tailwind orange-500 — Founder Mode (FAFO) signature.
+    points: 0, // F-coin grants Forretningsidee, no score award.
     physics: COIN_PHYSICS.GRAVITY_ONLY,
-    effects: [COIN_EFFECTS.SPECIAL],
-    // Per-level chance is rolled inside CoinManager (see rollSCoinForLevel);
-    // this gate is unused but kept for COIN_TYPES iteration consistency.
+    effects: [COIN_EFFECTS.FOUNDER_MODE],
+    // Run-level roll happens inside CoinManager (see rollFCoinForRun); this
+    // gate is unused but kept for COIN_TYPES iteration consistency.
     spawnCondition: () => false,
     maxActive: 1,
   },
