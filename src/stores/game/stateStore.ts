@@ -191,10 +191,19 @@ export const useStateStore = create<StateStore>((set, get) => ({
     // Check if game over after setting new lives
     if (newLives <= 0) {
       log.game(`GAME OVER triggered at ${newLives} lives`);
-      set({
-        currentState: GameState.GAME_OVER,
-        showMenu: MenuType.GAME_OVER,
-      });
+      // Route through GameStateManager so handleStateTransition fires —
+      // that's where the P-coin ambient loop, power-up melody, and all the
+      // pausable managers get torn down. A direct `set` would update the
+      // HUD state but leave the P-coin loop playing into the menu.
+      const gameStateManager = get().gameStateManager;
+      if (gameStateManager) {
+        gameStateManager.setState(GameState.GAME_OVER, MenuType.GAME_OVER);
+      } else {
+        set({
+          currentState: GameState.GAME_OVER,
+          showMenu: MenuType.GAME_OVER,
+        });
+      }
       sendGameStateUpdate(GameState.GAME_OVER, levelStore.currentMap?.name);
 
       // Send comprehensive game completion data for game over
