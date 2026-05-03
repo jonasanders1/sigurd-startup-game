@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
+  useCoinStore,
   useScoreStore,
   useStateStore,
 } from "../../../stores/gameStore";
@@ -12,7 +13,7 @@ import {
   Maximize,
   Minimize,
 } from "lucide-react";
-import { calculateMultiplierProgress } from "../../../lib/scoringUtils";
+import { GAME_CONFIG } from "../../../types/constants";
 import { useFullscreen } from "../../../hooks/useFullscreen";
 import { useAnimatedScore } from "../../../hooks/useAnimatedScore";
 import TutorialHUD from "./TutorialHUD";
@@ -41,7 +42,8 @@ const MULT_GLOW: Record<number, string> = {
 
 const InGameMenu: React.FC = () => {
   const { currentState, currentLevel, gameStateManager, isPaused, tutorialMission } = useStateStore();
-  const { score, multiplier, multiplierScore } = useScoreStore();
+  const { score, multiplier } = useScoreStore();
+  const bombAndMonsterPoints = useCoinStore((s) => s.bombAndMonsterPoints);
   const inTutorial = tutorialMission !== null;
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
@@ -68,14 +70,18 @@ const InGameMenu: React.FC = () => {
     }
   };
 
-  const progress = calculateMultiplierProgress(multiplierScore, multiplier);
+  // BJ canonical: multiplier advances ONLY via B-coin pickup (bjRules.ts:74).
+  // The bar tracks progress to the next B-coin spawn — every BONUS_COIN_SPAWN_INTERVAL
+  // points of bombs/kills/trampoline (see bjRules.isThresholdablePointSource).
+  const interval = GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
+  const bcoinProgress = (bombAndMonsterPoints % interval) / interval;
   const isScoreAnimating = animatedScore !== score;
   const showPlayPause = currentState === GameState.PLAYING || currentState === GameState.PAUSED;
 
   const multGradient = MULT_GRADIENT[multiplier] ?? MULT_GRADIENT[1];
   const multGlow = MULT_GLOW[multiplier] ?? MULT_GLOW[1];
   const isMax = multiplier >= 5;
-  const fillPct = isMax ? 100 : progress * 100;
+  const fillPct = bcoinProgress * 100;
 
   return (
     <div
@@ -108,12 +114,23 @@ const InGameMenu: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Multiplier bar — absolute centered ── */}
+          {/* ── Multiplier label + B-coin progress bar — absolute centered ── */}
           <div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60"
-            style={{ width: 200 }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2"
           >
-            <div className="relative h-5 rounded-full overflow-hidden bg-[var(--surface)] border border-[var(--surface-line)]">
+            <span
+              className="font-pixel text-sm leading-none shrink-0 tabular-nums"
+              style={{
+                color: "var(--foreground)",
+                textShadow: `0 0 6px ${multGlow}`,
+              }}
+            >
+              x{multiplier}{isMax ? " MAX" : ""}
+            </span>
+            <div
+              className="relative h-3 rounded-full overflow-hidden bg-[var(--surface)] border border-[var(--surface-line)] opacity-80"
+              style={{ width: 160 }}
+            >
               <div
                 className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
                 style={{
@@ -122,17 +139,6 @@ const InGameMenu: React.FC = () => {
                   boxShadow: `0 0 8px ${multGlow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
                 }}
               />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span
-                  className="font-pixel text-[11px] leading-none"
-                  style={{
-                    color: "#fff",
-                    textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  x{multiplier}{isMax ? " MAX" : ""}
-                </span>
-              </div>
             </div>
           </div>
 

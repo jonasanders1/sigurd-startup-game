@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { GameState, MenuType, TutorialMissionId } from "../../types/enums";
+import { AudioEvent, GameState, MenuType, TutorialMissionId } from "../../types/enums";
+import { useAudioStore } from "../systems/audioStore";
 import { Bomb } from "../../types/interfaces";
 import { BombManager } from "../../managers/bombManager";
 import { GAME_CONFIG } from "../../types/constants";
@@ -321,7 +322,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
     const coinStore = useCoinStore.getState();
     if (coinStore.coinManager) {
       coinStore.coinManager.onFirebombPointsEarned(scoreCalculation.actualPoints); // stats only
-      coinStore.coinManager.onPointsEarned(scoreCalculation.actualPoints, false);
+      coinStore.onPointsEarned(scoreCalculation.actualPoints, false);
     }
 
     // Log the score (only for firebombs or high scores to reduce spam)
@@ -417,6 +418,9 @@ export const useStateStore = create<StateStore>((set, get) => ({
     if (!subTasks) return;
     if (subTasks[tutorialSubTasks.length]?.id !== id) return;
     set({ tutorialSubTasks: [...tutorialSubTasks, id] });
+    useAudioStore.getState().audioManager?.playSound(
+      AudioEvent.TUTORIAL_SUBTASK_COMPLETE,
+    );
   },
 
   resetTutorialSubTasks: () => set({ tutorialSubTasks: [] }),

@@ -73,11 +73,11 @@ export class PlayerManager {
     const actual = base * scoreStore.multiplier;
     scoreStore.addScore(base); // multiplies internally
 
-    const { coinManager } = useCoinStore.getState();
-    if (coinManager) {
-      coinManager.advanceLivePcoinColors();
+    const coinStore = useCoinStore.getState();
+    if (coinStore.coinManager) {
+      coinStore.coinManager.advanceLivePcoinColors();
       // BJ canonical: trampoline points count toward B-coin threshold.
-      coinManager.onPointsEarned(actual, false);
+      coinStore.onPointsEarned(actual, false);
     }
 
     log.debug(`Trampoline action: ${reason}`);

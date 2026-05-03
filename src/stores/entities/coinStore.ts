@@ -26,6 +26,10 @@ interface CoinState {
     powerModeEndTime: number;
   };
   firebombCount: number;
+  /** Mirrors CoinManager.bombAndMonsterPoints so the HUD can render B-coin
+   *  spawn progress reactively. Only thresholdable score sources increment
+   *  this — bombs, monster kills, trampoline (see bjRules.isThresholdablePointSource). */
+  bombAndMonsterPoints: number;
   totalCoinsCollected: number;
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
@@ -86,6 +90,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     powerModeEndTime: 0,
   },
   firebombCount: 0,
+  bombAndMonsterPoints: 0,
   totalCoinsCollected: 0,
   totalPowerCoinsCollected: 0,
   totalBonusMultiplierCoinsCollected: 0,
@@ -125,6 +130,9 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     const { coinManager } = get();
     if (coinManager) {
       coinManager.onPointsEarned(points, isBonus);
+      if (!isBonus) {
+        set({ bombAndMonsterPoints: coinManager.getBombAndMonsterPoints() });
+      }
     }
   },
 
@@ -372,6 +380,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         powerModeEndTime: 0,
       },
       firebombCount: 0,
+      bombAndMonsterPoints: 0,
       totalCoinsCollected: 0,
       totalPowerCoinsCollected: 0,
       totalBonusMultiplierCoinsCollected: 0,
@@ -512,6 +521,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         powerMode: false,
         powerModeEndTime: 0,
       },
+      bombAndMonsterPoints: 0,
     });
   },
 }));

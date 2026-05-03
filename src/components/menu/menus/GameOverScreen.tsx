@@ -9,6 +9,7 @@ import { useBalanceStore } from "../../../stores/systems/balanceStore";
 import { deductCredits } from "../../../lib/gameBridge";
 import { waitForGameSaveConfirmation } from "../../../lib/communicationUtils";
 import { Loader2, Check, X } from "lucide-react";
+import gameOverData from "../../../data/gameover.json";
 
 const GameOverScreen: React.FC = () => {
   const { gameStateManager } = useStateStore.getState();
@@ -16,6 +17,12 @@ const GameOverScreen: React.FC = () => {
   const [isSaving, setIsSaving] = useState(true);
   const [isDeducting, setIsDeducting] = useState(false);
   const { balance, hasBridge, insufficientFunds } = useBalanceStore();
+  const [flavorMessage] = useState(
+    () =>
+      gameOverData.gameOverMessages[
+        Math.floor(Math.random() * gameOverData.gameOverMessages.length)
+      ]
+  );
 
   const levelResults = getLevelResults();
 
@@ -54,7 +61,9 @@ const GameOverScreen: React.FC = () => {
       <h1 className="text-4xl font-pixel text-foreground tracking-wide mb-1">
         KAPITALEN TØRKET UT
       </h1>
-      <p className="text-sm text-[var(--foreground-dim)] mb-4">Startupen gikk konkurs</p>
+      <p className="text-sm italic text-[var(--foreground-dim)] mb-4 max-w-xl mx-auto">
+        {flavorMessage}
+      </p>
 
       {levelResults.length > 0 && (
         <PixelBezel className="p-0 mb-6">
