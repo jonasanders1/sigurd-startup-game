@@ -1,7 +1,12 @@
 import { Monster } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
+import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { MonsterType } from "../types/enums";
 import { getDefaultHitbox } from "../config/monsterHitboxes";
+import {
+  cornerToBirdSpawnPosition,
+  type SpawnCorner,
+} from "../lib/birdSpawn";
 
 /**
  * Monster Factory - Centralized monster creation functions
@@ -184,6 +189,33 @@ export const createBirdMonster = (
     directness,
     chaseUpdateInterval: updateInterval,
   } as Monster;
+};
+
+/**
+ * Spec §5.1.1: every level has exactly one mechanical bird, persistent
+ * through the level. Picks a random corner at spawn (LevelManager will
+ * reposition based on player input via applyBirdCornerSpawn) and scales
+ * speed linearly with level number. Use this from LevelManager — birds
+ * should NOT be authored per-level in mapDefinitions.ts.
+ */
+const ALL_CORNERS: SpawnCorner[] = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+];
+export const createLevelBird = (level: number): Monster => {
+  const corner = ALL_CORNERS[Math.floor(Math.random() * ALL_CORNERS.length)];
+  const pos = cornerToBirdSpawnPosition(corner, {
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    // Use playfield bottom (top of the floor strip) so bottom corners
+    // spawn above the restricted ground, not inside it.
+    height: PLAYFIELD_BOTTOM,
+    monsterSize: GAME_CONFIG.MONSTER_SIZE,
+  });
+  // 0.7 at L1 → 1.1 at L9 (linear). Clamps gracefully past L9 if maps grow.
+  const speed = 0.7 + Math.min(level - 1, 8) * 0.05;
+  return createBirdMonster(pos.x, pos.y, speed, 0.2, 500, 2500);
 };
 
 /**

@@ -12,11 +12,14 @@ import {
   Play,
   Maximize,
   Minimize,
+  Lightbulb,
 } from "lucide-react";
 import { GAME_CONFIG } from "../../../types/constants";
 import { useFullscreen } from "../../../hooks/useFullscreen";
 import { useAnimatedScore } from "../../../hooks/useAnimatedScore";
 import TutorialHUD from "./TutorialHUD";
+import { useBalanceStore } from "../../../stores/systems/balanceStore";
+import coffeeIcon from "../../../assets/sprites/coffee/sprite_0.png";
 import {
   Tooltip,
   TooltipContent,
@@ -41,10 +44,12 @@ const MULT_GLOW: Record<number, string> = {
 };
 
 const InGameMenu: React.FC = () => {
-  const { currentState, currentLevel, gameStateManager, isPaused, tutorialMission } = useStateStore();
+  const { currentState, currentLevel, gameStateManager, isPaused, tutorialMission, lives } = useStateStore();
   const { score, multiplier } = useScoreStore();
   const bombAndMonsterPoints = useCoinStore((s) => s.bombAndMonsterPoints);
+  const { balance, hasBridge } = useBalanceStore();
   const inTutorial = tutorialMission !== null;
+  const showBalance = hasBridge && balance !== null;
 
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen();
@@ -89,6 +94,17 @@ const InGameMenu: React.FC = () => {
       className="w-full relative flex items-center gap-3 px-3 py-1.5 bg-[var(--background-deep)] border-b border-[var(--surface-line)] rounded-t-lg"
       style={{ minHeight: 40 }}
     >
+      {/* ── Balance (visible across all states when bridge/mock is active) ── */}
+      {showBalance && (
+        <>
+          <div className="flex items-center gap-1 shrink-0 font-mono text-xs">
+            <Lightbulb size={12} className="text-primary" />
+            <span className="text-foreground tabular-nums">{balance}</span>
+          </div>
+          <div className="w-px h-5 bg-[var(--surface-line)] shrink-0" />
+        </>
+      )}
+
       {inTutorial ? (
         <div className="flex-1 flex items-center">
           <TutorialHUD />
@@ -114,10 +130,32 @@ const InGameMenu: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Multiplier label + B-coin progress bar — absolute centered ── */}
+          {/* ── Lives + Multiplier + B-coin progress bar — absolute centered ── */}
           <div
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2"
           >
+            {/* Lives (coffee cups) */}
+            <div className="flex items-center gap-1 shrink-0">
+              {Array.from({ length: Math.min(lives, 3) }).map((_, i) => (
+                <img
+                  key={i}
+                  src={coffeeIcon}
+                  alt=""
+                  width={20}
+                  height={20}
+                  style={{ imageRendering: "pixelated" }}
+                  draggable={false}
+                />
+              ))}
+              {lives > 3 && (
+                <span className="text-[var(--accent-pink)] font-pixel text-xs ml-0.5">
+                  +{lives - 3}
+                </span>
+              )}
+            </div>
+
+            <div className="w-px h-5 bg-[var(--surface-line)] shrink-0" />
+
             <span
               className="font-pixel text-sm leading-none shrink-0 tabular-nums"
               style={{

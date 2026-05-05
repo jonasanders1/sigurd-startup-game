@@ -1,5 +1,6 @@
 import { Monster, Platform } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
+import { PLAYFIELD_BOTTOM } from "../../config/floor";
 
 export class MovementUtils {
   public static checkMonsterPlatformCollision(
@@ -117,24 +118,22 @@ export class MovementUtils {
       newX <= 0 ||
       newX + monster.width >= GAME_CONFIG.CANVAS_WIDTH ||
       newY <= 0 ||
-      newY + monster.height >= GAME_CONFIG.CANVAS_HEIGHT
+      newY + monster.height >= PLAYFIELD_BOTTOM
     );
   }
 
   /**
-   * Clamp monster position to map boundaries
+   * Clamp monster position to playfield boundaries (bottom = floor-top).
    */
   public static clampToBoundaries(monster: Monster): void {
     monster.x = Math.max(0, Math.min(monster.x, GAME_CONFIG.CANVAS_WIDTH - monster.width));
-    monster.y = Math.max(0, Math.min(monster.y, GAME_CONFIG.CANVAS_HEIGHT - monster.height));
+    monster.y = Math.max(0, Math.min(monster.y, PLAYFIELD_BOTTOM - monster.height));
   }
 
   /**
    * Check if movement to new position is safe (no platform collisions and
-   * within canvas boundaries). The canvas bottom is the floor, so monsters
-   * are allowed to walk along it — the boundary check uses `<` / `>` rather
-   * than the inclusive variant in `isOutsideBoundaries` so the floor itself
-   * is walkable.
+   * within playfield boundaries). The floor strip top is the ground —
+   * monsters walk on it but cannot enter it.
    */
   public static isMovementSafe(
     monster: Monster,
@@ -142,12 +141,12 @@ export class MovementUtils {
     newY: number,
     platforms: any[]
   ): boolean {
-    // Stay strictly inside the canvas left/right and top; allow the floor.
+    // Stay strictly inside the canvas left/right/top and the floor-top.
     if (
       newX < 0 ||
       newX + monster.width > GAME_CONFIG.CANVAS_WIDTH ||
       newY < 0 ||
-      newY + monster.height > GAME_CONFIG.CANVAS_HEIGHT
+      newY + monster.height > PLAYFIELD_BOTTOM
     ) {
       return false;
     }

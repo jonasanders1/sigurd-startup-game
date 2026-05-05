@@ -210,9 +210,9 @@ export class CollisionManager {
       updatedPlayer.velocityY = 0;
       updatedPlayer.gravityIndex = GRAVITY_APEX_INDEX;
     } else if (normal.y === -1) {
-      // Bottom boundary now acts as a floor (Ground entity removed). Clamp,
-      // zero vertical velocity, and latch grounded so the LUT settles to
-      // apex on the next physics tick.
+      // Bottom boundary acts as a floor — caller passes bounds.height =
+      // PLAYFIELD_BOTTOM (top of the decorative floor strip), so the player
+      // lands on top of the ground. Clamp, zero velocity, latch grounded.
       updatedPlayer.y = bounds.height - player.height;
       updatedPlayer.velocityY = 0;
       updatedPlayer.isGrounded = true;

@@ -4,6 +4,7 @@ import { EditorEntity, MonsterEntity } from "./types";
 import { MonsterType, CoinType } from "../types/enums";
 import { Trash2, Copy, Layers } from "lucide-react";
 import { PLATFORM_THEMES, DEFAULT_PLATFORM_THEME } from "../config/platformTiles";
+import { FLOOR_VARIANTS_BY_STYLE, type FloorVariant } from "../config/floor";
 
 const labelStyle: React.CSSProperties = {
   display: "block",
@@ -486,6 +487,34 @@ export const PropertiesPanel: React.FC = () => {
             value={meta.spawnIndicatorColor}
             onChange={(v) => setMeta({ spawnIndicatorColor: v })}
           />
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Floor</label>
+            <select
+              style={inputStyle}
+              value={meta.floor ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                setMeta({ floor: v === "" ? undefined : (v as FloorVariant) });
+                commitHistory();
+              }}
+            >
+              <option value="">(none)</option>
+              <optgroup label="Striped">
+                {FLOOR_VARIANTS_BY_STYLE.striped.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Clean">
+                {FLOOR_VARIANTS_BY_STYLE.clean.map((v) => (
+                  <option key={v} value={v}>
+                    {v.replace(/-clean$/, "")}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
           <TxtField
             label="Group Sequence (comma-sep)"
             value={meta.groupSequence.join(", ")}

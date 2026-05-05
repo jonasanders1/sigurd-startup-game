@@ -1,5 +1,6 @@
 import { Monster, isPatrolMonster } from "../../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../../types/constants";
+import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { useLevelStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
@@ -95,9 +96,9 @@ export class PatrolMovement {
       monster.y = currentPlatform.y - monster.height;
       monster.velocityY = 0;
       monster.isGrounded = true;
-    } else if (monster.y + monster.height >= GAME_CONFIG.CANVAS_HEIGHT) {
-      // Standing on the canvas bottom (the new floor).
-      monster.y = GAME_CONFIG.CANVAS_HEIGHT - monster.height;
+    } else if (monster.y + monster.height >= PLAYFIELD_BOTTOM) {
+      // Standing on top of the floor strip (the playfield's ground).
+      monster.y = PLAYFIELD_BOTTOM - monster.height;
       monster.velocityY = 0;
       monster.isGrounded = true;
     }
@@ -176,10 +177,10 @@ export class PatrolMovement {
       }
     }
 
-    // Canvas-bottom check after platforms — a platform sitting flush with
-    // the canvas bottom should still catch the mummy first.
-    if (monster.y + monster.height >= GAME_CONFIG.CANVAS_HEIGHT) {
-      monster.y = GAME_CONFIG.CANVAS_HEIGHT - monster.height;
+    // Floor-top check after platforms — a platform sitting flush with the
+    // floor should still catch the mummy first.
+    if (monster.y + monster.height >= PLAYFIELD_BOTTOM) {
+      monster.y = PLAYFIELD_BOTTOM - monster.height;
       monster.velocityY = 0;
       monster.isFalling = false;
       monster.fallStartY = undefined;

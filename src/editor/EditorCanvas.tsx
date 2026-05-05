@@ -9,7 +9,13 @@ import {
   layoutPlatformTiles,
   type PlatformTheme,
 } from "../config/platformTiles";
-import { getSpriteImagePath } from "../config/assets";
+import { getSpriteImagePath, getBackgroundImagePath } from "../config/assets";
+import {
+  getFloorImageUrl,
+  FLOOR_TILE_WIDTH,
+  FLOOR_TILE_HEIGHT,
+  FLOOR_SPRITE_SOURCE_HEIGHT,
+} from "../config/floor";
 import {
   defaultPlatform,
   defaultVerticalWall,
@@ -948,7 +954,13 @@ export const EditorCanvas: React.FC = () => {
   const cursor =
     tool.kind === "place" ? "crosshair" : dragMove ? "grabbing" : "default";
 
-  const bgImage = showBackground ? `url(/maps-bg-images/${meta.background}.png)` : "none";
+  // Use the same Vite-resolved URL the runtime uses (import.meta.glob in
+  // src/config/assets.ts). The previous `/maps-bg-images/...` path assumed
+  // the files were in public/, but they live under src/assets/, so the
+  // hardcoded URL 404'd and no background showed.
+  const bgImage = showBackground
+    ? `url(${getBackgroundImagePath(meta.background)})`
+    : "none";
 
   return (
     <div
@@ -968,6 +980,27 @@ export const EditorCanvas: React.FC = () => {
         overflow: "hidden",
       }}
     >
+      {meta.floor && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: FLOOR_TILE_HEIGHT,
+            pointerEvents: "none",
+            backgroundImage: `url(${getFloorImageUrl(meta.floor)})`,
+            backgroundRepeat: "repeat-x",
+            // Top-crop: render the source PNG at its natural height, anchored
+            // to the top, but only the first FLOOR_TILE_HEIGHT px is visible
+            // due to the parent height + overflow:hidden on the canvas root.
+            backgroundSize: `${FLOOR_TILE_WIDTH}px ${FLOOR_SPRITE_SOURCE_HEIGHT}px`,
+            backgroundPosition: "top left",
+            imageRendering: "pixelated",
+          }}
+        />
+      )}
+
       {showGrid && (
         <div
           style={{

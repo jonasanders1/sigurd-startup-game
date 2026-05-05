@@ -117,6 +117,9 @@ export const serializeMap = (
   lines.push(`  width: GAME_CONFIG.CANVAS_WIDTH,`);
   lines.push(`  height: GAME_CONFIG.CANVAS_HEIGHT,`);
   lines.push(`  background: ${str(meta.background)},`);
+  if (meta.floor) {
+    lines.push(`  floor: ${str(meta.floor)},`);
+  }
   if (spawn) {
     lines.push(`  playerStart: { x: ${num(spawn.x)}, y: ${num(spawn.y)} },`);
   } else {

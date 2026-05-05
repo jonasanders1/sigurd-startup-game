@@ -1,5 +1,6 @@
 import { Monster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
+import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { useGameStore, useLevelStore } from "../../stores/gameStore";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
@@ -98,7 +99,7 @@ export class FloaterMovement {
       newX <= 0 ||
       newX + monster.width >= GAME_CONFIG.CANVAS_WIDTH ||
       newY <= 0 ||
-      newY + monster.height >= GAME_CONFIG.CANVAS_HEIGHT
+      newY + monster.height >= PLAYFIELD_BOTTOM
     ) {
       canMove = false;
       collisionNormal = this.calculateBoundaryCollisionNormal(

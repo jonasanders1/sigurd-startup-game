@@ -14,6 +14,7 @@
 
 import { Monster, Platform, isAirborneMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
+import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { useLevelStore } from "../../stores/gameStore";
 import { armMonsterAsLethal } from "../../lib/bjRules";
 import { getTuned } from "../../stores/systems/tuningStore";
@@ -44,8 +45,21 @@ export class AirborneMovement {
     // homing pull from 0 → full over `*_HOMING_RAMP_MS`. We use a separate
     // field (not `individualSpawnTime`) so the ScalingManager's mummy-age
     // tracking isn't affected by the transformation.
-    const m = monster as Monster & { airborneStartTime?: number };
+    //
+    // Also stamp per-monster homing jitter on first sight: a multiplicative
+    // scale on the spring constant + a small offset on the target lane.
+    // Without this, every Orb has identical spring dynamics and they
+    // synchronize after a handful of wall bounces (same for Spheres). The
+    // jitter is set once and never changes, so each monster carries a
+    // distinct phase signature for its lifetime.
+    const m = monster as Monster & {
+      airborneStartTime?: number;
+      homingScale?: number;
+      homingOffset?: number;
+    };
     if (m.airborneStartTime == null) m.airborneStartTime = Date.now();
+    if (m.homingScale == null) m.homingScale = 0.7 + Math.random() * 0.6; // 0.7–1.3
+    if (m.homingOffset == null) m.homingOffset = (Math.random() - 0.5) * 30; // ±15 px
 
     switch (monster.type) {
       case "ORB":
@@ -109,8 +123,8 @@ export class AirborneMovement {
       if (newY <= 0) {
         monster.y = 0;
         monster.velocityY = Math.abs(v);
-      } else if (newY + monster.height >= GAME_CONFIG.CANVAS_HEIGHT) {
-        monster.y = GAME_CONFIG.CANVAS_HEIGHT - monster.height;
+      } else if (newY + monster.height >= PLAYFIELD_BOTTOM) {
+        monster.y = PLAYFIELD_BOTTOM - monster.height;
         monster.velocityY = -Math.abs(v);
       } else if (
         this.collidesWithObstacle(monster, monster.x, newY, platforms)
@@ -224,15 +238,26 @@ export class AirborneMovement {
     // Hooke's law spring on the constrained axis only. Pull strength ramps
     // linearly from 0 → configured ratio over `homingRampKey` ms after the
     // monster became airborne, so spheres/orbs feel free-bouncing at first
-    // and only gradually start tracking Jack.
-    const airborneStart =
-      (monster as Monster & { airborneStartTime?: number }).airborneStartTime ??
-      Date.now();
+    // and only gradually start tracking Jack. Per-monster `homingScale` +
+    // `homingOffset` (stamped at airborne-start) give each monster its own
+    // spring period and target lane, preventing identical-physics monsters
+    // from synchronizing after a few bounces.
+    const jitter = monster as Monster & {
+      airborneStartTime?: number;
+      homingScale?: number;
+      homingOffset?: number;
+    };
+    const airborneStart = jitter.airborneStartTime ?? Date.now();
     const rampMs = getTuned(homingRampKey);
     const rampFactor =
       rampMs <= 0 ? 1 : Math.min(1, (Date.now() - airborneStart) / rampMs);
-    const k = getTuned(homingRatioKey) * SPRING_K_SCALE * rampFactor;
-    const displacement = player[constrPKey] - monster[constrPKey];
+    const k =
+      getTuned(homingRatioKey) *
+      SPRING_K_SCALE *
+      rampFactor *
+      (jitter.homingScale ?? 1);
+    const displacement =
+      player[constrPKey] + (jitter.homingOffset ?? 0) - monster[constrPKey];
     monster[constrVKey]! += k * displacement * frameMult;
     const cap = monster.speed * VELOCITY_CAP_MULT;
     if (Math.abs(monster[constrVKey]!) > cap) {

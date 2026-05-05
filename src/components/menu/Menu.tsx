@@ -17,6 +17,8 @@ const Menu = ({
   const isCountdown = currentState === GameState.COUNTDOWN;
   return (
     <div
+      // pt-12 nudges centered children slightly down — visual balance against
+      // the top HUD strip sitting above the canvas.
       className={`absolute inset-0 flex items-center justify-center z-50 ${
         isCountdown
           ? "bg-menu backdrop-blur-sm menu-blur-out"

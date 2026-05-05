@@ -8,6 +8,7 @@ import {
 } from "../stores/gameStore";
 import { Player } from "../types/interfaces";
 import { GAME_CONFIG } from "../types/constants";
+import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { CollisionManager } from "./CollisionManager";
 import { AnimationController } from "../lib/AnimationController";
 import { log } from "../lib/logger";
@@ -56,7 +57,9 @@ export class PlayerManager {
     this.animationController = animationController;
     this.bounds = {
       width: GAME_CONFIG.CANVAS_WIDTH,
-      height: GAME_CONFIG.CANVAS_HEIGHT,
+      // Bottom of the playable area = top of the decorative floor strip.
+      // The floor itself is restricted ground; the player cannot enter it.
+      height: PLAYFIELD_BOTTOM,
     };
   }
 
@@ -435,9 +438,9 @@ export class PlayerManager {
         return true;
       }
     }
-    // Canvas-bottom resting check — y = CANVAS_HEIGHT is the new floor.
+    // Floor-top resting check — the floor sprite's top is the new ground.
     if (
-      bottom >= GAME_CONFIG.CANVAS_HEIGHT - TOL &&
+      bottom >= PLAYFIELD_BOTTOM - TOL &&
       p.x < GAME_CONFIG.CANVAS_WIDTH &&
       p.x + p.width > 0
     ) {

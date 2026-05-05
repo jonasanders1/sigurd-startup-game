@@ -2,7 +2,6 @@ import React from "react";
 import { useGameStore, useStateStore } from "../stores/gameStore";
 import { GameState, MenuType } from "../types/enums";
 import GameCanvas from "./GameCanvas";
-import BottomBar from "./menu/menus/BottomBar";
 import StartMenu from "./menu/menus/StartMenu";
 import CountdownOverlay from "./menu/menus/CountdownOverlay";
 import InGameMenu from "./menu/menus/InGameMenu";
@@ -46,7 +45,7 @@ const MainGame: React.FC = () => {
 
   return (
     <div ref={gameContainerRef} className="relative rounded-lg overflow-hidden shadow-lg shadow-black/10">
-      {/* ── HUD bar — always rendered to prevent layout shift ── */}
+      {/* ── HUD top bar — separate strip above the canvas ── */}
       <div className="relative z-50">
         <InGameMenu />
       </div>
@@ -122,11 +121,6 @@ const MainGame: React.FC = () => {
             <MissionCompleteMenu />
           </Menu>
         )}
-      </div>
-
-      {/* ── Bottom HUD bar — lives + version ── */}
-      <div className="relative z-50">
-        <BottomBar />
       </div>
     </div>
   );

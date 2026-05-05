@@ -10,6 +10,7 @@ import {
 } from "../stores/gameStore";
 import { GameState, MenuType, AudioEvent } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
+import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import {
   sendMapCompletionData,
@@ -23,7 +24,9 @@ import { endOfLevelBonus } from "../lib/bjRules";
 import {
   cornerToBirdSpawnPosition,
   decideBirdSpawnCorner,
+  type SpawnCorner,
 } from "../lib/birdSpawn";
+import { createLevelBird } from "./MonsterFactory";
 import { useInputStore } from "../stores/systems/inputStore";
 import { MonsterType } from "../types/enums";
 import type { RenderManager } from "./RenderManager";
@@ -180,24 +183,32 @@ export class LevelManager {
 
       // Set up original spawn points for static monsters (this is already done in gameStore.initializeLevel, but we need spawn points)
       const { updateMonsters } = useMonsterStore.getState();
-      if (mapDefinition.monsters) {
-        const monstersWithSpawnPoints = mapDefinition.monsters.map(
-          (monster) => ({
-            ...monster,
-            originalSpawnPoint: { x: monster.x, y: monster.y },
-          })
-        );
+      const baseMonsters = mapDefinition.monsters ?? [];
+      const monstersWithSpawnPoints = baseMonsters.map((monster) => ({
+        ...monster,
+        originalSpawnPoint: { x: monster.x, y: monster.y },
+      }));
 
-        // BJ §5.1.1: re-position the first BIRD to the corner OPPOSITE the
-        // direction the player is holding at level start. Player input on
-        // this exact frame is the canonical trigger.
-        this.applyBirdCornerSpawn(monstersWithSpawnPoints);
-
-        updateMonsters(monstersWithSpawnPoints);
-        log.debug(
-          `Set up spawn points for ${monstersWithSpawnPoints.length} static monsters`
-        );
+      // BJ §5.1.1: every level has exactly 1 bird. If the level didn't
+      // author one (most don't — birds are global game-design data, not
+      // per-level), inject one programmatically. Speed scales with level.
+      if (!monstersWithSpawnPoints.some((m) => m.type === MonsterType.BIRD)) {
+        const bird = createLevelBird(currentLevel);
+        monstersWithSpawnPoints.push({
+          ...bird,
+          originalSpawnPoint: { x: bird.x, y: bird.y },
+        });
       }
+
+      // BJ §5.1.1: re-position the bird to the corner OPPOSITE the
+      // direction the player is holding at level start. Player input on
+      // this exact frame is the canonical trigger.
+      this.applyBirdCornerSpawn(monstersWithSpawnPoints);
+
+      updateMonsters(monstersWithSpawnPoints);
+      log.debug(
+        `Set up spawn points for ${monstersWithSpawnPoints.length} static monsters`
+      );
 
       // Record map start time
       this.mapStartTime = Date.now();
@@ -215,16 +226,32 @@ export class LevelManager {
     if (birdIndex < 0) return;
 
     const input = useInputStore.getState().input;
-    const corner = decideBirdSpawnCorner({
-      left: input.left,
-      right: input.right,
-      // Sigurd's "jump" key === ↑/W; "fastFall" === ↓/S.
-      up: input.jump,
-      down: input.fastFall,
-    });
+    // When no direction is held the spec gives no rule, so randomize over
+    // the 4 corners. decideBirdSpawnCorner falls through to `fallback` on
+    // each axis when input is neutral, so a random fallback gives a fully
+    // random corner; held inputs still flip the result on their axis.
+    const allCorners: SpawnCorner[] = [
+      "top-left",
+      "top-right",
+      "bottom-left",
+      "bottom-right",
+    ];
+    const fallback = allCorners[Math.floor(Math.random() * allCorners.length)];
+    const corner = decideBirdSpawnCorner(
+      {
+        left: input.left,
+        right: input.right,
+        // Sigurd's "jump" key === ↑/W; "fastFall" === ↓/S.
+        up: input.jump,
+        down: input.fastFall,
+      },
+      fallback
+    );
     const pos = cornerToBirdSpawnPosition(corner, {
       width: GAME_CONFIG.CANVAS_WIDTH,
-      height: GAME_CONFIG.CANVAS_HEIGHT,
+      // Use playfield bottom (top of the floor strip) so bottom corners
+      // spawn above the restricted ground, not inside it.
+      height: PLAYFIELD_BOTTOM,
       monsterSize: GAME_CONFIG.MONSTER_SIZE,
     });
 
@@ -465,34 +492,46 @@ export class LevelManager {
       );
 
       // Reset monsters to starting positions and clear individual properties
-      const resetMonsters = currentMap.monsters.map((monster) => {
-        const startX = 'patrolStartX' in monster ? monster.patrolStartX : monster.x;
-        const resetMonster = {
-          ...monster,
-          x: startX,
-          direction: 1,
-          // Clear runtime scaling properties
-          updateIntervalMultiplier: undefined,
-          directnessMultiplier: undefined,
-          speedMultiplier: undefined,
-          spawnPauseTime: undefined,
-          // Clear runtime movement properties
-          walkLengths: undefined,
-          currentWalkCount: undefined,
-          originalSpawnX: undefined,
-        };
+      const resetMonsters: import("../types/interfaces").Monster[] =
+        currentMap.monsters.map((monster) => {
+          const startX = 'patrolStartX' in monster ? monster.patrolStartX : monster.x;
+          const resetMonster = {
+            ...monster,
+            x: startX,
+            direction: 1,
+            // Clear runtime scaling properties
+            updateIntervalMultiplier: undefined,
+            directnessMultiplier: undefined,
+            speedMultiplier: undefined,
+            spawnPauseTime: undefined,
+            // Clear runtime movement properties
+            walkLengths: undefined,
+            currentWalkCount: undefined,
+            originalSpawnX: undefined,
+          };
 
-        // Clear subtype-specific runtime properties
-        if ('targetX' in resetMonster) resetMonster.targetX = undefined;
-        if ('targetY' in resetMonster) resetMonster.targetY = undefined;
-        if ('patrolSide' in resetMonster) resetMonster.patrolSide = undefined;
-        if ('targetPlatformX' in resetMonster) resetMonster.targetPlatformX = undefined;
-        if ('chaseTargetX' in resetMonster) resetMonster.chaseTargetX = undefined;
-        if ('chaseTargetY' in resetMonster) resetMonster.chaseTargetY = undefined;
-        if ('ambushCooldown' in resetMonster) resetMonster.ambushCooldown = undefined;
+          // Clear subtype-specific runtime properties
+          if ('targetX' in resetMonster) resetMonster.targetX = undefined;
+          if ('targetY' in resetMonster) resetMonster.targetY = undefined;
+          if ('patrolSide' in resetMonster) resetMonster.patrolSide = undefined;
+          if ('targetPlatformX' in resetMonster) resetMonster.targetPlatformX = undefined;
+          if ('chaseTargetX' in resetMonster) resetMonster.chaseTargetX = undefined;
+          if ('chaseTargetY' in resetMonster) resetMonster.chaseTargetY = undefined;
+          if ('ambushCooldown' in resetMonster) resetMonster.ambushCooldown = undefined;
 
-        return resetMonster;
-      });
+          return resetMonster;
+        });
+
+      // Preserve the auto-injected bird (spec §5.1.1, persistent through the
+      // level) — it lives in the live store but not in currentMap.monsters.
+      // The respawn queue (line below) is no longer wiped, so dead-and-
+      // queued-for-respawn birds keep their place in the queue.
+      for (const m of useMonsterStore.getState().monsters) {
+        if (m.type === MonsterType.BIRD) {
+          resetMonsters.push({ ...m, isFrozen: false });
+        }
+      }
+
       updateMonsters(resetMonsters);
 
       // Reset spawn manager and reinitialize spawn points
@@ -502,8 +541,13 @@ export class LevelManager {
         this.monsterSpawnManager.initializeLevel(currentMap.monsterSpawnPoints);
       }
 
-      // Reset respawn manager
-      this.monsterRespawnManager.reset();
+      // Don't reset the respawn manager. Pending respawns should continue
+      // from where they were — the OptimizedRespawnManager already pauses
+      // during the death/countdown state transition (see GameStateManager
+      // pause cascade) and `totalPausedTime` shifts respawn deadlines
+      // forward by exactly the pause duration. Resetting here was wiping
+      // the deadMonsters queue, so monsters killed by a P-coin just before
+      // a player death would never come back.
 
       // Reload background
       this.renderManager.loadMapBackground(currentMap.name);
@@ -532,13 +576,13 @@ export class LevelManager {
         []
       );
 
-      // Clamp to the canvas bottom — without this, the post-clear fall
-      // path skips boundary resolution (only the live PLAYING update
-      // calls resolveBoundaryCollision) and Jack drops off-screen.
-      if (finalPlayer.y + finalPlayer.height >= GAME_CONFIG.CANVAS_HEIGHT) {
+      // Clamp to floor-top — without this, the post-clear fall path skips
+      // boundary resolution (only the live PLAYING update calls
+      // resolveBoundaryCollision) and Jack drops into the floor strip.
+      if (finalPlayer.y + finalPlayer.height >= PLAYFIELD_BOTTOM) {
         finalPlayer = {
           ...finalPlayer,
-          y: GAME_CONFIG.CANVAS_HEIGHT - finalPlayer.height,
+          y: PLAYFIELD_BOTTOM - finalPlayer.height,
           velocityY: 0,
           isGrounded: true,
         };

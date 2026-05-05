@@ -144,6 +144,7 @@ export const mapToEditor = (
     background: map.background ?? "soverommet",
     spawnIndicatorColor: map.spawnIndicatorColor ?? "#ff9ff3",
     groupSequence: [...map.groupSequence],
+    floor: map.floor,
   };
 
   return { entities, meta };

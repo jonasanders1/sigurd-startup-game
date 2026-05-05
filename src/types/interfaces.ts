@@ -257,6 +257,7 @@ export interface MonsterSpawnPoint {
 }
 
 import type { PlatformTheme } from "../config/platformTiles";
+import type { FloorVariant } from "../config/floor";
 
 export interface Platform {
   x: number;
@@ -285,6 +286,10 @@ export interface MapDefinition {
   monsterSpawnPoints?: MonsterSpawnPoint[];
   background?: string;
   spawnIndicatorColor?: string; // Color for spawn/respawn indicators
+  /** Decorative striped floor tiled across the canvas bottom. Visual only —
+   *  the canvas bottom is still the player's effective ground. Omit for no
+   *  floor strip. */
+  floor?: FloorVariant;
 
   groupSequence: number[];
   timeLimit?: number;

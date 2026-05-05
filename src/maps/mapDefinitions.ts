@@ -1,84 +1,210 @@
-import { MapDefinition, Bomb, Platform } from "../types/interfaces";
-import { GAME_CONFIG, COLORS } from "../types/constants";
+import { MapDefinition, Platform } from "../types/interfaces";
+import { GAME_CONFIG } from "../types/constants";
 import { CoinType } from "../types/enums";
 import {
   createMummyMonster,
   createVerticalPatrolMonster,
   createHornMonster,
-  createBirdMonster,
   createUfoMonster,
   createSphereMonster,
   createOrbMonster,
 } from "../managers/MonsterFactory";
+import {
+  createBomb,
+  createPlatform,
+  createVerticalPlatform,
+  centerPoint,
+} from "./mapFactories";
 
-// Helper function to create bombs with default size
-const createBomb = (
-  x: number,
-  y: number,
-  order: number,
-  group: number,
-): Bomb => ({
-  x,
-  y,
-  width: GAME_CONFIG.BOMB_SIZE,
-  height: GAME_CONFIG.BOMB_SIZE,
-  order,
-  group,
-  isCollected: false,
-  isBlinking: false,
-});
-
-// Helper function to create platforms with default height and color
-const createPlatform = (
-  x: number,
-  y: number,
-  dimensions: { width: number; height: number },
-  color: string = COLORS.PLATFORM,
-  borderColor: string = "#000",
-) => ({
-  x,
-  y,
-  width: dimensions.width,
-  height: dimensions.height,
-  borderColor,
-  color,
-});
-
-// Helper function to create vertical platforms (walls)
-const createVerticalPlatform = (
-  x: number,
-  y: number,
-  height: number,
-  color: string = COLORS.PLATFORM,
-  borderColor: string = "#000",
-) => ({
-  x,
-  y,
-  width: 25, // Standard wall thickness — matches PLATFORM_HEIGHT / cell grid.
-  height,
-  borderColor,
-  color,
-  isVertical: true, // Mark as vertical platform
-});
-
-const centerX = (offsetWidth: number) =>
-  (GAME_CONFIG.CANVAS_WIDTH - offsetWidth) / 2;
-const centerY = (offsetHeight: number) =>
-  (GAME_CONFIG.CANVAS_HEIGHT - offsetHeight) / 2;
-
-const centerPoint = (offsetWidth: number, offsetHeight: number) => {
-  return {
-    x: centerX(offsetWidth),
-    y: centerY(offsetHeight),
-  };
-};
-
+// Level 1 - Bedroom (gameplay swapped from level 2)
 export const level1Map: MapDefinition = {
   id: "level1",
-  name: "garasjen",
+  name: "soverommet",
+  floor: "green",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "soverommet",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#ff9ff3",
+
+  groupSequence: [1, 2, 3, 4, 5, 6],
+
+  platforms: [
+    {
+      ...createPlatform(
+        500,
+        400,
+        { width: 200, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(
+        100,
+        400,
+        { width: 200, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(
+        550,
+        175,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(
+        100,
+        175,
+        { width: 150, height: 25 },
+        "#2f3543",
+        "#000",
+      ),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(750, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
+      tileTheme: "plastic",
+    },
+    {
+      ...createPlatform(0, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
+      tileTheme: "plastic",
+    },
+  ],
+
+  bombs: [
+    createBomb(275, 551, 1, 1),
+    createBomb(225, 551, 2, 1),
+    createBomb(175, 551, 3, 1),
+    createBomb(500, 551, 4, 2),
+    createBomb(550, 551, 5, 2),
+    createBomb(600, 551, 6, 2),
+    createBomb(650, 551, 7, 2),
+    createBomb(263, 375, 8, 3),
+    createBomb(213, 375, 9, 3),
+    createBomb(163, 375, 10, 3),
+    createBomb(113, 375, 11, 3),
+    createBomb(12, 250, 12, 4),
+    createBomb(113, 150, 13, 5),
+    createBomb(163, 150, 14, 5),
+    createBomb(213, 150, 15, 5),
+    createBomb(511, 375, 16, 6),
+    createBomb(561, 375, 17, 6),
+    createBomb(611, 375, 18, 6),
+    createBomb(661, 375, 19, 6),
+    createBomb(763, 250, 20, 7),
+    createBomb(663, 150, 21, 8),
+    createBomb(613, 150, 22, 8),
+    createBomb(563, 150, 23, 8),
+  ],
+
+  monsters: [],
+
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 0,
+      respawnInterval: 8500,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(100, 175, 150, "left", 3, 1, 1, 0, "green", "ORB"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 9000,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(550, 175, 150, "right", 3, 1, -1, 0, "green", "ORB"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 10000,
+      maxSpawns: 1,
+      createMonster: () =>
+        createMummyMonster(
+          100,
+          400,
+          200,
+          "right",
+          5,
+          1,
+          -1,
+          0,
+          "black",
+          "SPHERE",
+        ),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 14000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          500,
+          400,
+          200,
+          "left",
+          5,
+          1,
+          1,
+          0,
+          "black",
+          "SPHERE",
+        ),
+    },
+  ],
+
+  coinSpawnPoints: [
+    {
+      x: 150,
+      y: 75,
+      type: CoinType.POWER,
+      spawnAngle: 65,
+    },
+    {
+      x: 387.5,
+      y: 287.5,
+      type: CoinType.POWER,
+      spawnAngle: -55,
+    },
+    {
+      x: 175,
+      y: 100,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 650,
+      y: 100,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 175,
+      y: 100,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 650,
+      y: 100,
+      type: CoinType.EXTRA_LIFE,
+    },
+  ],
+};
+
+// Level 2 - Garasjen (gameplay swapped from level 1)
+export const level2Map: MapDefinition = {
+  id: "level2",
+  name: "garasjen",
+  floor: "gray",
+  width: GAME_CONFIG.CANVAS_WIDTH,
+  height: GAME_CONFIG.CANVAS_HEIGHT,
+  background: "garasjen",
   playerStart: { x: 388, y: 283 },
   spawnIndicatorColor: "#ff9ff3",
 
@@ -168,18 +294,14 @@ export const level1Map: MapDefinition = {
     createBomb(675, 150, 18, 6),
     createBomb(413, 50, 19, 7),
     createBomb(363, 50, 20, 7),
-    createBomb(438, 571, 21, 8),
-    createBomb(388, 571, 22, 8),
-    createBomb(338, 571, 23, 8),
+    createBomb(438, 551, 21, 8),
+    createBomb(388, 551, 22, 8),
+    createBomb(338, 551, 23, 8),
   ],
 
   monsters: [],
 
   monsterSpawnPoints: [
-    {
-      spawnDelay: 5000,
-      createMonster: () => createBirdMonster(150, 250, 0.8, 0.2, 500, 5000),
-    },
     {
       spawnDelay: 0,
       respawnInterval: 10000,
@@ -261,197 +383,14 @@ export const level1Map: MapDefinition = {
   ],
 };
 
-// Level 2 - Bedroom
-export const level2Map: MapDefinition = {
-  id: "level2",
-  name: "soverommet",
-  width: GAME_CONFIG.CANVAS_WIDTH,
-  height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
-  playerStart: { x: 387.5, y: 282.5 },
-  spawnIndicatorColor: "#ff9ff3",
-
-  groupSequence: [1, 2, 3, 4, 5, 6],
-
-  platforms: [
-    {
-      ...createPlatform(
-        500,
-        400,
-        { width: 200, height: 25 },
-        "#2f3543",
-        "#000",
-      ),
-      tileTheme: "plastic",
-    },
-    {
-      ...createPlatform(
-        100,
-        400,
-        { width: 200, height: 25 },
-        "#2f3543",
-        "#000",
-      ),
-      tileTheme: "plastic",
-    },
-    {
-      ...createPlatform(
-        550,
-        175,
-        { width: 150, height: 25 },
-        "#2f3543",
-        "#000",
-      ),
-      tileTheme: "plastic",
-    },
-    {
-      ...createPlatform(
-        100,
-        175,
-        { width: 150, height: 25 },
-        "#2f3543",
-        "#000",
-      ),
-      tileTheme: "plastic",
-    },
-    {
-      ...createPlatform(750, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "plastic",
-    },
-    {
-      ...createPlatform(0, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "plastic",
-    },
-  ],
-
-  bombs: [
-    createBomb(275, 571, 1, 1),
-    createBomb(225, 571, 2, 1),
-    createBomb(175, 571, 3, 1),
-    createBomb(500, 571, 4, 2),
-    createBomb(550, 571, 5, 2),
-    createBomb(600, 571, 6, 2),
-    createBomb(650, 571, 7, 2),
-    createBomb(263, 375, 8, 3),
-    createBomb(213, 375, 9, 3),
-    createBomb(163, 375, 10, 3),
-    createBomb(113, 375, 11, 3),
-    createBomb(12, 250, 12, 4),
-    createBomb(113, 150, 13, 5),
-    createBomb(163, 150, 14, 5),
-    createBomb(213, 150, 15, 5),
-    createBomb(511, 375, 16, 6),
-    createBomb(561, 375, 17, 6),
-    createBomb(611, 375, 18, 6),
-    createBomb(661, 375, 19, 6),
-    createBomb(763, 250, 20, 7),
-    createBomb(663, 150, 21, 8),
-    createBomb(613, 150, 22, 8),
-    createBomb(563, 150, 23, 8),
-  ],
-
-  monsters: [],
-
-  monsterSpawnPoints: [
-    {
-      spawnDelay: 0,
-      respawnInterval: 8500,
-      maxSpawns: 1,
-      createMonster: () =>
-        createMummyMonster(100, 175, 150, "left", 3, 1, 1, 0, "green", "ORB"),
-    },
-    {
-      spawnDelay: 0,
-      respawnInterval: 9000,
-      maxSpawns: 1,
-      createMonster: () =>
-        createMummyMonster(550, 175, 150, "right", 3, 1, -1, 0, "green", "ORB"),
-    },
-    {
-      spawnDelay: 0,
-      respawnInterval: 10000,
-      maxSpawns: 1,
-      createMonster: () =>
-        createMummyMonster(
-          100,
-          400,
-          200,
-          "right",
-          5,
-          1,
-          -1,
-          0,
-          "black",
-          "SPHERE",
-        ),
-    },
-    {
-      spawnDelay: 0,
-      respawnInterval: 14000,
-      maxSpawns: 2,
-      createMonster: () =>
-        createMummyMonster(
-          500,
-          400,
-          200,
-          "left",
-          5,
-          1,
-          1,
-          0,
-          "black",
-          "SPHERE",
-        ),
-    },
-    {
-      spawnDelay: 10000,
-      createMonster: () => createBirdMonster(500, 500, 1, 0.2, 500, 10000),
-    },
-  ],
-
-  coinSpawnPoints: [
-    {
-      x: 150,
-      y: 75,
-      type: CoinType.POWER,
-      spawnAngle: 65,
-    },
-    {
-      x: 387.5,
-      y: 287.5,
-      type: CoinType.POWER,
-      spawnAngle: -55,
-    },
-    {
-      x: 175,
-      y: 100,
-      type: CoinType.BONUS_MULTIPLIER,
-    },
-    {
-      x: 650,
-      y: 100,
-      type: CoinType.BONUS_MULTIPLIER,
-    },
-    {
-      x: 175,
-      y: 100,
-      type: CoinType.EXTRA_LIFE,
-    },
-    {
-      x: 650,
-      y: 100,
-      type: CoinType.EXTRA_LIFE,
-    },
-  ],
-};
-
 // Level 3 - Startup Lab - Norge
 export const level3Map: MapDefinition = {
   id: "level3",
   name: "startup lab",
+  floor: "brown",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
+  background: "startup-lab",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#00ffff",
 
@@ -584,9 +523,10 @@ export const level3Map: MapDefinition = {
 export const level4Map: MapDefinition = {
   id: "level4",
   name: "innovasjon norge",
+  floor: "blue-green",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
+  background: "innovasjon-norge",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ff6b6b",
 
@@ -718,9 +658,10 @@ export const level4Map: MapDefinition = {
 export const level5Map: MapDefinition = {
   id: "level5",
   name: "skatteetaten",
+  floor: "yellow",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
+  background: "skatteetaten",
   playerStart: { x: 387.5, y: 242.5 },
   spawnIndicatorColor: "#4ecdc4",
 
@@ -755,9 +696,9 @@ export const level5Map: MapDefinition = {
     createBomb(337, 155, 17, 5),
     createBomb(387, 155, 18, 5),
     createBomb(437, 155, 19, 5),
-    createBomb(425, 528, 20, 6),
-    createBomb(375, 528, 21, 6),
-    createBomb(325, 528, 22, 6),
+    createBomb(425, 548, 20, 6),
+    createBomb(375, 548, 21, 6),
+    createBomb(325, 548, 22, 6),
     createBomb(385, 95, 23, 7),
   ],
 
@@ -874,9 +815,10 @@ export const level5Map: MapDefinition = {
 export const level6Map: MapDefinition = {
   id: "level6",
   name: "nav",
+  floor: "yellow-light",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
+  background: "nav",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ffe66d",
 
@@ -1004,9 +946,10 @@ export const level6Map: MapDefinition = {
 export const level7Map: MapDefinition = {
   id: "level7",
   name: "kommunehuset",
+  floor: "green-white",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
+  background: "kommunehuset",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#a8e6cf",
 
@@ -1025,18 +968,18 @@ export const level7Map: MapDefinition = {
     createBomb(625, 60, 4, 2),
     createBomb(675, 60, 5, 2),
     createBomb(725, 60, 6, 2),
-    createBomb(150, 573, 7, 3),
-    createBomb(100, 573, 8, 3),
-    createBomb(50, 573, 9, 3),
-    createBomb(625, 573, 10, 4),
-    createBomb(675, 573, 11, 4),
-    createBomb(725, 573, 12, 4),
+    createBomb(150, 553, 7, 3),
+    createBomb(100, 553, 8, 3),
+    createBomb(50, 553, 9, 3),
+    createBomb(625, 553, 10, 4),
+    createBomb(675, 553, 11, 4),
+    createBomb(725, 553, 12, 4),
     createBomb(438, 100, 13, 5),
     createBomb(388, 100, 14, 5),
     createBomb(338, 100, 15, 5),
-    createBomb(338, 572, 16, 6),
-    createBomb(388, 572, 17, 6),
-    createBomb(438, 572, 18, 6),
+    createBomb(338, 552, 16, 6),
+    createBomb(388, 552, 17, 6),
+    createBomb(438, 552, 18, 6),
     createBomb(388, 405, 19, 6),
     createBomb(388, 455, 20, 6),
     createBomb(388, 505, 21, 6),
@@ -1151,9 +1094,10 @@ export const level7Map: MapDefinition = {
 export const level8Map: MapDefinition = {
   id: "level8",
   name: "alltinn norge",
+  floor: "blue-purple",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  background: "soverommet",
+  background: "alltinn",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ff9ff3",
 
@@ -1266,57 +1210,147 @@ export const level8Map: MapDefinition = {
 export const level9Map: MapDefinition = {
   id: "level9",
   name: "silicone vally",
+  floor: "sand-pink",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
-  playerStart: centerPoint(GAME_CONFIG.PLAYER_WIDTH, GAME_CONFIG.PLAYER_HEIGHT),
-  spawnIndicatorColor: "#feca57", // Orange for dark gray background
+  background: "silicone-vally",
+  playerStart: { x: 387.5, y: 282.5 },
+  spawnIndicatorColor: "#feca57",
 
   groupSequence: [1, 2, 3, 4, 5],
 
-  platforms: [],
-
-  bombs: [
-    // Group 1
-    createBomb(440, 530, 1, 1),
-    createBomb(490, 530, 2, 1),
-    createBomb(540, 530, 3, 1),
-    createBomb(590, 530, 4, 1),
-
-    // Group 2
-    createBomb(760, 530, 5, 2),
-    createBomb(760, 480, 6, 2),
-    createBomb(760, 430, 7, 2),
-    createBomb(760, 380, 8, 2),
-
-    // Group 3
-    createBomb(590, 330, 9, 3),
-    createBomb(540, 330, 10, 3),
-    createBomb(490, 330, 11, 3),
-    createBomb(440, 330, 12, 3),
-
-    // Group 4
-    createBomb(290, 530, 13, 4),
-    createBomb(240, 530, 14, 4),
-    createBomb(190, 530, 15, 4),
-    createBomb(140, 530, 16, 4),
-
-    // Group 5
-    createBomb(15, 530, 17, 5),
-    createBomb(15, 480, 18, 5),
-    createBomb(15, 430, 19, 5),
-    createBomb(15, 380, 20, 5),
-
-    // Group 6
-    createBomb(190, 330, 21, 6),
-    createBomb(240, 330, 22, 6),
-    createBomb(290, 330, 23, 6),
+  platforms: [
+    createPlatform(0, 125, { width: 325, height: 25 }, "#2f3543", "#000"),
+    createPlatform(100, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createVerticalPlatform(250, 350, 150, "#2f3543", "#000"),
+    createPlatform(275, 350, { width: 300, height: 25 }, "#2f3543", "#000"),
+    createVerticalPlatform(550, 200, 150, "#2f3543", "#000"),
+    createPlatform(675, 100, { width: 125, height: 25 }, "#2f3543", "#000"),
+    createPlatform(700, 350, { width: 100, height: 25 }, "#2f3543", "#000"),
   ],
 
-  coinSpawnPoints: [],
+  bombs: [
+    createBomb(200, 97, 1, 1),
+    createBomb(150, 97, 2, 1),
+    createBomb(100, 97, 3, 1),
+    createBomb(375, 2, 4, 2),
+    createBomb(425, 2, 5, 2),
+    createBomb(475, 2, 6, 2),
+    createBomb(668, 549, 7, 3),
+    createBomb(718, 549, 8, 3),
+    createBomb(768, 549, 9, 3),
+    createBomb(481, 378, 10, 4),
+    createBomb(431, 378, 11, 4),
+    createBomb(381, 378, 12, 4),
+    createBomb(331, 378, 13, 4),
+    createBomb(200, 503, 14, 5),
+    createBomb(150, 503, 15, 5),
+    createBomb(275, 322, 16, 6),
+    createBomb(325, 322, 17, 6),
+    createBomb(700, 73, 18, 7),
+    createBomb(750, 73, 19, 7),
+    createBomb(738, 322, 20, 7),
+    createBomb(116, 548, 21, 8),
+    createBomb(166, 548, 22, 8),
+    createBomb(216, 548, 23, 8),
+  ],
 
-  monsterSpawnPoints: [],
+  monsters: [createHornMonster(150, 350, 39, 1, 0)],
 
-  monsters: [],
+  monsterSpawnPoints: [
+    {
+      spawnDelay: 0,
+      respawnInterval: 8000,
+      createMonster: () =>
+        createMummyMonster(
+          0,
+          125,
+          325,
+          "left",
+          1,
+          1,
+          undefined,
+          0,
+          "green",
+          "ORB",
+        ),
+    },
+    {
+      spawnDelay: 16000,
+      respawnInterval: 18000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          675,
+          100,
+          125,
+          "right",
+          3,
+          1,
+          undefined,
+          16000,
+          "green",
+          "SPHERE",
+        ),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 10000,
+      maxSpawns: 2,
+      createMonster: () =>
+        createMummyMonster(
+          700,
+          350,
+          100,
+          "left",
+          2,
+          1,
+          undefined,
+          0,
+          "black",
+          "ORB",
+        ),
+    },
+    {
+      spawnDelay: 17500,
+      createMonster: () => createUfoMonster(550, 125, 0.8, 8000, 17500),
+    },
+  ],
+
+  coinSpawnPoints: [
+    {
+      x: 387.5,
+      y: 287.5,
+      type: CoinType.POWER,
+      spawnAngle: -55,
+    },
+    {
+      x: 387.6,
+      y: 287.6,
+      type: CoinType.POWER,
+      spawnAngle: 155,
+    },
+    {
+      x: 725,
+      y: 25,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 725,
+      y: 0,
+      type: CoinType.EXTRA_LIFE,
+    },
+    {
+      x: 275,
+      y: 25,
+      type: CoinType.BONUS_MULTIPLIER,
+    },
+    {
+      x: 275,
+      y: 0,
+      type: CoinType.EXTRA_LIFE,
+    },
+  ],
 };
 
 export const mapDefinitions = [

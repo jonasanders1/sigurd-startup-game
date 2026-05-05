@@ -44,19 +44,23 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className = "" }) => {
       }
 
       const aspectRatio = GAME_CONFIG.CANVAS_WIDTH / GAME_CONFIG.CANVAS_HEIGHT; // 4:3
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      const windowAspectRatio = windowWidth / windowHeight;
+      // Reserve room for the top HUD strip (InGameMenu, ~40px at fullscreen).
+      // FloorHUD overlays the canvas so no bottom reservation needed.
+      const TOP_HUD_RESERVED = 40;
+      const PADDING = 24;
+      const availableWidth = window.innerWidth - PADDING;
+      const availableHeight = window.innerHeight - TOP_HUD_RESERVED - PADDING;
+      const availableAspectRatio = availableWidth / availableHeight;
 
       let width, height;
 
-      if (windowAspectRatio > aspectRatio) {
-        // Window is wider than game aspect ratio
-        height = windowHeight * 0.9; // Use 90% of window height
+      if (availableAspectRatio > aspectRatio) {
+        // Available area is wider than game aspect ratio — fit to height
+        height = availableHeight;
         width = height * aspectRatio;
       } else {
-        // Window is taller than game aspect ratio
-        width = windowWidth * 0.9; // Use 90% of window width
+        // Available area is taller than game aspect ratio — fit to width
+        width = availableWidth;
         height = width / aspectRatio;
       }
 

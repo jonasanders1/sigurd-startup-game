@@ -16,6 +16,7 @@ import {
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { DEV_CONFIG } from "../config/dev";
 import { getAllPlatformTilePaths } from "../config/platformTiles";
+import { getAllFloorTilePaths } from "../config/floor";
 
 export interface LoadingStep {
   id: string;
@@ -167,7 +168,7 @@ export class LoadingManager {
       let cumulativeProgress = 0;
       const totalWeight = this.loadingSteps.reduce(
         (sum, step) => sum + step.weight,
-        0
+        0,
       );
 
       for (const step of this.loadingSteps) {
@@ -207,7 +208,7 @@ export class LoadingManager {
   private async executeLoadingStep(
     step: LoadingStep,
     currentProgress: number,
-    totalWeight: number
+    totalWeight: number,
   ): Promise<void> {
     logger.asset(`📦 Loading step: ${step.name}`);
 
@@ -249,7 +250,7 @@ export class LoadingManager {
 
     // Update progress after step completion
     const newProgress = Math.round(
-      ((currentProgress + step.weight) / totalWeight) * 100
+      ((currentProgress + step.weight) / totalWeight) * 100,
     );
     this.updateProgress({
       ...this.currentProgress,
@@ -282,7 +283,7 @@ export class LoadingManager {
       "skatteetaten",
       "nav",
       "kommunehuset",
-      "alltinn-norge",
+      "alltinn",
     ];
 
     for (let i = 0; i < backgrounds.length; i++) {
@@ -353,7 +354,7 @@ export class LoadingManager {
       this.updateDynamicMessage(step.id, messageIndex);
 
       await Promise.all(
-        batch.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))
+        batch.map((sprite) => this.loadImage(getSpriteImagePath(sprite))),
       );
     }
   }
@@ -387,7 +388,7 @@ export class LoadingManager {
 
       const batch = monsterSprites.slice(i, i + 3);
       await Promise.all(
-        batch.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))
+        batch.map((sprite) => this.loadImage(getSpriteImagePath(sprite))),
       );
     }
   }
@@ -406,10 +407,11 @@ export class LoadingManager {
       "funding/funding_6.png",
       "funding/funding_7.png",
       ...getAllPlatformTilePaths(),
+      ...getAllFloorTilePaths(),
     ];
 
     await Promise.all(
-      uiSprites.map((sprite) => this.loadImage(getSpriteImagePath(sprite)))
+      uiSprites.map((sprite) => this.loadImage(getSpriteImagePath(sprite))),
     );
   }
 

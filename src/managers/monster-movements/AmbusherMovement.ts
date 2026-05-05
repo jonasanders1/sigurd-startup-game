@@ -1,5 +1,6 @@
 import { Monster, isUfoMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
+import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { logger } from "../../lib/logger";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
@@ -182,7 +183,7 @@ export class AmbusherMovement {
       0,
       Math.min(
         monster.y + randomDirection.y * targetDistance,
-        GAME_CONFIG.CANVAS_HEIGHT - monster.height
+        PLAYFIELD_BOTTOM - monster.height
       )
     );
 

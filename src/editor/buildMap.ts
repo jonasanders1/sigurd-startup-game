@@ -148,6 +148,7 @@ export const buildMapFromEditor = (
     width: GAME_CONFIG.CANVAS_WIDTH,
     height: GAME_CONFIG.CANVAS_HEIGHT,
     background: meta.background,
+    floor: meta.floor,
     playerStart,
     spawnIndicatorColor: meta.spawnIndicatorColor,
     groupSequence: meta.groupSequence.length > 0 ? meta.groupSequence : [1],

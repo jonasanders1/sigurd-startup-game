@@ -1,5 +1,6 @@
 import { MonsterType, CoinType } from "../types/enums";
 import type { PlatformTheme } from "../config/platformTiles";
+import type { FloorVariant } from "../config/floor";
 
 export type EntityKind =
   | "platform"
@@ -98,6 +99,7 @@ export interface MapMeta {
   background: string;
   spawnIndicatorColor: string;
   groupSequence: number[];
+  floor?: FloorVariant;
 }
 
 export type Tool =

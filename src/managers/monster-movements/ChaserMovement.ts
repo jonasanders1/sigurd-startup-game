@@ -3,6 +3,7 @@ import { armMonsterAsLethal } from "../../lib/bjRules";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
 import { GAME_CONFIG } from "../../types/constants";
+import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { getTuned } from "../../stores/systems/tuningStore";
 import * as PF from "pathfinding";
 
@@ -121,30 +122,39 @@ export class ChaserMovement {
     const hopDist = getTuned("BIRD_HOP_DISTANCE");
     const path = this.findPath(monster, target, platforms);
 
-    // Direction-only extraction. We DON'T trust monster.x/y vs path[0].x/y
-    // for sign detection because the monster's pixel position can be
-    // off-cell (e.g. y=282.5, the cell at row 22 is at pixel 275). That
-    // off-cell offset makes BOTH axes' signs non-zero and produces a
-    // diagonal hop. Cell-space cardinal deltas are clean.
+    // Pick the dominant axis from the net direction over the first few
+    // path waypoints. Looking only at path[0] caused oscillation: A* with
+    // Manhattan heuristic has many equally-good cardinal-only paths, and
+    // PathFinding.js's tiebreak picks differently as the bird moves
+    // between cells. With the player off-axis, path[0] would alternate
+    // between up and down each plan, locking the bird at the same x. By
+    // summing the net delta across `horizon` waypoints we recover the
+    // overall path direction (which is dominated by the bigger axis to
+    // the target) and break the tie consistently.
     let dirX = 0;
     let dirY = 0;
     if (path && path.length > 0) {
+      const horizon = Math.min(path.length, 4);
       const startCol = Math.floor(monster.x / CELL_SIZE);
       const startRow = Math.floor(monster.y / CELL_SIZE);
-      const wpCol = Math.round(path[0].x / CELL_SIZE);
-      const wpRow = Math.round(path[0].y / CELL_SIZE);
-      dirX = Math.sign(wpCol - startCol);
-      dirY = Math.sign(wpRow - startRow);
-      // Defensive: if A* placed path[0] in the same cell as start (unlikely
-      // but possible at boundaries), pick the dominant direction toward
-      // the target instead so we still move.
-      if (dirX === 0 && dirY === 0) {
-        const dx = target.x - monster.x;
-        const dy = target.y - monster.y;
-        if (Math.abs(dx) >= Math.abs(dy)) dirX = Math.sign(dx);
-        else dirY = Math.sign(dy);
+      let prevCol = startCol;
+      let prevRow = startRow;
+      let netDx = 0;
+      let netDy = 0;
+      for (let i = 0; i < horizon; i++) {
+        const c = Math.round(path[i].x / CELL_SIZE);
+        const r = Math.round(path[i].y / CELL_SIZE);
+        netDx += c - prevCol;
+        netDy += r - prevRow;
+        prevCol = c;
+        prevRow = r;
       }
-    } else {
+      if (Math.abs(netDx) >= Math.abs(netDy)) dirX = Math.sign(netDx);
+      else dirY = Math.sign(netDy);
+    }
+    // Fallback (no path or zeroed net): aim directly at the target along
+    // the dominant axis.
+    if (dirX === 0 && dirY === 0) {
       const dx = target.x - monster.x;
       const dy = target.y - monster.y;
       if (Math.abs(dx) >= Math.abs(dy)) dirX = Math.sign(dx);
@@ -192,7 +202,9 @@ export class ChaserMovement {
     platforms: any[]
   ): { x: number; y: number }[] | null {
     const cols = Math.ceil(GAME_CONFIG.CANVAS_WIDTH / CELL_SIZE);
-    const rows = Math.ceil(GAME_CONFIG.CANVAS_HEIGHT / CELL_SIZE);
+    // Restrict the A* grid to the playable area; the floor strip is ground
+    // and the bird never planning into it keeps hops along the floor-top.
+    const rows = Math.ceil(PLAYFIELD_BOTTOM / CELL_SIZE);
 
     const startCol = Math.min(cols - 1, Math.max(0, Math.floor(monster.x / CELL_SIZE)));
     const startRow = Math.min(rows - 1, Math.max(0, Math.floor(monster.y / CELL_SIZE)));

@@ -1,5 +1,6 @@
 import { Coin, Platform, CoinPhysicsConfig } from "../types/interfaces";
 import { GAME_CONFIG } from "../types/constants";
+import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { COIN_PHYSICS } from "../config/coinTypes";
 import { log } from "../lib/logger";
 
@@ -117,9 +118,10 @@ export class CoinPhysics {
         Math.abs(coin.velocityY) * GAME_CONFIG.COIN_BOUNCE_DAMPING;
     }
 
-    // Bottom boundary — canvas floor. Bounce with damping; tiny bounces stop.
-    if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
-      coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
+    // Bottom boundary — top of the floor strip. Bounce with damping; tiny
+    // bounces stop.
+    if (coin.y + coin.height >= PLAYFIELD_BOTTOM) {
+      coin.y = PLAYFIELD_BOTTOM - coin.height;
       coin.velocityY =
         -Math.abs(coin.velocityY) * GAME_CONFIG.COIN_BOUNCE_DAMPING;
       if (Math.abs(coin.velocityY) < 0.5) {
@@ -148,9 +150,9 @@ export class CoinPhysics {
       coin.y = 0;
       coin.velocityY = Math.abs(coin.velocityY); // Reflect vertically
     }
-    // Bottom boundary (canvas floor) — perfect reflection.
-    else if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
-      coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
+    // Bottom boundary (top of floor strip) — perfect reflection.
+    else if (coin.y + coin.height >= PLAYFIELD_BOTTOM) {
+      coin.y = PLAYFIELD_BOTTOM - coin.height;
       coin.velocityY = -Math.abs(coin.velocityY); // Reflect vertically
     }
   }

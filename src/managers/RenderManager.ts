@@ -29,6 +29,11 @@ import {
   DEFAULT_PLATFORM_THEME,
   layoutPlatformTiles,
 } from "../config/platformTiles";
+import {
+  getFloorImage,
+  FLOOR_TILE_WIDTH,
+  FLOOR_TILE_HEIGHT,
+} from "../config/floor";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
@@ -87,8 +92,13 @@ export class RenderManager {
     // Render background first
     this.renderBackground();
 
-    // Render game elements on top. Ground entity removed — canvas bottom is
-    // the floor; nothing drawn for it (the parallax background fills there).
+    // Decorative striped floor tile (visual only; canvas bottom is still the
+    // player's effective ground). Sits between background and platforms so
+    // bombs and coins resting near the floor visually rest on top of it.
+    if (currentMap?.floor) {
+      this.renderFloor(currentMap.floor);
+    }
+
     this.renderPlatforms(platforms);
     this.renderBombs(bombs);
     this.renderCoins(coins, coinManager);
@@ -140,6 +150,26 @@ export class RenderManager {
 
   private renderBackground(): void {
     this.backgroundManager.render(this.ctx);
+  }
+
+  private renderFloor(variant: import("../config/floor").FloorVariant): void {
+    const img = getFloorImage(variant);
+    if (!img.complete || img.naturalWidth === 0) return;
+    const ctx = this.ctx;
+    const prevSmoothing = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = false;
+    // Top-crop the 32×64 source to 32×FLOOR_TILE_HEIGHT (preserves the
+    // diagonal cap; trims the plain-color bottom).
+    const y = this.canvas.height - FLOOR_TILE_HEIGHT;
+    const tilesAcross = Math.ceil(this.canvas.width / FLOOR_TILE_WIDTH);
+    for (let i = 0; i < tilesAcross; i++) {
+      ctx.drawImage(
+        img,
+        0, 0, FLOOR_TILE_WIDTH, FLOOR_TILE_HEIGHT,
+        i * FLOOR_TILE_WIDTH, y, FLOOR_TILE_WIDTH, FLOOR_TILE_HEIGHT
+      );
+    }
+    ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
   private renderPlayer(player: Player): void {
