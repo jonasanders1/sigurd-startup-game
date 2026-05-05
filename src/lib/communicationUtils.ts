@@ -5,6 +5,7 @@ import {
   emptyPCoinTierCollections,
   sumPCoinTierCollections,
 } from "../config/coinTypes";
+import type { KillerInfo } from "../types/interfaces";
 
 export interface LevelStartData {
   level: number;
@@ -21,6 +22,9 @@ export interface LevelFailureData {
   lives: number;
   multiplier: number;
   timestamp?: number;
+  /** Monster that killed the player (omitted if the death was non-monster,
+   *  e.g. fall-off-screen). */
+  killedBy?: KillerInfo;
 }
 
 export interface MapCompletionData {
@@ -64,6 +68,9 @@ export interface LevelHistoryEntry {
   pCoinTierCollections?: PCoinTierCollections;
   // F-coins collected on this level. See note on MapCompletionData.
   founderCoinsCollected?: number;
+  /** Set on partial (failed) entries when a monster was the cause of death.
+   *  Undefined for completed levels and non-monster deaths. */
+  killedBy?: KillerInfo;
 }
 
 export interface GameCompletionData {

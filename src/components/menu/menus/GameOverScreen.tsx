@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PixelBezel } from "@/components/ui/pixel-bezel";
-import {
-  useLevelStore,
-  useStateStore,
-} from "../../../stores/gameStore";
+import { useLevelStore, useStateStore } from "../../../stores/gameStore";
 import { useBalanceStore } from "../../../stores/systems/balanceStore";
-import { deductCredits } from "../../../lib/gameBridge";
+import {
+  deductCredits,
+  openPurchasePage,
+  openLeaderboardPage,
+} from "../../../lib/gameBridge";
 import { waitForGameSaveConfirmation } from "../../../lib/communicationUtils";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Trophy } from "lucide-react";
 import gameOverData from "../../../data/gameover.json";
 
 const GameOverScreen: React.FC = () => {
@@ -21,7 +22,7 @@ const GameOverScreen: React.FC = () => {
     () =>
       gameOverData.gameOverMessages[
         Math.floor(Math.random() * gameOverData.gameOverMessages.length)
-      ]
+      ],
   );
 
   const levelResults = getLevelResults();
@@ -34,6 +35,11 @@ const GameOverScreen: React.FC = () => {
 
   const handleRestart = async () => {
     if (isSaving || isDeducting) return;
+
+    if (hasBridge && insufficientFunds) {
+      openPurchasePage();
+      return;
+    }
 
     if (hasBridge) {
       setIsDeducting(true);
@@ -51,7 +57,7 @@ const GameOverScreen: React.FC = () => {
 
   const totalFinancing = levelResults.reduce(
     (sum, level) => sum + level.score,
-    0
+    0,
   );
 
   const totalBonus = levelResults.reduce((sum, level) => sum + level.bonus, 0);
@@ -87,7 +93,10 @@ const GameOverScreen: React.FC = () => {
               </thead>
               <tbody>
                 {levelResults.map((level, index) => (
-                  <tr key={index} className="border-b border-[var(--surface-line)]/30">
+                  <tr
+                    key={index}
+                    className="border-b border-[var(--surface-line)]/30"
+                  >
                     <td className="py-2 px-3 text-center">
                       <div className="flex justify-center items-center">
                         <div
@@ -106,7 +115,9 @@ const GameOverScreen: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-2 px-3 text-left text-foreground">
-                      <span className="font-pixel font-medium capitalize">{level.mapName}</span>
+                      <span className="font-pixel font-medium capitalize">
+                        {level.mapName}
+                      </span>
                       <span className="text-xs text-[var(--foreground-dim)] ml-2">
                         (Nivå <span className="font-pixel">{level.level}</span>)
                       </span>
@@ -154,12 +165,7 @@ const GameOverScreen: React.FC = () => {
             Lagrer spillet...
           </div>
         )}
-        {insufficientFunds && hasBridge ? (
-          <div className="text-center py-3 px-6 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-sm">
-            <p className="text-[var(--accent-red)] font-pixel text-sm">IKKE NOK MYNTER</p>
-            <p className="text-[var(--foreground-dim)] text-xs font-mono mt-1">Kjøp flere mynter for å spille</p>
-          </div>
-        ) : (
+        <div className="flex items-center gap-3 flex-wrap justify-center">
           <Button
             onClick={handleRestart}
             disabled={isSaving || isDeducting}
@@ -167,9 +173,24 @@ const GameOverScreen: React.FC = () => {
               isSaving || isDeducting ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {isDeducting ? "Venter..." : hasBridge ? "Prøv igjen (1 mynt)" : "Prøv igjen"}
+            {isDeducting
+              ? "Venter..."
+              : hasBridge && insufficientFunds
+                ? "Kjøp IDÉER"
+                : hasBridge
+                  ? "Prøv igjen"
+                  : "Prøv igjen"}
           </Button>
-        )}
+
+          <Button
+            onClick={openLeaderboardPage}
+            variant="secondary"
+            className="uppercase px-10"
+          >
+            <Trophy size={18} />
+            Toppliste
+          </Button>
+        </div>
       </div>
     </div>
   );

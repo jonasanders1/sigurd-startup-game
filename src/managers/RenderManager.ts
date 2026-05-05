@@ -34,6 +34,13 @@ import {
   FLOOR_TILE_WIDTH,
   FLOOR_TILE_HEIGHT,
 } from "../config/floor";
+import {
+  PLATFORM_CHAMFER_SIZE,
+  PLATFORM_CHAMFER_INSET,
+  PLATFORM_CHAMFER_INNER_SIZE,
+  PLATFORM_CHAMFER_INNER_INSET,
+} from "../config/platformColors";
+import type { RoundedCorners } from "../types/interfaces";
 import { log } from "../lib/logger";
 import { BackgroundManager } from "./BackgroundManager";
 import { OptimizedRespawnManager } from "./OptimizedRespawnManager";
@@ -46,6 +53,46 @@ interface CoinManagerInterface {
 
 interface GameStateSnapshot {
   currentState: string;
+}
+
+/**
+ * Pixel-perfect chamfered rect fill. Each enabled corner removes a 45°
+ * triangle of `R` pixels using `insetTable` (must have R entries).
+ *
+ * Two-pass usage: call once with the full rect + outer R/table in
+ * borderColor, then again with rect inset 1 px on each side + inner R/table
+ * in fill color. Result: 1-px border on every edge including the diagonal.
+ */
+function fillChamferedShape(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  R: number,
+  insetTable: readonly number[],
+  rc: RoundedCorners
+): void {
+  if (w <= 0 || h <= 0) return;
+  ctx.fillStyle = color;
+  if (h > 2 * R) {
+    ctx.fillRect(x, y + R, w, h - 2 * R);
+  }
+  const topRows = Math.min(R, h);
+  for (let i = 0; i < topRows; i++) {
+    const lIn = rc.tl ? insetTable[i] : 0;
+    const rIn = rc.tr ? insetTable[i] : 0;
+    const rowW = w - lIn - rIn;
+    if (rowW > 0) ctx.fillRect(x + lIn, y + i, rowW, 1);
+  }
+  const bottomRows = Math.min(R, h - R);
+  for (let i = 0; i < bottomRows; i++) {
+    const lIn = rc.bl ? insetTable[i] : 0;
+    const rIn = rc.br ? insetTable[i] : 0;
+    const rowW = w - lIn - rIn;
+    if (rowW > 0) ctx.fillRect(x + lIn, y + h - 1 - i, rowW, 1);
+  }
 }
 
 export class RenderManager {
@@ -189,8 +236,71 @@ export class RenderManager {
     ctx.imageSmoothingEnabled = false;
 
     platforms.forEach((platform) => {
-      const theme = platform.tileTheme || DEFAULT_PLATFORM_THEME;
-      const tiles = getPlatformTileSet(theme);
+      // No tileTheme → solid color rect (the new default look). Tiles are
+      // still supported via Platform.tileTheme; opt in per platform.
+      if (!platform.tileTheme) {
+        const rc = platform.roundedCorners;
+        const hasRounded = rc?.tl || rc?.tr || rc?.bl || rc?.br;
+        ctx.fillStyle = platform.color || "#888888";
+
+        if (!hasRounded) {
+          ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+          if (platform.borderColor) {
+            ctx.strokeStyle = platform.borderColor;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(
+              platform.x + 0.5,
+              platform.y + 0.5,
+              platform.width - 1,
+              platform.height - 1
+            );
+          }
+          return;
+        }
+
+        // Chamfered (45° cut) corners — pixel-perfect, no anti-aliasing.
+        // With borderColor: two-pass fill (outer chamfer in border, inner
+        // chamfer in platform color). Without: single-pass platform fill.
+        if (platform.borderColor) {
+          fillChamferedShape(
+            ctx,
+            platform.borderColor,
+            platform.x,
+            platform.y,
+            platform.width,
+            platform.height,
+            PLATFORM_CHAMFER_SIZE,
+            PLATFORM_CHAMFER_INSET,
+            rc!
+          );
+          fillChamferedShape(
+            ctx,
+            platform.color || "#888888",
+            platform.x + 1,
+            platform.y + 1,
+            platform.width - 2,
+            platform.height - 2,
+            PLATFORM_CHAMFER_INNER_SIZE,
+            PLATFORM_CHAMFER_INNER_INSET,
+            rc!
+          );
+        } else {
+          fillChamferedShape(
+            ctx,
+            platform.color || "#888888",
+            platform.x,
+            platform.y,
+            platform.width,
+            platform.height,
+            PLATFORM_CHAMFER_SIZE,
+            PLATFORM_CHAMFER_INSET,
+            rc!
+          );
+        }
+        return;
+      }
+
+      const tiles = getPlatformTileSet(platform.tileTheme);
       if (
         !tiles.left.complete ||
         !tiles.middle.complete ||

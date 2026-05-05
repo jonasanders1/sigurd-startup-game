@@ -66,18 +66,15 @@ export const movementsMap: MapDefinition = {
         500,
         425,
         { width: 175, height: 25 },
-        "#2f3543",
+        "#a2a2a2",
         "#000",
-      ),
-      tileTheme: "plastic",
+      )
     },
     {
-      ...createPlatform(75, 225, { width: 150, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "plastic",
+      ...createPlatform(75, 225, { width: 150, height: 25 }, "#a2a2a2", "#000")
     },
     {
-      ...createPlatform(75, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "plastic",
+      ...createPlatform(75, 475, { width: 150, height: 25 }, "#a2a2a2", "#000")
     },
   ],
 
@@ -101,10 +98,10 @@ export const bombsMap: MapDefinition = {
   groupSequence: [1, 2, 3, 4],
 
   platforms: [
-    createPlatform(125, 450, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(525, 375, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(525, 175, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(125, 175, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(125, 450, { width: 200, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(525, 375, { width: 200, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(525, 175, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(125, 175, { width: 150, height: 25 }, "#a2a2a2", "#000"),
   ],
 
   bombs: [
@@ -144,14 +141,14 @@ export const surviveMap: MapDefinition = {
   groupSequence: [1],
 
   platforms: [
-    createVerticalPlatform(550, 300, 150, "#2f3543", "#000"),
-    createPlatform(400, 425, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(250, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(225, 150, 150, "#2f3543", "#000"),
-    createPlatform(100, 500, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(100, 350, 150, "#2f3543", "#000"),
-    createPlatform(550, 100, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(675, 125, 150, "#2f3543", "#000"),
+    createVerticalPlatform(550, 300, 150, "#a2a2a2", "#000"),
+    createPlatform(400, 425, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(250, 150, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createVerticalPlatform(225, 150, 150, "#a2a2a2", "#000"),
+    createPlatform(100, 500, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createVerticalPlatform(100, 350, 150, "#a2a2a2", "#000"),
+    createPlatform(550, 100, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createVerticalPlatform(675, 125, 150, "#a2a2a2", "#000"),
   ],
 
   bombs: [],
@@ -217,10 +214,10 @@ export const killMap: MapDefinition = {
   groupSequence: [1],
 
   platforms: [
-    createPlatform(100, 175, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(525, 175, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(125, 400, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(525, 400, { width: 150, height: 25 }, "#2f3543", "#000"),
+    createPlatform(100, 175, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(525, 175, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(125, 400, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+    createPlatform(525, 400, { width: 150, height: 25 }, "#a2a2a2", "#000"),
   ],
 
   bombs: [],

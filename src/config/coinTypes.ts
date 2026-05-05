@@ -8,6 +8,7 @@ import {
 } from "../types/interfaces";
 import { CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
+import { PLAYFIELD_BOTTOM } from "./floor";
 import { COIN_SPAWNING } from "./coins";
 import { ScalingManager } from "../managers/ScalingManager";
 import { useAudioStore } from "../stores/systems/audioStore";
@@ -217,9 +218,9 @@ export const COIN_PHYSICS = {
       // and won't re-snap the coin back onto the platform.
       const EDGE_TOLERANCE = 0;
 
-      // ── On the canvas floor ────────────────────────────────────────────
-      if (coin.y + coin.height >= GAME_CONFIG.CANVAS_HEIGHT) {
-        coin.y = GAME_CONFIG.CANVAS_HEIGHT - coin.height;
+      // ── On the playfield floor (top of decorative floor strip) ────────
+      if (coin.y + coin.height >= PLAYFIELD_BOTTOM) {
+        coin.y = PLAYFIELD_BOTTOM - coin.height;
         coin.velocityY = 0;
         coin.platformDirection = null;
 

@@ -88,6 +88,7 @@ export const mapToEditor = (
       borderColor: p.borderColor,
       isVertical: p.isVertical,
       tileTheme: p.tileTheme,
+      roundedCorners: p.roundedCorners,
     });
   }
 

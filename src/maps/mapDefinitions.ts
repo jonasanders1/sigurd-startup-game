@@ -20,10 +20,10 @@ import {
 export const level1Map: MapDefinition = {
   id: "level1",
   name: "soverommet",
-  floor: "green",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "soverommet",
+  floor: "green",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ff9ff3",
 
@@ -35,48 +35,48 @@ export const level1Map: MapDefinition = {
         500,
         400,
         { width: 200, height: 25 },
-        "#2f3543",
+        "#84bf4d",
         "#000",
       ),
-      tileTheme: "plastic",
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
     },
     {
       ...createPlatform(
         100,
         400,
         { width: 200, height: 25 },
-        "#2f3543",
+        "#84bf4d",
         "#000",
       ),
-      tileTheme: "plastic",
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
     },
     {
       ...createPlatform(
         550,
         175,
         { width: 150, height: 25 },
-        "#2f3543",
+        "#84bf4d",
         "#000",
       ),
-      tileTheme: "plastic",
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
     },
     {
       ...createPlatform(
         100,
         175,
         { width: 150, height: 25 },
-        "#2f3543",
+        "#84bf4d",
         "#000",
       ),
-      tileTheme: "plastic",
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
     },
     {
-      ...createPlatform(750, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "plastic",
+      ...createPlatform(750, 275, { width: 50, height: 25 }, "#84bf4d", "#000"),
+      roundedCorners: { tl: true, bl: true },
     },
     {
-      ...createPlatform(0, 275, { width: 50, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "plastic",
+      ...createPlatform(0, 275, { width: 50, height: 25 }, "#84bf4d", "#000"),
+      roundedCorners: { tr: true, br: true },
     },
   ],
 
@@ -201,10 +201,10 @@ export const level1Map: MapDefinition = {
 export const level2Map: MapDefinition = {
   id: "level2",
   name: "garasjen",
-  floor: "gray",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "garasjen",
+  floor: "brown",
   playerStart: { x: 388, y: 283 },
   spawnIndicatorColor: "#ff9ff3",
 
@@ -212,64 +212,56 @@ export const level2Map: MapDefinition = {
 
   platforms: [
     {
-      ...createPlatform(75, 175, { width: 150, height: 25 }, "#2f3543", "#000"),
-      tileTheme: "construction",
-    },
-    {
-      ...createVerticalPlatform(75, 350, 150, "#2f3543", "#000"),
-      tileTheme: "construction",
+      ...createPlatform(75, 175, { width: 150, height: 25 }, "#bd9853", "#000"),
+      roundedCorners: { tl: true, tr: true, br: true },
     },
     {
       ...createPlatform(
         100,
         475,
         { width: 150, height: 25 },
-        "#2f3543",
+        "#bd9853",
         "#000",
       ),
-      tileTheme: "construction",
+      roundedCorners: { tr: true, br: true },
     },
     {
-      ...createVerticalPlatform(75, 200, 150, "#2f3543", "#000"),
-      tileTheme: "construction",
+      ...createVerticalPlatform(75, 200, 300, "#bd9853", "#000"),
+      roundedCorners: { bl: true },
     },
     {
       ...createPlatform(
         550,
         175,
         { width: 175, height: 25 },
-        "#2f3543",
+        "#bd9853",
         "#000",
       ),
-      tileTheme: "construction",
-    },
-    {
-      ...createVerticalPlatform(700, 350, 150, "#2f3543", "#000"),
-      tileTheme: "construction",
+      roundedCorners: { tl: true, tr: true, bl: true },
     },
     {
       ...createPlatform(
         550,
         475,
         { width: 150, height: 25 },
-        "#2f3543",
+        "#bd9853",
         "#000",
       ),
-      tileTheme: "construction",
+      roundedCorners: { tl: true, bl: true },
     },
     {
-      ...createVerticalPlatform(700, 200, 150, "#2f3543", "#000"),
-      tileTheme: "construction",
+      ...createVerticalPlatform(700, 200, 300, "#bd9853", "#000"),
+      roundedCorners: { br: true },
     },
     {
       ...createPlatform(
         325,
         175,
         { width: 150, height: 25 },
-        "#2f3543",
+        "#bd9853",
         "#000",
       ),
-      tileTheme: "construction",
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
     },
   ],
 
@@ -280,9 +272,9 @@ export const level2Map: MapDefinition = {
     createBomb(664, 204, 4, 2),
     createBomb(613, 204, 5, 2),
     createBomb(564, 204, 6, 2),
-    createBomb(438, 200, 7, 3),
-    createBomb(387, 200, 8, 3),
-    createBomb(338, 200, 9, 3),
+    createBomb(438, 204, 7, 3),
+    createBomb(387, 204, 8, 3),
+    createBomb(338, 204, 9, 3),
     createBomb(213, 450, 10, 4),
     createBomb(161, 450, 11, 4),
     createBomb(112, 450, 12, 4),
@@ -387,22 +379,58 @@ export const level2Map: MapDefinition = {
 export const level3Map: MapDefinition = {
   id: "level3",
   name: "startup lab",
-  floor: "brown",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "startup-lab",
+  floor: "gray-clean",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#00ffff",
 
   groupSequence: [1, 2, 3, 4, 5],
 
   platforms: [
-    createPlatform(600, 125, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(675, 225, 150, "#2f3543", "#000"),
-    createPlatform(425, 425, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(100, 498, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(0, 150, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(75, 250, 150, "#2f3543", "#000"),
+    {
+      ...createPlatform(
+        600,
+        125,
+        { width: 200, height: 25 },
+        "#a2a2a2",
+        "#000",
+      ),
+      roundedCorners: { tl: true, bl: true },
+    },
+    {
+      ...createVerticalPlatform(675, 225, 150, "#a2a2a2", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        425,
+        425,
+        { width: 200, height: 25 },
+        "#a2a2a2",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        100,
+        475,
+        { width: 200, height: 25 },
+        "#a2a2a2",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(0, 150, { width: 200, height: 25 }, "#a2a2a2", "#000"),
+      roundedCorners: { tr: true, br: true },
+    },
+    {
+      ...createVerticalPlatform(75, 250, 150, "#a2a2a2", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
   ],
 
   bombs: [
@@ -417,18 +445,18 @@ export const level3Map: MapDefinition = {
     createBomb(710, 230, 9, 3),
     createBomb(710, 280, 10, 3),
     createBomb(710, 330, 11, 3),
-    createBomb(130, 526, 12, 4),
-    createBomb(180, 526, 13, 4),
-    createBomb(230, 526, 14, 4),
+    createBomb(125, 503, 12, 4),
+    createBomb(175, 503, 13, 4),
+    createBomb(225, 503, 14, 4),
     createBomb(625, 100, 15, 5),
     createBomb(675, 100, 16, 5),
     createBomb(725, 100, 17, 5),
     createBomb(102, 262, 18, 6),
     createBomb(102, 312, 19, 6),
     createBomb(102, 362, 20, 6),
-    createBomb(130, 470, 21, 7),
-    createBomb(180, 470, 22, 7),
-    createBomb(230, 470, 23, 7),
+    createBomb(125, 450, 21, 7),
+    createBomb(175, 450, 22, 7),
+    createBomb(225, 450, 23, 7),
   ],
 
   monsters: [],
@@ -446,18 +474,7 @@ export const level3Map: MapDefinition = {
       respawnInterval: 15000,
       maxSpawns: 3,
       createMonster: () =>
-        createMummyMonster(
-          100,
-          500,
-          200,
-          "right",
-          3,
-          1,
-          1,
-          4000,
-          "green",
-          "ORB",
-        ),
+        createMummyMonster(100, 475, 200, "left", 3, 1, 1, 0, "green", "ORB"),
     },
     {
       spawnDelay: 7000,
@@ -468,18 +485,7 @@ export const level3Map: MapDefinition = {
       respawnInterval: 16000,
       maxSpawns: 2,
       createMonster: () =>
-        createMummyMonster(
-          600,
-          125,
-          200,
-          "right",
-          5,
-          1,
-          undefined,
-          0,
-          "green",
-          "ORB",
-        ),
+        createMummyMonster(600, 125, 200, "right", 5, 1, -1, 0, "green", "ORB"),
     },
   ],
 
@@ -523,22 +529,76 @@ export const level3Map: MapDefinition = {
 export const level4Map: MapDefinition = {
   id: "level4",
   name: "innovasjon norge",
-  floor: "blue-green",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "innovasjon-norge",
+  floor: "blue-green-clean",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ff6b6b",
 
   groupSequence: [1, 2, 3, 4, 5],
 
   platforms: [
-    createPlatform(150, 125, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(500, 125, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(300, 250, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(300, 375, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(150, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(500, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
+    {
+      ...createPlatform(
+        150,
+        125,
+        { width: 150, height: 25 },
+        "#249c8e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        500,
+        125,
+        { width: 150, height: 25 },
+        "#249c8e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        300,
+        250,
+        { width: 200, height: 25 },
+        "#249c8e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        300,
+        375,
+        { width: 200, height: 25 },
+        "#249c8e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        150,
+        475,
+        { width: 150, height: 25 },
+        "#249c8e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        500,
+        475,
+        { width: 150, height: 25 },
+        "#249c8e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
   ],
 
   bombs: [
@@ -658,22 +718,64 @@ export const level4Map: MapDefinition = {
 export const level5Map: MapDefinition = {
   id: "level5",
   name: "skatteetaten",
-  floor: "yellow",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "skatteetaten",
+  floor: "green-white",
   playerStart: { x: 387.5, y: 242.5 },
   spawnIndicatorColor: "#4ecdc4",
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
   platforms: [
-    createPlatform(0, 225, { width: 175, height: 25 }, "#2f3543", "#000"),
-    createPlatform(625, 225, { width: 175, height: 25 }, "#2f3543", "#000"),
-    createPlatform(75, 350, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(500, 350, { width: 200, height: 25 }, "#2f3543", "#000"),
-    createPlatform(150, 500, { width: 500, height: 25 }, "#2f3543", "#000"),
-    createPlatform(150, 125, { width: 500, height: 25 }, "#2f3543", "#000"),
+    {
+      ...createPlatform(0, 225, { width: 175, height: 25 }, "#059f60", "#000"),
+      roundedCorners: { tr: true, br: true },
+    },
+    {
+      ...createPlatform(
+        625,
+        225,
+        { width: 175, height: 25 },
+        "#059f60",
+        "#000",
+      ),
+      roundedCorners: { tl: true, bl: true },
+    },
+    {
+      ...createPlatform(75, 350, { width: 200, height: 25 }, "#059f60", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        500,
+        350,
+        { width: 200, height: 25 },
+        "#059f60",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        150,
+        500,
+        { width: 500, height: 25 },
+        "#059f60",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        150,
+        125,
+        { width: 500, height: 25 },
+        "#059f60",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
   ],
 
   bombs: [
@@ -815,28 +917,88 @@ export const level5Map: MapDefinition = {
 export const level6Map: MapDefinition = {
   id: "level6",
   name: "nav",
-  floor: "yellow-light",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "nav",
+  floor: "yellow-light",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ffe66d",
 
   groupSequence: [1, 2, 3, 4, 5],
 
   platforms: [
-    createVerticalPlatform(645, 225, 150, "#586c5c", "#202e32"),
-    createVerticalPlatform(705, 225, 150, "#586c5c", "#202e32"),
-    createVerticalPlatform(118, 199, 150, "#586c5c", "#202e32"),
-    createVerticalPlatform(178, 199, 150, "#586c5c", "#202e32"),
-    createPlatform(75, 50, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(75, 110, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(75, 525, { width: 175, height: 25 }, "#2f3543", "#000"),
-    createPlatform(275, 400, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(575, 509, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(575, 449, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(375, 200, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(525, 50, { width: 200, height: 25 }, "#2f3543", "#000"),
+    {
+      ...createVerticalPlatform(645, 225, 150, "#bd9853", "#202e32"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createVerticalPlatform(705, 225, 150, "#bd9853", "#202e32"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createVerticalPlatform(118, 199, 150, "#bd9853", "#202e32"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createVerticalPlatform(178, 199, 150, "#bd9853", "#202e32"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(75, 50, { width: 150, height: 25 }, "#bd9853", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(75, 110, { width: 150, height: 25 }, "#bd9853", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(75, 500, { width: 175, height: 25 }, "#bd9853", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        275,
+        400,
+        { width: 150, height: 25 },
+        "#bd9853",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        575,
+        509,
+        { width: 150, height: 25 },
+        "#bd9853",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        575,
+        444,
+        { width: 150, height: 25 },
+        "#bd9853",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        375,
+        200,
+        { width: 150, height: 25 },
+        "#bd9853",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(525, 50, { width: 200, height: 25 }, "#bd9853", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
   ],
 
   bombs: [
@@ -846,9 +1008,9 @@ export const level6Map: MapDefinition = {
     createBomb(675, 237, 4, 2),
     createBomb(675, 287, 5, 2),
     createBomb(675, 337, 6, 2),
-    createBomb(112, 498, 7, 3),
-    createBomb(162, 498, 8, 3),
-    createBomb(212, 498, 9, 3),
+    createBomb(112, 476, 7, 3),
+    createBomb(162, 476, 8, 3),
+    createBomb(212, 476, 9, 3),
     createBomb(287, 373, 10, 4),
     createBomb(337, 373, 11, 4),
     createBomb(387, 373, 12, 4),
@@ -870,13 +1032,6 @@ export const level6Map: MapDefinition = {
   monsterSpawnPoints: [
     {
       spawnDelay: 0,
-      respawnInterval: 12000,
-      maxSpawns: 2,
-      createMonster: () =>
-        createMummyMonster(75, 525, 175, "left", 5, 1, 1, 0, "green", "SPHERE"),
-    },
-    {
-      spawnDelay: 0,
       respawnInterval: 16000,
       maxSpawns: 2,
       createMonster: () =>
@@ -891,12 +1046,19 @@ export const level6Map: MapDefinition = {
       respawnInterval: 12000,
       maxSpawns: 3,
       createMonster: () =>
+        createMummyMonster(525, 50, 200, "left", 2, 1, 1, 0, "green", "SPHERE"),
+    },
+    {
+      spawnDelay: 0,
+      respawnInterval: 10000,
+      maxSpawns: 3,
+      createMonster: () =>
         createMummyMonster(
-          525,
-          50,
-          200,
+          75,
+          500,
+          175,
           "left",
-          2,
+          5,
           1,
           undefined,
           0,
@@ -946,19 +1108,28 @@ export const level6Map: MapDefinition = {
 export const level7Map: MapDefinition = {
   id: "level7",
   name: "kommunehuset",
-  floor: "green-white",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "kommunehuset",
+  floor: "yellow-light",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#a8e6cf",
 
   groupSequence: [1, 2, 3, 4, 5, 6],
 
   platforms: [
-    createPlatform(50, 300, { width: 75, height: 25 }, "#2f3543", "#000"),
-    createPlatform(675, 300, { width: 75, height: 25 }, "#2f3543", "#000"),
-    createPlatform(375, 375, { width: 50, height: 25 }, "#2f3543", "#000"),
+    {
+      ...createPlatform(50, 300, { width: 75, height: 25 }, "#fcc233", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(675, 300, { width: 75, height: 25 }, "#fcc233", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
+    {
+      ...createPlatform(375, 375, { width: 50, height: 25 }, "#fcc233", "#000"),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
   ],
 
   bombs: [
@@ -988,7 +1159,7 @@ export const level7Map: MapDefinition = {
   ],
 
   monsters: [
-    createVerticalPatrolMonster(535, 300, 300, "right", 1, 1, 0),
+    createVerticalPatrolMonster(535, 300, 250, "right", 1, 1, 0),
     createVerticalPatrolMonster(235, 0, 300, "right", 1, 1, 0),
   ],
 
@@ -996,7 +1167,7 @@ export const level7Map: MapDefinition = {
     {
       spawnDelay: 750,
       createMonster: () =>
-        createVerticalPatrolMonster(235, 300, 300, "right", 1, 1, 750),
+        createVerticalPatrolMonster(235, 300, 250, "right", 1, 1, 750),
     },
     {
       spawnDelay: 850,
@@ -1015,7 +1186,7 @@ export const level7Map: MapDefinition = {
           "left",
           1,
           1,
-          undefined,
+          1,
           7000,
           "green",
           "SPHERE",
@@ -1033,7 +1204,7 @@ export const level7Map: MapDefinition = {
           "right",
           1,
           1,
-          undefined,
+          -1,
           5500,
           "green",
           "ORB",
@@ -1094,23 +1265,62 @@ export const level7Map: MapDefinition = {
 export const level8Map: MapDefinition = {
   id: "level8",
   name: "alltinn norge",
-  floor: "blue-purple",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "alltinn",
+  floor: "gray",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#ff9ff3",
 
   groupSequence: [1, 2, 3, 4, 5, 6, 7],
 
   platforms: [
-    createVerticalPlatform(50, 175, 325, "#5d8fb3", "#1a2540"),
-    createVerticalPlatform(725, 175, 325, "#5d8fb3", "#1a2540"),
-    createPlatform(50, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(600, 150, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(75, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(575, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createPlatform(250, 225, { width: 300, height: 25 }, "#2f3543", "#000"),
+    {
+      ...createVerticalPlatform(50, 175, 325, "#a2a2a2", "#1a2540"),
+      roundedCorners: { bl: true },
+    },
+    {
+      ...createVerticalPlatform(725, 175, 325, "#a2a2a2", "#1a2540"),
+      roundedCorners: { br: true },
+    },
+    {
+      ...createPlatform(50, 150, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+      roundedCorners: { tl: true, tr: true, br: true },
+    },
+    {
+      ...createPlatform(
+        600,
+        150,
+        { width: 150, height: 25 },
+        "#a2a2a2",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true },
+    },
+    {
+      ...createPlatform(75, 475, { width: 150, height: 25 }, "#a2a2a2", "#000"),
+      roundedCorners: { tr: true, br: true },
+    },
+    {
+      ...createPlatform(
+        575,
+        475,
+        { width: 150, height: 25 },
+        "#a2a2a2",
+        "#000",
+      ),
+      roundedCorners: { tl: true, bl: true },
+    },
+    {
+      ...createPlatform(
+        250,
+        225,
+        { width: 300, height: 25 },
+        "#a2a2a2",
+        "#000",
+      ),
+      roundedCorners: { tl: true, tr: true, bl: true, br: true },
+    },
   ],
 
   bombs: [
@@ -1169,6 +1379,10 @@ export const level8Map: MapDefinition = {
       createMonster: () =>
         createMummyMonster(600, 150, 150, "left", 1, 1, 1, 0, "black", "ORB"),
     },
+    {
+      spawnDelay: 6000,
+      createMonster: () => createUfoMonster(650, 200, 1, 8000, 6000),
+    },
   ],
 
   coinSpawnPoints: [
@@ -1210,23 +1424,68 @@ export const level8Map: MapDefinition = {
 export const level9Map: MapDefinition = {
   id: "level9",
   name: "silicone vally",
-  floor: "sand-pink",
   width: GAME_CONFIG.CANVAS_WIDTH,
   height: GAME_CONFIG.CANVAS_HEIGHT,
   background: "silicone-vally",
+  floor: "sand-pink",
   playerStart: { x: 387.5, y: 282.5 },
   spawnIndicatorColor: "#feca57",
 
   groupSequence: [1, 2, 3, 4, 5],
 
   platforms: [
-    createPlatform(0, 125, { width: 325, height: 25 }, "#2f3543", "#000"),
-    createPlatform(100, 475, { width: 150, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(250, 350, 150, "#2f3543", "#000"),
-    createPlatform(275, 350, { width: 300, height: 25 }, "#2f3543", "#000"),
-    createVerticalPlatform(550, 200, 150, "#2f3543", "#000"),
-    createPlatform(675, 100, { width: 125, height: 25 }, "#2f3543", "#000"),
-    createPlatform(700, 350, { width: 100, height: 25 }, "#2f3543", "#000"),
+    {
+      ...createPlatform(0, 125, { width: 325, height: 25 }, "#fdd58e", "#000"),
+      roundedCorners: { tr: true, br: true },
+    },
+    {
+      ...createPlatform(
+        100,
+        475,
+        { width: 150, height: 25 },
+        "#fdd58e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, bl: true },
+    },
+    {
+      ...createVerticalPlatform(250, 350, 150, "#fdd58e", "#000"),
+      roundedCorners: { tl: true, br: true },
+    },
+    {
+      ...createPlatform(
+        275,
+        350,
+        { width: 300, height: 25 },
+        "#fdd58e",
+        "#000",
+      ),
+      roundedCorners: { br: true },
+    },
+    {
+      ...createVerticalPlatform(550, 200, 150, "#fdd58e", "#000"),
+      roundedCorners: { tl: true, tr: true },
+    },
+    {
+      ...createPlatform(
+        675,
+        100,
+        { width: 125, height: 25 },
+        "#fdd58e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, bl: true },
+    },
+    {
+      ...createPlatform(
+        700,
+        350,
+        { width: 100, height: 25 },
+        "#fdd58e",
+        "#000",
+      ),
+      roundedCorners: { tl: true, bl: true },
+    },
   ],
 
   bombs: [
@@ -1243,16 +1502,16 @@ export const level9Map: MapDefinition = {
     createBomb(431, 378, 11, 4),
     createBomb(381, 378, 12, 4),
     createBomb(331, 378, 13, 4),
-    createBomb(200, 503, 14, 5),
-    createBomb(150, 503, 15, 5),
+    createBomb(193, 503, 14, 5),
+    createBomb(143, 503, 15, 5),
     createBomb(275, 322, 16, 6),
     createBomb(325, 322, 17, 6),
     createBomb(700, 73, 18, 7),
     createBomb(750, 73, 19, 7),
     createBomb(738, 322, 20, 7),
-    createBomb(116, 548, 21, 8),
-    createBomb(166, 548, 22, 8),
-    createBomb(216, 548, 23, 8),
+    createBomb(116, 549, 21, 8),
+    createBomb(166, 549, 22, 8),
+    createBomb(216, 549, 23, 8),
   ],
 
   monsters: [createHornMonster(150, 350, 39, 1, 0)],
@@ -1262,18 +1521,7 @@ export const level9Map: MapDefinition = {
       spawnDelay: 0,
       respawnInterval: 8000,
       createMonster: () =>
-        createMummyMonster(
-          0,
-          125,
-          325,
-          "left",
-          1,
-          1,
-          undefined,
-          0,
-          "green",
-          "ORB",
-        ),
+        createMummyMonster(0, 125, 325, "left", 1, 1, 1, 0, "green", "ORB"),
     },
     {
       spawnDelay: 16000,
@@ -1287,7 +1535,7 @@ export const level9Map: MapDefinition = {
           "right",
           3,
           1,
-          undefined,
+          -1,
           16000,
           "green",
           "SPHERE",
@@ -1298,18 +1546,7 @@ export const level9Map: MapDefinition = {
       respawnInterval: 10000,
       maxSpawns: 2,
       createMonster: () =>
-        createMummyMonster(
-          700,
-          350,
-          100,
-          "left",
-          2,
-          1,
-          undefined,
-          0,
-          "black",
-          "ORB",
-        ),
+        createMummyMonster(700, 350, 100, "left", 2, 1, 1, 0, "black", "ORB"),
     },
     {
       spawnDelay: 17500,

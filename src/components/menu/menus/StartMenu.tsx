@@ -81,9 +81,9 @@ const StartMenu: React.FC = () => {
           {isDeducting
             ? "Venter..."
             : hasBridge && insufficientFunds
-              ? "Kjøp FORRETNINGSIDÉER"
+              ? "Kjøp IDÉER"
               : hasBridge
-                ? "Spill (1 forretningsidé)"
+                ? "Spill"
                 : "Press Start"}
         </Button>
 

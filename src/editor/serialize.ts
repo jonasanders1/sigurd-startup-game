@@ -20,8 +20,19 @@ const platformLine = (p: PlatformEntity): string => {
   const factory = p.isVertical
     ? `createVerticalPlatform(${num(p.x)}, ${num(p.y)}, ${num(p.height)}, ${str(p.color)}${p.borderColor ? `, ${str(p.borderColor)}` : ""})`
     : `createPlatform(${num(p.x)}, ${num(p.y)}, { width: ${num(p.width)}, height: ${num(p.height)} }, ${str(p.color)}${p.borderColor ? `, ${str(p.borderColor)}` : ""})`;
-  if (p.tileTheme) {
-    return `  { ...${factory}, tileTheme: ${str(p.tileTheme)} },`;
+  const extras: string[] = [];
+  if (p.tileTheme) extras.push(`tileTheme: ${str(p.tileTheme)}`);
+  if (p.roundedCorners) {
+    const rc = p.roundedCorners;
+    const parts: string[] = [];
+    if (rc.tl) parts.push("tl: true");
+    if (rc.tr) parts.push("tr: true");
+    if (rc.bl) parts.push("bl: true");
+    if (rc.br) parts.push("br: true");
+    if (parts.length > 0) extras.push(`roundedCorners: { ${parts.join(", ")} }`);
+  }
+  if (extras.length > 0) {
+    return `  { ...${factory}, ${extras.join(", ")} },`;
   }
   return `  ${factory},`;
 };

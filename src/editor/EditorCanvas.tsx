@@ -17,6 +17,11 @@ import {
   FLOOR_SPRITE_SOURCE_HEIGHT,
 } from "../config/floor";
 import {
+  PLATFORM_CHAMFER_SIZE,
+  PLATFORM_CHAMFER_INNER_SIZE,
+} from "../config/platformColors";
+import type { RoundedCorners } from "../types/interfaces";
+import {
   defaultPlatform,
   defaultVerticalWall,
   defaultBomb,
@@ -54,19 +59,39 @@ const getEntityRect = (e: EditorEntity) => {
     case "platform":
       return { x: e.x, y: e.y, width: e.width, height: e.height };
     case "bomb":
-      return { x: e.x, y: e.y, width: GAME_CONFIG.BOMB_SIZE, height: GAME_CONFIG.BOMB_SIZE };
+      return {
+        x: e.x,
+        y: e.y,
+        width: GAME_CONFIG.BOMB_SIZE,
+        height: GAME_CONFIG.BOMB_SIZE,
+      };
     case "monster":
-      return { x: e.x, y: e.y, width: GAME_CONFIG.MONSTER_SIZE, height: GAME_CONFIG.MONSTER_SIZE };
+      return {
+        x: e.x,
+        y: e.y,
+        width: GAME_CONFIG.MONSTER_SIZE,
+        height: GAME_CONFIG.MONSTER_SIZE,
+      };
     case "coinSpawn":
-      return { x: e.x, y: e.y, width: GAME_CONFIG.COIN_SIZE, height: GAME_CONFIG.COIN_SIZE };
+      return {
+        x: e.x,
+        y: e.y,
+        width: GAME_CONFIG.COIN_SIZE,
+        height: GAME_CONFIG.COIN_SIZE,
+      };
     case "playerStart":
-      return { x: e.x, y: e.y, width: GAME_CONFIG.PLAYER_WIDTH, height: GAME_CONFIG.PLAYER_HEIGHT };
+      return {
+        x: e.x,
+        y: e.y,
+        width: GAME_CONFIG.PLAYER_WIDTH,
+        height: GAME_CONFIG.PLAYER_HEIGHT,
+      };
   }
 };
 
 const rectsIntersect = (
   a: { x: number; y: number; width: number; height: number },
-  b: { x: number; y: number; width: number; height: number }
+  b: { x: number; y: number; width: number; height: number },
 ): boolean =>
   a.x < b.x + b.width &&
   a.x + a.width > b.x &&
@@ -83,7 +108,13 @@ interface ArrowProps {
   color: string;
 }
 
-const ArrowOverlay: React.FC<ArrowProps> = ({ fromX, fromY, angleDeg, length, color }) => {
+const ArrowOverlay: React.FC<ArrowProps> = ({
+  fromX,
+  fromY,
+  angleDeg,
+  length,
+  color,
+}) => {
   // Render as an absolutely-positioned div with a rotation transform
   const rad = (angleDeg * Math.PI) / 180;
   const dx = Math.cos(rad) * length;
@@ -156,7 +187,8 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
   if (isHoriz) {
     const startX = monster.platformX ?? monster.x;
     const width = monster.platformWidth ?? 150;
-    const trackY = (monster.platformY ?? monster.y + GAME_CONFIG.MONSTER_SIZE) - 1;
+    const trackY =
+      (monster.platformY ?? monster.y + GAME_CONFIG.MONSTER_SIZE) - 1;
     x1 = startX;
     y1 = trackY;
     x2 = startX + width;
@@ -219,7 +251,10 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
         fill="#0c4a6e"
         stroke={color}
         strokeWidth={2}
-        style={{ pointerEvents: "auto", cursor: isHoriz ? "ew-resize" : "ns-resize" }}
+        style={{
+          pointerEvents: "auto",
+          cursor: isHoriz ? "ew-resize" : "ns-resize",
+        }}
         onMouseDown={onStartHandle}
       />
       <circle
@@ -229,7 +264,10 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
         fill="#0c4a6e"
         stroke={color}
         strokeWidth={2}
-        style={{ pointerEvents: "auto", cursor: isHoriz ? "ew-resize" : "ns-resize" }}
+        style={{
+          pointerEvents: "auto",
+          cursor: isHoriz ? "ew-resize" : "ns-resize",
+        }}
         onMouseDown={onEndHandle}
       />
     </svg>
@@ -242,13 +280,27 @@ const PIXEL_IMG: React.CSSProperties = {
   pointerEvents: "none",
 };
 
+/** CSS clip-path polygon for a chamfered rect with per-corner toggles. */
+const buildChamferClipPath = (c: number, rc: RoundedCorners): string => {
+  const pts: string[] = [];
+  if (rc.tl) pts.push(`0 ${c}px`, `${c}px 0`);
+  else pts.push(`0 0`);
+  if (rc.tr) pts.push(`calc(100% - ${c}px) 0`, `100% ${c}px`);
+  else pts.push(`100% 0`);
+  if (rc.br) pts.push(`100% calc(100% - ${c}px)`, `calc(100% - ${c}px) 100%`);
+  else pts.push(`100% 100%`);
+  if (rc.bl) pts.push(`${c}px 100%`, `0 calc(100% - ${c}px)`);
+  else pts.push(`0 100%`);
+  return `polygon(${pts.join(", ")})`;
+};
+
 const PlatformSprite: React.FC<{ entity: PlatformEntity }> = ({ entity }) => {
   const theme = entity.tileTheme || DEFAULT_PLATFORM_THEME;
   const urls = getPlatformTileUrls(theme);
   const slots = layoutPlatformTiles(
     entity.width,
     entity.height,
-    entity.isVertical ?? false
+    entity.isVertical ?? false,
   );
   return (
     <>
@@ -361,7 +413,10 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
   };
 
   if (entity.kind === "platform") {
-    if (showSprites) {
+    // Tiles are opt-in per platform via tileTheme. Without it, render a
+    // solid color rect (matches RenderManager). Sprites toggle still
+    // suppresses the editor border for tile-themed platforms.
+    if (showSprites && entity.tileTheme) {
       return (
         <div
           onMouseDown={onMouseDown}
@@ -373,6 +428,41 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
           }}
         >
           <PlatformSprite entity={entity} />
+          {renderResizeHandle()}
+        </div>
+      );
+    }
+    // Mirror the runtime's chamfered corners. Two stacked divs (outer in
+    // border color, inner inset by 1 px in platform color) reproduce the
+    // 1-px border on every edge including the diagonal — same logic as
+    // RenderManager's two-pass fill.
+    const rc = entity.roundedCorners;
+    const hasChamfer = !!(rc?.tl || rc?.tr || rc?.bl || rc?.br);
+    if (hasChamfer) {
+      const outerClip = buildChamferClipPath(PLATFORM_CHAMFER_SIZE, rc!);
+      const innerClip = buildChamferClipPath(PLATFORM_CHAMFER_INNER_SIZE, rc!);
+      const borderColor = entity.borderColor ?? "#000";
+      return (
+        <div
+          onMouseDown={onMouseDown}
+          style={{
+            ...baseStyle,
+            background: borderColor,
+            border: "none",
+            clipPath: outerClip,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 1,
+              left: 1,
+              right: 1,
+              bottom: 1,
+              background: entity.color,
+              clipPath: innerClip,
+            }}
+          />
           {renderResizeHandle()}
         </div>
       );
@@ -394,6 +484,12 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
   if (entity.kind === "bomb") {
     if (showSprites) {
       const fundingSrc = getSpriteImagePath("funding/funding_0.png");
+      // Overscale to 1.9 × BOMB_SIZE, centered on the hitbox so the visible
+      // coin lands in the 25×25 collision box. maxWidth/maxHeight 'none'
+      // overrides Tailwind preflight's `img { max-width: 100% }`, which
+      // would otherwise clamp the sprite back to the hitbox width.
+      const drawSize = GAME_CONFIG.BOMB_SIZE * 1.9;
+      const offset = (GAME_CONFIG.BOMB_SIZE - drawSize) / 2;
       return (
         <div onMouseDown={onMouseDown} style={baseStyle}>
           <img
@@ -402,11 +498,13 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
             alt=""
             style={{
               ...PIXEL_IMG,
-              width: "190%",
-              height: "190%",
+              width: drawSize,
+              height: drawSize,
+              maxWidth: "none",
+              maxHeight: "none",
               position: "absolute",
-              left: "-45%",
-              top: "-45%",
+              left: offset,
+              top: offset,
             }}
             title={`Bomb #${entity.order} (group ${entity.group})`}
           />
@@ -420,7 +518,8 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
               color: "#fff",
               fontSize: 10,
               fontWeight: 700,
-              textShadow: "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+              textShadow:
+                "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
               pointerEvents: "none",
             }}
           >
@@ -518,15 +617,16 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
             {entity.coinType.charAt(0)}
           </div>
         </div>
-        {entity.coinType === CoinType.POWER && entity.spawnAngle !== undefined && (
-          <ArrowOverlay
-            fromX={entity.x + GAME_CONFIG.COIN_SIZE / 2}
-            fromY={entity.y + GAME_CONFIG.COIN_SIZE / 2}
-            angleDeg={entity.spawnAngle}
-            length={32}
-            color={COIN_COLORS[entity.coinType]}
-          />
-        )}
+        {entity.coinType === CoinType.POWER &&
+          entity.spawnAngle !== undefined && (
+            <ArrowOverlay
+              fromX={entity.x + GAME_CONFIG.COIN_SIZE / 2}
+              fromY={entity.y + GAME_CONFIG.COIN_SIZE / 2}
+              angleDeg={entity.spawnAngle}
+              length={32}
+              color={COIN_COLORS[entity.coinType]}
+            />
+          )}
       </>
     );
   }
@@ -621,7 +721,9 @@ export const EditorCanvas: React.FC = () => {
   const stageRef = useRef<HTMLDivElement>(null);
   const [dragMove, setDragMove] = useState<DragMoveState | null>(null);
   const [resize, setResize] = useState<ResizeState | null>(null);
-  const [patrolResize, setPatrolResize] = useState<PatrolResizeState | null>(null);
+  const [patrolResize, setPatrolResize] = useState<PatrolResizeState | null>(
+    null,
+  );
   const [marquee, setMarquee] = useState<MarqueeState | null>(null);
   const marqueeRef = useRef<MarqueeState | null>(null);
   marqueeRef.current = marquee;
@@ -642,12 +744,18 @@ export const EditorCanvas: React.FC = () => {
     const sy = snap(y, gridSize, snapToGrid);
     let entity: EditorEntity | null = null;
     if (tool.entity === "platform") {
-      entity = tool.subType === "vertical" ? defaultVerticalWall(sx, sy) : defaultPlatform(sx, sy);
+      entity =
+        tool.subType === "vertical"
+          ? defaultVerticalWall(sx, sy)
+          : defaultPlatform(sx, sy);
     } else if (tool.entity === "bomb") {
       const existing = entities.filter((en) => en.kind === "bomb").length;
       const next = defaultBomb(sx, sy);
       next.order = existing + 1;
-      next.group = Math.min(meta.groupSequence.length, Math.ceil((existing + 1) / 3));
+      next.group = Math.min(
+        meta.groupSequence.length,
+        Math.ceil((existing + 1) / 3),
+      );
       entity = next;
     } else if (tool.entity === "playerStart") {
       const existing = entities.find((en) => en.kind === "playerStart");
@@ -689,52 +797,51 @@ export const EditorCanvas: React.FC = () => {
     });
   };
 
-  const handleEntityMouseDown =
-    (entityId: string) => (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (tool.kind !== "select") setTool({ kind: "select" });
+  const handleEntityMouseDown = (entityId: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (tool.kind !== "select") setTool({ kind: "select" });
 
-      const additive = e.shiftKey || e.metaKey || e.ctrlKey;
-      let nextSelection: Set<string>;
-      if (additive) {
-        const next = new Set(selectedIds);
-        if (next.has(entityId)) next.delete(entityId);
-        else next.add(entityId);
-        toggleSelected(entityId);
-        nextSelection = next;
-      } else if (!selectedIds.has(entityId)) {
-        setSelected([entityId]);
-        nextSelection = new Set([entityId]);
+    const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+    let nextSelection: Set<string>;
+    if (additive) {
+      const next = new Set(selectedIds);
+      if (next.has(entityId)) next.delete(entityId);
+      else next.add(entityId);
+      toggleSelected(entityId);
+      nextSelection = next;
+    } else if (!selectedIds.has(entityId)) {
+      setSelected([entityId]);
+      nextSelection = new Set([entityId]);
+    } else {
+      nextSelection = new Set(selectedIds);
+    }
+
+    // Begin drag-move for all currently-selected entities
+    if (nextSelection.size === 0) return;
+    const positions = new Map<
+      string,
+      { x: number; y: number; platformX?: number; platformY?: number }
+    >();
+    for (const ent of entities) {
+      if (!nextSelection.has(ent.id)) continue;
+      if (ent.kind === "monster") {
+        positions.set(ent.id, {
+          x: ent.x,
+          y: ent.y,
+          platformX: ent.platformX,
+          platformY: ent.platformY,
+        });
       } else {
-        nextSelection = new Set(selectedIds);
+        positions.set(ent.id, { x: ent.x, y: ent.y });
       }
-
-      // Begin drag-move for all currently-selected entities
-      if (nextSelection.size === 0) return;
-      const positions = new Map<
-        string,
-        { x: number; y: number; platformX?: number; platformY?: number }
-      >();
-      for (const ent of entities) {
-        if (!nextSelection.has(ent.id)) continue;
-        if (ent.kind === "monster") {
-          positions.set(ent.id, {
-            x: ent.x,
-            y: ent.y,
-            platformX: ent.platformX,
-            platformY: ent.platformY,
-          });
-        } else {
-          positions.set(ent.id, { x: ent.x, y: ent.y });
-        }
-      }
-      setDragMove({
-        startX: e.clientX,
-        startY: e.clientY,
-        origPositions: positions,
-        moved: false,
-      });
-    };
+    }
+    setDragMove({
+      startX: e.clientX,
+      startY: e.clientY,
+      origPositions: positions,
+      moved: false,
+    });
+  };
 
   const handleResizeStart =
     (entityId: string) => (e: React.MouseEvent, axis: "x" | "y") => {
@@ -752,7 +859,7 @@ export const EditorCanvas: React.FC = () => {
   const beginPatrolResize = (
     monster: MonsterEntity,
     edge: "start" | "end",
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -838,12 +945,17 @@ export const EditorCanvas: React.FC = () => {
       const r = stageRef.current?.getBoundingClientRect();
       if (!r) return;
       const client = resize.axis === "x" ? e.clientX : e.clientY;
-      const scale = resize.axis === "x" ? r.width / CANVAS_W : r.height / CANVAS_H;
+      const scale =
+        resize.axis === "x" ? r.width / CANVAS_W : r.height / CANVAS_H;
       const delta = (client - resize.startClient) / scale;
       const raw = Math.max(15, resize.origLength + delta);
-      const snapped = snapToGrid ? Math.max(gridSize, Math.round(raw / gridSize) * gridSize) : Math.round(raw);
-      if (resize.axis === "x") updateEntity(resize.id, { width: snapped } as Partial<EditorEntity>);
-      else updateEntity(resize.id, { height: snapped } as Partial<EditorEntity>);
+      const snapped = snapToGrid
+        ? Math.max(gridSize, Math.round(raw / gridSize) * gridSize)
+        : Math.round(raw);
+      if (resize.axis === "x")
+        updateEntity(resize.id, { width: snapped } as Partial<EditorEntity>);
+      else
+        updateEntity(resize.id, { height: snapped } as Partial<EditorEntity>);
       if (!resize.moved) setResize({ ...resize, moved: true });
     };
     const onUp = () => {
@@ -865,12 +977,13 @@ export const EditorCanvas: React.FC = () => {
       const r = stageRef.current?.getBoundingClientRect();
       if (!r) return;
       const client = patrolResize.axis === "x" ? e.clientX : e.clientY;
-      const scale = patrolResize.axis === "x" ? r.width / CANVAS_W : r.height / CANVAS_H;
+      const scale =
+        patrolResize.axis === "x" ? r.width / CANVAS_W : r.height / CANVAS_H;
       const delta = (client - patrolResize.startClient) / scale;
       const newMoving = snap(
         patrolResize.origMovingEdge + delta,
         gridSize,
-        snapToGrid
+        snapToGrid,
       );
 
       const ent = useEditorStore
@@ -904,7 +1017,8 @@ export const EditorCanvas: React.FC = () => {
         updateEntity(patrolResize.id, patch as Partial<EditorEntity>);
       }
 
-      if (!patrolResize.moved) setPatrolResize({ ...patrolResize, moved: true });
+      if (!patrolResize.moved)
+        setPatrolResize({ ...patrolResize, moved: true });
     };
     const onUp = () => {
       if (patrolResize.moved) commitHistory();
@@ -1033,7 +1147,7 @@ export const EditorCanvas: React.FC = () => {
             e.kind === "monster" &&
             selectedIds.has(e.id) &&
             (e.monsterType === MonsterType.MUMMY ||
-              e.monsterType === MonsterType.VERTICAL_PATROL)
+              e.monsterType === MonsterType.VERTICAL_PATROL),
         )
         .map((m) => (
           <PatrolOverlay
@@ -1077,7 +1191,6 @@ export const EditorCanvas: React.FC = () => {
           {tool.subType ? ` / ${tool.subType}` : ""}
         </div>
       )}
-
 
       {selectedIds.size > 1 && (
         <div

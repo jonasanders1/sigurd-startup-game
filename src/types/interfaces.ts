@@ -259,6 +259,18 @@ export interface MonsterSpawnPoint {
 import type { PlatformTheme } from "../config/platformTiles";
 import type { FloorVariant } from "../config/floor";
 
+/**
+ * Per-corner rounding flags. Each true corner gets PLATFORM_CORNER_RADIUS
+ * applied; missing/false corners stay square. Visual only — collision is
+ * still AABB.
+ */
+export interface RoundedCorners {
+  tl?: boolean;
+  tr?: boolean;
+  bl?: boolean;
+  br?: boolean;
+}
+
 export interface Platform {
   x: number;
   y: number;
@@ -268,6 +280,7 @@ export interface Platform {
   borderColor?: string;
   isVertical?: boolean;
   tileTheme?: PlatformTheme;
+  roundedCorners?: RoundedCorners;
 }
 
 export interface MapDefinition {
@@ -294,6 +307,24 @@ export interface MapDefinition {
   groupSequence: number[];
   timeLimit?: number;
   
+}
+
+/**
+ * Identifying info about a monster that killed the player. Captured at the
+ * moment of normal-mode collision (power-mode kills don't set this — those
+ * kill the monster, not the player). Used in analytics payloads
+ * (LevelFailureData, LevelHistoryEntry) so the host can attribute deaths.
+ *
+ * Stringly-typed `type` / `originalType` so the payload stays serializable
+ * without leaking the MonsterType enum to consumers.
+ */
+export interface KillerInfo {
+  type: string;
+  /** Mummy variant: "green" or "black". Undefined for other monster types. */
+  variant?: string;
+  /** Pre-transform type if the killer is a transformed Mummy (SPHERE/ORB
+   *  killed the player after morphing). Undefined otherwise. */
+  originalType?: string;
 }
 
 export interface CollisionResult {

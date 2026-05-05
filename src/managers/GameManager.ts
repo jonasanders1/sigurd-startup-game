@@ -24,7 +24,7 @@ import {
   useStateStore,
   useRenderStore,
 } from "../stores/gameStore";
-import { Monster } from "../types/interfaces";
+import { Monster, KillerInfo } from "../types/interfaces";
 import { GameState, AudioEvent } from "../types/enums";
 import { DEV_CONFIG, GAME_CONFIG } from "../types/constants";
 import { playerSprite } from "../entities/Player";
@@ -41,6 +41,7 @@ import { SpawnDiagnostics } from "./spawn-diagnostics";
 import { LevelResult } from "@/stores/game/levelStore";
 import { waitForBridge, subscribeBalance } from "../lib/gameBridge";
 import { useBalanceStore } from "../stores/systems/balanceStore";
+import { MOCK_BALANCE } from "../config/dev";
 
 /**
  * GameManager - Main orchestrator for the game
@@ -373,15 +374,32 @@ export class GameManager {
     if (this.powerUpManager.isPowerModeActive()) {
       this.powerUpManager.handleMonsterCollisionDuringPowerMode(monster);
     } else {
-      // Normal collision - player dies
-      this.handlePlayerDeath();
+      // Normal collision - player dies; killer info propagated to analytics.
+      this.handlePlayerDeath(monster);
     }
   }
 
   /**
-   * Handle player death
+   * Build a serializable killer descriptor from a monster instance. Captures
+   * `originalType` for transformed Mummies so dashboards can distinguish
+   * "killed by mummy that morphed into sphere" from "killed by mummy".
    */
-  private handlePlayerDeath(): void {
+  private toKillerInfo(monster: Monster): KillerInfo {
+    const info: KillerInfo = { type: monster.type };
+    // PatrolMonster carries `variant` (green/black). Other types don't have it.
+    const variant = (monster as { variant?: string }).variant;
+    if (variant) info.variant = variant;
+    // Set on Mummy → SPHERE/ORB transform; cleared on respawn.
+    const originalType = (monster as { originalType?: string }).originalType;
+    if (originalType) info.originalType = originalType;
+    return info;
+  }
+
+  /**
+   * Handle player death. `killer` is the monster responsible (omitted for
+   * non-monster deaths, e.g. fall-off-screen via PlayerManager death cb).
+   */
+  private handlePlayerDeath(killer?: Monster): void {
     // Prevent re-entry while death sequence is playing out
     if (this.deathInProgress) return;
     this.deathInProgress = true;
@@ -418,6 +436,7 @@ export class GameManager {
     const coinStats = getLevelCoinStats();
     const levelStartTime = useLevelStore.getState().levelStartTime;
     const completionTime = Date.now() - levelStartTime;
+    const killedBy = killer ? this.toKillerInfo(killer) : undefined;
 
     // Stop any power-up effects
     this.powerUpManager.handlePlayerDeath();
@@ -438,6 +457,7 @@ export class GameManager {
           lives: lives - 1,
           multiplier: multiplier,
           timestamp: Date.now(),
+          killedBy,
         };
         sendLevelFailure(failureData);
       }
@@ -459,6 +479,7 @@ export class GameManager {
           lives: lives - 1,
           multiplier: multiplier,
           isPartial: true,
+          killedBy,
         };
         addLevelResult(partialLevelResult as LevelResult);
       }
@@ -515,6 +536,10 @@ export class GameManager {
           useBalanceStore.getState().setBalance(info.currentBalance);
           log.debug(`Balance update: ${info.currentBalance} (${info.reason})`);
         });
+      } else if (MOCK_BALANCE !== null) {
+        log.debug(`No balance bridge — using MOCK_BALANCE=${MOCK_BALANCE} for preview`);
+        useBalanceStore.getState().setBridgeAvailable(true);
+        useBalanceStore.getState().setBalance(MOCK_BALANCE);
       } else {
         log.debug("No balance bridge — standalone/free-play mode");
         useBalanceStore.getState().setBridgeAvailable(false);

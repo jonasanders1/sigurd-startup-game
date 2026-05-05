@@ -1,6 +1,7 @@
 import { MonsterType, CoinType } from "../types/enums";
 import type { PlatformTheme } from "../config/platformTiles";
 import type { FloorVariant } from "../config/floor";
+import type { RoundedCorners } from "../types/interfaces";
 
 export type EntityKind =
   | "platform"
@@ -20,6 +21,7 @@ export interface PlatformEntity {
   borderColor?: string;
   isVertical?: boolean;
   tileTheme?: PlatformTheme;
+  roundedCorners?: RoundedCorners;
 }
 
 export interface BombEntity {

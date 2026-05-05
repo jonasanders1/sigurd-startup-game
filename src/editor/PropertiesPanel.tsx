@@ -5,6 +5,7 @@ import { MonsterType, CoinType } from "../types/enums";
 import { Trash2, Copy, Layers } from "lucide-react";
 import { PLATFORM_THEMES, DEFAULT_PLATFORM_THEME } from "../config/platformTiles";
 import { FLOOR_VARIANTS_BY_STYLE, type FloorVariant } from "../config/floor";
+import { PLATFORM_COLORS, PLATFORM_COLOR_NAMES } from "../config/platformColors";
 
 const labelStyle: React.CSSProperties = {
   display: "block",
@@ -662,6 +663,35 @@ export const PropertiesPanel: React.FC = () => {
                 value={selected.color}
                 onChange={(v) => update({ color: v } as Partial<EditorEntity>)}
               />
+              {/* Quick-pick palette — sets the platform's color to one of
+                  the canonical 8 variants. Custom hexes still allowed via
+                  the ColorField above. */}
+              <div style={{ ...fieldStyle, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {PLATFORM_COLOR_NAMES.map((name) => {
+                  const hex = PLATFORM_COLORS[name];
+                  const active = selected.color.toLowerCase() === hex.toLowerCase();
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      title={`${name} (${hex})`}
+                      onClick={() => {
+                        update({ color: hex } as Partial<EditorEntity>);
+                        commitHistory();
+                      }}
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: 3,
+                        background: hex,
+                        border: active ? "2px solid #fff" : "1px solid #374151",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    />
+                  );
+                })}
+              </div>
               <ColorField
                 label="Border Color"
                 value={selected.borderColor ?? "#000000"}
@@ -672,6 +702,47 @@ export const PropertiesPanel: React.FC = () => {
                 value={selected.isVertical ?? false}
                 onChange={(b) => update({ isVertical: b } as Partial<EditorEntity>)}
               />
+              {/* Per-corner chamfer. Each toggle cuts a fixed 45° triangle
+                  of PLATFORM_CHAMFER_SIZE px from that corner; visual only. */}
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Chamfered Corners</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+                  {(["tl", "tr", "bl", "br"] as const).map((c) => {
+                    const labelMap = { tl: "Top-left", tr: "Top-right", bl: "Bottom-left", br: "Bottom-right" };
+                    const current = selected.roundedCorners ?? {};
+                    const checked = !!current[c];
+                    return (
+                      <label
+                        key={c}
+                        style={{
+                          display: "flex",
+                          gap: 6,
+                          alignItems: "center",
+                          fontSize: 11,
+                          color: "#cbd5e1",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = { ...current, [c]: e.target.checked };
+                            // Drop the field if all corners are off — keeps
+                            // serialized maps clean of empty objects.
+                            const anyOn = next.tl || next.tr || next.bl || next.br;
+                            update({
+                              roundedCorners: anyOn ? next : undefined,
+                            } as Partial<EditorEntity>);
+                            commitHistory();
+                          }}
+                        />
+                        {labelMap[c]}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
               <SelectField
                 label="Tile Theme"
                 value={selected.tileTheme ?? DEFAULT_PLATFORM_THEME}

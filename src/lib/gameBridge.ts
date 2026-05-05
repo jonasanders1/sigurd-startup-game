@@ -30,6 +30,15 @@ export interface SigurdGameBridge {
   // rate limit, amount === 1. Without those, devtools = free credits.
   grantBusinessIdea: (amount: number) => void;
 
+  // Open the host's purchase page. Host decides UX (modal, route push, new tab).
+  // Fire-and-forget. Optional — older hosts may not implement this; the package
+  // falls back to same-tab navigation in that case.
+  openPurchase?: () => void;
+
+  // Open the host's leaderboard page. Same UX/contract as openPurchase —
+  // host owns navigation; package falls back to same-tab nav otherwise.
+  openLeaderboard?: () => void;
+
   ready: boolean;
 }
 
@@ -115,6 +124,78 @@ export function subscribeBalance(callback: (info: BalanceInfo) => void): () => v
   }
 
   return window.sigurdGame.onBalanceChanged(callback);
+}
+
+/**
+ * Fallback URLs used only when no host bridge is present (standalone / older
+ * hosts without `openPurchase`). When the bridge is active, the host owns the
+ * navigation and these are not used.
+ *
+ * Resolved at runtime from `window.location.hostname` — when the landing page
+ * is being served locally (localhost / 127.0.0.1) the embedded package picks
+ * the localhost URL; otherwise it picks production.
+ */
+const PURCHASE_URL_PROD = "https://sigurdstartup.jonasanders1.com/payment";
+const PURCHASE_URL_LOCAL = "http://localhost:3000/payment";
+const LEADERBOARD_URL_PROD = "https://sigurdstartup.jonasanders1.com/leaderboard";
+const LEADERBOARD_URL_LOCAL = "http://localhost:3000/leaderboard";
+
+export function getPurchasePageUrl(): string {
+  if (typeof window === "undefined") return PURCHASE_URL_PROD;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1"
+    ? PURCHASE_URL_LOCAL
+    : PURCHASE_URL_PROD;
+}
+
+export function getLeaderboardPageUrl(): string {
+  if (typeof window === "undefined") return LEADERBOARD_URL_PROD;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1"
+    ? LEADERBOARD_URL_LOCAL
+    : LEADERBOARD_URL_PROD;
+}
+
+/**
+ * Trigger the host's purchase flow. Delegates to `bridge.openPurchase()` so
+ * the host decides the UX (modal, in-app route, new tab, etc.). Falls back to
+ * same-tab navigation in standalone / on older hosts that don't implement it.
+ */
+export function openPurchasePage(): void {
+  const bridge = window.sigurdGame;
+  if (bridge?.ready && typeof bridge.openPurchase === "function") {
+    try {
+      bridge.openPurchase();
+      log.debug("openPurchase delegated to host bridge");
+      return;
+    } catch (error) {
+      log.warn("Bridge openPurchase failed, falling back to same-tab nav:", error);
+    }
+  } else {
+    log.debug("No bridge.openPurchase — falling back to same-tab nav");
+  }
+  window.location.href = getPurchasePageUrl();
+}
+
+/**
+ * Open the host's leaderboard page. Same delegate-with-fallback contract as
+ * openPurchasePage. Hosts that implement `openLeaderboard` own the UX (route
+ * push, modal, new tab); otherwise the package navigates same-tab.
+ */
+export function openLeaderboardPage(): void {
+  const bridge = window.sigurdGame;
+  if (bridge?.ready && typeof bridge.openLeaderboard === "function") {
+    try {
+      bridge.openLeaderboard();
+      log.debug("openLeaderboard delegated to host bridge");
+      return;
+    } catch (error) {
+      log.warn("Bridge openLeaderboard failed, falling back to same-tab nav:", error);
+    }
+  } else {
+    log.debug("No bridge.openLeaderboard — falling back to same-tab nav");
+  }
+  window.location.href = getLeaderboardPageUrl();
 }
 
 /**
