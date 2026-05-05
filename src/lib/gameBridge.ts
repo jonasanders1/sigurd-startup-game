@@ -160,8 +160,11 @@ export function getLeaderboardPageUrl(): string {
  * Trigger the host's purchase flow. Delegates to `bridge.openPurchase()` so
  * the host decides the UX (modal, in-app route, new tab, etc.). Falls back to
  * same-tab navigation in standalone / on older hosts that don't implement it.
+ * Exits fullscreen first so the purchase page (and any host-rendered modal)
+ * isn't stuck under the game's fullscreen styling on SPA-routed hosts.
  */
 export function openPurchasePage(): void {
+  exitFullscreenIfActive();
   const bridge = window.sigurdGame;
   if (bridge?.ready && typeof bridge.openPurchase === "function") {
     try {
@@ -178,11 +181,52 @@ export function openPurchasePage(): void {
 }
 
 /**
+ * Exit browser fullscreen if currently active. Vendor-prefix-safe; resolves
+ * silently if not in fullscreen or the API rejects (e.g. user gesture rules).
+ * Used before navigating away — without this, an SPA host that handles
+ * `openLeaderboard` via client-side routing leaves the user staring at the
+ * leaderboard page with the game still in fullscreen styling.
+ */
+type FsDoc = Document & {
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void>;
+  mozFullScreenElement?: Element | null;
+  mozCancelFullScreen?: () => Promise<void>;
+  msFullscreenElement?: Element | null;
+  msExitFullscreen?: () => Promise<void>;
+};
+function exitFullscreenIfActive(): void {
+  if (typeof document === "undefined") return;
+  const d = document as FsDoc;
+  const active =
+    d.fullscreenElement ||
+    d.webkitFullscreenElement ||
+    d.mozFullScreenElement ||
+    d.msFullscreenElement;
+  if (!active) return;
+  try {
+    const exit =
+      d.exitFullscreen?.bind(d) ||
+      d.webkitExitFullscreen?.bind(d) ||
+      d.mozCancelFullScreen?.bind(d) ||
+      d.msExitFullscreen?.bind(d);
+    exit?.()?.catch?.((err: unknown) => {
+      log.debug("exitFullscreen rejected (non-fatal):", err);
+    });
+  } catch (error) {
+    log.debug("exitFullscreen threw (non-fatal):", error);
+  }
+}
+
+/**
  * Open the host's leaderboard page. Same delegate-with-fallback contract as
  * openPurchasePage. Hosts that implement `openLeaderboard` own the UX (route
- * push, modal, new tab); otherwise the package navigates same-tab.
+ * push, modal, new tab); otherwise the package navigates same-tab. Always
+ * exits fullscreen first so the leaderboard renders normally regardless of
+ * which path the host takes.
  */
 export function openLeaderboardPage(): void {
+  exitFullscreenIfActive();
   const bridge = window.sigurdGame;
   if (bridge?.ready && typeof bridge.openLeaderboard === "function") {
     try {
