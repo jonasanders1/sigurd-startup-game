@@ -1,97 +1,96 @@
 import { SpriteInstance } from "../lib/SpriteInstance";
-import { loadSpriteImage } from "../config/assets";
+import { loadFrameRange } from "../lib/spriteFrames";
+import { resolveHitboxRect, type LethalHitbox } from "../config/entities";
 
-const idleFrames = [
-  loadSpriteImage("sprites/sigurdV2/idle/idle_00.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_01.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_02.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_03.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_04.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_05.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_06.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_07.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_08.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_09.png"),
-  loadSpriteImage("sprites/sigurdV2/idle/idle_10.png"),
+/** Player lethal hitbox — smaller than the bounds, centered on the bounds. */
+export const PLAYER_HITBOX: LethalHitbox = {
+  width: 24,
+  height: 42,
+};
+
+/** Resolve the player's lethal hitbox to an absolute world-space rect. */
+export const getPlayerHitboxRect = (player: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}) => resolveHitboxRect(player, PLAYER_HITBOX);
+
+interface AnimDef {
+  name: string;
+  start: number;
+  end: number;
+  frameDuration: number;
+  loop: boolean;
+}
+
+const ANIM_DEFS: AnimDef[] = [
+  { name: "idle-left", start: 0, end: 5, frameDuration: 130, loop: true },
+  { name: "idle-right", start: 6, end: 11, frameDuration: 130, loop: true },
+  { name: "run-left", start: 12, end: 17, frameDuration: 55, loop: true },
+  { name: "run-right", start: 18, end: 23, frameDuration: 55, loop: true },
+  { name: "jump-left", start: 24, end: 26, frameDuration: 100, loop: false },
+  { name: "jump-right", start: 27, end: 29, frameDuration: 100, loop: false },
+  // Float uses a single frame from the run animation (run-left frame 13 / run-right frame 19).
+  { name: "float-left", start: 13, end: 13, frameDuration: 120, loop: true },
+  { name: "float-right", start: 19, end: 19, frameDuration: 120, loop: true },
+  { name: "float-down", start: 36, end: 38, frameDuration: 120, loop: true },
+  { name: "fall-left", start: 39, end: 41, frameDuration: 100, loop: false },
+  { name: "fall-right", start: 42, end: 44, frameDuration: 100, loop: false },
+  { name: "land-left", start: 45, end: 47, frameDuration: 80, loop: false },
+  { name: "land-right", start: 48, end: 50, frameDuration: 80, loop: false },
+  { name: "victory-left", start: 51, end: 54, frameDuration: 140, loop: true },
+  { name: "victory-right", start: 55, end: 58, frameDuration: 140, loop: true },
 ];
 
-const runFrames = [
-  loadSpriteImage("sprites/sigurdV2/running/running_00.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_01.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_02.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_03.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_04.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_05.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_06.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_07.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_08.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_09.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_10.png"),
-  loadSpriteImage("sprites/sigurdV2/running/running_11.png"),
-];
+const FRAME_FOLDER_OVERRIDES: Record<string, string> = {
+  "float-left": "run-left",
+  "float-right": "run-right",
+};
 
-const jumpFrames = [loadSpriteImage("sprites/sigurdV2/jump/jump_0.png")];
+const buildFrameMap = (
+  folder: string,
+  prefix: string,
+): Record<string, HTMLImageElement[]> => {
+  const base = `spritesV2/${folder}`;
+  const out: Record<string, HTMLImageElement[]> = {};
+  for (const def of ANIM_DEFS) {
+    const subfolder = FRAME_FOLDER_OVERRIDES[def.name] ?? def.name;
+    out[def.name] = loadFrameRange(`${base}/${subfolder}`, prefix, def.start, def.end);
+  }
+  return out;
+};
 
-const fallFrames = [loadSpriteImage("sprites/sigurdV2/fall/fall_0.png")];
+// Two independent frame maps. `playerSprite.animations[name].frames` is
+// re-pointed at one or the other when the skin swaps.
+const defaultFrames = buildFrameMap("Sigurd", "Sigurd");
+const powerFrames = buildFrameMap("SigurdPower", "SigurdPower");
 
-const floatFrames = [
-  loadSpriteImage("sprites/sigurdV2/float/float_0.png"),
-  loadSpriteImage("sprites/sigurdV2/float/float_1.png"),
-  loadSpriteImage("sprites/sigurdV2/float/float_2.png"),
-  loadSpriteImage("sprites/sigurdV2/float/float_3.png"),
-  loadSpriteImage("sprites/sigurdV2/float/float_4.png"),
-];
+// Initial animation list seeded with the default skin's frames.
+const initialAnimations = ANIM_DEFS.map((def) => ({
+  name: def.name,
+  frames: defaultFrames[def.name],
+  frameDuration: def.frameDuration,
+  loop: def.loop,
+}));
 
-const floatStationaryFrames = floatFrames;
-const floatDirectionalFrames = floatFrames;
+export type PlayerSkin = "default" | "power";
 
-const playerAnimations = [
-  {
-    name: "walk-right",
-    frames: runFrames,
-    frameDuration: 50,
-    loop: true,
-  },
-  {
-    name: "walk-left",
-    frames: runFrames,
-    frameDuration: 50,
-    loop: true,
-  },
-  {
-    name: "idle-right",
-    frames: idleFrames,
-    frameDuration: 130,
-    loop: true,
-  },
-  {
-    name: "idle-left",
-    frames: idleFrames,
-    frameDuration: 130,
-    loop: true,
-  },
-  { name: "jump-right", frames: jumpFrames, frameDuration: 100, loop: false },
-  { name: "jump-left", frames: jumpFrames, frameDuration: 100, loop: false },
-  { name: "fall-right", frames: fallFrames, frameDuration: 100, loop: false },
-  { name: "fall-left", frames: fallFrames, frameDuration: 100, loop: false },
-  {
-    name: "float-stationary",
-    frames: floatStationaryFrames,
-    frameDuration: 120,
-    loop: true,
-  },
-  {
-    name: "float-right",
-    frames: floatDirectionalFrames,
-    frameDuration: 120,
-    loop: true,
-  },
-  {
-    name: "float-left",
-    frames: floatDirectionalFrames,
-    frameDuration: 120,
-    loop: true,
-  },
-];
+export const playerSprite = new SpriteInstance(initialAnimations, "idle-left");
 
-export const playerSprite = new SpriteInstance(playerAnimations, "idle-left");
+let activeSkin: PlayerSkin = "default";
+
+/**
+ * Hot-swap the player sprite frames in place. Animation state (current
+ * animation name, frame index, timer) is preserved — only the underlying
+ * HTMLImageElement[] is repointed at the chosen skin's frame map.
+ */
+export const setPlayerSkin = (skin: PlayerSkin): void => {
+  if (skin === activeSkin) return;
+  const source = skin === "power" ? powerFrames : defaultFrames;
+  for (const name of Object.keys(source)) {
+    const target = playerSprite.animations[name];
+    if (target) target.frames = source[name];
+  }
+  activeSkin = skin;
+};

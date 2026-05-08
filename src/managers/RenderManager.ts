@@ -8,20 +8,29 @@ import {
   MapDefinition,
 } from "../types/interfaces";
 import { COLORS, DEV_CONFIG } from "../types/constants";
-import { SHOW_HITBOXES } from "../config/dev";
-import { playerSprite } from "../entities/Player";
+import { HITBOX_VISUAL_CORNER_RADIUS } from "../config/entities";
+import { SHOW_HITBOXES, SHOW_SPAWN_INDICATORS } from "../config/dev";
+import { playerSprite, setPlayerSkin, getPlayerHitboxRect, PLAYER_HITBOX } from "../entities/Player";
+import { tailwindSprite } from "../entities/TailwindSprite";
+import { useCoinStore } from "../stores/entities/coinStore";
 import { bombSprite, BombSpriteInstance } from "../entities/Bomb";
-import { ByrakratSprite, dirName, type ByrakratVariant } from "../entities/Byrakrat";
+import { ByrakratSprite, dirName } from "../entities/Byrakrat";
 import {
-  getHitboxForFrame,
-  applyHitboxToMonster,
+  getBoundsForFrame,
+  applyBoundsToMonster,
   getNaturalAnchor,
-} from "../config/monsterHitboxes";
+  getMonsterHitboxRect,
+  MONSTER_HITBOXES,
+} from "../config/monsterBounds";
 import { VertikalByrakratSprite } from "../entities/VertikalByrakrat";
-import { RegelRobotenSprite, dirNameRegel } from "../entities/RegelRoboten";
-import { SkatteSpokelsetSprite, dirNameSkatte } from "../entities/SkatteSpokelset";
-import { HodelosKonsulentSprite, dirNameHodelos } from "../entities/HodelosKonsulent";
-import { SpriteInstance } from "../lib/SpriteInstance";
+import { UfoSprite } from "../entities/UfoSprite";
+import {
+  FloaterSprite,
+  createBirdSprite,
+  createHornSprite,
+  createOrbSprite,
+  createSphereSprite,
+} from "../entities/FloaterSprite";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import {
@@ -100,12 +109,14 @@ export class RenderManager {
   private ctx: CanvasRenderingContext2D;
   private lastTime: number = 0;
   private backgroundManager: BackgroundManager;
-  private bombSprites: Map<number, SpriteInstance> = new Map();
+  private bombSprites: Map<number, BombSpriteInstance> = new Map();
   private byrakratSprites: WeakMap<Monster, ByrakratSprite> = new WeakMap();
   private vertikalByrakratSprites: WeakMap<Monster, VertikalByrakratSprite> = new WeakMap();
-  private regelRobotenSprites: WeakMap<Monster, RegelRobotenSprite> = new WeakMap();
-  private skatteSpokelsetSprites: WeakMap<Monster, SkatteSpokelsetSprite> = new WeakMap();
-  private hodelosKonsulentSprites: WeakMap<Monster, HodelosKonsulentSprite> = new WeakMap();
+  private ufoSprites: WeakMap<Monster, UfoSprite> = new WeakMap();
+  private birdSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private hornSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private orbSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private sphereSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
   private currentSpawnManager: OptimizedSpawnManager | null = null;
   private currentGameState: GameStateSnapshot | null = null;
   private frameTime: number = 0; // Cached Date.now() for current frame
@@ -170,6 +181,13 @@ export class RenderManager {
     this.ctx.stroke();
   }
 
+  private strokeRoundedRect(color: string, x: number, y: number, w: number, h: number, radius: number): void {
+    this.ctx.strokeStyle = color;
+    this.ctx.beginPath();
+    this.ctx.roundRect(Math.round(x) + 0.5, Math.round(y) + 0.5, w, h, radius);
+    this.ctx.stroke();
+  }
+
   private renderHitboxes(
     player: Player,
     platforms: Platform[],
@@ -189,8 +207,31 @@ export class RenderManager {
     coins.forEach((c) => {
       if (!c.isCollected) this.strokeRect("#FFD700", c.x, c.y, c.width, c.height);
     });
-    monsters.forEach((m) => this.strokeRect("#FF66FF", m.x, m.y, m.width, m.height));
+
+    // Bounds (physics envelope) drawn as plain rects in magenta/green.
+    // Lethal hitboxes drawn rounded-rect by default (or ellipse when the
+    // hitbox config opts into shape: "ellipse") in cyan/yellow.
+    const drawHitbox = (
+      color: string,
+      shape: "rect" | "ellipse" | undefined,
+      r: { x: number; y: number; width: number; height: number },
+    ) => {
+      if (shape === "ellipse") {
+        this.strokeEllipse(color, r.x, r.y, r.width, r.height);
+      } else {
+        this.strokeRoundedRect(color, r.x, r.y, r.width, r.height, HITBOX_VISUAL_CORNER_RADIUS);
+      }
+    };
+    monsters.forEach((m) => {
+      this.strokeRect("#FF66FF", m.x, m.y, m.width, m.height);
+      drawHitbox(
+        "#00FFFF",
+        MONSTER_HITBOXES[m.type as MonsterType]?.shape,
+        getMonsterHitboxRect(m, m.type),
+      );
+    });
     this.strokeRect("#00FF00", player.x, player.y, player.width, player.height);
+    drawHitbox("#FFFF00", PLAYER_HITBOX.shape, getPlayerHitboxRect(player));
 
     ctx.imageSmoothingEnabled = prevSmoothing;
   }
@@ -221,9 +262,15 @@ export class RenderManager {
 
   private renderPlayer(player: Player): void {
     if (playerSprite && GAME_CONFIG.USE_SPRITES) {
-      // Calculate scale to match player's collision dimensions
-      const scale = player.height / GAME_CONFIG.PLAYER_HEIGHT;
-      playerSprite.draw(this.ctx, player.x, player.y, scale);
+      // Swap to the SigurdPower skin while a P-coin power mode is active.
+      // setPlayerSkin is a no-op when the skin hasn't changed.
+      const powerActive = useCoinStore.getState().activeEffects.powerMode;
+      setPlayerSkin(powerActive ? "power" : "default");
+
+      // Feet-anchored on the bounds bottom-center.
+      const feetX = player.x + player.width / 2;
+      const feetY = player.y + player.height;
+      playerSprite.draw(this.ctx, feetX, feetY);
     } else {
       this.ctx.fillStyle = player.color;
       this.ctx.fillRect(player.x, player.y, player.width, player.height);
@@ -486,26 +533,65 @@ export class RenderManager {
     const prevSmoothing = this.ctx.imageSmoothingEnabled;
     this.ctx.imageSmoothingEnabled = false;
 
+    // P-coin power-mode visual override: every active monster renders as the
+    // shared Tailwind chip-bag instead of its normal sprite. Underlying
+    // monster logic (movement, collision, etc.) is unaffected.
+    const powerActive = useCoinStore.getState().activeEffects.powerMode;
+    if (powerActive) tailwindSprite.update(deltaTime);
+
     monsters.forEach((monster, index) => {
-      // Byråkrat-klonen handles its own activity check so dead monsters can
-      // render through the death animation before disappearing.
+      if (powerActive) {
+        // During power mode: live monsters render as the tailwind chip-bag,
+        // killed monsters render nothing (no death/transition fall-through —
+        // collected enemies should disappear immediately).
+        if (!monster.isActive) return;
+        if (monster.type === MonsterType.MUMMY) {
+          const { x: feetX, y: feetY } = getNaturalAnchor(monster, "feet");
+          tailwindSprite.draw(this.ctx, feetX, feetY, "feet");
+        } else {
+          tailwindSprite.draw(
+            this.ctx,
+            monster.x + monster.width / 2,
+            monster.y + monster.height / 2,
+            "center",
+          );
+        }
+        return;
+      }
+
+      // Byråkrat-klonen handles its own activity check so dead mummies can
+      // render through the transition animation before disappearing.
       if (monster.type === MonsterType.MUMMY) {
         this.renderByrakrat(monster);
         return;
       }
 
+      // Other monster types have no death/transition animation — once
+      // killed (isActive=false), they render nothing.
+      if (!monster.isActive) return;
+
       if (monster.type === MonsterType.UFO) {
-        this.renderRegelRoboten(monster);
+        this.renderUfo(monster, deltaTime);
         return;
       }
 
       if (monster.type === MonsterType.BIRD) {
-        this.renderSkatteSpokelset(monster, deltaTime, player);
+        this.renderBird(monster, deltaTime);
         return;
       }
 
       if (monster.type === MonsterType.HORN) {
-        this.renderHodelosKonsulent(monster, deltaTime);
+        this.renderHorn(monster, deltaTime);
+        return;
+      }
+
+      if (monster.type === MonsterType.ORB) {
+        this.renderOrb(monster, deltaTime);
+        return;
+      }
+
+      if (monster.type === MonsterType.SPHERE) {
+        this.renderSphere(monster, deltaTime);
         return;
       }
 
@@ -668,8 +754,10 @@ export class RenderManager {
 
     this.ctx.imageSmoothingEnabled = prevSmoothing;
 
-    this.renderRespawnIndicators(monsters);
-    this.renderSpawnIndicators(this.currentSpawnManager);
+    if (SHOW_SPAWN_INDICATORS) {
+      this.renderRespawnIndicators(monsters);
+      this.renderSpawnIndicators(this.currentSpawnManager);
+    }
   }
 
   /**
@@ -687,20 +775,18 @@ export class RenderManager {
   ): void {
     let sprite = this.byrakratSprites.get(monster);
     if (!sprite) {
-      const variant: ByrakratVariant =
-        (monster as { variant?: ByrakratVariant }).variant ?? "green";
-      sprite = new ByrakratSprite(variant);
+      sprite = new ByrakratSprite();
       this.byrakratSprites.set(monster, sprite);
     }
 
-    if (monster.isDead && sprite.isDeathAnimComplete()) return;
-
     const dir = dirName(monster.direction);
-    if (monster.isDead) {
-      sprite.setAnimation(`death-${dir}`);
-    } else if (monster.isFrozen) {
-      const phase = monster.isBlinking ? "blink" : "still";
-      sprite.setAnimation(`freeze-${phase}-${dir}`);
+    // Transition animation is reserved for ground-impact transformation
+    // (isTransitioning). isDead alone — i.e. killed by P-coin / collected
+    // chip-bag — should disappear silently; renderByrakrat skips on !isActive.
+    if (monster.isTransitioning) {
+      sprite.setAnimation(`transition-${dir}`);
+    } else if (monster.isFalling) {
+      sprite.setAnimation(`fall-${dir}`);
     } else if (idleOnly) {
       sprite.setAnimation(`idle-${dir}`);
     } else if (monster.direction < 0) {
@@ -711,37 +797,36 @@ export class RenderManager {
       sprite.setAnimation("idle-front");
     }
 
-    sprite.update(deltaTime);
+    // Pause animation in place while frozen — no Tailwind sheet anymore.
+    if (!monster.isFrozen) {
+      sprite.update(deltaTime);
+    }
 
-    if (!monster.isDead) {
-      const hitbox = getHitboxForFrame(
+    if (!monster.isDead && !monster.isTransitioning) {
+      const hitbox = getBoundsForFrame(
         monster.type,
         sprite.getAnimation(),
         sprite.getFrame()
       );
-      applyHitboxToMonster(monster, hitbox, "feet");
+      applyBoundsToMonster(monster, hitbox, "feet");
     }
   }
 
   private renderByrakrat(monster: Monster): void {
     const sprite = this.byrakratSprites.get(monster);
     if (!sprite) return;
-    if (monster.isDead && sprite.isDeathAnimComplete()) return;
+    // Killed mummies disappear immediately. Ground-impact transformation
+    // still keeps isActive=true throughout the transition; isActive only
+    // flips false after transformMummyOnGround runs (for NONE target),
+    // which is after the transition anim has played out.
+    if (!monster.isActive) return;
 
-    const NATURAL = GAME_CONFIG.MONSTER_SIZE;
-    // Asset has ~3px of transparent padding at the bottom of the sprite
-    // sheet. Shift the draw rect down so the visible feet sit flush with the
-    // platform top instead of hovering above it. The padding pixels now fall
-    // behind the platform and are hidden.
+    // Asset has ~3px of transparent padding at the bottom of the sprite cell.
+    // Push the feet anchor down so the visible feet sit flush with the
+    // platform top; padding pixels fall behind the platform and are hidden.
     const FOOT_PADDING = 3;
     const { x: feetX, y: feetY } = getNaturalAnchor(monster, "feet");
-    sprite.draw(
-      this.ctx,
-      feetX - NATURAL / 2,
-      feetY - NATURAL + FOOT_PADDING,
-      NATURAL,
-      NATURAL
-    );
+    sprite.draw(this.ctx, feetX, feetY + FOOT_PADDING);
   }
 
   /**
@@ -758,161 +843,128 @@ export class RenderManager {
     for (const monster of monsters) {
       if (monster.type === MonsterType.MUMMY) {
         this.updateByrakratState(monster, deltaTime, idleOnly);
-      } else if (monster.type === MonsterType.UFO) {
-        this.updateRegelRobotenState(monster, deltaTime, player, idleOnly);
       }
-      // Add other monsters here as they get per-frame hitbox configs.
+      // UFO no longer needs a pre-collision hitbox pass — its rect is uniform
+      // across animation frames now (no more rotated attack hitbox).
     }
   }
 
   /**
-   * Advance ambusher animation state and apply per-frame hitbox (incl. rotation
-   * during attack-left/attack-right). Run BEFORE collision so the rotated
-   * hitbox is current at collision time.
+   * Advance one airborne monster's animation state. Picks float vs bump
+   * based on the bump-tracking fields on Monster, and clears the bump fields
+   * once the bump animation completes so the next frame reverts to float.
    */
-  private updateRegelRobotenState(
+  private updateFloater(
+    sprite: FloaterSprite,
     monster: Monster,
     deltaTime: number,
-    player: Player,
-    idleOnly: boolean = false
   ): void {
-    let sprite = this.regelRobotenSprites.get(monster);
-    if (!sprite) {
-      sprite = new RegelRobotenSprite();
-      this.regelRobotenSprites.set(monster, sprite);
-    }
+    const dirSign = monster.bumpAxis
+      ? monster.bumpDirection ?? 1
+      : (monster.velocityX ?? 0) !== 0
+        ? Math.sign(monster.velocityX ?? 0)
+        : monster.direction || 1;
+    const dir: "left" | "right" = dirSign < 0 ? "left" : "right";
 
-    if (monster.isDead && sprite.isDeathAnimComplete()) return;
-
-    const FRONT_THRESHOLD = 10;
-    const dx = player.x + player.width / 2 - (monster.x + monster.width / 2);
-    const dirSign = Math.abs(dx) < FRONT_THRESHOLD ? 0 : Math.sign(dx);
-    const dir = dirNameRegel(dirSign);
-
-    if (monster.isDead) {
-      sprite.setAnimation(`death-${dir}`);
-    } else if (monster.isFrozen) {
-      const phase = monster.isBlinking ? "blink" : "still";
-      sprite.setAnimation(`freeze-${phase}-${dir}`);
-    } else if (idleOnly) {
-      sprite.setAnimation(`idle-${dir}`);
-    } else if (monster.behaviorState === "ambushing") {
-      sprite.setAnimation(`attack-${dir}`);
+    if (monster.bumpAxis) {
+      sprite.setAnimation(`bump-${monster.bumpAxis}-${dir}`);
+      if (sprite.isBumpComplete()) {
+        monster.bumpAxis = undefined;
+        monster.bumpDirection = undefined;
+        monster.bumpedAt = undefined;
+        sprite.setAnimation(`float-${dir}`);
+      }
     } else {
-      sprite.setAnimation(`run-${dir}`);
+      sprite.setAnimation(`float-${dir}`);
     }
 
-    sprite.update(deltaTime);
-
-    if (!monster.isDead) {
-      const hitbox = getHitboxForFrame(
-        monster.type,
-        sprite.getAnimation(),
-        sprite.getFrame()
-      );
-      applyHitboxToMonster(monster, hitbox, "center");
-    }
+    if (!monster.isFrozen) sprite.update(deltaTime);
   }
 
-  private renderRegelRoboten(monster: Monster): void {
-    const sprite = this.regelRobotenSprites.get(monster);
-    if (!sprite) return;
-    if (monster.isDead && sprite.isDeathAnimComplete()) return;
+  private renderUfo(monster: Monster, deltaTime: number): void {
+    let sprite = this.ufoSprites.get(monster);
+    if (!sprite) {
+      sprite = new UfoSprite();
+      this.ufoSprites.set(monster, sprite);
+    }
 
-    // Draw sprite at natural size, centered on stable natural center.
-    const NATURAL = GAME_CONFIG.MONSTER_SIZE;
-    const { x: cx, y: cy } = getNaturalAnchor(monster, "center");
-    sprite.draw(this.ctx, cx - NATURAL / 2, cy - NATURAL / 2, NATURAL, NATURAL);
+    const dirSign = (monster.velocityX ?? 0) !== 0
+      ? Math.sign(monster.velocityX ?? 0)
+      : monster.direction || 1;
+    const dir: "left" | "right" = dirSign < 0 ? "left" : "right";
 
+    if (monster.behaviorState === "ambushing") {
+      sprite.setAnimation(`charge-${dir}`);
+    } else {
+      sprite.setAnimation(`float-${dir}`);
+    }
+
+    if (!monster.isFrozen) sprite.update(deltaTime);
+    sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderHodelosKonsulent(monster: Monster, deltaTime: number): void {
-    let sprite = this.hodelosKonsulentSprites.get(monster);
+  private renderBird(monster: Monster, deltaTime: number): void {
+    let sprite = this.birdSprites.get(monster);
     if (!sprite) {
-      sprite = new HodelosKonsulentSprite();
-      this.hodelosKonsulentSprites.set(monster, sprite);
+      sprite = createBirdSprite();
+      this.birdSprites.set(monster, sprite);
     }
 
-    // Direction from horizontal velocity (floater moves freely). Falls back to
-    // monster.direction if velocity isn't set yet.
-    const vx = monster.velocityX ?? 0;
-    const dirSign = Math.abs(vx) > 0.1 ? Math.sign(vx) : monster.direction;
-    const dir = dirNameHodelos(dirSign);
+    // Bird uses ChaserMovement (hop-and-pause) which doesn't drive velocityX.
+    // Direction comes from the active hop target's horizontal delta; when at
+    // rest between hops we keep the last facing on monster.direction.
+    const m = monster as Monster & { hopTargetX?: number };
+    if (m.hopTargetX !== undefined) {
+      const hopDx = m.hopTargetX - monster.x;
+      if (Math.abs(hopDx) >= 1) {
+        monster.direction = hopDx < 0 ? -1 : 1;
+      }
+    }
+    const dir: "left" | "right" = monster.direction < 0 ? "left" : "right";
 
-    if (monster.isDead) {
-      if (sprite.isDeathAnimComplete()) return;
-      sprite.setAnimation(`death-${dir}`);
-    } else if (monster.isFrozen) {
-      const phase = monster.isBlinking ? "blink" : "still";
-      sprite.setAnimation(`freeze-${phase}-${dir}`);
-    } else if (dir === "front") {
-      // No walk-front frames available — fall back to idle when purely vertical
-      sprite.setAnimation("idle-front");
+    if (monster.bumpAxis) {
+      sprite.setAnimation(`bump-${monster.bumpAxis}-${dir}`);
+      if (sprite.isBumpComplete()) {
+        monster.bumpAxis = undefined;
+        monster.bumpDirection = undefined;
+        monster.bumpedAt = undefined;
+        sprite.setAnimation(`float-${dir}`);
+      }
     } else {
-      sprite.setAnimation(`walk-${dir}`);
+      sprite.setAnimation(`float-${dir}`);
     }
-
-    sprite.update(deltaTime);
-    sprite.draw(
-      this.ctx,
-      monster.x,
-      monster.y,
-      monster.width,
-      monster.height
-    );
+    if (!monster.isFrozen) sprite.update(deltaTime);
+    sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderSkatteSpokelset(
-    monster: Monster,
-    deltaTime: number,
-    player: Player
-  ): void {
-    let sprite = this.skatteSpokelsetSprites.get(monster);
+  private renderHorn(monster: Monster, deltaTime: number): void {
+    let sprite = this.hornSprites.get(monster);
     if (!sprite) {
-      sprite = new SkatteSpokelsetSprite();
-      this.skatteSpokelsetSprites.set(monster, sprite);
+      sprite = createHornSprite();
+      this.hornSprites.set(monster, sprite);
     }
+    this.updateFloater(sprite, monster, deltaTime);
+    sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
+  }
 
-    // Hop-direction sprite: face left/right when hopping horizontally,
-    // front when hopping vertically (no up/down frames in this asset) or
-    // resting between hops.
-    const m = monster as {
-      hopTargetX?: number;
-      hopTargetY?: number;
-    };
-    const isResting = m.hopTargetX === undefined;
-    const hopDx = isResting ? 0 : (m.hopTargetX as number) - monster.x;
-    const hopDirSign = Math.abs(hopDx) < 1 ? 0 : Math.sign(hopDx);
-    const hopDir = dirNameSkatte(hopDirSign);
-
-    // Dead / frozen still face the player so the death-direction matches
-    // who killed the bird visually; live behavior (walk/idle) follows
-    // the hop axis.
-    const playerDx =
-      player.x + player.width / 2 - (monster.x + monster.width / 2);
-    const playerDirSign = Math.abs(playerDx) < 10 ? 0 : Math.sign(playerDx);
-    const playerDir = dirNameSkatte(playerDirSign);
-
-    if (monster.isDead) {
-      if (sprite.isDeathAnimComplete()) return;
-      sprite.setAnimation(`death-${playerDir}`);
-    } else if (monster.isFrozen) {
-      const phase = monster.isBlinking ? "blink" : "still";
-      sprite.setAnimation(`freeze-${phase}-${playerDir}`);
-    } else if (isResting) {
-      sprite.setAnimation("idle-front");
-    } else {
-      sprite.setAnimation(`walk-${hopDir}`);
+  private renderOrb(monster: Monster, deltaTime: number): void {
+    let sprite = this.orbSprites.get(monster);
+    if (!sprite) {
+      sprite = createOrbSprite();
+      this.orbSprites.set(monster, sprite);
     }
+    this.updateFloater(sprite, monster, deltaTime);
+    sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
+  }
 
-    sprite.update(deltaTime);
-    sprite.draw(
-      this.ctx,
-      monster.x,
-      monster.y,
-      monster.width,
-      monster.height
-    );
+  private renderSphere(monster: Monster, deltaTime: number): void {
+    let sprite = this.sphereSprites.get(monster);
+    if (!sprite) {
+      sprite = createSphereSprite();
+      this.sphereSprites.set(monster, sprite);
+    }
+    this.updateFloater(sprite, monster, deltaTime);
+    sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
   private renderVertikalByrakrat(monster: Monster, deltaTime: number): void {
@@ -1109,7 +1161,10 @@ export class RenderManager {
       this.ctx.globalAlpha = opacity;
 
       this.ctx.fillStyle = text.color;
-      this.ctx.font = `${text.fontSize}px JetBrains Mono`;
+      // Pixuf — pixel-grid display face for in-game score pop-ups.
+      // JetBrains Mono is the fallback while the font is still loading or
+      // if Pixuf fails to register in the shadow DOM.
+      this.ctx.font = `${text.fontSize}px "Pixuf", "JetBrains Mono", monospace`;
       this.ctx.textAlign = "center";
       this.ctx.textBaseline = "middle";
       this.ctx.fillText(text.text, text.x, animatedY);

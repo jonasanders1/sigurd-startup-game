@@ -7,6 +7,13 @@
 export const SHOW_HITBOXES = false;
 
 /**
+ * Show the on-canvas spawn / respawn countdown indicators (the pulsating
+ * rectangles with a "3/2/1" countdown that appear before a monster spawns
+ * or respawns). Independent of DEV_CONFIG.ENABLED.
+ */
+export const SHOW_SPAWN_INDICATORS = false;
+
+/**
  * Dev/preview mock balance, used only when no host bridge is present.
  * `null` (shipped default) = off → standalone/free-play mode. Set to a number
  * locally to preview the credit UI without a host bridge. Independent of
@@ -35,8 +42,8 @@ export const DEV_CONFIG = {
   ENABLED: false, // Set to false to disable dev mode
 
   // Game state configuration
-  TARGET_STATE: "START_MENU", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
-  TARGET_LEVEL: 2, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
+  TARGET_STATE: "PLAYING", // Options: 'START_MENU', 'COUNTDOWN', 'PLAYING', 'PAUSED', 'SETTINGS', 'BONUS', 'VICTORY', 'GAME_OVER'
+  TARGET_LEVEL: 6, // Which level to load in dev mode (1-7, corresponds to mapDefinitions index + 1)
 
   // Debug features
   GOD_MODE: false, // Set to true to enable god mode (player is invincible to monsters)
