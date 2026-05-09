@@ -17,7 +17,7 @@ export interface LevelFailureData {
   level: number;
   mapName: string;
   score: number;
-  bombs?: number;
+  foundings?: number;
   correctOrders?: number;
   lives: number;
   multiplier: number;
@@ -31,7 +31,7 @@ export interface MapCompletionData {
   mapName: string;
   level: number;
   correctOrderCount: number;
-  totalBombs: number;
+  totalFoundings: number;
   score: number;
   bonus: number;
   hasBonus: boolean;
@@ -60,7 +60,7 @@ export interface LevelHistoryEntry {
   powerModeActivations: number;
   timestamp: number;
   correctOrderCount: number;
-  totalBombs: number;
+  totalFoundings: number;
   lives: number;
   multiplier: number;
   isPartial?: boolean; // True for failed/incomplete levels
@@ -83,7 +83,7 @@ export interface GameCompletionData {
   levelHistory: LevelHistoryEntry[];
   totalCoinsCollected: number;
   totalPowerModeActivations: number;
-  totalBombs: number;
+  totalFoundings: number;
   totalCorrectOrders: number;
   averageCompletionTime: number;
   gameEndReason: "completed" | "failed";
@@ -249,8 +249,8 @@ export const calculateGameStats = (
   startTime: number,
   endTime: number
 ) => {
-  const totalBombs = levelHistory.reduce(
-    (sum, level) => sum + level.totalBombs,
+  const totalFoundings = levelHistory.reduce(
+    (sum, level) => sum + level.totalFoundings,
     0
   );
   const totalCorrectOrders = levelHistory.reduce(
@@ -277,7 +277,7 @@ export const calculateGameStats = (
     levelHistory.length > 0 ? totalPlayTime / levelHistory.length / 1000 : 0; // Convert to seconds
 
   return {
-    totalBombs,
+    totalFoundings,
     totalCorrectOrders,
     totalCoinsCollected,
     totalPowerModeActivations,

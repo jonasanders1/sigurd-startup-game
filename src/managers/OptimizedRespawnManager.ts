@@ -3,6 +3,7 @@ import { logger, LogCategory } from "../lib/logger";
 import { ScalingManager } from "./ScalingManager";
 import { useStateStore } from "../stores/game/stateStore";
 import { TutorialMissionId, PauseReason } from "../types/enums";
+import { getEffectivePausedMs } from "../lib/pauseClock";
 import { getTuned } from "../stores/systems/tuningStore";
 
 export interface RespawnConfig {
@@ -54,10 +55,10 @@ export class OptimizedRespawnManager {
   // ===== CONFIGURATION =====
   private getDefaultRespawnConfig(): RespawnConfig {
     return {
-      ambusher: getTuned("RESPAWN_UFO_MS"),
-      chaser: getTuned("RESPAWN_BIRD_MS"),
-      floater: getTuned("RESPAWN_HORN_MS"),
-      patrol: getTuned("RESPAWN_MUMMY_MS"),
+      ambusher: getTuned("RESPAWN_TAXGHOST_MS"),
+      chaser: getTuned("RESPAWN_WISP_MS"),
+      floater: getTuned("RESPAWN_FOUNDER_MS"),
+      patrol: getTuned("RESPAWN_BUREAUCRAT_MS"),
     };
   }
 
@@ -104,6 +105,15 @@ export class OptimizedRespawnManager {
       useStateStore.getState().tutorialMission === TutorialMissionId.KILL
     ) {
       logger.monster(`${monster.type} killed (tutorial KILL — no respawn)`);
+      return;
+    }
+
+    // Bureaucrats own their own respawn cadence via map spawn points
+    // (`MonsterSpawnPoint.respawnInterval`). Queueing them in deadMonsters
+    // would cause double-respawn / a flood when power mode ends. Mark dead
+    // and let the spawn-point manager re-create them on its own schedule.
+    if (monster.type === "BUREAUCRAT") {
+      logger.monster(`${monster.type} killed (no queue — spawn point owns respawn)`);
       return;
     }
 
@@ -255,8 +265,8 @@ export class OptimizedRespawnManager {
     monster: Monster,
     spawnPoint: { x: number; y: number }
   ): void {
-    // If the monster transformed during its previous life (Mummy → SPHERE/ORB),
-    // restore its pre-transform shape so it respawns as a mummy. Skip when
+    // If the monster transformed during its previous life (Bureaucrat → CONSULTANT/ROBOT),
+    // restore its pre-transform shape so it respawns as a bureaucrat. Skip when
     // no snapshot exists (monster never transformed).
     if (monster.originalType !== undefined) {
       const cross = monster as unknown as { type: string; color: string };
@@ -264,9 +274,9 @@ export class OptimizedRespawnManager {
       if (monster.originalColor !== undefined) cross.color = monster.originalColor;
       if (monster.originalWidth !== undefined) monster.width = monster.originalWidth;
       if (monster.originalHeight !== undefined) monster.height = monster.originalHeight;
-      monster._hitboxOffsetX = 0;
-      monster._hitboxOffsetY = 0;
-      monster._hitboxRotation = 0;
+      monster._boundsOffsetX = 0;
+      monster._boundsOffsetY = 0;
+      monster._boundsRotation = 0;
       monster.originalType = undefined;
       monster.originalColor = undefined;
       monster.originalWidth = undefined;
@@ -280,6 +290,34 @@ export class OptimizedRespawnManager {
     monster.y = spawnPoint.y;
     monster.isFrozen = false;
     monster.isBlinking = false;
+
+    // Restore patrol bounds for bureaucrats. updateFallingBureaucrat rewrites
+    // patrolStartX/EndX when a dropped bureaucrat lands on a new platform; without
+    // this restore, a bureaucrat killed on the second platform would respawn at
+    // the original spawn position but keep bounds from where it died, walking
+    // right off the edge. Vertical-patrol monsters skip this — their bounds
+    // are never mutated mid-life.
+    const m = monster as unknown as {
+      type: string;
+      originalPatrolStartX?: number;
+      originalPatrolEndX?: number;
+      patrolStartX?: number;
+      patrolEndX?: number;
+      isFalling?: boolean;
+      fallStartY?: number;
+    };
+    if (
+      m.type === "BUREAUCRAT" &&
+      m.originalPatrolStartX !== undefined &&
+      m.originalPatrolEndX !== undefined
+    ) {
+      m.patrolStartX = m.originalPatrolStartX;
+      m.patrolEndX = m.originalPatrolEndX;
+    }
+    // Clear in-flight fall state — a bureaucrat killed mid-fall would otherwise
+    // respawn still flagged isFalling and immediately start scooting/dropping.
+    m.isFalling = false;
+    m.fallStartY = undefined;
 
     // Reset movement properties
     monster.velocityX = 0;
@@ -308,6 +346,12 @@ export class OptimizedRespawnManager {
     delete (monster as any).lastSeenPlayerX;
     delete (monster as any).lastSeenPlayerY;
     delete (monster as any).hopTargetX;
+    // Clear airborne (Consultant/Robot) jitter so a re-transform on the next
+    // life gets a fresh random homing scale + lane offset, and the
+    // fade-in ramp restarts from 0.
+    delete (monster as any).airborneStartTime;
+    delete (monster as any).homingScale;
+    delete (monster as any).homingOffset;
     delete (monster as any).hopTargetY;
 
     // Reset individual movement properties that are stored on the monster object
@@ -331,20 +375,19 @@ export class OptimizedRespawnManager {
   private getRespawnDelay(monsterType: string): number {
     // Live-read each kill so the Tuning Panel takes effect immediately.
     switch (monsterType) {
-      case "UFO":
-        return getTuned("RESPAWN_UFO_MS");
-      case "BIRD":
-        return getTuned("RESPAWN_BIRD_MS");
-      case "HORN":
-        return getTuned("RESPAWN_HORN_MS");
-      case "MUMMY":
-      case "VERTICAL_PATROL":
-        return getTuned("RESPAWN_MUMMY_MS");
+      case "TAXGHOST":
+        return getTuned("RESPAWN_TAXGHOST_MS");
+      case "WISP":
+        return getTuned("RESPAWN_WISP_MS");
+      case "FOUNDER":
+        return getTuned("RESPAWN_FOUNDER_MS");
+      case "BUREAUCRAT":
+        return getTuned("RESPAWN_BUREAUCRAT_MS");
       default:
         logger.warn(
           `Unknown monster type for respawn delay: ${monsterType}, using default`
         );
-        return getTuned("RESPAWN_MUMMY_MS");
+        return getTuned("RESPAWN_BUREAUCRAT_MS");
     }
   }
 
@@ -361,12 +404,20 @@ export class OptimizedRespawnManager {
     if (!monster.isDead || !monster.respawnTime) {
       return 0;
     }
-    // respawnTime was set in adjusted-time space (Date.now - totalPausedTime),
-    // so the indicator must compare against the same clock. Otherwise pauses
-    // (notably power-mode) cause "indicator hits 0 but monster doesn't appear
-    // for `totalPausedTime` ms" because the actual respawn check in update()
-    // also uses adjusted time.
-    const adjustedNow = Date.now() - this.totalPausedTime;
+    // respawnTime is stored in adjusted-time space, so the indicator must
+    // read the same clock. See pauseClock.ts for why we include the
+    // in-progress pause.
+    const now = Date.now();
+    const adjustedNow =
+      now -
+      getEffectivePausedMs(
+        {
+          isPaused: this.paused,
+          pauseStartTime: this.pauseStartTime,
+          totalPausedTime: this.totalPausedTime,
+        },
+        now
+      );
     return Math.max(0, monster.respawnTime - adjustedNow);
   }
 

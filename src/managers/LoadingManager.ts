@@ -88,7 +88,7 @@ export class LoadingManager {
     {
       id: "map-data",
       name: "Baner",
-      message: "Forbereder spillbaner...",
+      message: "Frobotereder spillbaner...",
       weight: 10,
     },
     {
@@ -104,15 +104,16 @@ export class LoadingManager {
     "host-communication": [
       "Venter på lydinnstillinger...",
       "Synkroniserer med vertssystem...",
-      "Etablerer spillforbindelse...",
+      "Etablerer spillfrobotindelse...",
     ],
     "background-images": [
       "Laster Startup Lab bakgrunn...",
       "Laster Innovasjon Norge bakgrunn...",
       "Laster Skatteetaten bakgrunn...",
       "Laster NAV bakgrunn...",
-      "Laster Kommunehuset bakgrunn...",
-      "Laster Alltinn bakgrunn...",
+      "Laster Banken bakgrunn...",
+      "Laster Altinn bakgrunn...",
+      "Laster Silicone Valley bakgrunn...",
     ],
     "player-sprites": [
       "Laster Sigurd idle-animasjoner...",
@@ -278,12 +279,15 @@ export class LoadingManager {
    */
   private async loadBackgroundImages(step: LoadingStep): Promise<void> {
     const backgrounds = [
+      "soverommet",
+      "garasjen",
       "startup-lab",
       "innovasjon-norge",
       "skatteetaten",
       "nav",
-      "kommunehuset",
-      "alltinn",
+      "banken",
+      "altinn",
+      "silicone-valley",
     ];
 
     for (let i = 0; i < backgrounds.length; i++) {
@@ -363,23 +367,7 @@ export class LoadingManager {
    * Load monster sprites
    */
   private async loadMonsterSprites(step: LoadingStep): Promise<void> {
-    const monsterSprites = [
-      "sprites/byråkrat-klonen/byråkrat-klonen_0.png",
-      "sprites/byråkrat-klonen/byråkrat-klonen_1.png",
-      "sprites/byråkrat-klonen/byråkrat-klonen_2.png",
-      "sprites/hodeløs-konsulent/hodeløs-konsulent_0.png",
-      "sprites/hodeløs-konsulent/hodeløs-konsulent_1.png",
-      "sprites/hodeløs-konsulent/hodeløs-konsulent_2.png",
-      "sprites/regel-robot/regel-robot_0.png",
-      "sprites/regel-robot/regel-robot_1.png",
-      "sprites/regel-robot/regel-robot_2.png",
-      "sprites/skatte-spøkelset/skatte-spøkelse_0.png",
-      "sprites/skatte-spøkelset/skatte-spøkelse_1.png",
-      "sprites/skatte-spøkelset/skatte-spøkelse_2.png",
-      "sprites/vertikal-byråkrat/vertikal-byråkrat_0.png",
-      "sprites/vertikal-byråkrat/vertikal-byråkrat_1.png",
-      "sprites/vertikal-byråkrat/vertikal-byråkrat_2.png",
-    ];
+    const monsterSprites: string[] = [];
 
     const monsterTypes = 5;
     for (let i = 0; i < monsterSprites.length; i += 3) {
@@ -394,7 +382,7 @@ export class LoadingManager {
   }
 
   /**
-   * Load UI sprites (bombs, coins, etc.)
+   * Load UI sprites (foundings, coins, etc.)
    */
   private async loadUISprites(step: LoadingStep): Promise<void> {
     const uiSprites = [

@@ -3,9 +3,9 @@
  *
  * Two behaviors share a single frame-update method, branching on type:
  *
- *  - ORB:    tracks Jack's Y (horizontal row); bobs X edge-to-edge,
+ *  - ROBOT:    tracks Jack's Y (horizontal row); bobs X edge-to-edge,
  *            bouncing off the left/right boundaries.
- *  - SPHERE: tracks Jack's X (vertical column); bobs Y edge-to-edge,
+ *  - CONSULTANT: tracks Jack's X (vertical column); bobs Y edge-to-edge,
  *            bouncing off the top/bottom boundaries.
  *
  * Sigurd-deviates from BJ §5.5: airborne forms DO collide with platforms
@@ -43,13 +43,13 @@ export class AirborneMovement {
 
     // Stamp the moment this monster became airborne — used to ramp the
     // homing pull from 0 → full over `*_HOMING_RAMP_MS`. We use a separate
-    // field (not `individualSpawnTime`) so the ScalingManager's mummy-age
+    // field (not `individualSpawnTime`) so the ScalingManager's bureaucrat-age
     // tracking isn't affected by the transformation.
     //
     // Also stamp per-monster homing jitter on first sight: a multiplicative
     // scale on the spring constant + a small offset on the target lane.
-    // Without this, every Orb has identical spring dynamics and they
-    // synchronize after a handful of wall bounces (same for Spheres). The
+    // Without this, every Robot has identical spring dynamics and they
+    // synchronize after a handful of wall bounces (same for Consultants). The
     // jitter is set once and never changes, so each monster carries a
     // distinct phase signature for its lifetime.
     const m = monster as Monster & {
@@ -62,11 +62,11 @@ export class AirborneMovement {
     if (m.homingOffset == null) m.homingOffset = (Math.random() - 0.5) * 30; // ±15 px
 
     switch (monster.type) {
-      case "ORB":
-        this.updateOrb(monster, player, frameMult);
+      case "ROBOT":
+        this.updateRobot(monster, player, frameMult);
         break;
-      case "SPHERE":
-        this.updateSphere(monster, player, frameMult);
+      case "CONSULTANT":
+        this.updateConsultant(monster, player, frameMult);
         break;
     }
   }
@@ -92,7 +92,7 @@ export class AirborneMovement {
 
   /**
    * Apply a single axis update with edge-bounce and obstacle-bounce.
-   * Used by both Orb and Sphere on each axis. The bounce reverses the
+   * Used by both Robot and Consultant on each axis. The bounce reverses the
    * matching velocity component when something is hit, keeping kinetic
    * energy and producing the chaotic ricochet feel.
    */
@@ -103,18 +103,31 @@ export class AirborneMovement {
     platforms: Platform[]
   ): void {
     const v = (axis === "x" ? monster.velocityX : monster.velocityY) ?? 0;
+    // Facing direction for the bump animation suffix: derived from the
+    // current horizontal velocity so vertical bumps still pick a sensible
+    // L/R sprite. Falls back to monster.direction when stationary on X.
+    const vx = monster.velocityX ?? 0;
+    const facing: -1 | 1 = vx < 0 ? -1 : vx > 0 ? 1 : monster.direction < 0 ? -1 : 1;
+    const bumped = (kind: "horizontal" | "vertical") => {
+      monster.bumpAxis = kind;
+      monster.bumpDirection = facing;
+      monster.bumpedAt = Date.now();
+    };
     if (axis === "x") {
       const newX = monster.x + v * frameMult;
       if (newX <= 0) {
         monster.x = 0;
         monster.velocityX = Math.abs(v);
+        bumped("horizontal");
       } else if (newX + monster.width >= GAME_CONFIG.CANVAS_WIDTH) {
         monster.x = GAME_CONFIG.CANVAS_WIDTH - monster.width;
         monster.velocityX = -Math.abs(v);
+        bumped("horizontal");
       } else if (
         this.collidesWithObstacle(monster, newX, monster.y, platforms)
       ) {
         monster.velocityX = -v;
+        bumped("horizontal");
       } else {
         monster.x = newX;
       }
@@ -123,13 +136,16 @@ export class AirborneMovement {
       if (newY <= 0) {
         monster.y = 0;
         monster.velocityY = Math.abs(v);
+        bumped("vertical");
       } else if (newY + monster.height >= PLAYFIELD_BOTTOM) {
         monster.y = PLAYFIELD_BOTTOM - monster.height;
         monster.velocityY = -Math.abs(v);
+        bumped("vertical");
       } else if (
         this.collidesWithObstacle(monster, monster.x, newY, platforms)
       ) {
         monster.velocityY = -v;
+        bumped("vertical");
       } else {
         monster.y = newY;
       }
@@ -137,17 +153,17 @@ export class AirborneMovement {
   }
 
   /**
-   * ORB — 2D bouncing ball. X bounces freely (free axis); Y is
+   * ROBOT — 2D bouncing ball. X bounces freely (free axis); Y is
    * spring-coupled to Jack's row (constrained axis): a Hooke's-law force
-   * pulls the orb's Y back toward Jack's row, but no damping is applied —
-   * so the orb oscillates above-and-below Jack with amplitude that gets
+   * pulls the robot's Y back toward Jack's row, but no damping is applied —
+   * so the robot oscillates above-and-below Jack with amplitude that gets
    * amplified by every wall/platform bounce. Both axes get a random
    * starting kick, so the constrained axis is bouncy from frame one.
    *
-   * `ORB_HOMING_RATIO` / `SPHERE_HOMING_RATIO` controls the spring
+   * `ROBOT_HOMING_RATIO` / `CONSULTANT_HOMING_RATIO` controls the spring
    * constant: higher = stronger pull = tighter oscillation. 0 = no homing.
    */
-  private updateOrb(
+  private updateRobot(
     monster: Monster,
     player: { x: number; y: number },
     frameMult: number
@@ -157,19 +173,19 @@ export class AirborneMovement {
       player,
       frameMult,
       "x",
-      "ORB_HOMING_RATIO",
-      "ORB_HOMING_RAMP_MS",
-      "ORB_VELOCITY_CAP_MULT",
-      "ORB_FREE_KICK_MULT",
-      "ORB_CONSTRAINED_KICK_MULT"
+      "ROBOT_HOMING_RATIO",
+      "ROBOT_HOMING_RAMP_MS",
+      "ROBOT_VELOCITY_CAP_MULT",
+      "ROBOT_FREE_KICK_MULT",
+      "ROBOT_CONSTRAINED_KICK_MULT"
     );
   }
 
   /**
-   * SPHERE — mirror of ORB. Y is the free axis (with the upward starting
-   * kick from the mummy transform), X is spring-coupled to Jack's column.
+   * CONSULTANT — mirror of ROBOT. Y is the free axis (with the upward starting
+   * kick from the bureaucrat transform), X is spring-coupled to Jack's column.
    */
-  private updateSphere(
+  private updateConsultant(
     monster: Monster,
     player: { x: number; y: number },
     frameMult: number
@@ -179,16 +195,16 @@ export class AirborneMovement {
       player,
       frameMult,
       "y",
-      "SPHERE_HOMING_RATIO",
-      "SPHERE_HOMING_RAMP_MS",
-      "SPHERE_VELOCITY_CAP_MULT",
-      "SPHERE_FREE_KICK_MULT",
-      "SPHERE_CONSTRAINED_KICK_MULT"
+      "CONSULTANT_HOMING_RATIO",
+      "CONSULTANT_HOMING_RAMP_MS",
+      "CONSULTANT_VELOCITY_CAP_MULT",
+      "CONSULTANT_FREE_KICK_MULT",
+      "CONSULTANT_CONSTRAINED_KICK_MULT"
     );
   }
 
   /**
-   * Shared body for Orb (free=X) and Sphere (free=Y). The free axis gets a
+   * Shared body for Robot (free=X) and Consultant (free=Y). The free axis gets a
    * ±speed bouncing initial kick; the constrained axis gets a smaller
    * (±1.5×speed) starting kick plus a Hooke's-law spring force toward
    * Jack's lane each frame. Both axes bounce off canvas edges, platforms,
@@ -201,13 +217,13 @@ export class AirborneMovement {
     player: { x: number; y: number },
     frameMult: number,
     freeAxis: "x" | "y",
-    homingRatioKey: "ORB_HOMING_RATIO" | "SPHERE_HOMING_RATIO",
-    homingRampKey: "ORB_HOMING_RAMP_MS" | "SPHERE_HOMING_RAMP_MS",
-    velocityCapKey: "ORB_VELOCITY_CAP_MULT" | "SPHERE_VELOCITY_CAP_MULT",
-    freeKickKey: "ORB_FREE_KICK_MULT" | "SPHERE_FREE_KICK_MULT",
+    homingRatioKey: "ROBOT_HOMING_RATIO" | "CONSULTANT_HOMING_RATIO",
+    homingRampKey: "ROBOT_HOMING_RAMP_MS" | "CONSULTANT_HOMING_RAMP_MS",
+    velocityCapKey: "ROBOT_VELOCITY_CAP_MULT" | "CONSULTANT_VELOCITY_CAP_MULT",
+    freeKickKey: "ROBOT_FREE_KICK_MULT" | "CONSULTANT_FREE_KICK_MULT",
     constrainedKickKey:
-      | "ORB_CONSTRAINED_KICK_MULT"
-      | "SPHERE_CONSTRAINED_KICK_MULT"
+      | "ROBOT_CONSTRAINED_KICK_MULT"
+      | "CONSULTANT_CONSTRAINED_KICK_MULT"
   ): void {
     const FREE_AXIS_KICK = getTuned(freeKickKey);
     const CONSTRAINED_AXIS_KICK = getTuned(constrainedKickKey);
@@ -220,8 +236,8 @@ export class AirborneMovement {
     const constrPKey = freeAxis === "x" ? "y" : "x";
 
     if (!monster[freeVKey]) {
-      // Sphere's free axis (Y) defaults UPWARD because mummy-transformed
-      // spheres spawn at ground level — no random sign there.
+      // Consultant's free axis (Y) defaults UPWARD because bureaucrat-transformed
+      // consultants spawn at ground level — no random sign there.
       monster[freeVKey] =
         freeAxis === "y" && constrainedAxis === "x"
           ? -monster.speed
@@ -237,7 +253,7 @@ export class AirborneMovement {
 
     // Hooke's law spring on the constrained axis only. Pull strength ramps
     // linearly from 0 → configured ratio over `homingRampKey` ms after the
-    // monster became airborne, so spheres/orbs feel free-bouncing at first
+    // monster became airborne, so consultants/robots feel free-bouncing at first
     // and only gradually start tracking Jack. Per-monster `homingScale` +
     // `homingOffset` (stamped at airborne-start) give each monster its own
     // spring period and target lane, preventing identical-physics monsters

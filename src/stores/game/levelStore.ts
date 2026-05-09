@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Platform, MapDefinition } from '../../types/interfaces';
-import { BombManager } from '../../managers/bombManager';
+import { FoundingManager } from '../../managers/foundingManager';
 import { sendMapCompletionData } from '../../lib/communicationUtils';
 import { log } from '../../lib/logger';
 import { PCoinTierCollections } from '../../config/coinTypes';
@@ -9,7 +9,7 @@ export interface LevelResult {
   level: number;
   mapName: string;
   correctOrderCount: number;
-  totalBombs: number;
+  totalFoundings: number;
   score: number;
   bonus: number;
   hasBonus: boolean;
@@ -34,13 +34,13 @@ interface LevelState {
 }
 
 interface LevelActions {
-  initializeLevel: (mapData: MapDefinition) => { bombManager: BombManager; firstBomb: unknown };
+  initializeLevel: (mapData: MapDefinition) => { foundingManager: FoundingManager; firstFounding: unknown };
   resetLevelState: () => void;
   sendLevelCompletionData: (data: {
     mapName: string;
     level: number;
     correctOrderCount: number;
-    totalBombs: number;
+    totalFoundings: number;
     score: number;
     bonus: number;
     hasBonus: boolean;
@@ -72,10 +72,10 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
   
   // Actions
   initializeLevel: (mapData: MapDefinition) => {
-    const bombManager = new BombManager(mapData.bombs);
+    const foundingManager = new FoundingManager(mapData.foundings);
     
-    const sortedBombs = [...mapData.bombs].sort((a, b) => a.group - b.group || a.order - b.order);
-    const firstBomb = sortedBombs[0];
+    const sortedFoundings = [...mapData.foundings].sort((a, b) => a.group - b.group || a.order - b.order);
+    const firstFounding = sortedFoundings[0];
     
     set({
       currentMap: mapData,
@@ -83,7 +83,7 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
       levelStartTime: Date.now()
     });
     
-    return { bombManager, firstBomb };
+    return { foundingManager, firstFounding };
   },
   
   resetLevelState: () => {
@@ -105,7 +105,7 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
       mapName: data.mapName,
       level: data.level,
       correctOrderCount: data.correctOrderCount,
-      totalBombs: data.totalBombs,
+      totalFoundings: data.totalFoundings,
       score: data.score,
       bonus: data.bonus,
       hasBonus: data.hasBonus,
@@ -127,7 +127,7 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
         timestamp: result.timestamp || Date.now(),
         lives: result.lives || 0,
         multiplier: result.multiplier || 1,
-        totalBombs: result.totalBombs || 0,
+        totalFoundings: result.totalFoundings || 0,
         correctOrderCount: result.correctOrderCount || 0,
         isPartial: result.isPartial || false
       }]

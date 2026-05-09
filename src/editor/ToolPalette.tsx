@@ -6,7 +6,7 @@ import {
   MousePointer2,
   Square,
   RectangleVertical,
-  Bomb,
+  Bomb as Founding,
   Coins,
   User,
   Bug,
@@ -169,15 +169,15 @@ export const ToolPalette: React.FC = () => {
         </ToolButton>
       </Section>
 
-      <Section title="Bombs">
+      <Section title="Foundings">
         <ToolButton
-          active={isActiveTool(tool, { kind: "place", entity: "bomb" })}
-          onClick={set({ kind: "place", entity: "bomb" })}
-          label="Bomb"
+          active={isActiveTool(tool, { kind: "place", entity: "founding" })}
+          onClick={set({ kind: "place", entity: "founding" })}
+          label="Founding"
           shortcut="B"
           color="#f87171"
         >
-          <Bomb size={16} />
+          <Founding size={16} />
         </ToolButton>
       </Section>
 
@@ -186,14 +186,14 @@ export const ToolPalette: React.FC = () => {
           active={isActiveTool(tool, {
             kind: "place",
             entity: "monster",
-            subType: MonsterType.MUMMY,
+            subType: MonsterType.BUREAUCRAT,
           })}
           onClick={set({
             kind: "place",
             entity: "monster",
-            subType: MonsterType.MUMMY,
+            subType: MonsterType.BUREAUCRAT,
           })}
-          label="Mummy"
+          label="Bureaucrat"
           color="#22c55e"
         >
           <Bug size={16} />
@@ -202,30 +202,14 @@ export const ToolPalette: React.FC = () => {
           active={isActiveTool(tool, {
             kind: "place",
             entity: "monster",
-            subType: MonsterType.VERTICAL_PATROL,
+            subType: MonsterType.WISP,
           })}
           onClick={set({
             kind: "place",
             entity: "monster",
-            subType: MonsterType.VERTICAL_PATROL,
+            subType: MonsterType.WISP,
           })}
-          label="V. Patrol"
-          color="#3b82f6"
-        >
-          <Bug size={16} />
-        </ToolButton>
-        <ToolButton
-          active={isActiveTool(tool, {
-            kind: "place",
-            entity: "monster",
-            subType: MonsterType.BIRD,
-          })}
-          onClick={set({
-            kind: "place",
-            entity: "monster",
-            subType: MonsterType.BIRD,
-          })}
-          label="Bird"
+          label="Wisp"
           color="#ef4444"
         >
           <Bug size={16} />
@@ -234,14 +218,14 @@ export const ToolPalette: React.FC = () => {
           active={isActiveTool(tool, {
             kind: "place",
             entity: "monster",
-            subType: MonsterType.UFO,
+            subType: MonsterType.TAXGHOST,
           })}
           onClick={set({
             kind: "place",
             entity: "monster",
-            subType: MonsterType.UFO,
+            subType: MonsterType.TAXGHOST,
           })}
-          label="UFO"
+          label="TAXGHOST"
           color="#a855f7"
         >
           <Bug size={16} />
@@ -250,14 +234,14 @@ export const ToolPalette: React.FC = () => {
           active={isActiveTool(tool, {
             kind: "place",
             entity: "monster",
-            subType: MonsterType.HORN,
+            subType: MonsterType.FOUNDER,
           })}
           onClick={set({
             kind: "place",
             entity: "monster",
-            subType: MonsterType.HORN,
+            subType: MonsterType.FOUNDER,
           })}
-          label="Horn"
+          label="Founder"
           color="#f59e0b"
         >
           <Bug size={16} />
@@ -266,14 +250,14 @@ export const ToolPalette: React.FC = () => {
           active={isActiveTool(tool, {
             kind: "place",
             entity: "monster",
-            subType: MonsterType.SPHERE,
+            subType: MonsterType.CONSULTANT,
           })}
           onClick={set({
             kind: "place",
             entity: "monster",
-            subType: MonsterType.SPHERE,
+            subType: MonsterType.CONSULTANT,
           })}
-          label="Sphere"
+          label="Consultant"
           color="#fbbf24"
         >
           <Bug size={16} />
@@ -282,14 +266,14 @@ export const ToolPalette: React.FC = () => {
           active={isActiveTool(tool, {
             kind: "place",
             entity: "monster",
-            subType: MonsterType.ORB,
+            subType: MonsterType.ROBOT,
           })}
           onClick={set({
             kind: "place",
             entity: "monster",
-            subType: MonsterType.ORB,
+            subType: MonsterType.ROBOT,
           })}
-          label="Orb"
+          label="Robot"
           color="#a78bfa"
         >
           <Bug size={16} />

@@ -155,7 +155,7 @@ export class GameStateManager {
   }
 
   private setDevModeState(targetState: string): void {
-    const { resetBombState, collectBomb } = useStateStore.getState();
+    const { resetFoundingState, collectFounding } = useStateStore.getState();
 
     switch (targetState) {
       case "START_MENU":
@@ -175,10 +175,10 @@ export class GameStateManager {
         break;
       case "BONUS":
         this.setState(GameState.BONUS, MenuType.BONUS);
-        // Mock bomb collection
-        resetBombState();
+        // Mock founding collection
+        resetFoundingState();
         for (let i = 0; i < DEV_CONFIG.MOCK_DATA.correctOrderCount; i++) {
-          collectBomb(i + 1);
+          collectFounding(i + 1);
         }
         break;
       case "VICTORY":

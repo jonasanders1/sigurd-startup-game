@@ -1,5 +1,5 @@
 /**
- * Bomb Jack gravity look-up table.
+ * Founding Jack gravity look-up table.
  *
  * Per game-specs §4.1, §4.3: Jack's vertical motion is driven by an index
  * into a 128-entry table — NOT by a constant-acceleration physics model.
@@ -23,16 +23,23 @@ export const GRAVITY_LUT_SIZE = 128;
 export const GRAVITY_APEX_INDEX = 64;
 export const GRAVITY_TERMINAL_INDEX = GRAVITY_LUT_SIZE - 1;
 
-/** Per spec §4.3: vertical terminal velocity caps at 3.5 px/frame at 60 Hz. */
-export const GRAVITY_TERMINAL_VY = 8;
+/**
+ * Per spec §4.3: vertical terminal velocity caps at 3.5 px/frame on the BJ
+ * 256-tall screen. Scaled to our 600-tall canvas → ~4 px/f. Lower terminal
+ * makes the descent LUT curve more perceptible (less of the fall is at
+ * saturated terminal speed) — the "starts slow, then accelerates" shape
+ * the spec describes.
+ */
+export const GRAVITY_TERMINAL_VY = 4;
 
 /**
  * Initial upward velocity at the bottom of the LUT (gravityIndex = 0).
- * 7.7 = Sigurd's pre-LUT JUMP_POWER (7) + 10% — keeps level layouts roughly
- * tuned while giving normal jumps a bit more reach than the constant-gravity
- * model produced. All three jump types scale linearly with this value.
+ * Spec sample LUT shows -0x300 = -3 px/f initial; scaled to our canvas this
+ * lands around 8. Combined with reduced jump rates (JUMP_NORMAL_RATE=0.4,
+ * JUMP_HIGH_RATE=0.28), normal still reaches ~3/4 screen and high still
+ * touches the ceiling, while the launch feels less abrupt.
  */
-export const GRAVITY_INITIAL_UP_VY = 11;
+export const GRAVITY_INITIAL_UP_VY = 8;
 
 /**
  * Index to skip ahead to when DOWN is held in air (fast-fall). High enough

@@ -2,6 +2,7 @@ import { Monster } from "../types/interfaces";
 import { PauseReason } from "../types/enums";
 import { logger, LogCategory } from "../lib/logger";
 import { getTuned, getTuningVersion } from "../stores/systems/tuningStore";
+import { getEffectivePausedMs } from "../lib/pauseClock";
 
 // Unified scaling configuration
 export interface ScalingConfig {
@@ -71,51 +72,51 @@ export class ScalingManager {
     return {
       base: {
         ambusher: {
-          ambushInterval: getTuned("UFO_BASE_AMBUSH_INTERVAL"),
-          speed: getTuned("UFO_BASE_SPEED"),
+          ambushInterval: getTuned("TAXGHOST_BASE_AMBUSH_INTERVAL"),
+          speed: getTuned("TAXGHOST_BASE_SPEED"),
         },
         chaser: {
-          speed: getTuned("BIRD_BASE_SPEED"),
-          directness: getTuned("BIRD_BASE_DIRECTNESS"),
-          updateInterval: getTuned("BIRD_BASE_UPDATE_INTERVAL"),
+          speed: getTuned("WISP_BASE_SPEED"),
+          directness: getTuned("WISP_BASE_DIRECTNESS"),
+          updateInterval: getTuned("WISP_BASE_UPDATE_INTERVAL"),
         },
         floater: {
-          speed: getTuned("HORN_BASE_SPEED"),
-          bounceAngle: getTuned("HORN_BASE_BOUNCE_ANGLE"),
+          speed: getTuned("FOUNDER_BASE_SPEED"),
+          bounceAngle: getTuned("FOUNDER_BASE_BOUNCE_ANGLE"),
         },
-        patrol: { speed: getTuned("MUMMY_BASE_SPEED") },
+        patrol: { speed: getTuned("BUREAUCRAT_BASE_SPEED") },
       },
       scaling: {
         ambusher: {
-          ambushInterval: getTuned("UFO_AMBUSH_INTERVAL_SCALING"),
-          speed: getTuned("UFO_SPEED_SCALING"),
+          ambushInterval: getTuned("TAXGHOST_AMBUSH_INTERVAL_SCALING"),
+          speed: getTuned("TAXGHOST_SPEED_SCALING"),
         },
         chaser: {
-          speed: getTuned("BIRD_SPEED_SCALING"),
-          directness: getTuned("BIRD_DIRECTNESS_SCALING"),
-          updateInterval: getTuned("BIRD_UPDATE_INTERVAL_SCALING"),
+          speed: getTuned("WISP_SPEED_SCALING"),
+          directness: getTuned("WISP_DIRECTNESS_SCALING"),
+          updateInterval: getTuned("WISP_UPDATE_INTERVAL_SCALING"),
         },
         floater: {
-          speed: getTuned("HORN_SPEED_SCALING"),
-          bounceAngle: getTuned("HORN_BOUNCE_ANGLE_SCALING"),
+          speed: getTuned("FOUNDER_SPEED_SCALING"),
+          bounceAngle: getTuned("FOUNDER_BOUNCE_ANGLE_SCALING"),
         },
-        patrol: { speed: getTuned("MUMMY_SPEED_SCALING") },
+        patrol: { speed: getTuned("BUREAUCRAT_SPEED_SCALING") },
       },
       max: {
         ambusher: {
-          ambushInterval: getTuned("UFO_MIN_AMBUSH_INTERVAL"),
-          speed: getTuned("UFO_MAX_SPEED"),
+          ambushInterval: getTuned("TAXGHOST_MIN_AMBUSH_INTERVAL"),
+          speed: getTuned("TAXGHOST_MAX_SPEED"),
         },
         chaser: {
-          speed: getTuned("BIRD_MAX_SPEED"),
-          directness: getTuned("BIRD_MAX_DIRECTNESS"),
-          updateInterval: getTuned("BIRD_MIN_UPDATE_INTERVAL"),
+          speed: getTuned("WISP_MAX_SPEED"),
+          directness: getTuned("WISP_MAX_DIRECTNESS"),
+          updateInterval: getTuned("WISP_MIN_UPDATE_INTERVAL"),
         },
         floater: {
-          speed: getTuned("HORN_MAX_SPEED"),
-          bounceAngle: getTuned("HORN_MAX_BOUNCE_ANGLE"),
+          speed: getTuned("FOUNDER_MAX_SPEED"),
+          bounceAngle: getTuned("FOUNDER_MAX_BOUNCE_ANGLE"),
         },
-        patrol: { speed: getTuned("MUMMY_MAX_SPEED") },
+        patrol: { speed: getTuned("BUREAUCRAT_MAX_SPEED") },
       },
     };
   }
@@ -240,9 +241,10 @@ export class ScalingManager {
 
   private getGlobalTimeElapsed(): number {
     if (this.globalStartTime === 0) return 0;
-    const currentTime = Date.now();
-    const actualElapsed = currentTime - this.globalStartTime;
-    return (actualElapsed - this.globalPauseState.totalPausedTime) / 1000;
+    const now = Date.now();
+    const elapsed =
+      now - this.globalStartTime - getEffectivePausedMs(this.globalPauseState, now);
+    return elapsed / 1000;
   }
 
   public pauseForPowerMode(): void {
@@ -305,35 +307,40 @@ export class ScalingManager {
 
   public initializeMonster(monster: Monster): void {
     if (!monster.individualSpawnTime) {
-      monster.individualSpawnTime = Date.now();
+      const now = Date.now();
+      monster.individualSpawnTime = now;
       monster.individualScalingPaused = false;
-      // Store the total paused time when monster was spawned to account for future pauses
-      (monster as any).spawnPauseTime = this.globalPauseState.totalPausedTime;
+      // Snapshot the effective paused-ms at spawn so getMonsterAge can
+      // subtract pauses that happen AFTER spawn (and not the ones before).
+      // Includes any in-progress pause if the monster spawns mid-pause.
+      (monster as any).spawnPauseTime = getEffectivePausedMs(
+        this.globalPauseState,
+        now
+      );
 
       // Log initial scaling values
       const baseValues = this.config.base;
       let initialInfo = "";
 
       switch (monster.type) {
-        case "UFO":
+        case "TAXGHOST":
           initialInfo = `ambush interval: ${
             baseValues.ambusher.ambushInterval
           }ms, speed: ${baseValues.ambusher.speed.toFixed(2)}`;
           break;
-        case "BIRD":
+        case "WISP":
           initialInfo = `speed: ${baseValues.chaser.speed.toFixed(
             2
           )}, directness: ${baseValues.chaser.directness.toFixed(
             3
           )}, update interval: ${baseValues.chaser.updateInterval}ms`;
           break;
-        case "HORN":
+        case "FOUNDER":
           initialInfo = `speed: ${baseValues.floater.speed.toFixed(
             2
           )}, bounce angle: ${baseValues.floater.bounceAngle.toFixed(3)}`;
           break;
-        case "MUMMY":
-        case "VERTICAL_PATROL":
+        case "BUREAUCRAT":
           initialInfo = `speed: ${baseValues.patrol.speed.toFixed(2)}`;
           break;
         default:
@@ -345,9 +352,13 @@ export class ScalingManager {
   }
 
   public resetMonsterScaling(monster: Monster): void {
-    monster.individualSpawnTime = Date.now();
+    const now = Date.now();
+    monster.individualSpawnTime = now;
     monster.individualScalingPaused = false;
-    (monster as any).spawnPauseTime = this.globalPauseState.totalPausedTime;
+    (monster as any).spawnPauseTime = getEffectivePausedMs(
+      this.globalPauseState,
+      now
+    );
     this.monsterCache.delete(this.getMonsterCacheKey(monster));
     logger.monster(`${monster.type} scaling reset`);
   }
@@ -364,11 +375,12 @@ export class ScalingManager {
 
   public getMonsterAge(monster: Monster): number {
     if (!monster.individualSpawnTime) return 0;
-    const currentTime = Date.now();
-    const actualElapsed = currentTime - monster.individualSpawnTime;
-    // Account for pause time that occurred after this monster was spawned
+    const now = Date.now();
+    const actualElapsed = now - monster.individualSpawnTime;
+    // Effective paused time includes the in-progress pause (e.g. during
+    // P-coin freeze), so monster age stays frozen during power mode.
     const pauseTimeAfterSpawn =
-      this.globalPauseState.totalPausedTime -
+      getEffectivePausedMs(this.globalPauseState, now) -
       ((monster as any).spawnPauseTime || 0);
     const adjustedElapsed = actualElapsed - pauseTimeAfterSpawn;
     const age = Math.max(0, adjustedElapsed) / 1000;
@@ -409,7 +421,7 @@ export class ScalingManager {
 
       // Only show relevant changes for the specific monster type
       switch (monster.type) {
-        case "UFO":
+        case "TAXGHOST":
           if (
             Math.abs(oldValues.ambusher.speed - newValues.ambusher.speed) > 0.01
           ) {
@@ -431,7 +443,7 @@ export class ScalingManager {
           }
           break;
 
-        case "BIRD":
+        case "WISP":
           if (
             Math.abs(oldValues.chaser.speed - newValues.chaser.speed) > 0.01
           ) {
@@ -463,7 +475,7 @@ export class ScalingManager {
           }
           break;
 
-        case "HORN":
+        case "FOUNDER":
           if (
             Math.abs(oldValues.floater.speed - newValues.floater.speed) > 0.01
           ) {
@@ -486,8 +498,7 @@ export class ScalingManager {
           }
           break;
 
-        case "MUMMY":
-        case "VERTICAL_PATROL":
+        case "BUREAUCRAT":
           if (
             Math.abs(oldValues.patrol.speed - newValues.patrol.speed) > 0.01
           ) {

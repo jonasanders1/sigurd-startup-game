@@ -1,4 +1,4 @@
-import { Monster, isUfoMonster } from "../../types/interfaces";
+import { Monster, isTaxGhostMonster } from "../../types/interfaces";
 import { GAME_CONFIG } from "../../types/constants";
 import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { logger } from "../../lib/logger";
@@ -10,7 +10,7 @@ import { getTuned } from "../../stores/systems/tuningStore";
 export class AmbusherMovement {
   public update(monster: Monster, currentTime: number, gameState: any, deltaTime?: number): void {
     // Type guard to ensure this is an ambusher monster
-    if (!isUfoMonster(monster)) return;
+    if (!isTaxGhostMonster(monster)) return;
 
     // Check if game is paused
     if (gameState.currentState !== 'PLAYING') {
@@ -54,11 +54,11 @@ export class AmbusherMovement {
         this.chooseNewWanderingDirection(monster, currentTime);
       }
 
-      // Monster-Movments.md UFO rule: "fast far, slow close" — speed scales
+      // Monster-Movments.md TAXGHOST rule: "fast far, slow close" — speed scales
       // with distance to player. All three knobs live-tunable via panel.
-      const near = getTuned("UFO_DIST_FACTOR_NEAR");
-      const far = getTuned("UFO_DIST_FACTOR_FAR");
-      const ramp = getTuned("UFO_DIST_RAMP_PX");
+      const near = getTuned("TAXGHOST_DIST_FACTOR_NEAR");
+      const far = getTuned("TAXGHOST_DIST_FACTOR_FAR");
+      const ramp = getTuned("TAXGHOST_DIST_RAMP_PX");
       const distToPlayer = Math.hypot(
         player.x - monster.x,
         player.y - monster.y
@@ -88,8 +88,13 @@ export class AmbusherMovement {
         if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
           monster.x = newX;
           monster.y = newY;
+          // Track facing for sprite selection (renderTaxGhost reads monster.direction
+          // when velocityX is 0). Pure-vertical moves keep the previous facing.
+          if (Math.abs(normX) > 0.01) {
+            monster.direction = normX < 0 ? -1 : 1;
+          }
         } else {
-          // Monster-Movments.md UFO rule: "Changes velocity upon hitting
+          // Monster-Movments.md TAXGHOST rule: "Changes velocity upon hitting
           // something." Re-pick a wander direction immediately on impact —
           // produces the billiard-ball ricochet feel.
           this.chooseNewWanderingDirection(monster, currentTime);
@@ -136,6 +141,11 @@ export class AmbusherMovement {
         if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
           monster.x = newX;
           monster.y = newY;
+          // Track facing during the charge so the charge-left/-right sprite
+          // matches the actual direction of attack.
+          if (Math.abs(normX) > 0.01) {
+            monster.direction = normX < 0 ? -1 : 1;
+          }
         } else {
           // If blocked, end ambush
           monster.behaviorState = "wandering";
@@ -190,7 +200,7 @@ export class AmbusherMovement {
     (monster as any).targetX = newTargetX;
     (monster as any).targetY = newTargetY;
     monster.lastDirectionChange = currentTime;
-    // BJ §5.4: first direction change arms the UFO as lethal.
+    // BJ §5.4: first direction change arms the TAXGHOST as lethal.
     armMonsterAsLethal(monster);
   }
 }

@@ -1,7 +1,7 @@
 import {
   Player,
   Monster,
-  Bomb,
+  Founding,
   Platform,
   Coin,
   FloatingText,
@@ -13,8 +13,8 @@ import { SHOW_HITBOXES, SHOW_SPAWN_INDICATORS } from "../config/dev";
 import { playerSprite, setPlayerSkin, getPlayerHitboxRect, PLAYER_HITBOX } from "../entities/Player";
 import { tailwindSprite } from "../entities/TailwindSprite";
 import { useCoinStore } from "../stores/entities/coinStore";
-import { bombSprite, BombSpriteInstance } from "../entities/Bomb";
-import { ByrakratSprite, dirName } from "../entities/Byrakrat";
+import { foundingSprite, FoundingSpriteInstance } from "../entities/Founding";
+import { BureaucratSprite, dirName } from "../entities/Bureaucrat";
 import {
   getBoundsForFrame,
   applyBoundsToMonster,
@@ -22,20 +22,23 @@ import {
   getMonsterHitboxRect,
   MONSTER_HITBOXES,
 } from "../config/monsterBounds";
-import { VertikalByrakratSprite } from "../entities/VertikalByrakrat";
-import { UfoSprite } from "../entities/UfoSprite";
+import { TaxGhostSprite } from "../entities/TaxGhostSprite";
 import {
   FloaterSprite,
-  createBirdSprite,
-  createHornSprite,
-  createOrbSprite,
-  createSphereSprite,
+  createWispSprite,
+  createFounderSprite,
+  createRobotSprite,
+  createConsultantSprite,
 } from "../entities/FloaterSprite";
+import {
+  drawSpawnIndicator,
+  SPAWN_INDICATOR_DURATION_MS,
+} from "../entities/MonsterSpawnSprite";
 import { GAME_CONFIG } from "../types/constants";
 import { COIN_TYPES, P_COIN_COLORS } from "../config/coinTypes";
 import {
   getPlatformTileSet,
-  DEFAULT_PLATFORM_THEME,
+  hasVerticalTiles,
   layoutPlatformTiles,
 } from "../config/platformTiles";
 import {
@@ -109,14 +112,13 @@ export class RenderManager {
   private ctx: CanvasRenderingContext2D;
   private lastTime: number = 0;
   private backgroundManager: BackgroundManager;
-  private bombSprites: Map<number, BombSpriteInstance> = new Map();
-  private byrakratSprites: WeakMap<Monster, ByrakratSprite> = new WeakMap();
-  private vertikalByrakratSprites: WeakMap<Monster, VertikalByrakratSprite> = new WeakMap();
-  private ufoSprites: WeakMap<Monster, UfoSprite> = new WeakMap();
-  private birdSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
-  private hornSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
-  private orbSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
-  private sphereSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private foundingSprites: Map<number, FoundingSpriteInstance> = new Map();
+  private bureaucratSprites: WeakMap<Monster, BureaucratSprite> = new WeakMap();
+  private taxGhostSprites: WeakMap<Monster, TaxGhostSprite> = new WeakMap();
+  private wispSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private founderSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private robotSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  private consultantSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
   private currentSpawnManager: OptimizedSpawnManager | null = null;
   private currentGameState: GameStateSnapshot | null = null;
   private frameTime: number = 0; // Cached Date.now() for current frame
@@ -131,7 +133,7 @@ export class RenderManager {
   render(
     player: Player,
     platforms: Platform[],
-    bombs: Bomb[],
+    foundings: Founding[],
     monsters: Monster[],
     coins: Coin[] = [],
     floatingTexts: FloatingText[] = [],
@@ -152,20 +154,20 @@ export class RenderManager {
 
     // Decorative striped floor tile (visual only; canvas bottom is still the
     // player's effective ground). Sits between background and platforms so
-    // bombs and coins resting near the floor visually rest on top of it.
+    // foundings and coins resting near the floor visually rest on top of it.
     if (currentMap?.floor) {
       this.renderFloor(currentMap.floor);
     }
 
     this.renderPlatforms(platforms);
-    this.renderBombs(bombs);
+    this.renderFoundings(foundings);
     this.renderCoins(coins, coinManager);
     this.renderMonsters(monsters, deltaTime, player);
     this.renderPlayer(player);
     this.renderFloatingTexts(floatingTexts, deltaTime);
 
     if (SHOW_HITBOXES) {
-      this.renderHitboxes(player, platforms, bombs, monsters, coins);
+      this.renderHitboxes(player, platforms, foundings, monsters, coins);
     }
   }
 
@@ -191,7 +193,7 @@ export class RenderManager {
   private renderHitboxes(
     player: Player,
     platforms: Platform[],
-    bombs: Bomb[],
+    foundings: Founding[],
     monsters: Monster[],
     coins: Coin[]
   ): void {
@@ -201,7 +203,7 @@ export class RenderManager {
     ctx.lineWidth = 1;
 
     platforms.forEach((p) => this.strokeRect("#00BFFF", p.x, p.y, p.width, p.height));
-    bombs.forEach((b) => {
+    foundings.forEach((b) => {
       if (!b.isCollected) this.strokeEllipse("#FF3030", b.x, b.y, b.width, b.height);
     });
     coins.forEach((c) => {
@@ -347,7 +349,9 @@ export class RenderManager {
         return;
       }
 
-      const tiles = getPlatformTileSet(platform.tileTheme);
+      const isVertical = platform.isVertical ?? false;
+      const nativeVertical = isVertical && hasVerticalTiles(platform.tileTheme);
+      const tiles = getPlatformTileSet(platform.tileTheme, nativeVertical);
       if (
         !tiles.left.complete ||
         !tiles.middle.complete ||
@@ -359,13 +363,12 @@ export class RenderManager {
         return;
       }
 
-      const isVertical = platform.isVertical ?? false;
       const slots = layoutPlatformTiles(platform.width, platform.height, isVertical);
       for (const slot of slots) {
         const img = tiles[slot.piece];
         const dx = platform.x + slot.localX;
         const dy = platform.y + slot.localY;
-        if (isVertical) {
+        if (isVertical && !nativeVertical) {
           // Rotate 90° CW around the slot center; pre-rotation rect is (height × width).
           ctx.save();
           ctx.translate(dx + slot.width / 2, dy + slot.height / 2);
@@ -381,60 +384,60 @@ export class RenderManager {
     ctx.imageSmoothingEnabled = prevSmoothing;
   }
 
-  private renderBombs(bombs: Bomb[]): void {
+  private renderFoundings(foundings: Founding[]): void {
     const prevSmoothing = this.ctx.imageSmoothingEnabled;
     this.ctx.imageSmoothingEnabled = false;
 
-    bombs.forEach((bomb) => {
-      // Don't render collected bombs
-      if (bomb.isCollected) {
+    foundings.forEach((founding) => {
+      // Don't render collected foundings
+      if (founding.isCollected) {
         return;
       }
 
-      if (bombSprite && GAME_CONFIG.USE_SPRITES) {
-        // Get or create individual sprite for this bomb
-        let individualSprite = this.bombSprites.get(bomb.order);
+      if (foundingSprite && GAME_CONFIG.USE_SPRITES) {
+        // Get or create individual sprite for this founding
+        let individualSprite = this.foundingSprites.get(founding.order);
         if (!individualSprite) {
-          // Create new sprite instance for this bomb
-          const bombAnimations = [
+          // Create new sprite instance for this founding
+          const foundingAnimations = [
             {
               name: "unlit",
-              frames: bombSprite.animations.unlit.frames,
+              frames: foundingSprite.animations.unlit.frames,
               frameDuration: 50,
               loop: false,
             },
             {
               name: "lit",
-              frames: bombSprite.animations.lit.frames,
+              frames: foundingSprite.animations.lit.frames,
               frameDuration: 100,
               loop: true,
             },
           ];
-          individualSprite = new BombSpriteInstance(bombAnimations, "unlit");
-          this.bombSprites.set(bomb.order, individualSprite);
+          individualSprite = new FoundingSpriteInstance(foundingAnimations, "unlit");
+          this.foundingSprites.set(founding.order, individualSprite);
         }
 
-        // Set animation based on this bomb's state
-        const animationName = bomb.isBlinking ? "lit" : "unlit";
+        // Set animation based on this founding's state
+        const animationName = founding.isBlinking ? "lit" : "unlit";
         individualSprite.setAnimation(animationName);
         individualSprite.update(16);
 
-        // Calculate scale to match bomb's collision dimensions
-        const scale = bomb.width / GAME_CONFIG.BOMB_SIZE;
-        individualSprite.draw(this.ctx, bomb.x, bomb.y, scale);
+        // Calculate scale to match founding's collision dimensions
+        const scale = founding.width / GAME_CONFIG.FOUNDING_SIZE;
+        individualSprite.draw(this.ctx, founding.x, founding.y, scale);
       } else {
         // Fallback to colored rectangles
-        this.ctx.fillStyle = bomb.isBlinking ? COLORS.BOMB_NEXT : COLORS.BOMB;
-        this.ctx.fillRect(bomb.x, bomb.y, bomb.width, bomb.height);
+        this.ctx.fillStyle = founding.isBlinking ? COLORS.FOUNDING_NEXT : COLORS.FOUNDING;
+        this.ctx.fillRect(founding.x, founding.y, founding.width, founding.height);
 
-        // Draw bomb number
+        // Draw founding number
         this.ctx.fillStyle = "#000000";
         this.ctx.font = "12px JetBrains Mono";
         this.ctx.textAlign = "center";
         this.ctx.fillText(
-          bomb.order.toString(),
-          bomb.x + bomb.width / 2,
-          bomb.y + bomb.height / 2 + 4
+          founding.order.toString(),
+          founding.x + founding.width / 2,
+          founding.y + founding.height / 2 + 4
         );
       }
     });
@@ -545,7 +548,7 @@ export class RenderManager {
         // killed monsters render nothing (no death/transition fall-through —
         // collected enemies should disappear immediately).
         if (!monster.isActive) return;
-        if (monster.type === MonsterType.MUMMY) {
+        if (monster.type === MonsterType.BUREAUCRAT) {
           const { x: feetX, y: feetY } = getNaturalAnchor(monster, "feet");
           tailwindSprite.draw(this.ctx, feetX, feetY, "feet");
         } else {
@@ -559,10 +562,10 @@ export class RenderManager {
         return;
       }
 
-      // Byråkrat-klonen handles its own activity check so dead mummies can
+      // Byråkrat-klonen handles its own activity check so dead bureaucrats can
       // render through the transition animation before disappearing.
-      if (monster.type === MonsterType.MUMMY) {
-        this.renderByrakrat(monster);
+      if (monster.type === MonsterType.BUREAUCRAT) {
+        this.renderBureaucrat(monster);
         return;
       }
 
@@ -570,28 +573,28 @@ export class RenderManager {
       // killed (isActive=false), they render nothing.
       if (!monster.isActive) return;
 
-      if (monster.type === MonsterType.UFO) {
-        this.renderUfo(monster, deltaTime);
+      if (monster.type === MonsterType.TAXGHOST) {
+        this.renderTaxGhost(monster, deltaTime);
         return;
       }
 
-      if (monster.type === MonsterType.BIRD) {
-        this.renderBird(monster, deltaTime);
+      if (monster.type === MonsterType.WISP) {
+        this.renderWisp(monster, deltaTime);
         return;
       }
 
-      if (monster.type === MonsterType.HORN) {
-        this.renderHorn(monster, deltaTime);
+      if (monster.type === MonsterType.FOUNDER) {
+        this.renderFounder(monster, deltaTime);
         return;
       }
 
-      if (monster.type === MonsterType.ORB) {
-        this.renderOrb(monster, deltaTime);
+      if (monster.type === MonsterType.ROBOT) {
+        this.renderRobot(monster, deltaTime);
         return;
       }
 
-      if (monster.type === MonsterType.SPHERE) {
-        this.renderSphere(monster, deltaTime);
+      if (monster.type === MonsterType.CONSULTANT) {
+        this.renderConsultant(monster, deltaTime);
         return;
       }
 
@@ -768,21 +771,21 @@ export class RenderManager {
    * `idleOnly` forces the idle animation during countdown / pre-play states so
    * monsters look "alive" without committing to walk/attack states.
    */
-  private updateByrakratState(
+  private updateBureaucratState(
     monster: Monster,
     deltaTime: number,
     idleOnly: boolean = false
   ): void {
-    let sprite = this.byrakratSprites.get(monster);
+    let sprite = this.bureaucratSprites.get(monster);
     if (!sprite) {
-      sprite = new ByrakratSprite();
-      this.byrakratSprites.set(monster, sprite);
+      sprite = new BureaucratSprite();
+      this.bureaucratSprites.set(monster, sprite);
     }
 
     const dir = dirName(monster.direction);
     // Transition animation is reserved for ground-impact transformation
     // (isTransitioning). isDead alone — i.e. killed by P-coin / collected
-    // chip-bag — should disappear silently; renderByrakrat skips on !isActive.
+    // chip-bag — should disappear silently; renderBureaucrat skips on !isActive.
     if (monster.isTransitioning) {
       sprite.setAnimation(`transition-${dir}`);
     } else if (monster.isFalling) {
@@ -812,12 +815,12 @@ export class RenderManager {
     }
   }
 
-  private renderByrakrat(monster: Monster): void {
-    const sprite = this.byrakratSprites.get(monster);
+  private renderBureaucrat(monster: Monster): void {
+    const sprite = this.bureaucratSprites.get(monster);
     if (!sprite) return;
-    // Killed mummies disappear immediately. Ground-impact transformation
+    // Killed bureaucrats disappear immediately. Ground-impact transformation
     // still keeps isActive=true throughout the transition; isActive only
-    // flips false after transformMummyOnGround runs (for NONE target),
+    // flips false after transformBureaucratOnGround runs (for NONE target),
     // which is after the transition anim has played out.
     if (!monster.isActive) return;
 
@@ -841,10 +844,10 @@ export class RenderManager {
     idleOnly: boolean = false
   ): void {
     for (const monster of monsters) {
-      if (monster.type === MonsterType.MUMMY) {
-        this.updateByrakratState(monster, deltaTime, idleOnly);
+      if (monster.type === MonsterType.BUREAUCRAT) {
+        this.updateBureaucratState(monster, deltaTime, idleOnly);
       }
-      // UFO no longer needs a pre-collision hitbox pass — its rect is uniform
+      // TAXGHOST no longer needs a pre-collision hitbox pass — its rect is uniform
       // across animation frames now (no more rotated attack hitbox).
     }
   }
@@ -881,11 +884,11 @@ export class RenderManager {
     if (!monster.isFrozen) sprite.update(deltaTime);
   }
 
-  private renderUfo(monster: Monster, deltaTime: number): void {
-    let sprite = this.ufoSprites.get(monster);
+  private renderTaxGhost(monster: Monster, deltaTime: number): void {
+    let sprite = this.taxGhostSprites.get(monster);
     if (!sprite) {
-      sprite = new UfoSprite();
-      this.ufoSprites.set(monster, sprite);
+      sprite = new TaxGhostSprite();
+      this.taxGhostSprites.set(monster, sprite);
     }
 
     const dirSign = (monster.velocityX ?? 0) !== 0
@@ -903,14 +906,14 @@ export class RenderManager {
     sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderBird(monster: Monster, deltaTime: number): void {
-    let sprite = this.birdSprites.get(monster);
+  private renderWisp(monster: Monster, deltaTime: number): void {
+    let sprite = this.wispSprites.get(monster);
     if (!sprite) {
-      sprite = createBirdSprite();
-      this.birdSprites.set(monster, sprite);
+      sprite = createWispSprite();
+      this.wispSprites.set(monster, sprite);
     }
 
-    // Bird uses ChaserMovement (hop-and-pause) which doesn't drive velocityX.
+    // Wisp uses ChaserMovement (hop-and-pause) which doesn't drive velocityX.
     // Direction comes from the active hop target's horizontal delta; when at
     // rest between hops we keep the last facing on monster.direction.
     const m = monster as Monster & { hopTargetX?: number };
@@ -937,63 +940,37 @@ export class RenderManager {
     sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderHorn(monster: Monster, deltaTime: number): void {
-    let sprite = this.hornSprites.get(monster);
+  private renderFounder(monster: Monster, deltaTime: number): void {
+    let sprite = this.founderSprites.get(monster);
     if (!sprite) {
-      sprite = createHornSprite();
-      this.hornSprites.set(monster, sprite);
+      sprite = createFounderSprite();
+      this.founderSprites.set(monster, sprite);
     }
     this.updateFloater(sprite, monster, deltaTime);
     sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderOrb(monster: Monster, deltaTime: number): void {
-    let sprite = this.orbSprites.get(monster);
+  private renderRobot(monster: Monster, deltaTime: number): void {
+    let sprite = this.robotSprites.get(monster);
     if (!sprite) {
-      sprite = createOrbSprite();
-      this.orbSprites.set(monster, sprite);
+      sprite = createRobotSprite();
+      this.robotSprites.set(monster, sprite);
     }
     this.updateFloater(sprite, monster, deltaTime);
     sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderSphere(monster: Monster, deltaTime: number): void {
-    let sprite = this.sphereSprites.get(monster);
+  private renderConsultant(monster: Monster, deltaTime: number): void {
+    let sprite = this.consultantSprites.get(monster);
     if (!sprite) {
-      sprite = createSphereSprite();
-      this.sphereSprites.set(monster, sprite);
+      sprite = createConsultantSprite();
+      this.consultantSprites.set(monster, sprite);
     }
     this.updateFloater(sprite, monster, deltaTime);
     sprite.draw(this.ctx, monster.x + monster.width / 2, monster.y + monster.height / 2);
   }
 
-  private renderVertikalByrakrat(monster: Monster, deltaTime: number): void {
-    let sprite = this.vertikalByrakratSprites.get(monster);
-    if (!sprite) {
-      sprite = new VertikalByrakratSprite();
-      this.vertikalByrakratSprites.set(monster, sprite);
-    }
-
-    if (monster.isDead) {
-      if (sprite.isDeathAnimComplete()) return;
-      sprite.setAnimation("death");
-    } else if (monster.isFrozen) {
-      sprite.setAnimation(monster.isBlinking ? "freeze-blink" : "freeze-still");
-    } else {
-      sprite.setAnimation("walk");
-    }
-
-    sprite.update(deltaTime);
-    sprite.draw(
-      this.ctx,
-      monster.x,
-      monster.y,
-      monster.width,
-      monster.height
-    );
-  }
-
-  private renderRespawnIndicators(monsters: Monster[]): void {
+private renderRespawnIndicators(monsters: Monster[]): void {
     // Mirror renderSpawnIndicators: hide the countdown outside PLAYING so
     // pause/menu/bonus screens don't show a ticking "3" over a frozen scene.
     if (
@@ -1008,57 +985,16 @@ export class RenderManager {
     monsters.forEach((monster) => {
       if (monster.isDead && monster.originalSpawnPoint) {
         const timeRemaining = respawnManager.getRespawnTimeRemaining(monster);
-        const secondsRemaining = Math.ceil(timeRemaining / 1000);
-        if (timeRemaining > 0 && secondsRemaining <= 3) {
-          // Only show in final 3 seconds
-          // Draw respawn indicator at original spawn point
+        if (timeRemaining > 0 && timeRemaining <= SPAWN_INDICATOR_DURATION_MS) {
           const spawnPoint = monster.originalSpawnPoint;
-
-          // Use monster's actual color with pulsating effect
-          const pulseIntensity = Math.sin(this.frameTime / 200) * 0.3 + 0.7; // Pulsing effect
-          const monsterColor = monster.color || "#ffffff";
-
-          // Draw a pulsating filled rounded rectangle using monster's color
-          this.ctx.fillStyle = `${monsterColor}${Math.floor(pulseIntensity * 255)
-            .toString(16)
-            .padStart(2, "0")}`;
-
-          // Draw rounded rectangle like active monsters
-          const radius = 4;
-          const x = spawnPoint.x;
-          const y = spawnPoint.y;
-          const width = monster.width;
-          const height = monster.height;
-
-          this.ctx.beginPath();
-          this.ctx.moveTo(x + radius, y);
-          this.ctx.lineTo(x + width - radius, y);
-          this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-          this.ctx.lineTo(x + width, y + height - radius);
-          this.ctx.quadraticCurveTo(
-            x + width,
-            y + height,
-            x + width - radius,
-            y + height
+          drawSpawnIndicator(
+            this.ctx,
+            spawnPoint.x,
+            spawnPoint.y,
+            monster.width,
+            monster.height,
+            timeRemaining,
           );
-          this.ctx.lineTo(x + radius, y + height);
-          this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-          this.ctx.lineTo(x, y + radius);
-          this.ctx.quadraticCurveTo(x, y, x + radius, y);
-          this.ctx.closePath();
-          this.ctx.fill();
-
-          // Draw respawn timer inside the rectangle
-          const text = `${secondsRemaining}`;
-          const textX = spawnPoint.x + monster.width / 2;
-          const textY = spawnPoint.y + monster.height / 2 + 4;
-
-          // Draw text using monster's color
-          this.ctx.fillStyle = "#ffffff"; // White text for contrast
-          this.ctx.font = "16px JetBrains Mono";
-          this.ctx.textAlign = "center";
-          this.ctx.textBaseline = "middle";
-          this.ctx.fillText(text, textX, textY);
         }
       }
     });
@@ -1082,57 +1018,16 @@ export class RenderManager {
 
       pendingSpawns.forEach((spawn) => {
         const timeRemaining = spawnManager.getSpawnTimeRemaining(spawn);
-        const secondsRemaining = Math.ceil(timeRemaining / 1000);
-        if (timeRemaining > 0 && secondsRemaining <= 3) {
-          // Only show in final 3 seconds
-          // Create a temporary monster to get its dimensions and color
+        if (timeRemaining > 0 && timeRemaining <= SPAWN_INDICATOR_DURATION_MS) {
           const tempMonster = spawn.spawnPoint.createMonster();
-
-          // Use monster's actual color with pulsating effect
-          const pulseIntensity = Math.sin(this.frameTime / 200) * 0.3 + 0.7; // Pulsing effect
-          const monsterColor = tempMonster.color || "#ffffff";
-
-          // Draw a pulsating filled rounded rectangle using monster's color
-          this.ctx.fillStyle = `${monsterColor}${Math.floor(pulseIntensity * 255)
-            .toString(16)
-            .padStart(2, "0")}`;
-
-          // Draw rounded rectangle like active monsters
-          const radius = 4;
-          const x = tempMonster.x;
-          const y = tempMonster.y;
-          const width = tempMonster.width;
-          const height = tempMonster.height;
-
-          this.ctx.beginPath();
-          this.ctx.moveTo(x + radius, y);
-          this.ctx.lineTo(x + width - radius, y);
-          this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-          this.ctx.lineTo(x + width, y + height - radius);
-          this.ctx.quadraticCurveTo(
-            x + width,
-            y + height,
-            x + width - radius,
-            y + height
+          drawSpawnIndicator(
+            this.ctx,
+            tempMonster.x,
+            tempMonster.y,
+            tempMonster.width,
+            tempMonster.height,
+            timeRemaining,
           );
-          this.ctx.lineTo(x + radius, y + height);
-          this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-          this.ctx.lineTo(x, y + radius);
-          this.ctx.quadraticCurveTo(x, y, x + radius, y);
-          this.ctx.closePath();
-          this.ctx.fill();
-
-          // Draw spawn timer inside the rectangle
-          const text = `${secondsRemaining}`;
-          const textX = tempMonster.x + tempMonster.width / 2;
-          const textY = tempMonster.y + tempMonster.height / 2;
-
-          // Draw text using white for contrast
-          this.ctx.fillStyle = "#ffffff"; // White text for contrast
-          this.ctx.font = "16px JetBrains Mono";
-          this.ctx.textAlign = "center";
-          this.ctx.textBaseline = "middle";
-          this.ctx.fillText(text, textX, textY);
         }
       });
     } catch (error) {
@@ -1199,8 +1094,8 @@ export class RenderManager {
     return this.backgroundManager.getCurrentMapName();
   }
 
-  // Clear bomb sprites (call when bombs are reset)
-  clearBombSprites(): void {
-    this.bombSprites.clear();
+  // Clear founding sprites (call when foundings are reset)
+  clearFoundingSprites(): void {
+    this.foundingSprites.clear();
   }
 }

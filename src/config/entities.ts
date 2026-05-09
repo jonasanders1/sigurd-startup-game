@@ -5,7 +5,7 @@
  *   - bounds: physics envelope (walls, platforms, floor, ceiling).
  *   - hitbox: smaller lethal-collision rect (player-vs-monster damage).
  *
- * Bombs and coins are collected on overlap and don't have wall physics, so a
+ * Foundings and coins are collected on overlap and don't have wall physics, so a
  * single rect is enough.
  *
  * Monster bounds + hitbox live next to each monster's sprite class under
@@ -32,7 +32,7 @@ export const HITBOX_VISUAL_CORNER_RADIUS = 4;
 
 export const ENTITY_SIZES = {
   PLAYER: { bounds: { width: 25, height: 43 } as Box },
-  BOMB: { width: 25, height: 25 } as Box,
+  FOUNDING: { width: 25, height: 25 } as Box,
   COIN: { width: 25, height: 25 } as Box,
   PLATFORM_HEIGHT: 25,
 } as const;

@@ -51,6 +51,13 @@ export class PlayerManager {
   private wallContactedLastFrame = false;
   private wallContactedThisFrame = false;
   private wasGroundedLastFrame = true;
+  // Jump edge-latch: input.jump is a sustained boolean (held while key is
+  // down), so the gameplay-jump check would fire again the instant the
+  // player landed while still holding ↑/W. That re-fired both the jump SFX
+  // and the trampoline → P-coin color advance every landing, which the
+  // player perceives as rapid color cycling and overlapping audio. Latch
+  // consumes the press until the key is released and re-pressed.
+  private jumpInputLatched = false;
 
   constructor(animationController: AnimationController) {
     this.collisionManager = new CollisionManager();
@@ -250,7 +257,18 @@ export class PlayerManager {
   private handleJumping(player: Player, input: any): void {
     const isUpPressed = input.jump;
 
-    if (isUpPressed && player.isGrounded && !player.isJumping) {
+    // Release the latch as soon as the jump key goes up so the next press
+    // can fire. With the key released, holding it again is a fresh press.
+    if (!isUpPressed) {
+      this.jumpInputLatched = false;
+    }
+
+    if (
+      isUpPressed &&
+      player.isGrounded &&
+      !player.isJumping &&
+      !this.jumpInputLatched
+    ) {
       const params = jumpInitParams(
         decideJumpType({
           fastFall: !!input.fastFall,
@@ -263,6 +281,7 @@ export class PlayerManager {
       player.gravityIndex = params.startIdx;
       player.jumpAdvanceRate = params.ascendAdvanceRate;
       player.velocityY = gravityVelocityAt(params.startIdx);
+      this.jumpInputLatched = true;
 
       useAudioStore.getState().audioManager?.playSound(AudioEvent.PLAYER_JUMP);
 
@@ -369,8 +388,14 @@ export class PlayerManager {
       return;
     }
 
+    // Ascending uses the jump-type's rate (set on jump init). Descending uses
+    // the tunable JUMP_DESCENT_RATE — lower stretches the early-fall LUT
+    // entries before terminal velocity saturates, giving a more pronounced
+    // "starts slow, then accelerates" feel.
     const isAscending = player.gravityIndex < GRAVITY_APEX_INDEX;
-    const rate = isAscending ? player.jumpAdvanceRate : 1.0;
+    const rate = isAscending
+      ? player.jumpAdvanceRate
+      : getTuned("JUMP_DESCENT_RATE");
     player.gravityIndex = advanceGravityIndex(
       player.gravityIndex,
       deltaTime * rate

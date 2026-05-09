@@ -72,7 +72,7 @@ export const EditorRoot: React.FC = () => {
         v: () => setTool({ kind: "select" }),
         p: () => setTool({ kind: "place", entity: "platform" }),
         w: () => setTool({ kind: "place", entity: "platform", subType: "vertical" }),
-        b: () => setTool({ kind: "place", entity: "bomb" }),
+        b: () => setTool({ kind: "place", entity: "founding" }),
         s: () => setTool({ kind: "place", entity: "playerStart" }),
       };
       const fn = map[e.key.toLowerCase()];

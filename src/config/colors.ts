@@ -7,10 +7,10 @@ export const COLORS = {
   // Player
   PLAYER: "#abdd64", // KAPLAY lime
 
-  // Bombs
-  BOMB: "#eab308", // coin-yellow
-  BOMB_COLLECTED: "#3a4150", // surface-line (dim on dark)
-  BOMB_NEXT: "#ee90cb", // accent-pink
+  // Foundings
+  FOUNDING: "#eab308", // coin-yellow
+  FOUNDING_COLLECTED: "#3a4150", // surface-line (dim on dark)
+  FOUNDING_NEXT: "#ee90cb", // accent-pink
 
   // Monsters
   MONSTER: "#ee90cb", // Default monster color (accent pink)
@@ -18,14 +18,13 @@ export const COLORS = {
 
   // Monster type variants — KAPLAY accent palette
   MONSTER_TYPES: {
-    MUMMY: "#ee90cb", // Pink - horizontal patrol
-    VERTICAL_PATROL: "#abdd64", // Lime - vertical patrol
-    BIRD: "#f2ae99", // Peach — bird (BJ §5.1.1, was CHASER)
-    UFO: "#8465ec", // Purple - ambusher
-    HORN: "#22d3ee", // Cyan - floater
+    BUREAUCRAT: "#ee90cb", // Pink - horizontal patrol
+    WISP: "#f2ae99", // Peach — wisp (BJ §5.1.1, was CHASER)
+    TAXGHOST: "#8465ec", // Purple - ambusher
+    FOUNDER: "#22d3ee", // Cyan - floater
     // BJ airborne forms — distinct accent colors for the simple-rect render.
-    SPHERE: "#fbbf24", // Amber
-    ORB: "#a78bfa", // Lavender
+    CONSULTANT: "#fbbf24", // Amber
+    ROBOT: "#a78bfa", // Lavender
   },
 
   // Environment

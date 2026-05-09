@@ -11,9 +11,9 @@ export const COIN_PHYSICS = {
 
 export const COIN_SPAWNING = {
   // Spawning intervals
-  // BJ canonical: "P-coin every 9 firebombs". With weighted tokens
-  // (firebomb=2, normal=1), threshold 18 means 9 firebombs alone = 1 P-coin
-  // and 18 normal bombs = 1 P-coin (the "twice as many for firebombs" rule).
+  // BJ canonical: "P-coin every 9 firefoundings". With weighted tokens
+  // (firefounding=2, normal=1), threshold 18 means 9 firefoundings alone = 1 P-coin
+  // and 18 normal foundings = 1 P-coin (the "twice as many for firefoundings" rule).
   POWER_COIN_SPAWN_INTERVAL: 18,
   POWER_COIN_MAX_PER_LEVEL: 2, // BJ: max 2 P-coin spawns per level (game-specs §7.1)
   BONUS_COIN_SPAWN_INTERVAL: 5000, // B-coin: every 5000 points of total score
@@ -28,12 +28,12 @@ export const COIN_SPAWNING = {
   F_COIN_MIN_LEVEL: 2, // Rookie gate — never spawns on level 1.
   F_COIN_MAX_LEVEL: 8,
   F_COIN_RUN_CAP: 2,
-  // F-coin spawns when the Nth bomb of the target level is collected, where
-  // N is randomly chosen in [F_COIN_TRIGGER_MIN_BOMB..F_COIN_TRIGGER_MAX_BOMB]
+  // F-coin spawns when the Nth founding of the target level is collected, where
+  // N is randomly chosen in [F_COIN_TRIGGER_MIN_FOUNDING..F_COIN_TRIGGER_MAX_FOUNDING]
   // at level start. Default range is the full level (1..23) — fully random
-  // across all bomb collections so the spawn moment is unpredictable.
-  F_COIN_TRIGGER_MIN_BOMB: 1,
-  F_COIN_TRIGGER_MAX_BOMB: 23,
+  // across all founding collections so the spawn moment is unpredictable.
+  F_COIN_TRIGGER_MIN_FOUNDING: 1,
+  F_COIN_TRIGGER_MAX_FOUNDING: 23,
 } as const;
 
 export const COIN_EFFECTS = {

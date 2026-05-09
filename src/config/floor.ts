@@ -3,7 +3,7 @@
  *
  * Visual only — the canvas bottom (y = CANVAS_HEIGHT) remains the player's
  * effective ground. The strip is drawn between the background and the
- * platform layer so bombs/coins resting near the floor sit visually on top
+ * platform layer so foundings/coins resting near the floor sit visually on top
  * of it.
  *
  * Each variant is a single 32×32 tile, repeated horizontally across the

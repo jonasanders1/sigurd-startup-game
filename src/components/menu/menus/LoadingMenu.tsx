@@ -96,7 +96,7 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
             SIGURD STARTUP
           </h1>
           <p className="text-[var(--foreground-dim)] text-sm font-mono">
-            Forbereder din gründerreise
+            Frobotereder din gründerreise
           </p>
         </div>
 
@@ -172,14 +172,14 @@ const LoadingMenu: React.FC<LoadingMenuProps> = ({
 
 const getStepDescription = (stepId: string): string => {
   const descriptions: Record<string, string> = {
-    "host-communication": "Etablerer forbindelse",
+    "host-communication": "Etablerer frobotindelse",
     "background-images": "Klargjør spillverdener",
     "player-sprites": "Vekker Sigurd til live",
-    "monster-sprites": "Forbereder utfordringer",
+    "monster-sprites": "Frobotereder utfordringer",
     "ui-sprites": "Bygger grensesnitt",
     "audio-files": "Tuner inn lydlandskap",
     "map-data": "Kartlegger reisen",
-    finalization: "Siste forberedelser",
+    finalization: "Siste froboteredelser",
     complete: "Alt klart!",
   };
   return descriptions[stepId] || "";

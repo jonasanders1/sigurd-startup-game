@@ -4,7 +4,7 @@ import {
   EditorEntity,
   MonsterEntity,
   PlatformEntity,
-  BombEntity,
+  FoundingEntity,
   CoinSpawnEntity,
   PlayerStartEntity,
   MapMeta,
@@ -42,9 +42,9 @@ export const defaultVerticalWall = (x: number, y: number): PlatformEntity => ({
   isVertical: true,
 });
 
-export const defaultBomb = (x: number, y: number): BombEntity => ({
-  id: newId("bomb"),
-  kind: "bomb",
+export const defaultFounding = (x: number, y: number): FoundingEntity => ({
+  id: newId("founding"),
+  kind: "founding",
   x,
   y,
   order: 1,
@@ -74,34 +74,26 @@ export const defaultMonster = (
     delayed: false,
   };
   switch (monsterType) {
-    case MonsterType.MUMMY:
+    case MonsterType.BUREAUCRAT:
+      // Bottom-anchored: click point becomes the feet line (= platformY).
       return {
         ...base,
         platformX: x,
-        platformY: y + GAME_CONFIG.MONSTER_SIZE,
+        platformY: y,
         platformWidth: 150,
         spawnSide: "left",
         walkLengths: 1,
-        variant: "green",
       };
-    case MonsterType.VERTICAL_PATROL:
-      return {
-        ...base,
-        platformX: x,
-        patrolHeight: 200,
-        side: "left",
-        direction: 1,
-      };
-    case MonsterType.HORN:
+    case MonsterType.FOUNDER:
       return { ...base, startAngle: 45 };
-    case MonsterType.BIRD:
+    case MonsterType.WISP:
       return {
         ...base,
         speed: 0.8,
         directness: 0.2,
         updateInterval: 500,
       };
-    case MonsterType.UFO:
+    case MonsterType.TAXGHOST:
       return {
         ...base,
         speed: 0.8,
@@ -109,9 +101,9 @@ export const defaultMonster = (
       };
     // BJ airborne forms (Monster-Movments.md). Just need x/y/speed —
     // wobble fields are factory defaults.
-    case MonsterType.SPHERE:
+    case MonsterType.CONSULTANT:
       return { ...base, speed: 1.2 };
-    case MonsterType.ORB:
+    case MonsterType.ROBOT:
       return { ...base, speed: 1.4 };
   }
 };

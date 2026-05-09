@@ -37,7 +37,7 @@ export const PreviewMode: React.FC = () => {
   // GameManager.start() ran before this effect, so the spawn manager was
   // already configured against the ORIGINAL level0's monsterSpawnPoints — the
   // tryStart effect below calls gsm.restartGame() which routes through
-  // levelManager.loadCurrentLevel and re-inits everything (bombs, monsters,
+  // levelManager.loadCurrentLevel and re-inits everything (foundings, monsters,
   // coins, spawn manager queue) from the swapped previewMap.
   useEffect(() => {
     const previewMap = buildMapFromEditor(entities, meta);

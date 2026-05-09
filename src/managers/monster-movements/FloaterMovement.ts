@@ -8,7 +8,7 @@ import { logger } from "../../lib/logger";
 import { armMonsterAsLethal } from "../../lib/bjRules";
 import { getTuned } from "../../stores/systems/tuningStore";
 
-// Monster-Movments.md HORN: "Bobs around the stage with no set intelligence.
+// Monster-Movments.md FOUNDER: "Bobs around the stage with no set intelligence.
 // Caution: lack of attention holds a surprise despite its predictability."
 // All four params live-tunable from the panel via getTuned() inside the
 // methods below.
@@ -45,16 +45,16 @@ export class FloaterMovement {
       this.initializeVelocity(monster, valuesToUse.floater.speed);
     }
 
-    // Schedule first surprise lazily — staggers Horns spawned at the same time.
+    // Schedule first surprise lazily — staggers Founders spawned at the same time.
     const m = monster as unknown as Record<string, unknown>;
     if (m.nextSurpriseTime === undefined) {
-      const min = getTuned("HORN_SURPRISE_INTERVAL_MIN");
-      const max = getTuned("HORN_SURPRISE_INTERVAL_MAX");
+      const min = getTuned("FOUNDER_SURPRISE_INTERVAL_MIN");
+      const max = getTuned("FOUNDER_SURPRISE_INTERVAL_MAX");
       m.nextSurpriseTime = currentTime + min + Math.random() * (max - min);
     }
 
-    // Drive the surprise homing burst (Monster-Movments.md HORN rule).
-    // While active, Horn redirects velocity toward the player; once the
+    // Drive the surprise homing burst (Monster-Movments.md FOUNDER rule).
+    // While active, Founder redirects velocity toward the player; once the
     // window closes it reverts to inertia-based bouncing.
     this.tickSurprise(monster, currentTime, gameStateParam?.player, valuesToUse.floater.speed);
 
@@ -124,7 +124,7 @@ export class FloaterMovement {
   }
 
   /**
-   * Horn "surprise" mechanic. Two windows:
+   * Founder "surprise" mechanic. Two windows:
    *  1. nextSurpriseTime not yet reached → predictable bouncing (no-op).
    *  2. Inside the SURPRISE_DURATION_MS window after that time → redirect
    *     velocity toward Jack at boosted speed.
@@ -145,8 +145,8 @@ export class FloaterMovement {
     const nextSurprise = m.nextSurpriseTime as number | undefined;
     if (nextSurprise === undefined || currentTime < nextSurprise) return;
 
-    const boost = getTuned("HORN_SURPRISE_BOOST");
-    const duration = getTuned("HORN_SURPRISE_DURATION");
+    const boost = getTuned("FOUNDER_SURPRISE_BOOST");
+    const duration = getTuned("FOUNDER_SURPRISE_DURATION");
 
     const surpriseStart = m.surpriseStartTime as number | undefined;
     if (surpriseStart === undefined) {
@@ -157,7 +157,7 @@ export class FloaterMovement {
       const dist = Math.hypot(dx, dy) || 1;
       monster.velocityX = (dx / dist) * baseSpeed * boost;
       monster.velocityY = (dy / dist) * baseSpeed * boost;
-      logger.monster(`Horn surprise burst → toward player`);
+      logger.monster(`Founder surprise burst → toward player`);
       return;
     }
 
@@ -172,15 +172,15 @@ export class FloaterMovement {
     }
 
     // Burst complete — schedule the next one.
-    const min = getTuned("HORN_SURPRISE_INTERVAL_MIN");
-    const max = getTuned("HORN_SURPRISE_INTERVAL_MAX");
+    const min = getTuned("FOUNDER_SURPRISE_INTERVAL_MIN");
+    const max = getTuned("FOUNDER_SURPRISE_INTERVAL_MAX");
     m.surpriseStartTime = undefined;
     m.nextSurpriseTime = currentTime + min + Math.random() * (max - min);
   }
 
   private initializeVelocity(monster: Monster, scaledSpeed: number): void {
     // Type guard to ensure this is a floater monster
-    if (monster.type !== "HORN") return;
+    if (monster.type !== "FOUNDER") return;
 
     const angle = monster.startAngle || 45; // Default to 45 degrees if not specified
 
@@ -255,6 +255,10 @@ export class FloaterMovement {
     normal: { x: number; y: number },
     bounceAngle: number
   ): void {
+    // Capture facing for the bump animation suffix BEFORE the velocity flip.
+    const vx = monster.velocityX ?? 0;
+    const facing: -1 | 1 = vx < 0 ? -1 : vx > 0 ? 1 : monster.direction < 0 ? -1 : 1;
+
     // Calculate the dot product of velocity and normal
     const dotProduct =
       monster.velocityX * normal.x + monster.velocityY * normal.y;
@@ -277,7 +281,13 @@ export class FloaterMovement {
     monster.velocityX = Math.cos(newAngle) * speed;
     monster.velocityY = Math.sin(newAngle) * speed;
 
-    // BJ §5.4: a bounce IS a direction change → arm Horn as lethal.
+    // BJ §5.4: a bounce IS a direction change → arm Founder as lethal.
     armMonsterAsLethal(monster);
+
+    // Bump animation: pick axis from the dominant collision normal.
+    monster.bumpAxis =
+      Math.abs(normal.x) > Math.abs(normal.y) ? "horizontal" : "vertical";
+    monster.bumpDirection = facing;
+    monster.bumpedAt = Date.now();
   }
 }

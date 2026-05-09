@@ -1,5 +1,5 @@
 /**
- * Bomb Jack rule tests.
+ * Founding Jack rule tests.
  *
  * Each block locks in one canonical 1984 BJ mechanic. If a test name reads
  * like a sentence about the original arcade, that's the spec — change the
@@ -12,8 +12,8 @@ import {
   bCoinBasePoints,
   bCoinMilestonesCrossed,
   bCoinPerLevelCap,
-  bombBasePoints,
-  bombScore,
+  foundingBasePoints,
+  foundingScore,
   bumpMultiplier,
   clampLives,
   eCoinBasePoints,
@@ -27,67 +27,67 @@ import {
   monsterKillBasePoints,
   monsterKillScore,
   newWallEdgeFrame,
-  padBombsTo,
+  padFoundingsTo,
   pCoinPerLevelCap,
   pCoinSpawnsAt,
-  pCoinTokensForBomb,
+  pCoinTokensForFounding,
   registerWallContact,
   SPAWN_INVULN_MS,
-  tokensAddedOnBomb,
+  tokensAddedOnFounding,
   trampolineBasePoints,
   type WallEdgeState,
 } from "./bjRules";
 
-// ─── Bombs ───────────────────────────────────────────────────────────────────
+// ─── Foundings ───────────────────────────────────────────────────────────────────
 
-describe("bomb scoring", () => {
-  it("awards 200 base for a firebomb (in-sequence)", () => {
-    expect(bombBasePoints(true)).toBe(200);
+describe("founding scoring", () => {
+  it("awards 200 base for a firefounding (in-sequence)", () => {
+    expect(foundingBasePoints(true)).toBe(200);
   });
 
-  it("awards 100 base for a normal/out-of-sequence bomb", () => {
-    expect(bombBasePoints(false)).toBe(100);
+  it("awards 100 base for a normal/out-of-sequence founding", () => {
+    expect(foundingBasePoints(false)).toBe(100);
   });
 
   it("multiplies by current multiplier", () => {
-    expect(bombScore(true, 1)).toBe(200);
-    expect(bombScore(true, 5)).toBe(1000);
-    expect(bombScore(false, 3)).toBe(300);
+    expect(foundingScore(true, 1)).toBe(200);
+    expect(foundingScore(true, 5)).toBe(1000);
+    expect(foundingScore(false, 3)).toBe(300);
   });
 });
 
-describe("padBombsTo (24-bombs-per-level rule)", () => {
+describe("padFoundingsTo (24-foundings-per-level rule)", () => {
   type B = { order: number; group: number; x: number; y: number };
   const make = (order: number, group: number): B => ({ order, group, x: 0, y: 0 });
 
   it("returns the input unchanged when already at target", () => {
-    const bombs: B[] = Array.from({ length: 24 }, (_, i) =>
+    const foundings: B[] = Array.from({ length: 24 }, (_, i) =>
       make(i + 1, Math.floor(i / 3) + 1)
     );
-    expect(padBombsTo(bombs, 24, make)).toEqual(bombs);
+    expect(padFoundingsTo(foundings, 24, make)).toEqual(foundings);
   });
 
   it("returns the input unchanged when already over target", () => {
-    const bombs: B[] = Array.from({ length: 26 }, (_, i) => make(i + 1, 1));
-    expect(padBombsTo(bombs, 24, make)).toEqual(bombs);
+    const foundings: B[] = Array.from({ length: 26 }, (_, i) => make(i + 1, 1));
+    expect(padFoundingsTo(foundings, 24, make)).toEqual(foundings);
   });
 
   it("appends a single placeholder when one short of target", () => {
-    const bombs: B[] = Array.from({ length: 23 }, (_, i) =>
+    const foundings: B[] = Array.from({ length: 23 }, (_, i) =>
       make(i + 1, Math.min(Math.floor(i / 3) + 1, 8))
     );
-    const out = padBombsTo(bombs, 24, make);
+    const out = padFoundingsTo(foundings, 24, make);
     expect(out).toHaveLength(24);
     // Placeholder lives in a NEW group so it doesn't disrupt existing sequence.
-    const lastGroup = bombs.reduce((m, b) => Math.max(m, b.group), 0);
+    const lastGroup = foundings.reduce((m, b) => Math.max(m, b.group), 0);
     expect(out[23].group).toBeGreaterThan(lastGroup);
     expect(out[23].x).toBe(0);
     expect(out[23].y).toBe(0);
   });
 
   it("appends multiple placeholders when several short, all in same new group", () => {
-    const bombs: B[] = [make(1, 1), make(2, 1)];
-    const out = padBombsTo(bombs, 5, make);
+    const foundings: B[] = [make(1, 1), make(2, 1)];
+    const out = padFoundingsTo(foundings, 5, make);
     expect(out).toHaveLength(5);
     expect(out[2].group).toBe(2);
     expect(out[3].group).toBe(2);
@@ -102,7 +102,7 @@ describe("padBombsTo (24-bombs-per-level rule)", () => {
 // ─── End-of-level bonus ──────────────────────────────────────────────────────
 
 describe("end-of-level bonus", () => {
-  it("awards 50,000 for a perfect 23-firebomb run", () => {
+  it("awards 50,000 for a perfect 23-firefounding run", () => {
     expect(endOfLevelBonus(23)).toBe(50_000);
   });
 
@@ -177,9 +177,9 @@ describe("monster kill escalation during power mode", () => {
 // ─── P-coin tokens ───────────────────────────────────────────────────────────
 
 describe("P-coin token weighting", () => {
-  it("counts a firebomb as 2 tokens, normal bomb as 1", () => {
-    expect(pCoinTokensForBomb(true)).toBe(2);
-    expect(pCoinTokensForBomb(false)).toBe(1);
+  it("counts a firefounding as 2 tokens, normal founding as 1", () => {
+    expect(pCoinTokensForFounding(true)).toBe(2);
+    expect(pCoinTokensForFounding(false)).toBe(1);
   });
 
   it("does not spawn until threshold reached (default 18)", () => {
@@ -193,33 +193,33 @@ describe("P-coin token weighting", () => {
     expect(r.remainingTokens).toBe(0);
   });
 
-  // BJ canonical: "every 9 firebombs" → 9×2 = 18 tokens. The interval is
+  // BJ canonical: "every 9 firefoundings" → 9×2 = 18 tokens. The interval is
   // sized for this; the test is what makes that intent explicit.
-  it("converts 9 firebombs alone to exactly 1 P-coin", () => {
-    const tokens = 9 * pCoinTokensForBomb(true);
+  it("converts 9 firefoundings alone to exactly 1 P-coin", () => {
+    const tokens = 9 * pCoinTokensForFounding(true);
     expect(pCoinSpawnsAt(tokens).spawns).toBe(1);
   });
 
-  // BJ tip sheet: "twice as many P-coins for firebombs only" — i.e., 18
-  // normal bombs = 1 P-coin, half the rate of firebombs.
-  it("converts 18 normal bombs alone to exactly 1 P-coin", () => {
-    const tokens = 18 * pCoinTokensForBomb(false);
+  // BJ tip sheet: "twice as many P-coins for firefoundings only" — i.e., 18
+  // normal foundings = 1 P-coin, half the rate of firefoundings.
+  it("converts 18 normal foundings alone to exactly 1 P-coin", () => {
+    const tokens = 18 * pCoinTokensForFounding(false);
     expect(pCoinSpawnsAt(tokens).spawns).toBe(1);
   });
 
-  // 23 firebombs in a level (the BJ map size). With weighted tokens this
+  // 23 firefoundings in a level (the BJ map size). With weighted tokens this
   // gives floor(46/18) = 2 P-coins per level if they're all collected
   // — matches BJ's "around 2-3 P-coins per level" baseline.
-  it("yields 2 P-coins for a perfect 23-firebomb level", () => {
-    const tokens = 23 * pCoinTokensForBomb(true);
+  it("yields 2 P-coins for a perfect 23-firefounding level", () => {
+    const tokens = 23 * pCoinTokensForFounding(true);
     expect(pCoinSpawnsAt(tokens).spawns).toBe(2);
   });
 
-  // game-specs §7.1: max 2 P-coins per level. With the 23-firebomb level
+  // game-specs §7.1: max 2 P-coins per level. With the 23-firefounding level
   // budget yielding exactly 2 spawns and the cap also being 2, the cap
   // matches the natural-token rate.
   it("level cap matches the natural P-coin yield (both = 2)", () => {
-    const tokens = 23 * pCoinTokensForBomb(true);
+    const tokens = 23 * pCoinTokensForFounding(true);
     expect(pCoinSpawnsAt(tokens).spawns).toBeLessThanOrEqual(2);
   });
 
@@ -287,11 +287,27 @@ describe("B-coin", () => {
 
 // ─── M-coin (Extra Life) ─────────────────────────────────────────────────────
 
-describe("M-coin death-generosity", () => {
-  it("effective count = bonusCoins + 2 × livesLost", () => {
+describe("M-coin death-generosity (BJ §7.3 — head-start capped at bCoins)", () => {
+  it("alive: effective = bonusCoins (no head-start)", () => {
     expect(mCoinEffective(0, 0)).toBe(0);
     expect(mCoinEffective(4, 0)).toBe(4);
-    expect(mCoinEffective(4, 2)).toBe(8); // forum example: 4 B + 2 deaths → E
+    expect(mCoinEffective(8, 0)).toBe(8);
+  });
+
+  it("died: head-start = generosity × livesLost, capped at bonusCoins", () => {
+    expect(mCoinEffective(4, 1)).toBe(6); // 4 + min(2, 4) = 6 — small head-start
+    expect(mCoinEffective(4, 2)).toBe(8); // 4 + min(4, 4) = 8 — capped at bCoins
+    expect(mCoinEffective(4, 5)).toBe(8); // 4 + min(10, 4) = 8 — cap holds
+    expect(mCoinEffective(4, 99)).toBe(8); // any death count, same cap
+    expect(mCoinEffective(10, 1)).toBe(12); // 10 + min(2, 10) = 12
+    expect(mCoinEffective(10, 5)).toBe(20); // 10 + min(10, 10) = 20 — cap = bCoins
+  });
+
+  it("REGRESSION: deaths alone do NOT spawn M-coins (without B-coins)", () => {
+    expect(mCoinEffective(0, 1)).toBe(0);
+    expect(mCoinEffective(0, 7)).toBe(0);
+    expect(mCoinSpawnDecision(0, 5, new Set())).toBeNull();
+    expect(mCoinSpawnDecision(0, 99, new Set())).toBeNull();
   });
 
   it("uses default ratio of 8 B-coins per E-coin", () => {
@@ -304,25 +320,39 @@ describe("M-coin death-generosity", () => {
   it("does not spawn before the first 8-effective milestone", () => {
     expect(mCoinSpawnDecision(0, 0, new Set())).toBeNull();
     expect(mCoinSpawnDecision(7, 0, new Set())).toBeNull();
-    expect(mCoinSpawnDecision(3, 1, new Set())).toBeNull(); // 3 + 2 = 5
+    expect(mCoinSpawnDecision(3, 1, new Set())).toBeNull(); // 3 + min(2,3) = 5
+    expect(mCoinSpawnDecision(4, 1, new Set())).toBeNull(); // 4 + min(2,4) = 6
   });
 
-  it("spawns once milestone 8 is reached (forum example)", () => {
-    // 4 B-coins + lose 2 lives → effective 8 → spawn
+  it("spawns once milestone 8 is reached", () => {
+    expect(mCoinSpawnDecision(8, 0, new Set())).toEqual({ milestone: 8 });
+    // 1 death + 6 B-coins: 6 + min(2,6) = 8 → spawn
+    expect(mCoinSpawnDecision(6, 1, new Set())).toEqual({ milestone: 8 });
+    // 2 deaths + 4 B-coins: 4 + min(4,4) = 8 → spawn
     expect(mCoinSpawnDecision(4, 2, new Set())).toEqual({ milestone: 8 });
+    // Many deaths + 4 B-coins: capped at 4+4=8 → spawn
+    expect(mCoinSpawnDecision(4, 9, new Set())).toEqual({ milestone: 8 });
   });
 
   it("does not re-spawn the same milestone (dedup via triggered set)", () => {
     const triggered = new Set<number>([8]);
-    expect(mCoinSpawnDecision(8, 0, triggered)).toBeNull(); // 8 already fired
-    // bonus jumps to 16 → next milestone fires
+    expect(mCoinSpawnDecision(8, 0, triggered)).toBeNull();
     expect(mCoinSpawnDecision(16, 0, triggered)).toEqual({ milestone: 16 });
   });
 
+  it("REGRESSION: post-first-M-coin cadence stays at every 8 B-coins (no doubling)", () => {
+    // Old multiplicative formula doubled effective forever after a death:
+    // 1st M-coin at bCoins=6 (livesLost=1), then at 8, 12, 16 (every 4 B-coins).
+    // New formula: head-start used up after first milestone — back to spec rate.
+    const triggered = new Set<number>([8]);
+    expect(mCoinSpawnDecision(8, 1, triggered)).toBeNull();   // 8+min(2,8)=10, milestone 8
+    expect(mCoinSpawnDecision(13, 1, triggered)).toBeNull();  // 13+2=15, milestone 8
+    expect(mCoinSpawnDecision(14, 1, triggered)).toEqual({ milestone: 16 }); // 14+2=16
+  });
+
   it("handles effective count jumping over a milestone (non-modulo)", () => {
-    // No spawn yet at 7. Then big jump (e.g., 4 B + 2 deaths in quick succession)
-    // takes effective from 7 → 9 — milestone is 8, must still fire.
-    expect(mCoinSpawnDecision(5, 2, new Set())).toEqual({ milestone: 8 }); // 5+4=9 → milestone 8
+    // bCoins=5, livesLost=2: 5 + min(4,5) = 9 → milestone 8 fires.
+    expect(mCoinSpawnDecision(5, 2, new Set())).toEqual({ milestone: 8 });
   });
 });
 
@@ -469,23 +499,23 @@ describe("E coin award", () => {
 // ─── P-coin token pause while P alive ────────────────────────────────────────
 
 describe("P-coin token pause-while-alive rule", () => {
-  it("a firebomb adds 2 tokens when no P is on screen", () => {
-    expect(tokensAddedOnBomb(true, false)).toBe(2);
+  it("a firefounding adds 2 tokens when no P is on screen", () => {
+    expect(tokensAddedOnFounding(true, false)).toBe(2);
   });
 
-  it("a normal bomb adds 1 token when no P is on screen", () => {
-    expect(tokensAddedOnBomb(false, false)).toBe(1);
+  it("a normal founding adds 1 token when no P is on screen", () => {
+    expect(tokensAddedOnFounding(false, false)).toBe(1);
   });
 
   // BJ tip-sheet rule: "While a P is floating around you don't get credited
-  // with bomb tokens" — the firebomb that triggered the P doesn't keep
+  // with founding tokens" — the firefounding that triggered the P doesn't keep
   // accruing toward the next one until the current P is collected/expired.
-  it("adds zero tokens while a P-coin is already alive (firebomb)", () => {
-    expect(tokensAddedOnBomb(true, true)).toBe(0);
+  it("adds zero tokens while a P-coin is already alive (firefounding)", () => {
+    expect(tokensAddedOnFounding(true, true)).toBe(0);
   });
 
-  it("adds zero tokens while a P-coin is already alive (normal bomb)", () => {
-    expect(tokensAddedOnBomb(false, true)).toBe(0);
+  it("adds zero tokens while a P-coin is already alive (normal founding)", () => {
+    expect(tokensAddedOnFounding(false, true)).toBe(0);
   });
 });
 
@@ -500,8 +530,8 @@ describe("trampoline scoring", () => {
 // ─── B-coin threshold "no coin contribution" rule ────────────────────────────
 
 describe("B-coin threshold source filtering (BJ no-coin-contribution rule)", () => {
-  it("counts bomb / kill / trampoline points toward the 5K threshold", () => {
-    expect(isThresholdablePointSource("bomb")).toBe(true);
+  it("counts founding / kill / trampoline points toward the 5K threshold", () => {
+    expect(isThresholdablePointSource("founding")).toBe(true);
     expect(isThresholdablePointSource("kill")).toBe(true);
     expect(isThresholdablePointSource("trampoline")).toBe(true);
   });
@@ -513,7 +543,7 @@ describe("B-coin threshold source filtering (BJ no-coin-contribution rule)", () 
     expect(isThresholdablePointSource("pcoin")).toBe(false);
   });
 
-  it("does NOT count end-of-level firebomb bonus", () => {
+  it("does NOT count end-of-level firefounding bonus", () => {
     expect(isThresholdablePointSource("bonus")).toBe(false);
   });
 

@@ -46,7 +46,7 @@ const MULT_GLOW: Record<number, string> = {
 const InGameMenu: React.FC = () => {
   const { currentState, currentLevel, gameStateManager, isPaused, tutorialMission, lives } = useStateStore();
   const { score, multiplier } = useScoreStore();
-  const bombAndMonsterPoints = useCoinStore((s) => s.bombAndMonsterPoints);
+  const foundingAndMonsterPoints = useCoinStore((s) => s.foundingAndMonsterPoints);
   const { balance, hasBridge } = useBalanceStore();
   const inTutorial = tutorialMission !== null;
   const showBalance = hasBridge && balance !== null;
@@ -77,9 +77,9 @@ const InGameMenu: React.FC = () => {
 
   // BJ canonical: multiplier advances ONLY via B-coin pickup (bjRules.ts:74).
   // The bar tracks progress to the next B-coin spawn — every BONUS_COIN_SPAWN_INTERVAL
-  // points of bombs/kills/trampoline (see bjRules.isThresholdablePointSource).
+  // points of foundings/kills/trampoline (see bjRules.isThresholdablePointSource).
   const interval = GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
-  const bcoinProgress = (bombAndMonsterPoints % interval) / interval;
+  const bcoinProgress = (foundingAndMonsterPoints % interval) / interval;
   const isScoreAnimating = animatedScore !== score;
   const showPlayPause = currentState === GameState.PLAYING || currentState === GameState.PAUSED;
 

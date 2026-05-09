@@ -1,31 +1,30 @@
-import { MapDefinition, Bomb, Platform, Monster } from "../types/interfaces";
+import { MapDefinition, Founding, Platform, Monster } from "../types/interfaces";
 import { MonsterType, CoinType } from "../types/enums";
 import { GAME_CONFIG } from "../types/constants";
 import {
-  createMummyMonster,
-  createVerticalPatrolMonster,
-  createHornMonster,
-  createBirdMonster,
-  createUfoMonster,
-  createSphereMonster,
-  createOrbMonster,
+  createBureaucratMonster,
+  createFounderMonster,
+  createWispMonster,
+  createTaxGhostMonster,
+  createConsultantMonster,
+  createRobotMonster,
 } from "../managers/MonsterFactory";
 import {
   EditorEntity,
   MonsterEntity,
   PlatformEntity,
-  BombEntity,
+  FoundingEntity,
   CoinSpawnEntity,
   PlayerStartEntity,
   MapMeta,
 } from "./types";
 import { isRecurring } from "./spawnUtils";
 
-const buildBomb = (b: BombEntity): Bomb => ({
+const buildFounding = (b: FoundingEntity): Founding => ({
   x: b.x,
   y: b.y,
-  width: GAME_CONFIG.BOMB_SIZE,
-  height: GAME_CONFIG.BOMB_SIZE,
+  width: GAME_CONFIG.FOUNDING_SIZE,
+  height: GAME_CONFIG.FOUNDING_SIZE,
   order: b.order,
   group: b.group,
   isCollected: false,
@@ -45,39 +44,29 @@ const buildPlatform = (p: PlatformEntity): Platform => ({
 
 const buildMonster = (m: MonsterEntity): Monster => {
   switch (m.monsterType) {
-    case MonsterType.MUMMY:
-      return createMummyMonster(
+    case MonsterType.BUREAUCRAT:
+      return createBureaucratMonster(
         m.platformX ?? m.x,
-        m.platformY ?? m.y + GAME_CONFIG.MONSTER_SIZE,
+        // BUREAUCRAT is bottom-anchored: m.y is the feet line / platformY.
+        m.platformY ?? m.y,
         m.platformWidth ?? 150,
         m.spawnSide ?? "left",
         m.walkLengths ?? 1,
         m.speed,
         m.direction,
         m.spawnDelay,
-        m.variant ?? "green",
-        m.transformTarget ?? "SPHERE"
+        m.transformTarget ?? "CONSULTANT"
       );
-    case MonsterType.VERTICAL_PATROL:
-      return createVerticalPatrolMonster(
-        m.platformX ?? m.x,
-        m.y,
-        m.patrolHeight ?? 200,
-        m.side ?? "left",
-        m.speed,
-        m.direction ?? 1,
-        m.spawnDelay
-      );
-    case MonsterType.HORN:
-      return createHornMonster(
+    case MonsterType.FOUNDER:
+      return createFounderMonster(
         m.x,
         m.y,
         m.startAngle ?? 45,
         m.speed,
         m.spawnDelay
       );
-    case MonsterType.BIRD:
-      return createBirdMonster(
+    case MonsterType.WISP:
+      return createWispMonster(
         m.x,
         m.y,
         m.speed,
@@ -85,18 +74,18 @@ const buildMonster = (m: MonsterEntity): Monster => {
         m.updateInterval ?? 500,
         m.spawnDelay
       );
-    case MonsterType.UFO:
-      return createUfoMonster(
+    case MonsterType.TAXGHOST:
+      return createTaxGhostMonster(
         m.x,
         m.y,
         m.speed,
         m.ambushInterval ?? 8000,
         m.spawnDelay
       );
-    case MonsterType.SPHERE:
-      return createSphereMonster(m.x, m.y, m.speed, m.spawnDelay);
-    case MonsterType.ORB:
-      return createOrbMonster(m.x, m.y, m.speed, m.spawnDelay);
+    case MonsterType.CONSULTANT:
+      return createConsultantMonster(m.x, m.y, m.speed, m.spawnDelay);
+    case MonsterType.ROBOT:
+      return createRobotMonster(m.x, m.y, m.speed, m.spawnDelay);
   }
 };
 
@@ -110,8 +99,8 @@ export const buildMapFromEditor = (
   meta: MapMeta
 ): MapDefinition => {
   const platforms = entities.filter((e): e is PlatformEntity => e.kind === "platform");
-  const bombs = entities
-    .filter((e): e is BombEntity => e.kind === "bomb")
+  const foundings = entities
+    .filter((e): e is FoundingEntity => e.kind === "founding")
     .sort((a, b) => a.order - b.order);
   const monsters = entities.filter((e): e is MonsterEntity => e.kind === "monster");
   const coins = entities.filter((e): e is CoinSpawnEntity => e.kind === "coinSpawn");
@@ -153,7 +142,7 @@ export const buildMapFromEditor = (
     spawnIndicatorColor: meta.spawnIndicatorColor,
     groupSequence: meta.groupSequence.length > 0 ? meta.groupSequence : [1],
     platforms: platforms.map(buildPlatform),
-    bombs: bombs.map(buildBomb),
+    foundings: foundings.map(buildFounding),
     monsters: staticMonsters,
     monsterSpawnPoints: spawnPointMonsters,
     coinSpawnPoints: coins.map((c) => ({

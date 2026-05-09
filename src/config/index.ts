@@ -28,7 +28,7 @@ export {
 
 export { ENTITY_SIZES } from './entities';
 export { COIN_PHYSICS, COIN_SPAWNING, COIN_EFFECTS } from './coins';
-export { BOMB_POINTS, MULTIPLIER_SYSTEM, BONUS_POINTS } from './scoring';
+export { FOUNDING_POINTS, MULTIPLIER_SYSTEM, BONUS_POINTS } from './scoring';
 export { COLORS } from './colors';
 export { DEFAULT_AUDIO_SETTINGS } from './audio';
 export { DEV_CONFIG } from './dev';

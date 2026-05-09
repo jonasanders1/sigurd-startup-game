@@ -27,7 +27,14 @@ export const useAnimatedCounter = (
   useEffect(() => {
     if (targetValue === 0) {
       setAnimatedValue(0);
-      hasCompleted.current = false;
+      // Even with no value to animate, the consumer needs to know the
+      // "animation" is done — otherwise the bonus screen waits forever
+      // for an onComplete that never fires (player loses too many lives,
+      // bonus table returns 0, BonusScreen never advances → game stuck).
+      if (!hasCompleted.current) {
+        hasCompleted.current = true;
+        if (onComplete) onComplete();
+      }
       return;
     }
 

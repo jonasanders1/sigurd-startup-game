@@ -1,7 +1,7 @@
 /**
- * Pure helpers for Bomb Jack–style rule math.
+ * Pure helpers for Founding Jack–style rule math.
  *
- * Single source of truth for: bomb/coin/kill scoring, P-coin token weighting,
+ * Single source of truth for: founding/coin/kill scoring, P-coin token weighting,
  * B-coin milestone math, M-coin death-generosity, end-of-level bonus.
  *
  * Everything in here is a pure function — no globals, no state, no side
@@ -9,44 +9,44 @@
  */
 
 import { COIN_SPAWNING } from "../config/coins";
-import { BOMB_POINTS, BONUS_POINTS, MULTIPLIER_SYSTEM } from "../config/scoring";
+import { FOUNDING_POINTS, BONUS_POINTS, MULTIPLIER_SYSTEM } from "../config/scoring";
 import { getTuned } from "../stores/systems/tuningStore";
 
-// ─── Bombs ───────────────────────────────────────────────────────────────────
+// ─── Foundings ───────────────────────────────────────────────────────────────────
 
-/** BJ: firebomb (in-sequence) = 200, normal bomb = 100. Multiplier applied. */
-export const bombBasePoints = (isFirebomb: boolean): number =>
-  isFirebomb ? BOMB_POINTS.FIREBOMB : BOMB_POINTS.NORMAL;
+/** BJ: firefounding (in-sequence) = 200, normal founding = 100. Multiplier applied. */
+export const foundingBasePoints = (isFirefounding: boolean): number =>
+  isFirefounding ? FOUNDING_POINTS.FIREFOUNDING : FOUNDING_POINTS.NORMAL;
 
-export const bombScore = (isFirebomb: boolean, multiplier: number): number =>
-  bombBasePoints(isFirebomb) * multiplier;
+export const foundingScore = (isFirefounding: boolean, multiplier: number): number =>
+  foundingBasePoints(isFirefounding) * multiplier;
 
 /**
- * Pad a bomb array up to `target` count by appending placeholder bombs in a
+ * Pad a founding array up to `target` count by appending placeholder foundings in a
  * new last group (so the existing collection sequence is not disrupted —
- * BombManager iterates groups by ascending number and finishes the
+ * FoundingManager iterates groups by ascending number and finishes the
  * map-defined groups before reaching the appended one).
  *
- * Sigurd's canonical is 23 bombs/level (BJ shipped 24; we reverted). Older
+ * Sigurd's canonical is 23 foundings/level (BJ shipped 24; we reverted). Older
  * maps that ship with fewer than the configured target get topped up at
  * runtime so designers don't have to bulk-edit map files when the target
  * changes.
  */
-export interface BombShape {
+export interface FoundingShape {
   order: number;
   group: number;
   x: number;
   y: number;
 }
-export const padBombsTo = <T extends BombShape>(
-  bombs: T[],
+export const padFoundingsTo = <T extends FoundingShape>(
+  foundings: T[],
   target: number,
   factory: (order: number, group: number) => T
 ): T[] => {
-  if (bombs.length >= target) return bombs;
-  const out = [...bombs];
-  const maxGroup = bombs.reduce((m, b) => Math.max(m, b.group), 0);
-  const maxOrder = bombs.reduce((m, b) => Math.max(m, b.order), 0);
+  if (foundings.length >= target) return foundings;
+  const out = [...foundings];
+  const maxGroup = foundings.reduce((m, b) => Math.max(m, b.group), 0);
+  const maxOrder = foundings.reduce((m, b) => Math.max(m, b.order), 0);
   const newGroup = maxGroup + 1;
   let nextOrder = maxOrder + 1;
   while (out.length < target) {
@@ -59,7 +59,7 @@ export const padBombsTo = <T extends BombShape>(
 // ─── End-of-level bonus ──────────────────────────────────────────────────────
 
 /**
- * BJ: 23 firebombs (correct order) = 50k, 22 = 30k, 21 = 20k, 20 = 10k,
+ * BJ: 23 firefoundings (correct order) = 50k, 22 = 30k, 21 = 20k, 20 = 10k,
  * <20 = 0. NOT multiplied. NOT reduced by lives lost (we removed Sigurd's
  * livesLost penalty to match BJ canonical).
  */
@@ -101,28 +101,28 @@ export const monsterKillScore = (killOrdinal: number, multiplier: number): numbe
 // ─── P-coin tokens ───────────────────────────────────────────────────────────
 
 /**
- * BJ: each firebomb collected = 2 tokens, each normal bomb = 1 token.
+ * BJ: each firefounding collected = 2 tokens, each normal founding = 1 token.
  * P-coin spawns when token count reaches POWER_COIN_SPAWN_INTERVAL.
  *
- * The interval is sized so that 9 firebombs alone = 1 P-coin (matching
- * the canonical "every 9 firebombs"); 18 normal bombs = 1 P-coin (the
- * "twice as many for firebombs only" rule from the BJ tip sheet).
+ * The interval is sized so that 9 firefoundings alone = 1 P-coin (matching
+ * the canonical "every 9 firefoundings"); 18 normal foundings = 1 P-coin (the
+ * "twice as many for firefoundings only" rule from the BJ tip sheet).
  */
-export const pCoinTokensForBomb = (isFirebomb: boolean): number =>
-  isFirebomb
-    ? getTuned("P_COIN_TOKEN_FIREBOMB")
+export const pCoinTokensForFounding = (isFirefounding: boolean): number =>
+  isFirefounding
+    ? getTuned("P_COIN_TOKEN_FIREFOUNDING")
     : getTuned("P_COIN_TOKEN_NORMAL");
 
 /**
  * BJ: tokens don't accrue while a P-coin is already on screen. This is the
- * "no double-up" rule from the tip sheet ("not worth collecting more bombs
+ * "no double-up" rule from the tip sheet ("not worth collecting more foundings
  * until [the P] runs out"). Returns the tokens that should be added for a
- * given bomb event.
+ * given founding event.
  */
-export const tokensAddedOnBomb = (
-  isFirebomb: boolean,
+export const tokensAddedOnFounding = (
+  isFirefounding: boolean,
   pCoinAlive: boolean
-): number => (pCoinAlive ? 0 : pCoinTokensForBomb(isFirebomb));
+): number => (pCoinAlive ? 0 : pCoinTokensForFounding(isFirefounding));
 
 /**
  * Returns the number of P-coins to spawn given current accumulated tokens
@@ -156,23 +156,23 @@ export const bCoinBasePoints = (): number => 500;
  * BJ canonical (per arcade and Kralizec MSX2 docs): "every 5,000 points
  * crossed cleanly WITHOUT B-coin contribution." So:
  *
- *  - Bombs (firebomb + normal): YES
+ *  - Foundings (firefounding + normal): YES
  *  - Monster kills during power mode: YES
  *  - Trampoline (jump / wall-hit / fall-off): YES
  *  - B-coin pickup reward: NO
  *  - E-coin / P-coin pickup reward: NO (F-coin grants Forretningsidee, no score)
- *  - End-of-level firebomb bonus: NO
+ *  - End-of-level firefounding bonus: NO
  *
  * This rule is what prevents the "money glitch" cascade entirely — the
  * B-coin reward feeds the player's score but never bumps the spawn threshold.
- * Implemented in CoinManager via `bombAndMonsterPoints` (only bomb / kill /
+ * Implemented in CoinManager via `foundingAndMonsterPoints` (only founding / kill /
  * trampoline writes to it).
  */
-export type ThresholdablePointSource = "bomb" | "kill" | "trampoline";
+export type ThresholdablePointSource = "founding" | "kill" | "trampoline";
 export const isThresholdablePointSource = (
   source: ThresholdablePointSource | string
 ): source is ThresholdablePointSource =>
-  source === "bomb" || source === "kill" || source === "trampoline";
+  source === "founding" || source === "kill" || source === "trampoline";
 
 /**
  * Milestones (multiples of `interval`) crossed when score moves from
@@ -206,15 +206,37 @@ export const pCoinPerLevelCap = (): number =>
 // ─── M-coin (Extra Life) ─────────────────────────────────────────────────────
 
 /**
- * BJ: M-coin appears every 8 B-coins collected, with each life lost adding
- * 2 credits toward the next milestone (death-generosity). Counter persists
- * across levels; resets only on game over.
+ * BJ §7.3: M-coin appears every 8 B-coins collected. The threshold is
+ * "lower if the player has lost lives" — implemented as a small additive
+ * head-start, **capped at `bonusCoinsCollected`** so that:
+ *
+ *   - Deaths alone (0 B-coins) cannot spawn an M-coin.
+ *   - Deaths grant up to `generosity × livesLost` of head-start, but never
+ *     more than the player has actually earned in B-coins. After the head-
+ *     start is "used up" by crossing the first post-death milestone, the
+ *     spawn rate falls back to the spec's "every 8 B-coins" cadence rather
+ *     than doubling forever.
+ *
+ * Counter persists across levels; resets only on game over.
+ *
+ * History:
+ *  1. `bonusCoinsCollected + generosity * livesLost` — deaths permanently
+ *     bumped effective independent of B-coins; ~5 deaths alone crossed
+ *     milestone 8 → free M-coin.
+ *  2. `bonusCoinsCollected * (livesLost > 0 ? generosity : 1)` — fixed
+ *     "deaths alone" but doubled every B-coin after the first death, so
+ *     M-coins spawned every 4 B-coins instead of 8.
+ *  3. (current) head-start, capped at bCoins — preserves the death-
+ *     generosity intent without distorting the long-run cadence.
  */
 export const mCoinEffective = (
   bonusCoinsCollected: number,
   livesLost: number,
   generosity: number = getTuned("EXTRA_LIFE_DEATH_GENEROSITY")
-): number => bonusCoinsCollected + generosity * livesLost;
+): number => {
+  const headStart = Math.min(generosity * livesLost, bonusCoinsCollected);
+  return bonusCoinsCollected + headStart;
+};
 
 export const mCoinMilestone = (
   effective: number,

@@ -208,7 +208,7 @@ const MonsterEditor: React.FC<{
         />
       )}
 
-      {entity.monsterType === MonsterType.MUMMY && (
+      {entity.monsterType === MonsterType.BUREAUCRAT && (
         <>
           <NumField
             label="Platform X"
@@ -234,15 +234,6 @@ const MonsterEditor: React.FC<{
             ]}
             onChange={(v) => update({ spawnSide: v } as Partial<EditorEntity>)}
           />
-          <SelectField
-            label="Variant"
-            value={entity.variant ?? "green"}
-            options={[
-              { value: "green", label: "Green" },
-              { value: "black", label: "Black" },
-            ]}
-            onChange={(v) => update({ variant: v } as Partial<EditorEntity>)}
-          />
           <NumField
             label="Walk lengths (drops after)"
             value={entity.walkLengths ?? 1}
@@ -252,10 +243,10 @@ const MonsterEditor: React.FC<{
           />
           <SelectField
             label="Transform target (on ground)"
-            value={entity.transformTarget ?? "SPHERE"}
+            value={entity.transformTarget ?? "CONSULTANT"}
             options={[
-              { value: "SPHERE", label: "Sphere (default)" },
-              { value: "ORB", label: "Orb" },
+              { value: "CONSULTANT", label: "Consultant (default)" },
+              { value: "ROBOT", label: "Robot" },
               { value: "NONE", label: "None (die on impact)" },
             ]}
             onChange={(v) =>
@@ -287,36 +278,8 @@ const MonsterEditor: React.FC<{
         </>
       )}
 
-      {entity.monsterType === MonsterType.VERTICAL_PATROL && (
-        <>
-          <NumField
-            label="Platform X"
-            value={entity.platformX ?? entity.x}
-            onChange={(v) => update({ platformX: v } as Partial<EditorEntity>)}
-          />
-          <NumField
-            label="Patrol Height"
-            value={entity.patrolHeight ?? 200}
-            onChange={(v) => update({ patrolHeight: v } as Partial<EditorEntity>)}
-          />
-          <SelectField
-            label="Side"
-            value={entity.side ?? "left"}
-            options={[
-              { value: "left", label: "Left" },
-              { value: "right", label: "Right" },
-            ]}
-            onChange={(v) => update({ side: v } as Partial<EditorEntity>)}
-          />
-          <NumField
-            label="Direction (1=down,-1=up)"
-            value={entity.direction ?? 1}
-            onChange={(v) => update({ direction: v } as Partial<EditorEntity>)}
-          />
-        </>
-      )}
 
-      {entity.monsterType === MonsterType.HORN && (
+      {entity.monsterType === MonsterType.FOUNDER && (
         <NumField
           label="Start Angle (deg)"
           value={entity.startAngle ?? 45}
@@ -324,7 +287,7 @@ const MonsterEditor: React.FC<{
         />
       )}
 
-      {entity.monsterType === MonsterType.BIRD && (
+      {entity.monsterType === MonsterType.WISP && (
         <>
           <NumField
             label="Directness (0-1)"
@@ -343,7 +306,7 @@ const MonsterEditor: React.FC<{
         </>
       )}
 
-      {entity.monsterType === MonsterType.UFO && (
+      {entity.monsterType === MonsterType.TAXGHOST && (
         <NumField
           label="Ambush Interval (ms)"
           value={entity.ambushInterval ?? 8000}
@@ -752,7 +715,7 @@ export const PropertiesPanel: React.FC = () => {
             </>
           )}
 
-          {selected.kind === "bomb" && (
+          {selected.kind === "founding" && (
             <>
               <NumField
                 label="Order (1-23)"

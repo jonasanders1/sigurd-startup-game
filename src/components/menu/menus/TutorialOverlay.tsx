@@ -16,7 +16,7 @@ const TutorialOverlay: React.FC = () => {
 
   return (
     <div
-      className="absolute top-3 right-3 z-30 bg-menu backdrop-blur-sm border-2 border-[var(--surface-line)] rounded-sm shadow-[0_4px_0_0_rgba(0,0,0,0.4)] px-4 py-3 max-w-[280px]"
+      className="absolute top-3 right-3 z-30 bg-menu backdrop-blur-sm rounded-sm px-4 py-3 max-w-[280px]"
       style={{ minWidth: 220 }}
     >
       <div className="font-pixel text-xs uppercase tracking-wider text-primary mb-2 leading-none">
@@ -24,7 +24,7 @@ const TutorialOverlay: React.FC = () => {
       </div>
 
       {tutorialMission === TutorialMissionId.MOVEMENTS && <MovementsContent />}
-      {tutorialMission === TutorialMissionId.BOMBS && <BombsContent />}
+      {tutorialMission === TutorialMissionId.FOUNDINGS && <FoundingsContent />}
       {tutorialMission === TutorialMissionId.SURVIVE && <SurviveContent />}
       {tutorialMission === TutorialMissionId.KILL && <KillContent />}
     </div>
@@ -40,8 +40,18 @@ type Control = {
   subTaskId: SubTaskId;
 };
 const CONTROLS: Control[] = [
-  { keys: ["←"], wasdKeys: ["A"], description: "Gå venstre", subTaskId: "moveLeft" },
-  { keys: ["→"], wasdKeys: ["D"], description: "Gå høyre", subTaskId: "moveRight" },
+  {
+    keys: ["←"],
+    wasdKeys: ["A"],
+    description: "Gå venstre",
+    subTaskId: "moveLeft",
+  },
+  {
+    keys: ["→"],
+    wasdKeys: ["D"],
+    description: "Gå høyre",
+    subTaskId: "moveRight",
+  },
   { keys: ["↑"], wasdKeys: ["W"], description: "Hopp", subTaskId: "jump" },
   {
     keys: ["↑", "SHIFT"],
@@ -97,7 +107,9 @@ const MovementsContent: React.FC = () => {
                 <React.Fragment key={`p-${j}`}>
                   <Kbd label={k} active={isKeyActive(k)} />
                   {j < c.keys.length - 1 && (
-                    <span className="text-primary font-mono text-[10px]">+</span>
+                    <span className="text-primary font-mono text-[10px]">
+                      +
+                    </span>
                   )}
                 </React.Fragment>
               ))}
@@ -145,11 +157,11 @@ const Kbd: React.FC<{ label: string; active: boolean }> = ({
   );
 };
 
-const BombsContent: React.FC = () => {
-  const bombs = useStateStore((s) => s.bombs);
+const FoundingsContent: React.FC = () => {
+  const foundings = useStateStore((s) => s.foundings);
   const correct = useStateStore((s) => s.correctOrderCount);
-  const collected = bombs.filter((b) => b.isCollected).length;
-  const total = bombs.length || 14;
+  const collected = foundings.filter((b) => b.isCollected).length;
+  const total = foundings.length || 14;
 
   const hint =
     collected === 0
@@ -158,7 +170,9 @@ const BombsContent: React.FC = () => {
 
   return (
     <div className="space-y-2">
-      <p className="font-mono text-[11px] text-foreground leading-snug">{hint}</p>
+      <p className="font-mono text-[11px] text-foreground leading-snug">
+        {hint}
+      </p>
       <div className="flex justify-between font-mono text-[11px] pt-1 border-t border-dashed border-[var(--surface-line)]">
         <span className="text-[var(--foreground-dim)]">Plukket</span>
         <span className="text-foreground">
@@ -220,9 +234,7 @@ const KillContent: React.FC = () => {
           <div
             key={i}
             className={`flex justify-between items-center text-[11px] font-mono px-1.5 py-0.5 rounded-sm transition-colors ${
-              active
-                ? "bg-primary/15 ring-1 ring-primary/60"
-                : ""
+              active ? "bg-primary/15 ring-1 ring-primary/60" : ""
             }`}
           >
             <div className="flex items-center gap-2">
@@ -232,9 +244,7 @@ const KillContent: React.FC = () => {
               />
               <span
                 className={
-                  active
-                    ? "text-primary font-semibold"
-                    : "text-foreground"
+                  active ? "text-primary font-semibold" : "text-foreground"
                 }
               >
                 {c.label}

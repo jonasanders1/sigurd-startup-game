@@ -2,11 +2,11 @@ import { Monster } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
 import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { MonsterType } from "../types/enums";
-import { getDefaultHitbox } from "../config/monsterHitboxes";
+import { getDefaultBounds } from "../config/monsterBounds";
 import {
-  cornerToBirdSpawnPosition,
+  cornerToWispSpawnPosition,
   type SpawnCorner,
-} from "../lib/birdSpawn";
+} from "../lib/wispSpawn";
 
 /**
  * Monster Factory - Centralized monster creation functions
@@ -16,28 +16,25 @@ import {
 // Get the appropriate color for a monster type
 const getMonsterColor = (type: MonsterType): string => {
   switch (type) {
-    case MonsterType.MUMMY:
-      return COLORS.MONSTER_TYPES.MUMMY;
-    case MonsterType.VERTICAL_PATROL:
-      return COLORS.MONSTER_TYPES.VERTICAL_PATROL;
-    case MonsterType.BIRD:
-      return COLORS.MONSTER_TYPES.BIRD;
-    case MonsterType.UFO:
-      return COLORS.MONSTER_TYPES.UFO;
-    case MonsterType.HORN:
-      return COLORS.MONSTER_TYPES.HORN;
-    case MonsterType.SPHERE:
-      return COLORS.MONSTER_TYPES.SPHERE;
-    case MonsterType.ORB:
-      return COLORS.MONSTER_TYPES.ORB;
+    case MonsterType.BUREAUCRAT:
+      return COLORS.MONSTER_TYPES.BUREAUCRAT;
+    case MonsterType.WISP:
+      return COLORS.MONSTER_TYPES.WISP;
+    case MonsterType.TAXGHOST:
+      return COLORS.MONSTER_TYPES.TAXGHOST;
+    case MonsterType.FOUNDER:
+      return COLORS.MONSTER_TYPES.FOUNDER;
+    case MonsterType.CONSULTANT:
+      return COLORS.MONSTER_TYPES.CONSULTANT;
+    case MonsterType.ROBOT:
+      return COLORS.MONSTER_TYPES.ROBOT;
     default:
       return COLORS.MONSTER;
   }
 };
 
-// Base monster properties that all monsters share. Default hitbox dims come
-// from src/config/monsterHitboxes.ts so per-monster sizes (e.g. ambusher 1:2)
-// stay configurable in one place.
+// Base monster properties that all monsters share. Default bounds come from
+// each monster's entity file (src/entities/*.ts) via getDefaultBounds.
 const createBaseMonster = (
   x: number,
   y: number,
@@ -45,7 +42,7 @@ const createBaseMonster = (
   speed: number = 1,
   spawnDelay: number = 0
 ): Partial<Monster> => {
-  const defaultHitbox = getDefaultHitbox(type);
+  const defaultHitbox = getDefaultBounds(type);
   return {
     x,
     y,
@@ -80,7 +77,7 @@ const createBaseMonster = (
  * @param direction - Initial direction (optional, auto-determined by spawn side)
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createMummyMonster = (
+export const createBureaucratMonster = (
   platformX: number,
   platformY: number,
   platformWidth: number,
@@ -89,58 +86,30 @@ export const createMummyMonster = (
   speed: number = 1,
   direction?: number,
   spawnDelay: number = 0,
-  variant: "green" | "black" = "green",
-  transformTarget: "SPHERE" | "ORB" | "NONE" = "SPHERE"
+  transformTarget: "CONSULTANT" | "ROBOT" | "NONE" = "CONSULTANT"
 ): Monster => {
+  // Read dims from the BUREAUCRAT hitbox so entity-file edits propagate here
+  // automatically (see src/entities/Bureaucrat.ts).
+  const hitbox = getDefaultBounds(MonsterType.BUREAUCRAT);
   const x =
     spawnSide === "left"
       ? platformX
-      : platformX + platformWidth - GAME_CONFIG.MONSTER_SIZE;
-  const y = platformY - GAME_CONFIG.MONSTER_SIZE;
+      : platformX + platformWidth - hitbox.width;
+  // Spawn with feet on platformY: createBaseMonster initializes width/height
+  // from the same hitbox, so y must subtract hitbox.height to keep the
+  // bottom edge flush with platformY.
+  const y = platformY - hitbox.height;
   const initialDirection = direction || (spawnSide === "left" ? 1 : -1);
 
   return {
-    ...createBaseMonster(x, y, MonsterType.MUMMY, speed, spawnDelay),
+    ...createBaseMonster(x, y, MonsterType.BUREAUCRAT, speed, spawnDelay),
     patrolStartX: platformX,
     patrolEndX: platformX + platformWidth,
+    originalPatrolStartX: platformX,
+    originalPatrolEndX: platformX + platformWidth,
     direction: initialDirection,
     walkLengths,
-    variant,
     transformTarget,
-  } as Monster;
-};
-
-/**
- * Creates a vertical patrol monster that moves up and down along a vertical platform
- * @param platformX - X position of the vertical platform
- * @param startY - Starting Y position
- * @param patrolHeight - Height of the patrol area
- * @param side - Which side of the platform to patrol on ("left" or "right")
- * @param speed - Movement speed
- * @param direction - Initial direction (1 = down, -1 = up)
- * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
- */
-export const createVerticalPatrolMonster = (
-  platformX: number,
-  startY: number,
-  patrolHeight: number,
-  side: "left" | "right" = "left",
-  speed: number = 1,
-  direction: number = 1,
-  spawnDelay: number = 0
-): Monster => {
-  // Calculate monster X position based on side
-  const x = side === "left" 
-    ? platformX - GAME_CONFIG.MONSTER_SIZE  // Left side of platform
-    : platformX + 15; // Right side of platform (15 is the standard wall thickness)
-
-  return {
-    ...createBaseMonster(x, startY, MonsterType.VERTICAL_PATROL, speed, spawnDelay),
-    patrolStartY: startY,
-    patrolEndY: startY + patrolHeight,
-    direction,
-    patrolSide: side, // Store which side to patrol on
-    targetPlatformX: platformX, // Store the target platform X position
   } as Monster;
 };
 
@@ -152,7 +121,7 @@ export const createVerticalPatrolMonster = (
  * @param speed - Movement speed
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createHornMonster = (
+export const createFounderMonster = (
   startX: number,
   startY: number,
   startAngle: number = 45,
@@ -160,7 +129,7 @@ export const createHornMonster = (
   spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.HORN, speed, spawnDelay),
+    ...createBaseMonster(startX, startY, MonsterType.FOUNDER, speed, spawnDelay),
     startAngle,
     spawnTime: Date.now(),
   } as Monster;
@@ -175,7 +144,7 @@ export const createHornMonster = (
  * @param updateInterval - How often to update the chase target (ms)
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createBirdMonster = (
+export const createWispMonster = (
   startX: number,
   startY: number,
   speed: number = 0.8, // Reduced from 1
@@ -183,19 +152,38 @@ export const createBirdMonster = (
   updateInterval: number = 500,
   spawnDelay: number = 0
 ): Monster => {
+  // Spec §5.1.1: wisps always spawn in one of the four corners. Snap the
+  // requested (x, y) to the closest corner via quadrant test — fixes
+  // map authors that pass arbitrary coords (e.g. tutorial killMap), and
+  // is idempotent for callers that already pre-resolved corner coords
+  // (createLevelWisp, LevelManager).
+  const isLeft = startX < GAME_CONFIG.CANVAS_WIDTH / 2;
+  const isTop = startY < PLAYFIELD_BOTTOM / 2;
+  const corner: SpawnCorner = isTop
+    ? isLeft
+      ? "top-left"
+      : "top-right"
+    : isLeft
+      ? "bottom-left"
+      : "bottom-right";
+  const pos = cornerToWispSpawnPosition(corner, {
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: PLAYFIELD_BOTTOM,
+    monsterSize: getDefaultBounds(MonsterType.WISP).width,
+  });
   return {
-    ...createBaseMonster(startX, startY, MonsterType.BIRD, speed, spawnDelay),
-    direction: 0, // Bird doesn't use direction property
+    ...createBaseMonster(pos.x, pos.y, MonsterType.WISP, speed, spawnDelay),
+    direction: 0, // Wisp doesn't use direction property
     directness,
     chaseUpdateInterval: updateInterval,
   } as Monster;
 };
 
 /**
- * Spec §5.1.1: every level has exactly one mechanical bird, persistent
+ * Spec §5.1.1: every level has exactly one mechanical wisp, persistent
  * through the level. Picks a random corner at spawn (LevelManager will
- * reposition based on player input via applyBirdCornerSpawn) and scales
- * speed linearly with level number. Use this from LevelManager — birds
+ * reposition based on player input via applyWispCornerSpawn) and scales
+ * speed linearly with level number. Use this from LevelManager — wisps
  * should NOT be authored per-level in mapDefinitions.ts.
  */
 const ALL_CORNERS: SpawnCorner[] = [
@@ -204,18 +192,18 @@ const ALL_CORNERS: SpawnCorner[] = [
   "bottom-left",
   "bottom-right",
 ];
-export const createLevelBird = (level: number): Monster => {
+export const createLevelWisp = (level: number): Monster => {
   const corner = ALL_CORNERS[Math.floor(Math.random() * ALL_CORNERS.length)];
-  const pos = cornerToBirdSpawnPosition(corner, {
+  const pos = cornerToWispSpawnPosition(corner, {
     width: GAME_CONFIG.CANVAS_WIDTH,
     // Use playfield bottom (top of the floor strip) so bottom corners
     // spawn above the restricted ground, not inside it.
     height: PLAYFIELD_BOTTOM,
-    monsterSize: GAME_CONFIG.MONSTER_SIZE,
+    monsterSize: getDefaultBounds(MonsterType.WISP).width,
   });
   // 0.7 at L1 → 1.1 at L9 (linear). Clamps gracefully past L9 if maps grow.
   const speed = 0.7 + Math.min(level - 1, 8) * 0.05;
-  return createBirdMonster(pos.x, pos.y, speed, 0.2, 500, 2500);
+  return createWispMonster(pos.x, pos.y, speed, 0.2, 500, 2500);
 };
 
 /**
@@ -226,7 +214,7 @@ export const createLevelBird = (level: number): Monster => {
  * @param ambushInterval - Time between ambushes (ms)
  * @param spawnDelay - When this monster should spawn (in milliseconds, optional)
  */
-export const createUfoMonster = (
+export const createTaxGhostMonster = (
   startX: number,
   startY: number,
   speed: number = 0.8, // Reduced from 1
@@ -234,7 +222,7 @@ export const createUfoMonster = (
   spawnDelay: number = 0
 ): Monster => {
   return {
-    ...createBaseMonster(startX, startY, MonsterType.UFO, speed, spawnDelay),
+    ...createBaseMonster(startX, startY, MonsterType.TAXGHOST, speed, spawnDelay),
     ambushCooldown: 0, // Initialize ambush cooldown
   } as Monster;
 };
@@ -242,31 +230,31 @@ export const createUfoMonster = (
 // ─── BJ airborne forms (game-specs §5.1.3 / Monster-Movments.md) ────────────
 
 /**
- * SPHERE — vertical-column chase. Tracks Jack's X (homing), bobs Y edge to
- * edge bouncing off top/bottom boundaries. Mummy's transform target.
+ * CONSULTANT — vertical-column chase. Tracks Jack's X (homing), bobs Y edge to
+ * edge bouncing off top/bottom boundaries. Bureaucrat's transform target.
  * `speed` drives both the bounce velocity and the homing rate.
  */
-export const createSphereMonster = (
+export const createConsultantMonster = (
   startX: number,
   startY: number,
   speed: number = 1.2,
   spawnDelay: number = 0
 ): Monster => ({
-  ...createBaseMonster(startX, startY, MonsterType.SPHERE, speed, spawnDelay),
+  ...createBaseMonster(startX, startY, MonsterType.CONSULTANT, speed, spawnDelay),
   direction: 1,
 } as Monster);
 
 /**
- * ORB — horizontal-row chase. Tracks Jack's Y (homing), bobs X edge to edge
+ * ROBOT — horizontal-row chase. Tracks Jack's Y (homing), bobs X edge to edge
  * bouncing off left/right boundaries.
  */
-export const createOrbMonster = (
+export const createRobotMonster = (
   startX: number,
   startY: number,
   speed: number = 1.4,
   spawnDelay: number = 0
 ): Monster => ({
-  ...createBaseMonster(startX, startY, MonsterType.ORB, speed, spawnDelay),
+  ...createBaseMonster(startX, startY, MonsterType.ROBOT, speed, spawnDelay),
   direction: 1,
 } as Monster);
 
@@ -278,35 +266,26 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
   const { x, y, type, speed = 1, ...config } = spawnPoint;
 
   switch (type) {
-    case MonsterType.MUMMY:
-      return createMummyMonster(
+    case MonsterType.BUREAUCRAT:
+      return createBureaucratMonster(
         config.patrolStartX || x,
-        y + GAME_CONFIG.MONSTER_SIZE,
+        y + getDefaultBounds(MonsterType.BUREAUCRAT).height,
         (config.patrolEndX || x + 200) - (config.patrolStartX || x),
         config.spawnSide || "left",
         config.walkLengths || 1,
         speed
       );
 
-    case MonsterType.VERTICAL_PATROL:
-      return createVerticalPatrolMonster(
-        x,
-        config.patrolStartY || y,
-        config.patrolHeight || 200,
-        speed,
-        config.direction || 1
-      );
-
-    case MonsterType.HORN:
-      return createHornMonster(
+    case MonsterType.FOUNDER:
+      return createFounderMonster(
         x,
         y,
         config.startAngle || 45,
         speed
       );
 
-    case MonsterType.BIRD:
-      return createBirdMonster(
+    case MonsterType.WISP:
+      return createWispMonster(
         x,
         y,
         speed,
@@ -314,8 +293,8 @@ export const createMonsterFromSpawnPoint = (spawnPoint: any): Monster => {
         config.updateInterval || 200
       );
 
-    case MonsterType.UFO:
-      return createUfoMonster(
+    case MonsterType.TAXGHOST:
+      return createTaxGhostMonster(
         x,
         y,
         speed,

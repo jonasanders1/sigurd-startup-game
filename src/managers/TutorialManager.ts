@@ -56,18 +56,27 @@ export class TutorialManager {
     stateStore.setTutorialResult(null);
 
     // Mission 4 needs a P-coin available immediately — the regular spawn rule
-    // (every N firebombs) doesn't fire here since there are no firebombs.
+    // (every N firefoundings) doesn't fire here since there are no firefoundings.
     if (id === TutorialMissionId.KILL) {
-      // Defer until after the level loader has installed the new CoinManager.
-      setTimeout(() => {
-        const coinManager = useCoinStore.getState().coinManager;
-        const map = TUTORIAL_MISSIONS[id].map;
-        const sp = map.coinSpawnPoints?.[0];
-        if (coinManager && sp) {
-          coinManager.spawnCoin(CoinType.POWER, sp.x, sp.y, sp.spawnAngle);
-        }
-      }, 100);
+      this.scheduleKillPcoinSpawn();
     }
+  }
+
+  /**
+   * Spawn the Mission 4 P-coin after a short defer so the CoinManager swap /
+   * coin clearing on level (re)load completes first. Used both at mission
+   * start and after a tutorial-KILL player death so the player gets another
+   * shot at the kill window.
+   */
+  private scheduleKillPcoinSpawn(): void {
+    setTimeout(() => {
+      const coinManager = useCoinStore.getState().coinManager;
+      const map = TUTORIAL_MISSIONS[TutorialMissionId.KILL].map;
+      const sp = map.coinSpawnPoints?.[0];
+      if (coinManager && sp) {
+        coinManager.spawnCoin(CoinType.POWER, sp.x, sp.y, sp.spawnAngle);
+      }
+    }, 100);
   }
 
   public exitMission(): void {
@@ -113,13 +122,13 @@ export class TutorialManager {
         break;
       }
 
-      case TutorialMissionId.BOMBS: {
-        const { bombs, correctOrderCount } = useStateStore.getState();
-        const collected = bombs.filter((b) => b.isCollected).length;
-        if (mission.totalBombs && collected >= mission.totalBombs) {
+      case TutorialMissionId.FOUNDINGS: {
+        const { foundings, correctOrderCount } = useStateStore.getState();
+        const collected = foundings.filter((b) => b.isCollected).length;
+        if (mission.totalFoundings && collected >= mission.totalFoundings) {
           this.finish("complete", {
-            plukket: `${collected}/${mission.totalBombs}`,
-            "riktig rekkefølge": `${correctOrderCount}/${mission.totalBombs}`,
+            plukket: `${collected}/${mission.totalFoundings}`,
+            "riktig rekkefølge": `${correctOrderCount}/${mission.totalFoundings}`,
           });
         }
         break;
@@ -182,6 +191,10 @@ export class TutorialManager {
       // Restart timer + sub-tasks; map will respawn player via the existing
       // life-loss flow.
       this.missionStartTime = Date.now();
+    } else if (this.currentMission.id === TutorialMissionId.KILL) {
+      // respawnPlayer clears active coins. Re-spawn the P-coin after the
+      // clear so the player gets another shot at the kill window.
+      this.scheduleKillPcoinSpawn();
     }
   }
 

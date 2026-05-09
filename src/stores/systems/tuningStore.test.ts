@@ -24,22 +24,22 @@ describe("tuningStore", () => {
 
   it("resetSection clears all keys in a section", () => {
     const t = useTuningStore.getState();
-    t.set("MUMMY_BASE_SPEED", 5);
-    t.set("MUMMY_MAX_SPEED", 12);
-    t.set("BIRD_BASE_SPEED", 5); // different section
-    t.resetSection("Mummy");
-    expect(getTuned("MUMMY_BASE_SPEED")).toBe(1);   // default
-    expect(getTuned("MUMMY_MAX_SPEED")).toBe(4.2);  // default
-    expect(getTuned("BIRD_BASE_SPEED")).toBe(5);    // untouched
+    t.set("BUREAUCRAT_BASE_SPEED", 5);
+    t.set("BUREAUCRAT_MAX_SPEED", 12);
+    t.set("WISP_BASE_SPEED", 5); // different section
+    t.resetSection("Bureaucrat");
+    expect(getTuned("BUREAUCRAT_BASE_SPEED")).toBe(1);   // default
+    expect(getTuned("BUREAUCRAT_MAX_SPEED")).toBe(4.5);  // default
+    expect(getTuned("WISP_BASE_SPEED")).toBe(5);    // untouched
   });
 
   it("resetAll wipes every override", () => {
     const t = useTuningStore.getState();
     t.set("PLAYER_MOVE_SPEED", 9);
-    t.set("MUMMY_BASE_SPEED", 9);
+    t.set("BUREAUCRAT_BASE_SPEED", 9);
     t.resetAll();
     expect(getTuned("PLAYER_MOVE_SPEED")).toBe(4);
-    expect(getTuned("MUMMY_BASE_SPEED")).toBe(1);
+    expect(getTuned("BUREAUCRAT_BASE_SPEED")).toBe(1);
   });
 
   it("bumps version on every change", () => {

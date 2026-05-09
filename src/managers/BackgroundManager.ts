@@ -16,9 +16,9 @@ const MAP_NAME_TO_BACKGROUND_MAP: Record<string, string> = {
   nav: "nav",
   skatteetaten: "skatteetaten",
   "innovasjon norge": "innovasjon-norge",
-  kommunehuset: "kommunehuset",
-  "alltinn norge": "alltinn-norge",
-  "silicone vally": "silicone-vally",
+  banken: "banken",
+  "alltinn norge": "altinn",
+  "silicone vally": "silicone-valley",
   default: "startup-lab",
 };
 
@@ -61,7 +61,7 @@ export class BackgroundManager {
       const themeName = MAP_NAME_TO_BACKGROUND_MAP[mapName];
       if (!themeName) {
         logger.warn(
-          `BackgroundManager: No background image found for map: ${mapName}, using fallback`
+          `BackgroundManager: No background image found for map: ${mapName}, using fallback`,
         );
         this.isLoading = false;
         return;
@@ -80,7 +80,7 @@ export class BackgroundManager {
     } catch (error) {
       logger.error(
         "BackgroundManager: Failed to load background image:",
-        error
+        error,
       );
       this.isLoading = false;
     }
@@ -148,7 +148,7 @@ export class BackgroundManager {
     ctx.fillText(
       "Laster bakgrunn...",
       this.canvasWidth / 2,
-      this.canvasHeight / 2
+      this.canvasHeight / 2,
     );
   }
 
@@ -209,7 +209,7 @@ export class BackgroundManager {
         // Only log every 2nd background to reduce spam
         if (loadedCount % 2 === 0 || loadedCount === backgrounds.length) {
           logger.asset(
-            `Preloaded ${loadedCount}/${backgrounds.length} backgrounds`
+            `Preloaded ${loadedCount}/${backgrounds.length} backgrounds`,
           );
         }
       } catch (error) {
@@ -219,7 +219,7 @@ export class BackgroundManager {
 
     await Promise.all(preloadPromises);
     logger.asset(
-      `Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`
+      `Background preloading complete! Loaded ${loadedCount}/${backgrounds.length} backgrounds.`,
     );
   }
 }

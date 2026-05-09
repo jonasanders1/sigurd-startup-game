@@ -4,16 +4,16 @@ export interface ScoreCalculation {
   basePoints: number;
   actualPoints: number;
   multiplier: number;
-  isFirebomb: boolean;
+  isFirefounding: boolean;
 }
 
-export const calculateBombScore = (
-  isFirebomb: boolean,
+export const calculateFoundingScore = (
+  isFirefounding: boolean,
   multiplier: number
 ): ScoreCalculation => {
-  const basePoints = isFirebomb
-    ? GAME_CONFIG.BOMB_POINTS.FIREBOMB
-    : GAME_CONFIG.BOMB_POINTS.NORMAL;
+  const basePoints = isFirefounding
+    ? GAME_CONFIG.FOUNDING_POINTS.FIREFOUNDING
+    : GAME_CONFIG.FOUNDING_POINTS.NORMAL;
 
   const actualPoints = basePoints * multiplier;
 
@@ -21,15 +21,26 @@ export const calculateBombScore = (
     basePoints,
     actualPoints,
     multiplier,
-    isFirebomb,
+    isFirefounding,
   };
 };
 
 export const formatScoreLog = (calculation: ScoreCalculation): string => {
-  const { actualPoints, isFirebomb, multiplier } = calculation;
-  const bombType = isFirebomb ? "Firebomb" : "Normal";
-  return `🎯 Score: +${actualPoints} (${bombType} x${multiplier})`;
+  const { actualPoints, isFirefounding, multiplier } = calculation;
+  const foundingType = isFirefounding ? "Firefounding" : "Normal";
+  return `🎯 Score: +${actualPoints} (${foundingType} x${multiplier})`;
 };
+
+/**
+ * Format a score pop-up. When the multiplier is greater than 1, show the
+ * formula (`200 × 5`) so the player can see *why* their score jumped.
+ * At 1× we drop the suffix to keep low-multiplier pop-ups uncluttered.
+ */
+export const formatScoreText = (
+  basePoints: number,
+  multiplier: number
+): string =>
+  multiplier > 1 ? `${basePoints} × ${multiplier}` : `${basePoints}`;
 
 export const calculateMultiplierProgress = (
   multiplierScore: number,

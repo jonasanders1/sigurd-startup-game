@@ -1,10 +1,14 @@
-import { Player, Monster, Bomb, Platform, CollisionResult, Coin } from '../types/interfaces';
+import { Player, Monster, Founding, Platform, CollisionResult, Coin } from '../types/interfaces';
 import {
-  getMonsterShape,
+  getMonsterHitboxRect,
   ellipseRectColliding,
+  ellipseEllipseColliding,
   rotatedRectAabbColliding,
   getMonsterRotation,
-} from '../config/monsterHitboxes';
+  MONSTER_HITBOXES,
+} from '../config/monsterBounds';
+import { getPlayerHitboxRect, PLAYER_HITBOX } from '../entities/Player';
+import type { MonsterType } from '../types/enums';
 import { isCollisionLethal } from '../lib/bjRules';
 import { GRAVITY_APEX_INDEX } from '../lib/gravityLUT';
 
@@ -103,10 +107,10 @@ export class CollisionManager {
     );
   }
 
-  checkPlayerBombCollision(player: Player, bombs: Bomb[]): Bomb | null {
-    for (const bomb of bombs) {
-      if (!bomb.isCollected && ellipseRectColliding(bomb, player)) {
-        return bomb;
+  checkPlayerFoundingCollision(player: Player, foundings: Founding[]): Founding | null {
+    for (const founding of foundings) {
+      if (!founding.isCollected && ellipseRectColliding(founding, player)) {
+        return founding;
       }
     }
     return null;
@@ -114,6 +118,11 @@ export class CollisionManager {
 
   checkPlayerMonsterCollision(player: Player, monsters: Monster[]): Monster | null {
     const now = Date.now();
+    // Player-vs-monster damage uses each side's lethal hitbox (smaller than
+    // bounds), so close passes feel fair. Bounds are still used everywhere
+    // else (walls, platforms, edge bounces).
+    const playerRect = getPlayerHitboxRect(player);
+    const playerIsEllipse = PLAYER_HITBOX.shape === "ellipse";
     for (const monster of monsters) {
       if (!monster.isActive) continue;
 
@@ -124,13 +133,23 @@ export class CollisionManager {
         continue;
       }
 
-      const shape = getMonsterShape(monster.type);
+      const monsterRect = getMonsterHitboxRect(monster, monster.type);
+      const monsterIsEllipse =
+        MONSTER_HITBOXES[monster.type as MonsterType]?.shape === "ellipse";
+
       let hit: boolean;
-      if (shape === "ellipse") {
-        hit = ellipseRectColliding(monster, player);
+      if (monsterIsEllipse && playerIsEllipse) {
+        hit = ellipseEllipseColliding(monsterRect, playerRect);
+      } else if (monsterIsEllipse) {
+        hit = ellipseRectColliding(monsterRect, playerRect);
+      } else if (playerIsEllipse) {
+        hit = ellipseRectColliding(playerRect, monsterRect);
       } else {
-        // rect — possibly rotated (e.g., charging ambusher)
-        hit = rotatedRectAabbColliding(monster, getMonsterRotation(monster), player);
+        hit = rotatedRectAabbColliding(
+          monsterRect,
+          getMonsterRotation(monster),
+          playerRect,
+        );
       }
       if (hit) return monster;
     }

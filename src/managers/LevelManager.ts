@@ -22,13 +22,15 @@ import {
 import { log } from "../lib/logger";
 import { endOfLevelBonus } from "../lib/bjRules";
 import {
-  cornerToBirdSpawnPosition,
-  decideBirdSpawnCorner,
+  cornerToWispSpawnPosition,
+  decideWispSpawnCorner,
   type SpawnCorner,
-} from "../lib/birdSpawn";
-import { createLevelBird } from "./MonsterFactory";
+} from "../lib/wispSpawn";
+import { createLevelWisp } from "./MonsterFactory";
 import { useInputStore } from "../stores/systems/inputStore";
 import { MonsterType } from "../types/enums";
+import { getDefaultBounds } from "../config/monsterBounds";
+import { ENTITY_SIZES } from "../config/entities";
 import type { RenderManager } from "./RenderManager";
 import type { OptimizedSpawnManager } from "./OptimizedSpawnManager";
 import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
@@ -142,7 +144,7 @@ export class LevelManager {
       // This ensures monsters get the correct spawn time and start at base speed
       this.scalingManager.startMap();
 
-      // Use the gameStore initializeLevel which properly sets up bombs, monsters, coins, and player
+      // Use the gameStore initializeLevel which properly sets up foundings, monsters, coins, and player
       gameStore.initializeLevel(mapDefinition);
 
       // Clear floating texts when loading new level
@@ -189,21 +191,21 @@ export class LevelManager {
         originalSpawnPoint: { x: monster.x, y: monster.y },
       }));
 
-      // BJ §5.1.1: every level has exactly 1 bird. If the level didn't
-      // author one (most don't — birds are global game-design data, not
+      // BJ §5.1.1: every level has exactly 1 wisp. If the level didn't
+      // author one (most don't — wisps are global game-design data, not
       // per-level), inject one programmatically. Speed scales with level.
-      if (!monstersWithSpawnPoints.some((m) => m.type === MonsterType.BIRD)) {
-        const bird = createLevelBird(currentLevel);
+      if (!monstersWithSpawnPoints.some((m) => m.type === MonsterType.WISP)) {
+        const wisp = createLevelWisp(currentLevel);
         monstersWithSpawnPoints.push({
-          ...bird,
-          originalSpawnPoint: { x: bird.x, y: bird.y },
+          ...wisp,
+          originalSpawnPoint: { x: wisp.x, y: wisp.y },
         });
       }
 
-      // BJ §5.1.1: re-position the bird to the corner OPPOSITE the
+      // BJ §5.1.1: re-position the wisp to the corner OPPOSITE the
       // direction the player is holding at level start. Player input on
       // this exact frame is the canonical trigger.
-      this.applyBirdCornerSpawn(monstersWithSpawnPoints);
+      this.applyWispCornerSpawn(monstersWithSpawnPoints);
 
       updateMonsters(monstersWithSpawnPoints);
       log.debug(
@@ -216,18 +218,18 @@ export class LevelManager {
   }
 
   /**
-   * BJ §5.1.1 bird corner-spawn. Mutates the FIRST BIRD monster's x/y based
-   * on directional input held at this moment. No-op if no BIRD on the map.
-   * Mutates `monsters` in place — only the corner-spawned bird's position
+   * BJ §5.1.1 wisp corner-spawn. Mutates the FIRST WISP monster's x/y based
+   * on directional input held at this moment. No-op if no WISP on the map.
+   * Mutates `monsters` in place — only the corner-spawned wisp's position
    * changes; everything else is preserved.
    */
-  private applyBirdCornerSpawn(monsters: import("../types/interfaces").Monster[]): void {
-    const birdIndex = monsters.findIndex((m) => m.type === MonsterType.BIRD);
-    if (birdIndex < 0) return;
+  private applyWispCornerSpawn(monsters: import("../types/interfaces").Monster[]): void {
+    const wispIndex = monsters.findIndex((m) => m.type === MonsterType.WISP);
+    if (wispIndex < 0) return;
 
     const input = useInputStore.getState().input;
     // When no direction is held the spec gives no rule, so randomize over
-    // the 4 corners. decideBirdSpawnCorner falls through to `fallback` on
+    // the 4 corners. decideWispSpawnCorner falls through to `fallback` on
     // each axis when input is neutral, so a random fallback gives a fully
     // random corner; held inputs still flip the result on their axis.
     const allCorners: SpawnCorner[] = [
@@ -237,7 +239,7 @@ export class LevelManager {
       "bottom-right",
     ];
     const fallback = allCorners[Math.floor(Math.random() * allCorners.length)];
-    const corner = decideBirdSpawnCorner(
+    const corner = decideWispSpawnCorner(
       {
         left: input.left,
         right: input.right,
@@ -247,26 +249,26 @@ export class LevelManager {
       },
       fallback
     );
-    const pos = cornerToBirdSpawnPosition(corner, {
+    const pos = cornerToWispSpawnPosition(corner, {
       width: GAME_CONFIG.CANVAS_WIDTH,
       // Use playfield bottom (top of the floor strip) so bottom corners
       // spawn above the restricted ground, not inside it.
       height: PLAYFIELD_BOTTOM,
-      monsterSize: GAME_CONFIG.MONSTER_SIZE,
+      monsterSize: getDefaultBounds(MonsterType.WISP).width,
     });
 
-    monsters[birdIndex] = {
-      ...monsters[birdIndex],
+    monsters[wispIndex] = {
+      ...monsters[wispIndex],
       x: pos.x,
       y: pos.y,
       originalSpawnPoint: { x: pos.x, y: pos.y },
     };
-    log.debug(`BJ §5.1.1: bird re-spawned at corner ${corner} (${pos.x}, ${pos.y})`);
+    log.debug(`BJ §5.1.1: wisp re-spawned at corner ${corner} (${pos.x}, ${pos.y})`);
   }
 
   public checkWinCondition(): void {
     const {
-      collectedBombs,
+      collectedFoundings,
       tutorialMission,
       tutorialResult,
       currentState,
@@ -285,11 +287,11 @@ export class LevelManager {
       return;
     }
 
-    // Win when every bomb in THIS map is collected. Reading currentMap.bombs.length
-    // (instead of getTuned("TOTAL_BOMBS")) lets editor previews with N<23 bombs
+    // Win when every founding in THIS map is collected. Reading currentMap.foundings.length
+    // (instead of getTuned("TOTAL_FOUNDINGS")) lets editor previews with N<23 foundings
     // also win cleanly without runtime padding.
-    const targetCount = currentMap?.bombs?.length ?? 0;
-    if (targetCount > 0 && collectedBombs.length === targetCount) {
+    const targetCount = currentMap?.foundings?.length ?? 0;
+    if (targetCount > 0 && collectedFoundings.length === targetCount) {
       log.game("Level completed - proceeding to next phase");
 
       // Record if player was grounded when map was cleared
@@ -317,7 +319,7 @@ export class LevelManager {
       currentLevel,
       setBonusAnimationComplete,
       gameStateManager,
-      collectedBombs,
+      collectedFoundings,
     } = useStateStore.getState();
     const {
       getLevelCoinStats,
@@ -334,7 +336,7 @@ export class LevelManager {
     // Stop power-up melody if active
     gameStateManager.stopPowerUpMelodyIfActive();
 
-    // BJ end-of-level bonus is purely on firebombs collected in correct order
+    // BJ end-of-level bonus is purely on firefoundings collected in correct order
     // (no Sigurd-specific livesLost penalty). Lookup table in bjRules.
     const effectiveCount = correctOrderCount;
     const bonusPoints = endOfLevelBonus(effectiveCount);
@@ -364,7 +366,7 @@ export class LevelManager {
         mapName: currentMap.name,
         correctOrderCount: correctOrderCount,
         effectiveCount: effectiveCount,
-        totalBombs: collectedBombs.length,
+        totalFoundings: collectedFoundings.length,
         score: levelScore, // Use levelScore for this level's earnings only
         bonus: bonusPoints,
         hasBonus: bonusPoints > 0,
@@ -448,7 +450,7 @@ export class LevelManager {
 
   public respawnPlayer(): void {
     log.data(
-      "CoinSpawn: Player respawn - resetting firebomb count, preserving other counters"
+      "CoinSpawn: Player respawn - resetting firefounding count, preserving other counters"
     );
     const { currentMap } = useLevelStore.getState();
     const { clearAllFloatingTexts } = useRenderStore.getState();
@@ -461,29 +463,29 @@ export class LevelManager {
       // Clear floating texts
       clearAllFloatingTexts();
 
-      // Reset bomb sequence tracking so the player can start with any bomb
-      // group again, but keep already-collected bombs collected.
-      const { bombManager, bombs, setBombs } = useStateStore.getState();
-      if (bombManager) {
-        bombManager.resetActiveSequence();
+      // Reset founding sequence tracking so the player can start with any founding
+      // group again, but keep already-collected foundings collected.
+      const { foundingManager, foundings, setFoundings } = useStateStore.getState();
+      if (foundingManager) {
+        foundingManager.resetActiveSequence();
       }
-      setBombs(bombs.map((b) => ({ ...b, isBlinking: false })));
+      setFoundings(foundings.map((b) => ({ ...b, isBlinking: false })));
 
       // Reset difficulty
       this.scalingManager.resetOnDeath();
       log.debug("Difficulty reset after player death");
 
-      // Reset firebomb count when player dies but preserve other coin spawn counters
-      // The firebomb count resets to ensure player must collect 9 correct bombs again
+      // Reset firefounding count when player dies but preserve other coin spawn counters
+      // The firefounding count resets to ensure player must collect 9 correct foundings again
       const { clearActiveCoins, coinManager } = useCoinStore.getState();
 
-      // Clear active coins and reset firebomb count
+      // Clear active coins and reset firefounding count
       clearActiveCoins();
-      // setFirebombCount(0);
+      // setFirefoundingCount(0);
 
-      // Also reset the coin manager's internal firebomb count if available
+      // Also reset the coin manager's internal firefounding count if available
 
-      coinManager.resetFirebombCount();
+      coinManager.resetFirefoundingCount();
 
       // Reset player position
       this.playerManager.resetPlayer(
@@ -522,17 +524,21 @@ export class LevelManager {
           return resetMonster;
         });
 
-      // Preserve the auto-injected bird (spec §5.1.1, persistent through the
+      // Preserve the auto-injected wisp (spec §5.1.1, persistent through the
       // level) — it lives in the live store but not in currentMap.monsters.
       // The respawn queue (line below) is no longer wiped, so dead-and-
-      // queued-for-respawn birds keep their place in the queue.
+      // queued-for-respawn wisps keep their place in the queue.
       for (const m of useMonsterStore.getState().monsters) {
-        if (m.type === MonsterType.BIRD) {
+        if (m.type === MonsterType.WISP) {
           resetMonsters.push({ ...m, isFrozen: false });
         }
       }
 
-      updateMonsters(resetMonsters);
+      const cleared = this.displaceMonstersFromPlayerSpawn(
+        resetMonsters,
+        currentMap.playerStart,
+      );
+      updateMonsters(cleared);
 
       // Reset spawn manager and reinitialize spawn points
       if (currentMap.monsterSpawnPoints) {
@@ -555,6 +561,62 @@ export class LevelManager {
       // Show countdown before resuming
       this.gameStateManager.showCountdown();
     }
+  }
+
+  /**
+   * Push any monster overlapping the player's spawn area horizontally out of
+   * it. Patrol monsters clamp to their patrol range; non-patrol monsters
+   * clamp to the canvas. Without this, a monster sitting on top of the
+   * spawn point at the moment of death causes an instant re-death the
+   * frame the player respawns.
+   */
+  private displaceMonstersFromPlayerSpawn(
+    monsters: import("../types/interfaces").Monster[],
+    playerStart: { x: number; y: number },
+  ): import("../types/interfaces").Monster[] {
+    const PADDING = 40; // pixels of clearance beyond the player bounds
+    const GAP = 4; // extra gap pushed past the safe-zone edge
+    const playerBounds = ENTITY_SIZES.PLAYER.bounds;
+    const zone = {
+      x: playerStart.x - PADDING,
+      y: playerStart.y - PADDING,
+      width: playerBounds.width + 2 * PADDING,
+      height: playerBounds.height + 2 * PADDING,
+    };
+
+    const overlaps = (m: { x: number; y: number; width: number; height: number }) =>
+      m.x < zone.x + zone.width &&
+      m.x + m.width > zone.x &&
+      m.y < zone.y + zone.height &&
+      m.y + m.height > zone.y;
+
+    const zoneCenterX = zone.x + zone.width / 2;
+
+    return monsters.map((m) => {
+      if (!overlaps(m)) return m;
+
+      const goLeft = m.x + m.width / 2 <= zoneCenterX;
+      let newX = goLeft
+        ? zone.x - m.width - GAP
+        : zone.x + zone.width + GAP;
+
+      // Patrol monsters: clamp into their patrol range so we don't push
+      // them outside their authored walking band (which would trigger the
+      // edge-fall logic on the next frame).
+      const patrol = m as Partial<{
+        patrolStartX: number;
+        patrolEndX: number;
+      }>;
+      if (patrol.patrolStartX !== undefined && patrol.patrolEndX !== undefined) {
+        const minX = patrol.patrolStartX;
+        const maxX = patrol.patrolEndX - m.width;
+        if (minX <= maxX) newX = Math.min(Math.max(newX, minX), maxX);
+      } else {
+        newX = Math.max(0, Math.min(newX, GAME_CONFIG.CANVAS_WIDTH - m.width));
+      }
+
+      return { ...m, x: newX };
+    });
   }
 
   public handleMapClearedFall(
@@ -629,7 +691,7 @@ export class LevelManager {
       totalPowerModeActivations: gameStats.totalPowerModeActivations,
       totalPCoinTierCollections: gameStats.totalPCoinTierCollections,
       totalFounderCoinsCollected: gameStats.totalFounderCoinsCollected,
-      totalBombs: gameStats.totalBombs,
+      totalFoundings: gameStats.totalFoundings,
       totalCorrectOrders: gameStats.totalCorrectOrders,
       averageCompletionTime: gameStats.averageCompletionTime,
       gameEndReason: reason,

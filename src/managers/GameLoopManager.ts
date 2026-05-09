@@ -250,7 +250,7 @@ export class GameLoopManager {
     this.renderManager.render(
       state.player,
       state.platforms,
-      state.bombs,
+      state.foundings,
       state.monsters,
       state.coins,
       state.floatingTexts,

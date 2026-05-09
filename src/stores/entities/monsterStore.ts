@@ -20,15 +20,13 @@ export type MonsterStore = MonsterState & MonsterActions;
 
 const getMonsterColor = (type: string): string => {
   switch (type) {
-    case MonsterType.MUMMY:
+    case MonsterType.BUREAUCRAT:
       return COLORS.MONSTER;
-    case MonsterType.VERTICAL_PATROL:
-      return '#FF6B6B'; // Red
-    case MonsterType.BIRD:
+    case MonsterType.WISP:
       return '#FFD93D'; // Yellow
-    case MonsterType.UFO:
+    case MonsterType.TAXGHOST:
       return '#FF8800'; // Orange
-    case MonsterType.HORN:
+    case MonsterType.FOUNDER:
       return '#4ECDC4'; // Cyan
     default:
       return COLORS.MONSTER;
@@ -45,7 +43,17 @@ export const useMonsterStore = create<MonsterStore>((set, get) => ({
   },
   
   updateMonsters: (monsters: Monster[]) => {
-    set({ monsters });
+    // Identity-dedup as a safety net. The respawn pipeline mutates dead
+    // monster refs in-place and re-appends them via GameLoopManager, so a
+    // missed dedup upstream would duplicate refs in the array — every
+    // duplicate then gets a second movement update per frame, manifesting
+    // as visible "monster spawn count spikes". Set preserves insertion
+    // order, so the relative ordering of unique refs is unchanged.
+    const unique =
+      new Set(monsters).size === monsters.length
+        ? monsters
+        : Array.from(new Set(monsters));
+    set({ monsters: unique });
   },
   
   initializeMonsters: (monsters: Monster[]) => {

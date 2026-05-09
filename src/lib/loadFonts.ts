@@ -1,4 +1,5 @@
 import pixelifySansUrl from "../assets/Font/PixelifySans-VariableFont_wght.ttf?url";
+import pixufUrl from "../assets/score-font/Pixuf.ttf?url";
 
 /**
  * Load the game's font families. Pixelify Sans is bundled locally (the host
@@ -32,6 +33,17 @@ export const ensureFontsLoaded = (): void => {
   preload.setAttribute(FONT_MARKER, "");
   document.head.appendChild(preload);
 
+  // Preload Pixuf so it's hot before the first floating-score draws on
+  // coin/firefounding collect.
+  const pixufPreload = document.createElement("link");
+  pixufPreload.rel = "preload";
+  pixufPreload.as = "font";
+  pixufPreload.href = pixufUrl;
+  pixufPreload.type = "font/ttf";
+  pixufPreload.crossOrigin = "anonymous";
+  pixufPreload.setAttribute(FONT_MARKER, "");
+  document.head.appendChild(pixufPreload);
+
   const localFontStyle = document.createElement("style");
   localFontStyle.setAttribute(FONT_MARKER, "");
   localFontStyle.textContent = `
@@ -39,6 +51,13 @@ export const ensureFontsLoaded = (): void => {
       font-family: "Pixelify Sans";
       src: url("${pixelifySansUrl}");
       font-weight: 400 700;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Pixuf";
+      src: url("${pixufUrl}") format("truetype");
+      font-weight: normal;
       font-style: normal;
       font-display: block;
     }

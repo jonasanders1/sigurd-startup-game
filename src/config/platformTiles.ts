@@ -1,20 +1,18 @@
 /**
- * Platform tilesets. Each theme has three 16×16 pieces — left, middle, right —
- * that get composed into a strip to fill any platform.
+ * Platform tilesets. Each theme has three pieces — left, middle, right — that
+ * get composed into a strip to fill any platform.
  *
- * Vertical platforms use the same three tiles, rotated 90° clockwise: the
- * "left" tile becomes the top end, "right" becomes the bottom end.
+ * Themes can also provide native vertical tiles (top, middle, bottom) for
+ * vertical platforms. Themes without native vertical tiles fall back to
+ * rotating the horizontal tiles 90° clockwise at draw time.
  */
 
 import { getSpriteImagePath, loadSpriteImage } from "./assets";
 
 export type PlatformTheme =
-  | "metal"
-  | "plastic"
-  | "industry"
-  | "construction"
-  | "grass-light"
-  | "grass-dark";
+  | "platform-beige"
+  | "platform-blue"
+  | "platform-green";
 
 export interface PlatformTileSet {
   left: HTMLImageElement;
@@ -23,71 +21,96 @@ export interface PlatformTileSet {
 }
 
 const TILE_FILES: Record<PlatformTheme, readonly [string, string, string]> = {
-  metal: [
-    "Tiles/metal/Tile_11.png",
-    "Tiles/metal/Tile_12.png",
-    "Tiles/metal/Tile_13.png",
+  "platform-beige": [
+    "horizontal-platforms/platform-beige/platform-beige_0.png",
+    "horizontal-platforms/platform-beige/platform-beige_1.png",
+    "horizontal-platforms/platform-beige/platform-beige_2.png",
   ],
-  plastic: [
-    "Tiles/plastic/Tile_53.png",
-    "Tiles/plastic/Tile_54.png",
-    "Tiles/plastic/Tile_55.png",
+  "platform-blue": [
+    "horizontal-platforms/platform-blue/platform-blue_0.png",
+    "horizontal-platforms/platform-blue/platform-blue_1.png",
+    "horizontal-platforms/platform-blue/platform-blue_2.png",
   ],
-  industry: [
-    "Tiles/industry/Tile_90.png",
-    "Tiles/industry/Tile_91.png",
-    "Tiles/industry/Tile_92.png",
-  ],
-  construction: [
-    "Tiles/construction/Tile_85.png",
-    "Tiles/construction/Tile_86.png",
-    "Tiles/construction/Tile_87.png",
-  ],
-  "grass-light": [
-    "Tiles/grass-light/Tile_01.png",
-    "Tiles/grass-light/Tile_02.png",
-    "Tiles/grass-light/Tile_03.png",
-  ],
-  "grass-dark": [
-    "Tiles/grass-dark/Tile_06.png",
-    "Tiles/grass-dark/Tile_07.png",
-    "Tiles/grass-dark/Tile_08.png",
+  "platform-green": [
+    "horizontal-platforms/platform-green/platform-green_0.png",
+    "horizontal-platforms/platform-green/platform-green_1.png",
+    "horizontal-platforms/platform-green/platform-green_2.png",
   ],
 };
 
-export const DEFAULT_PLATFORM_THEME: PlatformTheme = "metal";
+/**
+ * Optional native vertical tiles per theme. If absent, vertical platforms
+ * fall back to rotating the horizontal tiles. Order: [top, middle, bottom].
+ */
+const VERTICAL_TILE_FILES: Partial<
+  Record<PlatformTheme, readonly [string, string, string]>
+> = {
+  "platform-beige": [
+    "vertical-platforms/platform-beige/platform_0.png",
+    "vertical-platforms/platform-beige/platform_1.png",
+    "vertical-platforms/platform-beige/platform_2.png",
+  ],
+  "platform-blue": [
+    "vertical-platforms/platform-blue/platform_0.png",
+    "vertical-platforms/platform-blue/platform_1.png",
+    "vertical-platforms/platform-blue/platform_2.png",
+  ],
+  "platform-green": [
+    "vertical-platforms/platform-green/platform_0.png",
+    "vertical-platforms/platform-green/platform_1.png",
+    "vertical-platforms/platform-green/platform_2.png",
+  ],
+};
 
-const tileSetCache = new Map<PlatformTheme, PlatformTileSet>();
+export const DEFAULT_PLATFORM_THEME: PlatformTheme = "platform-beige";
 
-export function getPlatformTileSet(theme: PlatformTheme): PlatformTileSet {
-  const cached = tileSetCache.get(theme);
+export function hasVerticalTiles(theme: PlatformTheme): boolean {
+  return VERTICAL_TILE_FILES[theme] !== undefined;
+}
+
+const tileSetCache = new Map<string, PlatformTileSet>();
+
+export function getPlatformTileSet(
+  theme: PlatformTheme,
+  isVertical: boolean = false,
+): PlatformTileSet {
+  const useVertical = isVertical && VERTICAL_TILE_FILES[theme] !== undefined;
+  const cacheKey = useVertical ? `${theme}|v` : theme;
+  const cached = tileSetCache.get(cacheKey);
   if (cached) return cached;
 
-  const [leftPath, middlePath, rightPath] = TILE_FILES[theme];
+  const paths = useVertical ? VERTICAL_TILE_FILES[theme]! : TILE_FILES[theme];
   const set: PlatformTileSet = {
-    left: loadSpriteImage(leftPath),
-    middle: loadSpriteImage(middlePath),
-    right: loadSpriteImage(rightPath),
+    left: loadSpriteImage(paths[0]),
+    middle: loadSpriteImage(paths[1]),
+    right: loadSpriteImage(paths[2]),
   };
-  tileSetCache.set(theme, set);
+  tileSetCache.set(cacheKey, set);
   return set;
 }
 
 export function getAllPlatformTilePaths(): string[] {
-  return Object.values(TILE_FILES).flatMap((paths) => paths);
+  return [
+    ...Object.values(TILE_FILES).flatMap((paths) => paths),
+    ...Object.values(VERTICAL_TILE_FILES).flatMap((paths) => paths ?? []),
+  ];
 }
 
 /** URLs for the three pieces — for use in <img> tags (e.g. editor). */
-export function getPlatformTileUrls(theme: PlatformTheme): {
+export function getPlatformTileUrls(
+  theme: PlatformTheme,
+  isVertical: boolean = false,
+): {
   left: string;
   middle: string;
   right: string;
 } {
-  const [left, middle, right] = TILE_FILES[theme];
+  const useVertical = isVertical && VERTICAL_TILE_FILES[theme] !== undefined;
+  const paths = useVertical ? VERTICAL_TILE_FILES[theme]! : TILE_FILES[theme];
   return {
-    left: getSpriteImagePath(left),
-    middle: getSpriteImagePath(middle),
-    right: getSpriteImagePath(right),
+    left: getSpriteImagePath(paths[0]),
+    middle: getSpriteImagePath(paths[1]),
+    right: getSpriteImagePath(paths[2]),
   };
 }
 

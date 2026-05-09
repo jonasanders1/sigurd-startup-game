@@ -1,12 +1,57 @@
 import React, { useMemo, useState } from "react";
-import { X, RotateCcw, Sliders, AlertCircle } from "lucide-react";
+import { X, RotateCcw, Sliders, AlertCircle, Download, Copy } from "lucide-react";
 import {
   TUNING_FIELDS,
   TUNING_SECTIONS,
   type TuningField,
   type TuningSection,
 } from "../config/tuningDefaults";
-import { useTuningStore } from "../stores/systems/tuningStore";
+import { useTuningStore, getTuned } from "../stores/systems/tuningStore";
+
+/**
+ * Serialize the full TUNING_FIELDS array as TypeScript source, with each
+ * entry's `default` replaced by the current effective value (override if
+ * set, original default otherwise). Caller pastes the result over the
+ * existing TUNING_FIELDS literal in src/config/tuningDefaults.ts to bake
+ * the tuning into the shipped package.
+ */
+const serializeTuningFieldsAsTS = (): string => {
+  const esc = (s: string) => JSON.stringify(s);
+  const lines: string[] = [];
+  let lastSection: TuningSection | null = null;
+  for (const f of TUNING_FIELDS) {
+    if (f.section !== lastSection) {
+      if (lastSection !== null) lines.push("");
+      lines.push(
+        `  // ─── ${f.section} ─────────────────────────────────────────`
+      );
+      lastSection = f.section;
+    }
+    const value = getTuned(f.key);
+    const parts = [
+      `key: ${esc(f.key)}`,
+      `section: ${esc(f.section)}`,
+      `label: ${esc(f.label)}`,
+      `default: ${value}`,
+      `min: ${f.min}`,
+      `max: ${f.max}`,
+      `step: ${f.step}`,
+      `liveReload: ${f.liveReload}`,
+    ];
+    if (f.description) parts.push(`description: ${esc(f.description)}`);
+    lines.push(`  { ${parts.join(", ")} },`);
+  }
+  return [
+    `// Generated from the live tuning panel at ${new Date().toISOString()}.`,
+    `// Replace the existing TUNING_FIELDS literal in`,
+    `// src/config/tuningDefaults.ts with the array below.`,
+    ``,
+    `export const TUNING_FIELDS: readonly TuningField[] = [`,
+    ...lines,
+    `] as const;`,
+    ``,
+  ].join("\n");
+};
 
 const styles = {
   backdrop: {
@@ -221,13 +266,28 @@ export const TuningPanel: React.FC<Props> = ({ open, onClose }) => {
   const [activeSection, setActiveSection] = useState<TuningSection>(
     TUNING_SECTIONS[0]
   );
+  const [exportCode, setExportCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const resetSection = useTuningStore((s) => s.resetSection);
   const resetAll = useTuningStore((s) => s.resetAll);
+  // Subscribe to version so the Export modal re-serializes when sliders move.
+  useTuningStore((s) => s.version);
 
   const fieldsBySection = useMemo(
     () => TUNING_FIELDS.filter((f) => f.section === activeSection),
     [activeSection]
   );
+
+  const handleCopy = async () => {
+    if (!exportCode) return;
+    try {
+      await navigator.clipboard.writeText(exportCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked — fallthrough; user can manually select textarea */
+    }
+  };
 
   if (!open) return null;
 
@@ -242,6 +302,13 @@ export const TuningPanel: React.FC<Props> = ({ open, onClose }) => {
             Scoring values are fixed.
           </div>
           <div style={{ flex: 1 }} />
+          <button
+            style={styles.ghostBtn}
+            onClick={() => setExportCode(serializeTuningFieldsAsTS())}
+            title="Generate a TS snippet of TUNING_FIELDS with current values as defaults"
+          >
+            <Download size={12} /> Export TS
+          </button>
           <button
             style={styles.ghostBtn}
             onClick={() => {
@@ -290,6 +357,88 @@ export const TuningPanel: React.FC<Props> = ({ open, onClose }) => {
             ))}
           </div>
         </div>
+
+        {/* Export modal — overlaid on top of the panel; click outside the
+            inner card to dismiss. */}
+        {exportCode !== null && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0,0,0,0.85)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+            }}
+            onClick={() => setExportCode(null)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(820px, 100%)",
+                height: "100%",
+                background: "#0b0f1a",
+                border: "1px solid #334155",
+                borderRadius: 6,
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 14px",
+                  borderBottom: "1px solid #334155",
+                }}
+              >
+                <Download size={14} />
+                <div style={{ fontWeight: 700, fontSize: 13 }}>
+                  Tuning export
+                </div>
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginLeft: 6 }}
+                >
+                  Paste over <code>TUNING_FIELDS</code> in
+                  <code> src/config/tuningDefaults.ts</code>.
+                </div>
+                <div style={{ flex: 1 }} />
+                <button style={styles.primaryBtn} onClick={handleCopy}>
+                  <Copy size={12} /> {copied ? "Copied" : "Copy"}
+                </button>
+                <button
+                  style={styles.iconBtn}
+                  onClick={() => setExportCode(null)}
+                  title="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <textarea
+                readOnly
+                value={exportCode}
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  resize: "none",
+                  border: "none",
+                  outline: "none",
+                  background: "#020617",
+                  color: "#e2e8f0",
+                  padding: 12,
+                  fontFamily:
+                    "'JetBrains Mono', ui-monospace, Menlo, monospace",
+                  fontSize: 11,
+                  lineHeight: 1.5,
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import type { RoundedCorners } from "../types/interfaces";
 
 export type EntityKind =
   | "platform"
-  | "bomb"
+  | "founding"
   | "playerStart"
   | "monster"
   | "coinSpawn";
@@ -24,9 +24,9 @@ export interface PlatformEntity {
   roundedCorners?: RoundedCorners;
 }
 
-export interface BombEntity {
+export interface FoundingEntity {
   id: string;
-  kind: "bomb";
+  kind: "founding";
   x: number;
   y: number;
   order: number;
@@ -49,17 +49,16 @@ export interface MonsterEntity {
   speed: number;
   spawnDelay: number;
   delayed: boolean;
-  // MUMMY
+  // BUREAUCRAT
   platformX?: number;
   platformY?: number;
   platformWidth?: number;
   spawnSide?: "left" | "right";
   walkLengths?: number;
   direction?: number;
-  variant?: "green" | "black";
-  /** What this mummy turns into on hitting the ground (BJ §5.1.2). Default
-   *  "SPHERE" matches canonical BJ. "NONE" = die on impact. */
-  transformTarget?: "SPHERE" | "ORB" | "NONE";
+  /** What this bureaucrat turns into on hitting the ground (BJ §5.1.2). Default
+   *  "CONSULTANT" matches canonical BJ. "NONE" = die on impact. */
+  transformTarget?: "CONSULTANT" | "ROBOT" | "NONE";
   /** ms between repeat spawns (only for delayed/spawn-point monsters).
    *  0 / undefined = one-shot (legacy). >0 = continuous respawn after the
    *  initial delay. */
@@ -67,15 +66,12 @@ export interface MonsterEntity {
   /** Hard cap on how many times this spawn point fires. 0 / undefined =
    *  unlimited (only meaningful when respawnInterval > 0). */
   maxSpawns?: number;
-  // VERTICAL_PATROL
-  patrolHeight?: number;
-  side?: "left" | "right";
-  // HORN
+  // FOUNDER
   startAngle?: number;
   // CHASER
   directness?: number;
   updateInterval?: number;
-  // UFO
+  // TAXGHOST
   ambushInterval?: number;
 }
 
@@ -90,7 +86,7 @@ export interface CoinSpawnEntity {
 
 export type EditorEntity =
   | PlatformEntity
-  | BombEntity
+  | FoundingEntity
   | PlayerStartEntity
   | MonsterEntity
   | CoinSpawnEntity;

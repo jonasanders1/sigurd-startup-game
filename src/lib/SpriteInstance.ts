@@ -1,4 +1,9 @@
-import { GAME_CONFIG } from "../types/constants";
+/** Player sprite display size in screen pixels — independent of bounds. */
+export const PLAYER_SPRITE_CELL = 88;
+/** Where Sigurd's feet sit within the 64×64 source cell (0-1). Smaller =
+ *  sprite drops further (visible feet sit lower relative to the bounds bottom). */
+const FEET_RATIO = 48 / 64;
+
 type Animation = {
   name: string;
   frames: HTMLImageElement[];
@@ -54,42 +59,20 @@ export class SpriteInstance {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number = 1) {
+  /** Feet-anchored draw: pass the world position where the player's feet
+   *  should land. Sprite display size is fixed (PLAYER_SPRITE_CELL); bounds
+   *  and hitbox don't affect visual scale. */
+  draw(ctx: CanvasRenderingContext2D, feetX: number, feetY: number) {
     const img = this.currentAnimation.frames[this.currentFrameIndex];
-    if (!img.complete) return;
+    if (!img.complete || img.naturalWidth === 0) return;
 
-    // SigurdV2 sprites are 32×32 (square). Integer scaling keeps pixel art crisp
-    // with imageSmoothingEnabled = false. Bump SPRITE_SCALE for chunkier Sigurd.
-    const SOURCE_SIZE = 32;
-    const SPRITE_SCALE = 1.25;
-    const drawSize = SOURCE_SIZE * SPRITE_SCALE;
-
-    // Center horizontally on hitbox; anchor sprite bottom to hitbox bottom
-    const spriteX = x + GAME_CONFIG.PLAYER_WIDTH / 2 - drawSize / 2;
-    const spriteY = y + GAME_CONFIG.PLAYER_HEIGHT * scale - drawSize;
-
-    // Most sprites face right in source; flip for "-left" animations.
-    // Float source frames face the opposite direction — invert the rule for them.
-    // float-stationary uses the same source as the directional floats, so it
-    // needs the same swap to default to the same facing as float-right.
-    const animName = this.currentAnimation.name;
-    const isFloat = animName.startsWith("float");
-    const isLeftFacing = isFloat
-      ? animName === "float-right" || animName === "float-stationary"
-      : animName.includes("-left");
+    const cell = PLAYER_SPRITE_CELL;
+    const drawX = feetX - cell / 2;
+    const drawY = feetY - cell * FEET_RATIO;
 
     const prevSmoothing = ctx.imageSmoothingEnabled;
     ctx.imageSmoothingEnabled = false;
-
-    if (isLeftFacing) {
-      ctx.save();
-      ctx.scale(-1, 1);
-      ctx.drawImage(img, -spriteX - drawSize, spriteY, drawSize, drawSize);
-      ctx.restore();
-    } else {
-      ctx.drawImage(img, spriteX, spriteY, drawSize, drawSize);
-    }
-
+    ctx.drawImage(img, drawX, drawY, cell, cell);
     ctx.imageSmoothingEnabled = prevSmoothing;
   }
 }

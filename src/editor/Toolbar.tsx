@@ -3,6 +3,10 @@ import { useEditorStore } from "./store";
 import { serializeMap } from "./serialize";
 import { mapToEditor } from "./deserialize";
 import { mapDefinitions } from "../maps/mapDefinitions";
+import {
+  TUTORIAL_MISSIONS,
+  TUTORIAL_MISSION_ORDER,
+} from "../tutorials/missions";
 import { MapDefinition } from "../types/interfaces";
 import {
   FilePlus2,
@@ -26,12 +30,19 @@ import {
 } from "lucide-react";
 import { TuningPanel } from "./TuningPanel";
 
-const buildBuiltinList = (): { id: string; map: MapDefinition; label: string }[] =>
-  mapDefinitions.map((m, i) => ({
-    id: `__builtin_${i}`,
-    map: m,
-    label: `${i + 1} — ${m.name}`,
-  }));
+type CatalogEntry = { key: string; map: MapDefinition; label: string };
+
+const BUILTIN_MAPS: CatalogEntry[] = mapDefinitions.map((map, i) => ({
+  key: `builtin_${i}`,
+  map,
+  label: `${i + 1} — ${map.name}`,
+}));
+
+const TUTORIAL_MAPS: CatalogEntry[] = TUTORIAL_MISSION_ORDER.map((id, i) => ({
+  key: `tutorial_${id}`,
+  map: TUTORIAL_MISSIONS[id].map,
+  label: `${i + 1} — ${TUTORIAL_MISSIONS[id].title}`,
+}));
 
 const btn: React.CSSProperties = {
   display: "inline-flex",
@@ -45,6 +56,30 @@ const btn: React.CSSProperties = {
   fontSize: 12,
   cursor: "pointer",
   fontFamily: "system-ui, sans-serif",
+};
+
+const catalogItemStyle: React.CSSProperties = {
+  display: "block",
+  width: "100%",
+  textAlign: "left",
+  padding: "6px 10px",
+  background: "transparent",
+  border: "none",
+  color: "#e5e7eb",
+  fontSize: 12,
+  cursor: "pointer",
+  borderRadius: 3,
+};
+
+const catalogSectionHeaderStyle: React.CSSProperties = {
+  fontSize: 9,
+  fontWeight: 700,
+  color: "#94a3b8",
+  textTransform: "uppercase",
+  letterSpacing: 1,
+  padding: "10px 10px 4px",
+  borderTop: "1px solid #334155",
+  marginTop: 4,
 };
 
 const btnActive: React.CSSProperties = {
@@ -146,7 +181,7 @@ const ExportModal: React.FC<{ payload: ExportPayload; onClose: () => void }> = (
 
         <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
           Paste this into <code>src/maps/mapDefinitions.ts</code>. The factory
-          functions (<code>createPlatform</code>, <code>createBomb</code>, etc.)
+          functions (<code>createPlatform</code>, <code>createFounding</code>, etc.)
           and constants/imports are already declared at the top of that file.
         </div>
 
@@ -222,12 +257,8 @@ export const Toolbar: React.FC = () => {
     setExportPayload(serializeMap(entities, meta));
   };
 
-  const builtins = buildBuiltinList();
-
-  const handleLoadBuiltin = (mapId: string) => {
-    const found = builtins.find((m) => m.id === mapId);
-    if (!found) return;
-    const { entities: ents, meta: m } = mapToEditor(found.map);
+  const handleLoadMap = (map: MapDefinition) => {
+    const { entities: ents, meta: m } = mapToEditor(map);
     loadSnapshot({ entities: ents, meta: m });
     setLoadOpen(false);
   };
@@ -338,32 +369,19 @@ export const Toolbar: React.FC = () => {
             >
               <div
                 style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: "#94a3b8",
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
+                  ...catalogSectionHeaderStyle,
                   padding: "6px 10px 4px",
+                  borderTop: "none",
+                  marginTop: 0,
                 }}
               >
                 Built-in
               </div>
-              {builtins.map((m) => (
+              {BUILTIN_MAPS.map((m) => (
                 <button
-                  key={m.id}
-                  onClick={() => handleLoadBuiltin(m.id)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "6px 10px",
-                    background: "transparent",
-                    border: "none",
-                    color: "#e5e7eb",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    borderRadius: 3,
-                  }}
+                  key={m.key}
+                  onClick={() => handleLoadMap(m.map)}
+                  style={catalogItemStyle}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "#1f2937")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
@@ -371,18 +389,20 @@ export const Toolbar: React.FC = () => {
                 </button>
               ))}
 
-              <div
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: "#94a3b8",
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
-                  padding: "10px 10px 4px",
-                  borderTop: "1px solid #334155",
-                  marginTop: 4,
-                }}
-              >
+              <div style={catalogSectionHeaderStyle}>Sandkassa</div>
+              {TUTORIAL_MAPS.map((m) => (
+                <button
+                  key={m.key}
+                  onClick={() => handleLoadMap(m.map)}
+                  style={catalogItemStyle}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#1f2937")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  {m.label}
+                </button>
+              ))}
+
+              <div style={catalogSectionHeaderStyle}>
                 Saved drafts ({savedMaps.length})
               </div>
               {savedMaps.length === 0 && (

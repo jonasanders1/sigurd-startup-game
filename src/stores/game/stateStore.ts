@@ -1,10 +1,14 @@
 import { create } from "zustand";
 import { AudioEvent, GameState, MenuType, TutorialMissionId } from "../../types/enums";
 import { useAudioStore } from "../systems/audioStore";
-import { Bomb } from "../../types/interfaces";
-import { BombManager } from "../../managers/bombManager";
+import { Founding } from "../../types/interfaces";
+import { FoundingManager } from "../../managers/foundingManager";
 import { GAME_CONFIG } from "../../types/constants";
-import { calculateBombScore, formatScoreLog } from "../../lib/scoringUtils";
+import {
+  calculateFoundingScore,
+  formatScoreLog,
+  formatScoreText,
+} from "../../lib/scoringUtils";
 import { clampLives } from "../../lib/bjRules";
 import { getTuned } from "../systems/tuningStore";
 import {
@@ -36,12 +40,12 @@ interface StateData {
   bonusAnimationComplete: boolean;
   gameStateManager?: any;
 
-  // Bomb-related state
-  bombs: Bomb[];
-  collectedBombs: number[];
+  // Founding-related state
+  foundings: Founding[];
+  collectedFoundings: number[];
   correctOrderCount: number;
-  nextBombOrder: number;
-  bombManager: BombManager | null;
+  nextFoundingOrder: number;
+  foundingManager: FoundingManager | null;
 
   // Tutorial state — null when playing the regular game.
   tutorialMission: TutorialMissionId | null;
@@ -68,11 +72,11 @@ interface StateActions {
   resetGameState: () => void;
   setGameStateManager: (manager: any) => void;
 
-  // Bomb-related actions
-  collectBomb: (bombOrder: number) => { isValid: boolean; isCorrect: boolean };
-  setBombs: (bombs: Bomb[]) => void;
-  setBombManager: (bombManager: BombManager) => void;
-  resetBombState: () => void;
+  // Founding-related actions
+  collectFounding: (foundingOrder: number) => { isValid: boolean; isCorrect: boolean };
+  setFoundings: (foundings: Founding[]) => void;
+  setFoundingManager: (foundingManager: FoundingManager) => void;
+  resetFoundingState: () => void;
 
   // Tutorial actions
   setTutorialMission: (id: TutorialMissionId | null) => void;
@@ -103,11 +107,11 @@ export const useStateStore = create<StateStore>((set, get) => ({
   bonusAnimationComplete: false,
   gameStateManager: undefined,
 
-  bombs: [],
-  collectedBombs: [],
+  foundings: [],
+  collectedFoundings: [],
   correctOrderCount: 0,
-  nextBombOrder: 1,
-  bombManager: null,
+  nextFoundingOrder: 1,
+  foundingManager: null,
 
   tutorialMission: null,
   pendingTutorialMission: null,
@@ -234,7 +238,7 @@ export const useStateStore = create<StateStore>((set, get) => ({
         totalCoinsCollected: gameStats.totalCoinsCollected,
         totalPowerModeActivations: gameStats.totalPowerModeActivations,
         totalPCoinTierCollections: gameStats.totalPCoinTierCollections,
-        totalBombs: gameStats.totalBombs,
+        totalFoundings: gameStats.totalFoundings,
         totalCorrectOrders: gameStats.totalCorrectOrders,
         averageCompletionTime: gameStats.averageCompletionTime,
         gameEndReason: "failed",
@@ -295,88 +299,91 @@ export const useStateStore = create<StateStore>((set, get) => ({
     set({ gameStateManager: manager });
   },
 
-  // Bomb actions
-  collectBomb: (bombOrder: number) => {
-    const { bombs, bombManager } = get();
+  // Founding actions
+  collectFounding: (foundingOrder: number) => {
+    const { foundings, foundingManager } = get();
 
-    const bomb = bombs.find((b) => b.order === bombOrder);
-    if (!bomb || !bombManager) {
-      log.warn("Bomb or bomb manager not found");
+    const founding = foundings.find((b) => b.order === foundingOrder);
+    if (!founding || !foundingManager) {
+      log.warn("Founding or founding manager not found");
       return { isValid: false, isCorrect: false };
     }
 
-    const result = bombManager.handleBombClick(bomb.group, bomb.order);
+    const result = foundingManager.handleFoundingClick(founding.group, founding.order);
 
     if (!result.isValid) {
       return { isValid: false, isCorrect: false };
     }
 
-    // Determine if this is a firebomb (next correct bomb in sequence)
-    const isFirebomb = result.isCorrect;
+    // Determine if this is a firefounding (next correct founding in sequence)
+    const isFirefounding = result.isCorrect;
 
     // Get current multiplier from the score store
     const scoreStore = useScoreStore.getState();
     const currentMultiplier = scoreStore.multiplier;
 
     // Calculate score using utility function
-    const scoreCalculation = calculateBombScore(isFirebomb, currentMultiplier);
+    const scoreCalculation = calculateFoundingScore(isFirefounding, currentMultiplier);
 
     // Add score to game state
     scoreStore.addScore(scoreCalculation.actualPoints);
 
     // BJ: multiplier advances ONLY via B-coin pickup, not via score thresholds.
 
-    // Notify coin manager. Bomb points (correct + incorrect) count toward
+    // Notify coin manager. Founding points (correct + incorrect) count toward
     // the BJ B-coin 5K threshold (bjRules.isThresholdablePointSource).
     const coinStore = useCoinStore.getState();
     if (coinStore.coinManager) {
-      coinStore.coinManager.onFirebombPointsEarned(scoreCalculation.actualPoints); // stats only
+      coinStore.coinManager.onFirefoundingPointsEarned(scoreCalculation.actualPoints); // stats only
       coinStore.onPointsEarned(scoreCalculation.actualPoints, false);
     }
 
-    // Log the score (only for firebombs or high scores to reduce spam)
-    if (isFirebomb || scoreCalculation.actualPoints >= 400) {
+    // Log the score (only for firefoundings or high scores to reduce spam)
+    if (isFirefounding || scoreCalculation.actualPoints >= 400) {
       log.score(formatScoreLog(scoreCalculation));
     }
 
-    // Add floating text for correct bomb collection
-    if (isFirebomb) {
-      const bomb = bombs.find((b) => b.order === bombOrder);
-      if (bomb) {
+    // Add floating text for correct founding collection
+    if (isFirefounding) {
+      const founding = foundings.find((b) => b.order === foundingOrder);
+      if (founding) {
         const renderStore = useRenderStore.getState();
-        const text = `${scoreCalculation.actualPoints}`;
+        const text = formatScoreText(
+          scoreCalculation.basePoints,
+          scoreCalculation.multiplier
+        );
         renderStore.addFloatingText(
           text,
-          bomb.x + bomb.width / 2,
-          bomb.y + bomb.height / 2,
+          founding.x + founding.width / 2,
+          founding.y + founding.height / 2,
           1000, // duration
-          "#FFD700", // color
+          "#fff", // color
           15 // fontSize
         );
       }
     }
 
-    const updatedBombs = bombs.map((b) => {
-      if (b.order === bombOrder) {
+    const updatedFoundings = foundings.map((b) => {
+      if (b.order === foundingOrder) {
         return { ...b, isCollected: true, isCorrect: result.isCorrect };
       }
 
-      const nextGroup = bombManager.getActiveGroup();
-      const nextOrder = bombManager.getNextBombOrder();
-      const isNextBomb =
+      const nextGroup = foundingManager.getActiveGroup();
+      const nextOrder = foundingManager.getNextFoundingOrder();
+      const isNextFounding =
         nextGroup !== null &&
         nextOrder !== null &&
         b.group === nextGroup &&
         b.order === nextOrder &&
         !b.isCollected;
 
-      return { ...b, isBlinking: isNextBomb };
+      return { ...b, isBlinking: isNextFounding };
     });
 
     set({
-      bombs: updatedBombs,
-      correctOrderCount: bombManager.getCorrectOrderCount(),
-      collectedBombs: Array.from(bombManager.getCollectedBombs()).map((id) => {
+      foundings: updatedFoundings,
+      correctOrderCount: foundingManager.getCorrectOrderCount(),
+      collectedFoundings: Array.from(foundingManager.getCollectedFoundings()).map((id) => {
         const [group, order] = id.split("-").map(Number);
         return order;
       }),
@@ -385,21 +392,21 @@ export const useStateStore = create<StateStore>((set, get) => ({
     return { isValid: true, isCorrect: result.isCorrect };
   },
 
-  setBombs: (bombs: Bomb[]) => {
-    set({ bombs });
+  setFoundings: (foundings: Founding[]) => {
+    set({ foundings });
   },
 
-  setBombManager: (bombManager: BombManager) => {
-    set({ bombManager });
+  setFoundingManager: (foundingManager: FoundingManager) => {
+    set({ foundingManager });
   },
 
-  resetBombState: () => {
+  resetFoundingState: () => {
     set({
-      bombs: [],
-      collectedBombs: [],
+      foundings: [],
+      collectedFoundings: [],
       correctOrderCount: 0,
-      nextBombOrder: 1,
-      bombManager: null,
+      nextFoundingOrder: 1,
+      foundingManager: null,
     });
   },
 

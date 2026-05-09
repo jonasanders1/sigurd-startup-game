@@ -7,11 +7,11 @@
 export const SHOW_HITBOXES = false;
 
 /**
- * Show the on-canvas spawn / respawn countdown indicators (the pulsating
- * rectangles with a "3/2/1" countdown that appear before a monster spawns
- * or respawns). Independent of DEV_CONFIG.ENABLED.
+ * Show the on-canvas spawn / respawn warning animation that plays in the
+ * final ~3 s before a monster spawns or respawns. Independent of
+ * DEV_CONFIG.ENABLED.
  */
-export const SHOW_SPAWN_INDICATORS = false;
+export const SHOW_SPAWN_INDICATORS = true;
 
 /**
  * Dev/preview mock balance, used only when no host bridge is present.
@@ -25,7 +25,7 @@ interface LevelHistoryMock {
   level: number;
   mapName: string;
   correctOrderCount: number;
-  totalBombs: number;
+  totalFoundings: number;
   score: number;
   bonus: number;
   hasBonus: boolean;
@@ -64,7 +64,7 @@ export const DEV_CONFIG = {
         level: 1,
         mapName: "startup lab",
         correctOrderCount: 15,
-        totalBombs: 15,
+        totalFoundings: 15,
         score: 12500,
         bonus: 30000,
         hasBonus: true,
@@ -80,7 +80,7 @@ export const DEV_CONFIG = {
         level: 2,
         mapName: "innovasjon norge",
         correctOrderCount: 20,
-        totalBombs: 20,
+        totalFoundings: 20,
         score: 18500,
         bonus: 50000,
         hasBonus: true,
@@ -96,7 +96,7 @@ export const DEV_CONFIG = {
         level: 3,
         mapName: "skatteetaten",
         correctOrderCount: 8,
-        totalBombs: 12,
+        totalFoundings: 12,
         score: 8500,
         bonus: 0,
         hasBonus: false,

@@ -17,7 +17,7 @@ const flavorFor = (
   switch (missionId) {
     case TutorialMissionId.MOVEMENTS:
       return "Du beveger deg som en konsulent på timepris.";
-    case TutorialMissionId.BOMBS:
+    case TutorialMissionId.FOUNDINGS:
       return "Skattefunn-godkjent — eller i det minste innsendt.";
     case TutorialMissionId.SURVIVE:
       return "Byråkratene stoppet for kaffepause. Lykke til neste gang.";

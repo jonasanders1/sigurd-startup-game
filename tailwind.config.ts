@@ -29,13 +29,26 @@ export default {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: {
+          DEFAULT: "var(--background)",
+          deep: "var(--background-deep)",
+        },
+        foreground: {
+          DEFAULT: "var(--foreground)",
+          muted: "var(--foreground-muted)",
+          dim: "var(--foreground-dim)",
+        },
+        surface: {
+          DEFAULT: "var(--surface)",
+          raised: "var(--surface-raised)",
+          line: "var(--surface-line)",
+        },
         primary: {
           DEFAULT: "var(--primary)",
           foreground: "var(--primary-foreground)",
           light: "var(--primary-light)",
           dark: "var(--primary-dark)",
+          ink: "var(--primary-ink)",
           "opacity-hover": "var(--primary-opacity-hover)",
         },
         secondary: {
@@ -55,6 +68,19 @@ export default {
         accent: {
           DEFAULT: "var(--accent)",
           foreground: "var(--accent-foreground)",
+          pink: "var(--accent-pink)",
+          "pink-soft": "var(--accent-pink-soft)",
+          purple: "var(--accent-purple)",
+          "purple-soft": "var(--accent-purple-soft)",
+          peach: "var(--accent-peach)",
+          "peach-soft": "var(--accent-peach-soft)",
+          red: "var(--accent-red)",
+          "red-soft": "var(--accent-red-soft)",
+        },
+        ok: {
+          DEFAULT: "var(--ok)",
+          soft: "var(--ok-soft)",
+          glow: "var(--ok-glow)",
         },
         popover: {
           DEFAULT: "var(--popover)",
@@ -77,6 +103,18 @@ export default {
         menu: {
           DEFAULT: "var(--menu-background)",
           foreground: "var(--menu-foreground)",
+        },
+        coin: {
+          lime: "var(--coin-lime)",
+          pink: "var(--coin-pink)",
+          purple: "var(--coin-purple)",
+          peach: "var(--coin-peach)",
+          blue: "var(--coin-blue)",
+          cyan: "var(--coin-cyan)",
+          yellow: "var(--coin-yellow)",
+          gray: "var(--coin-gray)",
+          red: "var(--coin-red)",
+          green: "var(--coin-green)",
         },
       },
       borderRadius: {

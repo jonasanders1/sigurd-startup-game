@@ -1,36 +1,38 @@
-import { Monster, isBirdMonster } from "../../types/interfaces";
+import { Monster, isWispMonster } from "../../types/interfaces";
 import { armMonsterAsLethal } from "../../lib/bjRules";
 import { MovementUtils } from "./MovementUtils";
 import { ScalingManager } from "../ScalingManager";
 import { GAME_CONFIG } from "../../types/constants";
+import { getDefaultBounds } from "../../config/monsterBounds";
+import { MonsterType } from "../../types/enums";
 import { PLAYFIELD_BOTTOM } from "../../config/floor";
 import { getTuned } from "../../stores/systems/tuningStore";
 import * as PF from "pathfinding";
 
 /**
- * Bird movement: discrete cardinal hops along an A*-planned path toward a
- * delayed snapshot of Jack's position. Bird is the only monster that uses
+ * Wisp movement: discrete cardinal hops along an A*-planned path toward a
+ * delayed snapshot of Jack's position. Wisp is the only monster that uses
  * pathfinding — everything else uses simpler ricochet/blend movement.
  *
  * Per hop:
- *   1. Refresh the delayed player snapshot if BIRD_TARGET_DELAY_MS has
+ *   1. Refresh the delayed player snapshot if WISP_TARGET_DELAY_MS has
  *      elapsed since the last sample.
  *   2. If resting, stand still until the rest window expires.
- *   3. If no hop in flight, plan one: A* from the bird's current cell to
- *      the target; step BIRD_HOP_DISTANCE in the cardinal direction toward
+ *   3. If no hop in flight, plan one: A* from the wisp's current cell to
+ *      the target; step WISP_HOP_DISTANCE in the cardinal direction toward
  *      the path's first waypoint. (No cache — a 50 px hop overshoots
  *      multiple cell-sized waypoints, so cached paths read stale
  *      "backwards" waypoints next plan.)
- *   4. Animate toward the hop target at the bird's scaled speed; on
+ *   4. Animate toward the hop target at the wisp's scaled speed; on
  *      arrival, clear the target and start the rest timer.
  *
- * A* inflates platforms/ground by the bird's body so the full hitbox fits
+ * A* inflates platforms/ground by the wisp's body so the full hitbox fits
  * through gaps; bounded at ASTAR_MAX_ITERATIONS to prevent runaway costs.
  */
 
-const CELL_SIZE = Math.ceil(GAME_CONFIG.MONSTER_SIZE / 2);
+const CELL_SIZE = Math.ceil(getDefaultBounds(MonsterType.WISP).width / 2);
 const PF_FINDER = new PF.AStarFinder({
-  // Cardinal-only — bird hops on a single axis at a time.
+  // Cardinal-only — wisp hops on a single axis at a time.
   diagonalMovement: PF.DiagonalMovement.Never,
   heuristic: PF.Heuristic.manhattan,
 });
@@ -42,7 +44,7 @@ export class ChaserMovement {
     gameState: any,
     deltaTime?: number
   ): void {
-    if (!isBirdMonster(monster)) return;
+    if (!isWispMonster(monster)) return;
     if (gameState.currentState !== "PLAYING") return;
     const player = gameState.player;
     if (!player) return;
@@ -53,7 +55,7 @@ export class ChaserMovement {
     const platforms = gameState.platforms || [];
 
     // Refresh the delayed player snapshot.
-    const delay = getTuned("BIRD_TARGET_DELAY_MS");
+    const delay = getTuned("WISP_TARGET_DELAY_MS");
     if (
       monster.lastSeenAt === undefined ||
       currentTime - monster.lastSeenAt >= delay
@@ -91,7 +93,7 @@ export class ChaserMovement {
       monster.y = monster.hopTargetY as number;
       monster.hopTargetX = undefined;
       monster.hopTargetY = undefined;
-      monster.nextHopTime = currentTime + getTuned("BIRD_HOP_REST_MS");
+      monster.nextHopTime = currentTime + getTuned("WISP_HOP_REST_MS");
       return;
     }
     monster.x += Math.sign(dx) * Math.min(frameSpeed, Math.abs(dx));
@@ -101,7 +103,7 @@ export class ChaserMovement {
   /**
    * Pick the next hop direction. Runs A* to the target, then walks along
    * the path while it stays on the same cardinal axis, capping at
-   * BIRD_HOP_DISTANCE. The hop target = last waypoint reached before a
+   * WISP_HOP_DISTANCE. The hop target = last waypoint reached before a
    * direction change or distance cap.
    *
    * This is the key fix vs. naïve "hop hopDist toward path[0]": A*'s first
@@ -119,15 +121,15 @@ export class ChaserMovement {
     platforms: any[],
     currentTime: number
   ): void {
-    const hopDist = getTuned("BIRD_HOP_DISTANCE");
+    const hopDist = getTuned("WISP_HOP_DISTANCE");
     const path = this.findPath(monster, target, platforms);
 
     // Pick the dominant axis from the net direction over the first few
     // path waypoints. Looking only at path[0] caused oscillation: A* with
     // Manhattan heuristic has many equally-good cardinal-only paths, and
-    // PathFinding.js's tiebreak picks differently as the bird moves
+    // PathFinding.js's tiebreak picks differently as the wisp moves
     // between cells. With the player off-axis, path[0] would alternate
-    // between up and down each plan, locking the bird at the same x. By
+    // between up and down each plan, locking the wisp at the same x. By
     // summing the net delta across `horizon` waypoints we recover the
     // overall path direction (which is dominated by the bigger axis to
     // the target) and break the tie consistently.
@@ -187,12 +189,12 @@ export class ChaserMovement {
     const altY = dirX !== 0 ? Math.sign(target.y - monster.y) * hopDist : 0;
     if (tryStep(altX, altY)) return;
 
-    monster.nextHopTime = currentTime + getTuned("BIRD_HOP_REST_MS");
+    monster.nextHopTime = currentTime + getTuned("WISP_HOP_REST_MS");
   }
 
   /**
    * Build a PathFinding.js grid (1=walkable, 0=blocked), inflating platforms
-   * by the bird's body so the full hitbox fits through gaps. Run
+   * by the wisp's body so the full hitbox fits through gaps. Run
    * AStarFinder; return path as pixel-coord waypoints (top-left aligned to
    * cell origin). Returns null on no path / same-cell start.
    */
@@ -203,7 +205,7 @@ export class ChaserMovement {
   ): { x: number; y: number }[] | null {
     const cols = Math.ceil(GAME_CONFIG.CANVAS_WIDTH / CELL_SIZE);
     // Restrict the A* grid to the playable area; the floor strip is ground
-    // and the bird never planning into it keeps hops along the floor-top.
+    // and the wisp never planning into it keeps hops along the floor-top.
     const rows = Math.ceil(PLAYFIELD_BOTTOM / CELL_SIZE);
 
     const startCol = Math.min(cols - 1, Math.max(0, Math.floor(monster.x / CELL_SIZE)));

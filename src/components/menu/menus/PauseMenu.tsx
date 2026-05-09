@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useStateStore } from "../../../stores/gameStore";
 import { useBalanceStore } from "../../../stores/systems/balanceStore";
-import { deductCredits } from "../../../lib/gameBridge";
+import { deductCredits, openPurchasePage } from "../../../lib/gameBridge";
 
 import { Play, Settings, RotateCcw } from "lucide-react";
 
@@ -26,6 +26,11 @@ const PauseMenu: React.FC = () => {
   const restartGame = async () => {
     if (isDeducting) return;
 
+    if (hasBridge && insufficientFunds) {
+      openPurchasePage();
+      return;
+    }
+
     if (hasBridge) {
       setIsDeducting(true);
       const result = await deductCredits(1);
@@ -43,36 +48,44 @@ const PauseMenu: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <div className="text-center mb-6">
-        <h1 className="text-5xl font-pixel text-foreground tracking-wide">PAUSE</h1>
-        <p className="text-sm text-[var(--foreground-dim)] mt-2">Trykk P for å fortsette</p>
+        <h1 className="text-5xl font-pixel text-foreground tracking-wide">
+          PAUSE
+        </h1>
+        <p className="text-sm text-[var(--foreground-dim)] mt-2">
+          Trykk P for å fortsette
+        </p>
       </div>
 
-      <div className="space-y-3 w-64">
+      <div className="space-y-3 w-[50%]">
         <Button onClick={resumeGame} className="w-full uppercase">
           <Play size={20} />
           Fortsett
         </Button>
 
-        <Button onClick={openSettings} variant="secondary" className="w-full uppercase">
+        <Button
+          onClick={openSettings}
+          variant="secondary"
+          className="w-full uppercase"
+        >
           <Settings size={20} />
           Innstillinger
         </Button>
 
-        {insufficientFunds && hasBridge ? (
-          <div className="text-center py-2 px-4 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-sm">
-            <p className="text-[var(--accent-red)] font-pixel text-xs">IKKE NOK MYNTER</p>
-          </div>
-        ) : (
-          <Button
-            onClick={restartGame}
-            variant="secondary"
-            disabled={isDeducting}
-            className={`w-full uppercase text-sm tracking-normal ${isDeducting ? "opacity-70" : ""}`}
-          >
-            <RotateCcw size={20} />
-            {isDeducting ? "Venter..." : hasBridge ? "Start på nytt (1 mynt)" : "Start på nytt"}
-          </Button>
-        )}
+        <Button
+          onClick={restartGame}
+          variant="secondary"
+          disabled={isDeducting}
+          className={`w-full uppercase text-sm tracking-normal ${isDeducting ? "opacity-70" : ""}`}
+        >
+          <RotateCcw size={20} />
+          {isDeducting
+            ? "Venter..."
+            : hasBridge && insufficientFunds
+              ? "Kjøp FORRETNINGSIDÉER"
+              : hasBridge
+                ? "Start på nytt (1 forretningsidé)"
+                : "Start på nytt"}
+        </Button>
 
         <button
           onClick={quitToMenu}

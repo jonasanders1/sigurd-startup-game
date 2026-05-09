@@ -15,7 +15,7 @@ export enum LogCategory {
   PLAYER = "player",
   MONSTER = "monster",
   COIN = "coin",
-  BOMB = "bomb",
+  FOUNDING = "founding",
   POWER = "power",
   LEVEL = "level",
   SCORE = "score",
@@ -55,7 +55,7 @@ const CATEGORY_ICONS: Record<LogCategory, string> = {
   [LogCategory.PLAYER]: "👤",
   [LogCategory.MONSTER]: "👹",
   [LogCategory.COIN]: "🪙",
-  [LogCategory.BOMB]: "💣",
+  [LogCategory.FOUNDING]: "💣",
   [LogCategory.POWER]: "⚡",
   [LogCategory.LEVEL]: "🏁",
   [LogCategory.SCORE]: "📊",
@@ -77,7 +77,7 @@ const CATEGORY_COLORS: Record<LogCategory, string> = {
   [LogCategory.PLAYER]: "#abdd64", // Teal
   [LogCategory.MONSTER]: "#8B4513", // Brown
   [LogCategory.COIN]: "#FFD700", // Gold
-  [LogCategory.BOMB]: "#FF4500", // Orange Red
+  [LogCategory.FOUNDING]: "#FF4500", // Orange Red
   [LogCategory.POWER]: "#9370DB", // Medium Purple
   [LogCategory.LEVEL]: "#32CD32", // Lime Green
   [LogCategory.SCORE]: "#1E90FF", // Dodger Blue
@@ -181,9 +181,9 @@ export class Logger {
         // Filtering presets
         player: () => this.showOnly(LogCategory.PLAYER),
         audio: () => this.showOnly(LogCategory.AUDIO),
-        bombs: () =>
+        foundings: () =>
           this.enableCategories([
-            LogCategory.BOMB,
+            LogCategory.FOUNDING,
             LogCategory.PLAYER,
             LogCategory.SCORE,
           ]),
@@ -198,7 +198,7 @@ export class Logger {
             LogCategory.PLAYER,
             LogCategory.MONSTER,
             LogCategory.COIN,
-            LogCategory.BOMB,
+            LogCategory.FOUNDING,
             LogCategory.POWER,
             LogCategory.SCORE,
           ]),
@@ -213,7 +213,7 @@ export class Logger {
 
         // Category-specific filters (singular names as aliases)
         coin: () => this.showOnly(LogCategory.COIN),
-        bomb: () => this.showOnly(LogCategory.BOMB),
+        founding: () => this.showOnly(LogCategory.FOUNDING),
         monster: () => this.showOnly(LogCategory.MONSTER),
         power: () => this.showOnly(LogCategory.POWER),
         level: () => this.showOnly(LogCategory.LEVEL),
@@ -285,8 +285,8 @@ export class Logger {
     // Note: These values would need to be fetched from the actual game state
     // This is a display-only method that shows the structure
     console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
-    console.log("  Spawn Condition: Every 9 firebombs collected in correct order");
-    console.log("  Check current status: gameLog.coinSpawn() then collect firebombs");
+    console.log("  Spawn Condition: Every 9 firefoundings collected in correct order");
+    console.log("  Check current status: gameLog.coinSpawn() then collect firefoundings");
     
     console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
     console.log("  Spawn Condition: Every 5000 points from coin collection only");
@@ -318,14 +318,14 @@ export class Logger {
     if (gameState && coinManager) {
       // Show actual current values
       console.log("%c📍 P-Coin (Power Coin):", "color: #FF0000; font-weight: bold;");
-      console.log(`  Firebombs collected: ${coinManager.getFirebombCount() || 0}`);
-      console.log(`  Next P-coin at: ${Math.ceil((coinManager.getFirebombCount() || 0) / 9) * 9} firebombs`);
-      console.log(`  Progress: ${(coinManager.getFirebombCount() || 0) % 9}/9`);
+      console.log(`  Firefoundings collected: ${coinManager.getFirefoundingCount() || 0}`);
+      console.log(`  Next P-coin at: ${Math.ceil((coinManager.getFirefoundingCount() || 0) / 9) * 9} firefoundings`);
+      console.log(`  Progress: ${(coinManager.getFirefoundingCount() || 0) % 9}/9`);
       
       console.log("%c\n📍 B-Coin (Bonus Multiplier):", "color: #e9b300; font-weight: bold;");
-      console.log(`  Coin points earned: ${coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 'N/A'}`);
-      console.log(`  Next B-coin at: ${Math.ceil(((coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 0) / 5000)) * 5000} points`);
-      console.log(`  Progress: ${(coinManager.getBombAndMonsterPoints ? coinManager.getBombAndMonsterPoints() : 0) % 5000}/5000`);
+      console.log(`  Coin points earned: ${coinManager.getFoundingAndMonsterPoints ? coinManager.getFoundingAndMonsterPoints() : 'N/A'}`);
+      console.log(`  Next B-coin at: ${Math.ceil(((coinManager.getFoundingAndMonsterPoints ? coinManager.getFoundingAndMonsterPoints() : 0) / 5000)) * 5000} points`);
+      console.log(`  Progress: ${(coinManager.getFoundingAndMonsterPoints ? coinManager.getFoundingAndMonsterPoints() : 0) % 5000}/5000`);
       
       console.log("%c\n📍 M-Coin (Extra Life):", "color: #ef4444; font-weight: bold;");
       console.log(`  B-coins collected: ${gameState.totalBonusMultiplierCoinsCollected || 0}`);
@@ -364,7 +364,7 @@ export class Logger {
     console.log("%c🎯 Quick Filters:", "color: #FFD700; font-weight: bold;");
     console.log("  gameLog.player()        - Show only player logs");
     console.log("  gameLog.audio()         - Show only audio logs");
-    console.log("  gameLog.bombs()         - Show bomb progression");
+    console.log("  gameLog.foundings()         - Show founding progression");
     console.log("  gameLog.coins()         - Show coin collection");
     console.log("  gameLog.coinSpawn()     - Show coin spawn debugging");
     console.log("  gameLog.coinConditions()- Show coin spawn conditions info");
@@ -372,7 +372,7 @@ export class Logger {
     console.log("  gameLog.gameplay()      - Show all gameplay logs");
     console.log("  gameLog.technical()     - Show technical logs");
     console.log("  gameLog.coin()          - Show only coin logs (singular)");
-    console.log("  gameLog.bomb()          - Show only bomb logs (singular)");
+    console.log("  gameLog.founding()          - Show only founding logs (singular)");
 
     console.log(
       "%c\n🔧 Category Control:",
@@ -595,8 +595,8 @@ export class Logger {
     this.log(LogLevel.INFO, LogCategory.COIN, message, ...args);
   }
 
-  public bomb(message: string, ...args: any[]): void {
-    this.log(LogLevel.INFO, LogCategory.BOMB, message, ...args);
+  public founding(message: string, ...args: any[]): void {
+    this.log(LogLevel.INFO, LogCategory.FOUNDING, message, ...args);
   }
 
   public power(message: string, ...args: any[]): void {
@@ -713,7 +713,7 @@ export const log = {
   monster: (message: string, ...args: unknown[]) =>
     logger.monster(message, ...args),
   coin: (message: string, ...args: unknown[]) => logger.coin(message, ...args),
-  bomb: (message: string, ...args: unknown[]) => logger.bomb(message, ...args),
+  founding: (message: string, ...args: unknown[]) => logger.founding(message, ...args),
   power: (message: string, ...args: unknown[]) =>
     logger.power(message, ...args),
   level: (message: string, ...args: unknown[]) =>

@@ -10,10 +10,15 @@ export type AnimationState = {
   lastDirection: "left" | "right";
 };
 
+/** ms after touching down to keep playing the land animation. */
+const LAND_DURATION_MS = 240;
+
 export class AnimationController {
   private sprite: SpriteInstance;
   private currentState: AnimationState;
   private isMapCleared: boolean = false;
+  private wasGrounded: boolean = true;
+  private landingUntil: number = 0;
 
   constructor(sprite: SpriteInstance) {
     this.sprite = sprite;
@@ -51,6 +56,12 @@ export class AnimationController {
       this.isMapCleared = false;
     }
 
+    // Detect the air→ground transition and arm the land window.
+    if (!this.wasGrounded && isGrounded) {
+      this.landingUntil = performance.now() + LAND_DURATION_MS;
+    }
+    this.wasGrounded = isGrounded;
+
     this.currentState = newState;
     this.updateAnimation();
   }
@@ -69,14 +80,21 @@ export class AnimationController {
       lastDirection,
     } = this.currentState;
 
+    // Map-cleared victory takes priority once Sigurd is grounded.
+    if (this.isMapCleared && isGrounded) {
+      this.handleVictoryAnimations(lastDirection);
+      return;
+    }
+
     if (isFloating) {
       this.handleFloatAnimations(moveDirection, lastDirection);
     } else if (!isGrounded) {
       this.handleAirAnimations(moveDirection, lastDirection);
+    } else if (performance.now() < this.landingUntil) {
+      this.handleLandAnimations(lastDirection);
     } else if (isMoving) {
-      this.handleWalkAnimations(moveDirection);
+      this.handleRunAnimations(moveDirection);
     } else {
-      // On ground and not moving — idle (covers both normal idle and victory).
       this.handleIdleAnimations(lastDirection);
     }
   }
@@ -85,42 +103,56 @@ export class AnimationController {
     moveDirection: "left" | "right" | "none",
     lastDirection: "left" | "right"
   ): void {
-    // Use fall sprite while descending, jump sprite while rising
-    const verb = this.currentState.isFalling ? "fall" : "jump";
+    // Airborne + holding a direction → frozen mid-run pose.
     if (moveDirection === "right") {
-      this.sprite.setAnimationPreserveFrame(`${verb}-right`);
-    } else if (moveDirection === "left") {
-      this.sprite.setAnimationPreserveFrame(`${verb}-left`);
-    } else {
-      const animation =
-        lastDirection === "right" ? `${verb}-right` : `${verb}-left`;
-      this.sprite.setAnimationPreserveFrame(animation);
+      this.sprite.setAnimation("air-move-right");
+      return;
     }
+    if (moveDirection === "left") {
+      this.sprite.setAnimation("air-move-left");
+      return;
+    }
+    // No directional input → normal jump/fall animation.
+    const verb = this.currentState.isFalling ? "fall" : "jump";
+    const animation =
+      lastDirection === "right" ? `${verb}-right` : `${verb}-left`;
+    this.sprite.setAnimationPreserveFrame(animation);
   }
 
   private handleFloatAnimations(
     moveDirection: "left" | "right" | "none",
-    lastDirection: "left" | "right"
+    _lastDirection: "left" | "right"
   ): void {
     if (moveDirection === "right") {
       this.sprite.setAnimation("float-right");
     } else if (moveDirection === "left") {
       this.sprite.setAnimation("float-left");
     } else {
-      this.sprite.setAnimation("float-stationary");
+      // Stationary float = the dedicated straight-down pose.
+      this.sprite.setAnimation("float-down");
     }
   }
 
-  private handleWalkAnimations(moveDirection: "left" | "right" | "none"): void {
+  private handleRunAnimations(moveDirection: "left" | "right" | "none"): void {
     if (moveDirection === "right") {
-      this.sprite.setAnimation("walk-right");
+      this.sprite.setAnimation("run-right");
     } else if (moveDirection === "left") {
-      this.sprite.setAnimation("walk-left");
+      this.sprite.setAnimation("run-left");
     }
   }
 
   private handleIdleAnimations(lastDirection: "left" | "right"): void {
     const animation = lastDirection === "right" ? "idle-right" : "idle-left";
+    this.sprite.setAnimation(animation);
+  }
+
+  private handleLandAnimations(lastDirection: "left" | "right"): void {
+    const animation = lastDirection === "right" ? "land-right" : "land-left";
+    this.sprite.setAnimation(animation);
+  }
+
+  private handleVictoryAnimations(lastDirection: "left" | "right"): void {
+    const animation = lastDirection === "right" ? "victory-right" : "victory-left";
     this.sprite.setAnimation(animation);
   }
 
@@ -130,5 +162,7 @@ export class AnimationController {
 
   reset(): void {
     this.isMapCleared = false;
+    this.wasGrounded = true;
+    this.landingUntil = 0;
   }
 }

@@ -55,13 +55,13 @@ interface BaseMonster {
   // ignored. Set to `true` by each movement class on its first direction
   // change / target update / bounce. Undefined ≡ true (lethal) for monsters
   // that don't go through a movement class with this wiring (e.g. airborne
-  // forms produced by Mummy transformation).
+  // forms produced by Bureaucrat transformation).
   isLethal?: boolean;
   spawnTime?: number; // When this monster was spawned
   lastDirectionChange?: number; // For behavior timing
-  // Wall-clock timestamps used by Bird's hop-and-pause logic. Lifted onto
+  // Wall-clock timestamps used by Wisp's hop-and-pause logic. Lifted onto
   // BaseMonster so the power-mode unfreeze path can shift them generically
-  // without a cast. Undefined for non-Bird types.
+  // without a cast. Undefined for non-Wisp types.
   lastSeenAt?: number;
   nextHopTime?: number;
   behaviorState?: string; // Current behavior state
@@ -72,9 +72,25 @@ interface BaseMonster {
   isGrounded?: boolean;
   gravity?: number;
   isFalling?: boolean; // Whether the monster is currently falling
-  /** Y at the moment a Mummy started phase-2 gravity fall. Used by the
+  /** Y at the moment a Bureaucrat started phase-2 gravity fall. Used by the
    *  swept-landing detector and the source-platform clearance gate. */
   fallStartY?: number;
+  /** Bureaucrat ground-impact transition phase (BJ §5.1.2). When true the bureaucrat
+   *  plays the transition animation in place; on completion it either
+   *  transforms (CONSULTANT/ROBOT) or dies. Movement and collision are paused
+   *  while transitioning. */
+  isTransitioning?: boolean;
+  /** Wall-clock time the transition started, used to time out the phase. */
+  transitionStartTime?: number;
+  /** Bump animation axis for airborne floaters (Robot/Consultant/Founder/Wisp). When
+   *  set, the renderer plays bump-${axis}-${dir} once and clears the field
+   *  on completion. */
+  bumpAxis?: "horizontal" | "vertical";
+  /** Direction (-1 = left, 1 = right) the bump is facing. */
+  bumpDirection?: -1 | 1;
+  /** Wall-clock time the bump started. Useful as a safety timeout if the
+   *  one-shot animation never completes. */
+  bumpedAt?: number;
   currentPlatform?: Platform | null; // Current platform the monster is on
   spawnSide?: 'left' | 'right'; // Which side of the platform it spawned on
   walkLengths?: number; // How many times to walk across the platform before falling
@@ -85,9 +101,9 @@ interface BaseMonster {
   deathTime?: number; // When the monster was killed
   respawnTime?: number; // When the monster should respawn
   originalSpawnPoint?: { x: number; y: number }; // Original spawn position for respawning
-  // Pre-transform snapshot. Set by Mummy's ground-impact transformation
-  // (PatrolMovement.transformMummyOnGround) so a mummy killed AFTER it has
-  // mutated into SPHERE/ORB respawns as a fresh mummy instead of the
+  // Pre-transform snapshot. Set by Bureaucrat's ground-impact transformation
+  // (PatrolMovement.transformBureaucratOnGround) so a bureaucrat killed AFTER it has
+  // mutated into CONSULTANT/ROBOT respawns as a fresh bureaucrat instead of the
   // transformed form. Cleared by resetMonsterState on respawn. Undefined
   // for monsters that never transformed.
   originalType?: string;
@@ -105,31 +121,32 @@ interface BaseMonster {
   speedMultiplier?: number;
   spawnPauseTime?: number;
 
-  // Hitbox bookkeeping written by applyHitboxToMonster — kept on the monster
+  // Hitbox bookkeeping written by applyBoundsToMonster — kept on the monster
   // so the natural anchor stays stable across per-frame hitbox swaps.
-  _hitboxOffsetX?: number;
-  _hitboxOffsetY?: number;
-  _hitboxRotation?: number;
+  _boundsOffsetX?: number;
+  _boundsOffsetY?: number;
+  _boundsRotation?: number;
 }
 
-// Patrol monster (horizontal and vertical)
+// Horizontal-patrol bureaucrat
 interface PatrolMonster extends BaseMonster {
-  type: "MUMMY" | "VERTICAL_PATROL";
+  type: "BUREAUCRAT";
   patrolStartX: number;
   patrolEndX: number;
-  patrolStartY?: number; // For vertical patrol
-  patrolEndY?: number; // For vertical patrol
-  patrolSide?: "left" | "right"; // Which side of platform to patrol on (for vertical patrol)
-  targetPlatformX?: number; // Target platform X position for vertical patrol monsters
-  variant?: "green" | "black"; // Visual variant for byråkrat sprites
-  /** Per-mummy ground-impact transform target (BJ §5.1.2). Defaults to
-   *  "SPHERE" if absent. "NONE" = die instead of mutating. */
-  transformTarget?: "SPHERE" | "ORB" | "NONE";
+  /** Per-bureaucrat ground-impact transform target (BJ §5.1.2). Defaults to
+   *  "CONSULTANT" if absent. "NONE" = die instead of mutating. */
+  transformTarget?: "CONSULTANT" | "ROBOT" | "NONE";
+  // Snapshot of the spawn-time platform bounds. updateFallingBureaucrat rewrites
+  // patrolStartX/EndX when a dropped bureaucrat lands on a different platform; on
+  // respawn we restore from these so the bureaucrat patrols its original platform
+  // again instead of inheriting bounds from where it died.
+  originalPatrolStartX?: number;
+  originalPatrolEndX?: number;
 }
 
-// Bird monster (BJ §5.1.1) — Manhattan-cardinal hop-and-pause toward Jack.
-interface BirdMonster extends BaseMonster {
-  type: "BIRD";
+// Wisp monster (BJ §5.1.1) — Manhattan-cardinal hop-and-pause toward Jack.
+interface WispMonster extends BaseMonster {
+  type: "WISP";
   patrolStartX: number;
   patrolEndX: number;
   patrolStartY?: number;
@@ -139,21 +156,21 @@ interface BirdMonster extends BaseMonster {
   chaseTargetY?: number; // legacy
   chaseUpdateInterval?: number; // legacy
   /** Destination of the current hop (axis-locked, fixed-distance). Cleared
-   *  on arrival; the bird then rests until `nextHopTime` (on BaseMonster)
+   *  on arrival; the wisp then rests until `nextHopTime` (on BaseMonster)
    *  before picking a fresh hop direction. */
   hopTargetX?: number;
   hopTargetY?: number;
-  /** Delayed snapshot of the player's position the bird is chasing. Refreshed
-   *  every `BIRD_TARGET_DELAY_MS`; planNextHop reads from this instead of
-   *  the live player so the bird tracks where Jack WAS, not where he is.
+  /** Delayed snapshot of the player's position the wisp is chasing. Refreshed
+   *  every `WISP_TARGET_DELAY_MS`; planNextHop reads from this instead of
+   *  the live player so the wisp tracks where Jack WAS, not where he is.
    *  Refreshed timestamp lives on BaseMonster.lastSeenAt. */
   lastSeenPlayerX?: number;
   lastSeenPlayerY?: number;
 }
 
 // Ambusher monster
-interface UfoMonster extends BaseMonster {
-  type: "UFO";
+interface TaxGhostMonster extends BaseMonster {
+  type: "TAXGHOST";
   targetX?: number; // For wandering behavior
   targetY?: number; // For wandering behavior
   ambushCooldown?: number; // Time until next ambush
@@ -162,8 +179,8 @@ interface UfoMonster extends BaseMonster {
 }
 
 // Floater monster
-interface HornMonster extends BaseMonster {
-  type: "HORN";
+interface FounderMonster extends BaseMonster {
+  type: "FOUNDER";
   patrolStartX: number;
   patrolEndX: number;
   patrolStartY?: number;
@@ -171,42 +188,42 @@ interface HornMonster extends BaseMonster {
   startAngle?: number; // Starting angle in degrees for straight-line movement
 }
 
-// BJ airborne forms (Monster-Movments.md). Sphere/Orb bounce edge-to-edge
+// BJ airborne forms (Monster-Movments.md). Consultant/Robot bounce edge-to-edge
 // on one axis while homing on the other; Club does inertial 2D pursuit
 // with edge bouncing.
 interface AirborneMonster extends BaseMonster {
-  type: "SPHERE" | "ORB";
+  type: "CONSULTANT" | "ROBOT";
 }
 
 // Union type for all monster types
 export type Monster =
   | PatrolMonster
-  | BirdMonster
-  | UfoMonster
-  | HornMonster
+  | WispMonster
+  | TaxGhostMonster
+  | FounderMonster
   | AirborneMonster;
 
 // Type guard for the new airborne family.
 export const isAirborneMonster = (
   monster: Monster
 ): monster is AirborneMonster =>
-  monster.type === "SPHERE" || monster.type === "ORB";
+  monster.type === "CONSULTANT" || monster.type === "ROBOT";
 
 // Type guards for monster types
 export const isPatrolMonster = (monster: Monster): monster is PatrolMonster =>
-  monster.type === "MUMMY" || monster.type === "VERTICAL_PATROL";
+  monster.type === "BUREAUCRAT";
 
-export const isBirdMonster = (monster: Monster): monster is BirdMonster =>
-  monster.type === "BIRD";
+export const isWispMonster = (monster: Monster): monster is WispMonster =>
+  monster.type === "WISP";
 
-export const isUfoMonster = (
+export const isTaxGhostMonster = (
   monster: Monster
-): monster is UfoMonster => monster.type === "UFO";
+): monster is TaxGhostMonster => monster.type === "TAXGHOST";
 
-export const isHornMonster = (monster: Monster): monster is HornMonster =>
-  monster.type === "HORN";
+export const isFounderMonster = (monster: Monster): monster is FounderMonster =>
+  monster.type === "FOUNDER";
 
-export interface Bomb {
+export interface Founding {
   x: number;
   y: number;
   width: number;
@@ -293,7 +310,7 @@ export interface MapDefinition {
     y: number;
   };
   platforms: Platform[];
-  bombs: Bomb[];
+  foundings: Founding[];
   monsters: Monster[];
   coinSpawnPoints?: CoinSpawnPoint[];
   monsterSpawnPoints?: MonsterSpawnPoint[];
@@ -320,9 +337,7 @@ export interface MapDefinition {
  */
 export interface KillerInfo {
   type: string;
-  /** Mummy variant: "green" or "black". Undefined for other monster types. */
-  variant?: string;
-  /** Pre-transform type if the killer is a transformed Mummy (SPHERE/ORB
+  /** Pre-transform type if the killer is a transformed Bureaucrat (CONSULTANT/ROBOT
    *  killed the player after morphing). Undefined otherwise. */
   originalType?: string;
 }
@@ -333,11 +348,11 @@ export interface CollisionResult {
   penetration?: number;
 }
 
-export interface BombCollectionState {
-  collectedBombs: Set<string>;
-  correctBombs: Set<string>;
+export interface FoundingCollectionState {
+  collectedFoundings: Set<string>;
+  correctFoundings: Set<string>;
   activeGroup: number | null;
-  nextBombOrder: number | null;
+  nextFoundingOrder: number | null;
   gameStarted: boolean;
 }
 
@@ -352,7 +367,7 @@ export interface CoinState {
     powerMode: boolean;
     powerModeEndTime: number;
   };
-  firebombCount: number;
+  firefoundingCount: number;
 }
 
 // Comprehensive GameState interface for type safety
@@ -370,7 +385,7 @@ export interface GameStateInterface {
 
   // Collections
   monsters: Monster[];
-  bombs: Bomb[];
+  foundings: Founding[];
   coins: Coin[];
   platforms: Platform[];
 
@@ -381,7 +396,7 @@ export interface GameStateInterface {
   };
 
   // Counters
-  firebombCount: number;
+  firefoundingCount: number;
   totalCoinsCollected: number;
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
@@ -474,6 +489,6 @@ export interface DynamicSpawnSystem {
   difficultyScaling: {
     timeBased: boolean;
     scoreBased: boolean;
-    bombBased: boolean;
+    foundingBased: boolean;
   };
 }

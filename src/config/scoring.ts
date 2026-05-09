@@ -3,9 +3,9 @@
  * Contains points, multipliers, and bonus settings
  */
 
-export const BOMB_POINTS = {
-  NORMAL: 100, // Normal bomb base points
-  FIREBOMB: 200, // Firebomb (next correct bomb) base points
+export const FOUNDING_POINTS = {
+  NORMAL: 100, // Normal founding base points
+  FIREFOUNDING: 200, // Firefounding (next correct founding) base points
 } as const;
 
 export const MULTIPLIER_SYSTEM = {
@@ -22,8 +22,8 @@ export const MULTIPLIER_SYSTEM = {
 } as const;
 
 export const BONUS_POINTS = {
-  // End-of-level bonuses based on remaining bombs
-  23: 50000, // Perfect score - all bombs collected
+  // End-of-level bonuses based on remaining foundings
+  23: 50000, // Perfect score - all foundings collected
   22: 30000,
   21: 20000,
   20: 10000,

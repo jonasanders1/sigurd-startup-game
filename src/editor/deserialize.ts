@@ -6,7 +6,7 @@ import {
   MapMeta,
 } from "./types";
 import { newId } from "./defaults";
-import { GAME_CONFIG } from "../types/constants";
+import { getDefaultBounds } from "../config/monsterBounds";
 
 const monsterToEntity = (m: Monster, delayed: boolean): MonsterEntity => {
   const base: MonsterEntity = {
@@ -21,45 +21,40 @@ const monsterToEntity = (m: Monster, delayed: boolean): MonsterEntity => {
   };
 
   switch (m.type) {
-    case MonsterType.MUMMY: {
+    case MonsterType.BUREAUCRAT: {
       const platformWidth = (m.patrolEndX ?? m.x) - (m.patrolStartX ?? m.x);
+      // Bottom-anchored editor entity: y is the feet line (= platformY).
+      // Runtime createBureaucratMonster spawns at y = platformY - hitbox.height,
+      // so recover platformY = m.y + hitbox.height. Read hitbox dims from
+      // src/entities/Bureaucrat.ts via getDefaultBounds.
+      const platformY = m.y + getDefaultBounds(MonsterType.BUREAUCRAT).height;
       return {
         ...base,
+        y: platformY,
         platformX: m.patrolStartX ?? m.x,
-        platformY: m.y + GAME_CONFIG.MONSTER_SIZE,
+        platformY,
         platformWidth,
         spawnSide: m.direction >= 0 ? "left" : "right",
         walkLengths: m.walkLengths ?? 1,
         direction: m.direction,
-        variant: m.variant ?? "green",
-        transformTarget: m.transformTarget ?? "SPHERE",
+        transformTarget: m.transformTarget ?? "CONSULTANT",
       };
     }
-    case MonsterType.VERTICAL_PATROL: {
-      const patrolHeight = (m.patrolEndY ?? m.y) - (m.patrolStartY ?? m.y);
-      return {
-        ...base,
-        platformX: m.targetPlatformX ?? m.x,
-        patrolHeight,
-        side: m.patrolSide ?? "left",
-        direction: m.direction ?? 1,
-      };
-    }
-    case MonsterType.HORN:
+    case MonsterType.FOUNDER:
       return { ...base, startAngle: m.startAngle ?? 45 };
-    case MonsterType.BIRD:
+    case MonsterType.WISP:
       return {
         ...base,
         directness: m.directness ?? 0.2,
         updateInterval: m.chaseUpdateInterval ?? 500,
       };
-    case MonsterType.UFO:
+    case MonsterType.TAXGHOST:
       return {
         ...base,
         ambushInterval: 8000,
       };
-    case MonsterType.SPHERE:
-    case MonsterType.ORB:
+    case MonsterType.CONSULTANT:
+    case MonsterType.ROBOT:
       return base;
   }
 };
@@ -92,10 +87,10 @@ export const mapToEditor = (
     });
   }
 
-  for (const b of map.bombs) {
+  for (const b of map.foundings) {
     entities.push({
-      id: newId("bomb"),
-      kind: "bomb",
+      id: newId("founding"),
+      kind: "founding",
       x: b.x,
       y: b.y,
       order: b.order,

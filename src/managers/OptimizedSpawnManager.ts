@@ -1,6 +1,7 @@
 import { Monster, MonsterSpawnPoint } from "../types/interfaces";
 import { PauseReason } from "../types/enums";
 import { logger, LogCategory } from "../lib/logger";
+import { getEffectivePausedMs } from "../lib/pauseClock";
 import {
   useGameStore,
   useMonsterStore,
@@ -410,9 +411,8 @@ export class OptimizedSpawnManager {
   }
 
   private getAdjustedTime(): number {
-    const currentTime = Date.now();
-    const actualElapsed = currentTime - this.levelStartTime;
-    return actualElapsed - this.pauseState.totalPausedTime;
+    const now = Date.now();
+    return now - this.levelStartTime - getEffectivePausedMs(this.pauseState, now);
   }
 
   private getAdjustedAbsoluteTime(): number {

@@ -20,7 +20,7 @@ export class AudioManager {
   // One-shot sound effect buffers
   private victoryBuffer: AudioBuffer | null = null;
   private gameOverBuffer: AudioBuffer | null = null;
-  private bombCollectBuffer: AudioBuffer | null = null;
+  private foundingCollectBuffer: AudioBuffer | null = null;
   private bonusCoinBuffer: AudioBuffer | null = null;
   private monsterKillBuffer: AudioBuffer | null = null;
   private playerDeathBuffer: AudioBuffer | null = null;
@@ -45,7 +45,7 @@ export class AudioManager {
     this.loadBackgroundMusic();
     this.loadSoundEffect("Victory").then((buf) => (this.victoryBuffer = buf));
     this.loadSoundEffect("gameover").then((buf) => (this.gameOverBuffer = buf));
-    this.loadSoundEffect("coin-catch").then((buf) => (this.bombCollectBuffer = buf));
+    this.loadSoundEffect("coin-catch").then((buf) => (this.foundingCollectBuffer = buf));
     this.loadSoundEffect("bonus-coin-colect").then((buf) => (this.bonusCoinBuffer = buf));
     this.loadSoundEffect("monster-kill").then((buf) => (this.monsterKillBuffer = buf));
     this.loadSoundEffect("player-death").then((buf) => (this.playerDeathBuffer = buf));
@@ -122,8 +122,8 @@ export class AudioManager {
     this.ensureAudioContext();
 
     switch (event) {
-      case AudioEvent.BOMB_COLLECT:
-        this.playSoundBuffer(this.bombCollectBuffer);
+      case AudioEvent.FOUNDING_COLLECT:
+        this.playSoundBuffer(this.foundingCollectBuffer);
         break;
       case AudioEvent.MONSTER_HIT:
         // Fired when the player loses a life (still alive). Uses the
@@ -290,7 +290,7 @@ export class AudioManager {
     return this._isBackgroundMusicPlaying;
   }
 
-  private playBombCollectSound(): void {
+  private playFoundingCollectSound(): void {
     if (!this.audioContext) return;
 
     const oscillator = this.audioContext.createOscillator();

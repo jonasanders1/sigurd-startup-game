@@ -1,14 +1,37 @@
 {
-    "facts": [
-      "I Norge er det lettere å få lån til å kjøpe en båt enn å starte et teknologiselskap.",
-      "Ingen forstår søknadsprosessen i Innovasjon Norge. Ikke engang de som jobber der.",
-      "Altinn krasjer oftere enn du puster. Og det er normalt.",
-      "Norge har flest støtteordninger per innbygger – og minst støtte per gründer.",
-      "Skatteetaten er den eneste investoren som aldri sier nei – bare tar alt senere.",
-      "NAV har støtte for gründere. Hvis du finner den, si ifra. Det er som å finne Atlantis.",
-      "Et selskap i Sverige bruker 4 dager på å starte. I Norge? Uklar ventetid.",
-      "Ingen vet hvorfor du må søke støtte via 3 portaler og 5 PDF-er. Det bare er sånn.",
-      "Startups i Norge vokser sakte. Men skjemaene deres? De formerer seg lynraskt.",
-      "‘Innovasjon’ i det offentlige betyr: ‘Lag en ny versjon av noe som allerede finnes. Bare litt dårligere.’"
-    ]
-  }
+  "facts": [
+    "I Norge er det lettere å få lån til å kjøpe en båt enn å starte et teknologiselskap.",
+    "Altinn krasjer oftere enn du puster. Og det er normalt.",
+    "Skatteetaten er den eneste investoren som aldri sier nei — bare tar alt senere.",
+    "Et selskap i Sverige bruker 4 dager på å starte. I Norge? Uklar ventetid.",
+    "Startups i Norge vokser sakte. Men skjemaene deres? De formerer seg lynraskt.",
+    "I Norge er en 'rask saksbehandling' alt under 14 måneder.",
+    "Brønnøysundregistrene har sett ting du ikke vil tro. De har bare ikke registrert det ennå.",
+    "Du kan miste foretaket ditt fordi du glemte vedlegg 8B. Ikke 8A. 8B.",
+    "Hvis du svarer på en e-post fra Skatteetaten innen 24 timer, har du gjort noe galt.",
+    "Reglene endrer seg hvert år. Skjemaene gjør det ikke. Lykke til.",
+    "Norge digitaliserte alt i 2010. Det fungerer fortsatt som i 1997.",
+    "Det finnes 14 typer 'tilskudd'. Ingen av dem gjelder deg.",
+    "En MVA-melding kan ta 4 timer. Et ja fra Innovasjon Norge tar 9 måneder.",
+    "Norske byråkrater elsker gründere. På avstand. Helst via skjema.",
+    "I Norge er suksess flaut. Konkurs er flauere. Velg klokt.",
+    "Janteloven har sin egen paragraf i regnskapsloven. Sannsynligvis.",
+    "Når en nordmann sier 'spennende prosjekt', betyr det 'jeg investerer ikke'.",
+    "Den eneste norske enhjørningen er ekte og bor på en gård i Trøndelag.",
+    "I USA spør investorer 'how big can it get?'. I Norge: 'men er du sikker?'",
+    "Norske gründere har to faser: 'vi skal erobre verden' og 'kanskje jeg skal søke jobb i Equinor'.",
+    "Du er ikke en ordentlig gründer før du har grått på et toalett på Mesh.",
+    "Du betaler skatt på formue du ikke har realisert. Velkommen til Norge.",
+    "Investorpitch i Norge: 40% produkt, 60% forklare hvorfor du ikke har flyttet til Stockholm.",
+    "Norske VC-er finansierer gjerne din andre runde. Ikke din første.",
+    "Oljefondet eier 1,5% av verden. Din startup eier 0,000001% av Vipps-konkurransen.",
+    "'Bootstrappet' på norsk betyr 'foreldrene mine har en hytte vi kan selge'.",
+    "Du tjente 50 000 kr forrige kvartal. Skatteetaten tror du tjente 5 millioner. De har skjemaer som beviser det.",
+    "Antall norske gründere som har sluttet for å bli konsulent i Bekk: alle.",
+    "Hvis du leser dette, har du allerede overlevd lengre enn 60% av norske startups.",
+    "'Pivot' på norsk oversettes til 'vi vet ikke hva vi driver med, men i nye farger'.",
+    "Hvis du forstår Altinn, har du sannsynligvis aldri brukt Altinn.",
+    "En typisk norsk founder-dag: 2 timer kode, 6 timer skjema, 16 timer eksistensiell krise.",
+    "Du kommer aldri til å lese vilkårene. Det vet de. Det er hele poenget."
+  ]
+}

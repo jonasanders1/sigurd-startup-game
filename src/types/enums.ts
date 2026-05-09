@@ -27,21 +27,20 @@ export enum MenuType {
 
 export enum TutorialMissionId {
   MOVEMENTS = "movements",
-  BOMBS = "bombs",
+  FOUNDINGS = "foundings",
   SURVIVE = "survive",
   KILL = "kill",
 }
 
 export enum MonsterType {
-  MUMMY = "MUMMY",
-  VERTICAL_PATROL = "VERTICAL_PATROL",
+  BUREAUCRAT = "BUREAUCRAT",
   // BJ-aligned name (game-specs §5.1.1). Was CHASER pre-rename.
-  BIRD = "BIRD",
-  UFO = "UFO",
-  HORN = "HORN",
+  WISP = "WISP",
+  TAXGHOST = "TAXGHOST",
+  FOUNDER = "FOUNDER",
   // BJ-style airborne forms (Monster-Movments.md).
-  SPHERE = "SPHERE", // aligns Jack's X column, bobs Y uncontrollably
-  ORB = "ORB", // aligns Jack's Y row, bobs X uncontrollably
+  CONSULTANT = "CONSULTANT", // aligns Jack's X column, bobs Y uncontrollably
+  ROBOT = "ROBOT", // aligns Jack's Y row, bobs X uncontrollably
 }
 
 export enum CoinType {
@@ -76,7 +75,7 @@ export enum AudioEvent {
   PLAYER_DEATH = "PLAYER_DEATH",
   GAME_OVER = "GAME_OVER",
   BONUS_SCREEN = "BONUS_SCREEN",
-  BOMB_COLLECT = "BOMB_COLLECT",
+  FOUNDING_COLLECT = "FOUNDING_COLLECT",
   MAP_CLEARED = "MAP_CLEARED",
   BACKGROUND_MUSIC = "BACKGROUND_MUSIC",
   MONSTER_HIT = "MONSTER_HIT",
@@ -92,7 +91,7 @@ export enum AudioEvent {
 
 export enum CollisionType {
   PLATFORM = "PLATFORM",
-  BOMB = "BOMB",
+  FOUNDING = "FOUNDING",
   MONSTER = "MONSTER",
   BOUNDARY = "BOUNDARY",
   COIN = "COIN",

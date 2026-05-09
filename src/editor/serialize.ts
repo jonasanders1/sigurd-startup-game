@@ -3,7 +3,7 @@ import {
   EditorEntity,
   MonsterEntity,
   PlatformEntity,
-  BombEntity,
+  FoundingEntity,
   CoinSpawnEntity,
   PlayerStartEntity,
   MapMeta,
@@ -37,25 +37,24 @@ const platformLine = (p: PlatformEntity): string => {
   return `  ${factory},`;
 };
 
-const bombLine = (b: BombEntity): string =>
-  `  createBomb(${num(b.x)}, ${num(b.y)}, ${b.order}, ${b.group}),`;
+const foundingLine = (b: FoundingEntity): string =>
+  `  createFounding(${num(b.x)}, ${num(b.y)}, ${b.order}, ${b.group}),`;
 
 const monsterCall = (m: MonsterEntity): string => {
   switch (m.monsterType) {
-    case MonsterType.MUMMY:
-      return `createMummyMonster(${num(m.platformX ?? m.x)}, ${num(m.platformY ?? m.y)}, ${num(m.platformWidth ?? 150)}, ${str(m.spawnSide ?? "left")}, ${m.walkLengths ?? 1}, ${num(m.speed)}, ${m.direction === undefined ? "undefined" : m.direction}, ${m.spawnDelay}, ${str(m.variant ?? "green")}, ${str(m.transformTarget ?? "SPHERE")})`;
-    case MonsterType.VERTICAL_PATROL:
-      return `createVerticalPatrolMonster(${num(m.platformX ?? m.x)}, ${num(m.y)}, ${num(m.patrolHeight ?? 200)}, ${str(m.side ?? "left")}, ${num(m.speed)}, ${m.direction ?? 1}, ${m.spawnDelay})`;
-    case MonsterType.HORN:
-      return `createHornMonster(${num(m.x)}, ${num(m.y)}, ${m.startAngle ?? 45}, ${num(m.speed)}, ${m.spawnDelay})`;
-    case MonsterType.BIRD:
-      return `createBirdMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.directness ?? 0.2}, ${m.updateInterval ?? 500}, ${m.spawnDelay})`;
-    case MonsterType.UFO:
-      return `createUfoMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.ambushInterval ?? 8000}, ${m.spawnDelay})`;
-    case MonsterType.SPHERE:
-      return `createSphereMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.spawnDelay})`;
-    case MonsterType.ORB:
-      return `createOrbMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.spawnDelay})`;
+    case MonsterType.BUREAUCRAT:
+      // BUREAUCRAT is bottom-anchored: m.y is the feet line / platformY.
+      return `createBureaucratMonster(${num(m.platformX ?? m.x)}, ${num(m.platformY ?? m.y)}, ${num(m.platformWidth ?? 150)}, ${str(m.spawnSide ?? "left")}, ${m.walkLengths ?? 1}, ${num(m.speed)}, ${m.direction === undefined ? "undefined" : m.direction}, ${m.spawnDelay}, ${str(m.transformTarget ?? "CONSULTANT")})`;
+    case MonsterType.FOUNDER:
+      return `createFounderMonster(${num(m.x)}, ${num(m.y)}, ${m.startAngle ?? 45}, ${num(m.speed)}, ${m.spawnDelay})`;
+    case MonsterType.WISP:
+      return `createWispMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.directness ?? 0.2}, ${m.updateInterval ?? 500}, ${m.spawnDelay})`;
+    case MonsterType.TAXGHOST:
+      return `createTaxGhostMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.ambushInterval ?? 8000}, ${m.spawnDelay})`;
+    case MonsterType.CONSULTANT:
+      return `createConsultantMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.spawnDelay})`;
+    case MonsterType.ROBOT:
+      return `createRobotMonster(${num(m.x)}, ${num(m.y)}, ${num(m.speed)}, ${m.spawnDelay})`;
   }
 };
 
@@ -94,8 +93,8 @@ export const serializeMap = (
   const warnings: string[] = [];
 
   const platforms = entities.filter((e): e is PlatformEntity => e.kind === "platform");
-  const bombs = entities
-    .filter((e): e is BombEntity => e.kind === "bomb")
+  const foundings = entities
+    .filter((e): e is FoundingEntity => e.kind === "founding")
     .sort((a, b) => a.order - b.order);
   const monsters = entities.filter((e): e is MonsterEntity => e.kind === "monster");
   const coins = entities.filter((e): e is CoinSpawnEntity => e.kind === "coinSpawn");
@@ -105,18 +104,18 @@ export const serializeMap = (
 
   if (playerStarts.length === 0) warnings.push("No player spawn defined.");
   if (playerStarts.length > 1) warnings.push("Multiple player spawns — first used.");
-  if (bombs.length !== 23) {
-    warnings.push(`Expected 23 bombs (Sigurd canonical), got ${bombs.length}.`);
+  if (foundings.length !== 23) {
+    warnings.push(`Expected 23 foundings (Sigurd canonical), got ${foundings.length}.`);
   }
-  const orders = bombs.map((b) => b.order);
+  const orders = foundings.map((b) => b.order);
   const orderDupes = orders.filter((o, i) => orders.indexOf(o) !== i);
   if (orderDupes.length > 0) {
-    warnings.push(`Duplicate bomb orders: ${[...new Set(orderDupes)].join(", ")}`);
+    warnings.push(`Duplicate founding orders: ${[...new Set(orderDupes)].join(", ")}`);
   }
 
   const spawn = playerStarts[0];
 
-  // Mirror buildMap's promotion rule: any mummy with respawnInterval > 0 is
+  // Mirror buildMap's promotion rule: any bureaucrat with respawnInterval > 0 is
   // a recurring spawn point regardless of the `delayed` checkbox.
   const staticMonsters = monsters.filter((m) => !m.delayed && !isRecurring(m));
   const delayedMonsters = monsters.filter((m) => m.delayed || isRecurring(m));
@@ -146,8 +145,8 @@ export const serializeMap = (
   lines.push(`  ],`);
   lines.push(``);
 
-  lines.push(`  bombs: [`);
-  for (const b of bombs) lines.push(bombLine(b));
+  lines.push(`  foundings: [`);
+  for (const b of foundings) lines.push(foundingLine(b));
   lines.push(`  ],`);
   lines.push(``);
 

@@ -124,16 +124,19 @@
 
         /* Menu */
         --menu-background: rgba(36, 41, 51, 0.92);
+        --menu-foreground: var(--foreground);
 
-        /* Sidebar (HSL for shadcn compat) */
-        --sidebar-background: 218deg 18% 15%; /* #20252e */
-        --sidebar-foreground: 0deg 0% 100%; /* #ffffff */
-        --sidebar-primary: 85deg 64% 63%; /* #abdd64 */
-        --sidebar-primary-foreground: 86deg 70% 4%;
-        --sidebar-accent: 220 17% 18%; /* #242933 */
-        --sidebar-accent-foreground: 0deg 0% 100%;
-        --sidebar-border: 220 14% 27%; /* #3a4150 */
-        --sidebar-ring: 85deg 64% 63%;
+        /* Sidebar — hex to match the rest of the palette. tailwind.config.ts
+           reads these as plain `var(--sidebar-*)`, so values must be valid
+           color literals (not raw HSL components). */
+        --sidebar-background: #20252e;
+        --sidebar-foreground: #ffffff;
+        --sidebar-primary: #abdd64;
+        --sidebar-primary-foreground: var(--primary-ink);
+        --sidebar-accent: #242933;
+        --sidebar-accent-foreground: #ffffff;
+        --sidebar-border: #3a4150;
+        --sidebar-ring: #abdd64;
 
         /* Gradients — built from the KAPLAY accents */
         --gradient-primary: linear-gradient(135deg, #c2eb83 0%, #7fb33d 100%);
@@ -242,29 +245,6 @@
             rgba(255, 255, 255, 0.012) 3px,
             rgba(255, 255, 255, 0.012) 4px
         );
-}
-
-/* CRT flicker */
-@keyframes crt-flicker {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    92% {
-        opacity: 1;
-    }
-    94% {
-        opacity: 0.92;
-    }
-    96% {
-        opacity: 1;
-    }
-    98% {
-        opacity: 0.95;
-    }
-}
-.flicker {
-    animation: crt-flicker 6s infinite;
 }
 
 /* Blinking block cursor */

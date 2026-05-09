@@ -313,7 +313,7 @@ export class GameManager {
   private handleCollisions(): void {
     const { player } = usePlayerStore.getState();
     const { platforms } = useLevelStore.getState();
-    const { bombs } = useStateStore.getState();
+    const { foundings } = useStateStore.getState();
     const { monsters } = useMonsterStore.getState();
     const { coins } = useCoinStore.getState();
 
@@ -326,14 +326,14 @@ export class GameManager {
       usePlayerStore.getState().updatePlayer(updatedPlayer);
     }
 
-    // Bomb collisions
-    const collectedBomb = this.collisionManager.checkPlayerBombCollision(
+    // Founding collisions
+    const collectedFounding = this.collisionManager.checkPlayerFoundingCollision(
       player,
-      bombs
+      foundings
     );
-    if (collectedBomb) {
-      this.audioManager.playSound(AudioEvent.BOMB_COLLECT);
-      this.scoreManager.handleBombCollection(collectedBomb);
+    if (collectedFounding) {
+      this.audioManager.playSound(AudioEvent.FOUNDING_COLLECT);
+      this.scoreManager.handleFoundingCollection(collectedFounding);
     }
 
     // Coin collisions
@@ -381,15 +381,12 @@ export class GameManager {
 
   /**
    * Build a serializable killer descriptor from a monster instance. Captures
-   * `originalType` for transformed Mummies so dashboards can distinguish
-   * "killed by mummy that morphed into sphere" from "killed by mummy".
+   * `originalType` for transformed Bureaucrats so dashboards can distinguish
+   * "killed by bureaucrat that morphed into consultant" from "killed by bureaucrat".
    */
   private toKillerInfo(monster: Monster): KillerInfo {
     const info: KillerInfo = { type: monster.type };
-    // PatrolMonster carries `variant` (green/black). Other types don't have it.
-    const variant = (monster as { variant?: string }).variant;
-    if (variant) info.variant = variant;
-    // Set on Mummy → SPHERE/ORB transform; cleared on respawn.
+    // Set on Bureaucrat → CONSULTANT/ROBOT transform; cleared on respawn.
     const originalType = (monster as { originalType?: string }).originalType;
     if (originalType) info.originalType = originalType;
     return info;
@@ -430,7 +427,7 @@ export class GameManager {
       : { score: 0, levelScore: 0, multiplier: 1 };
     const { currentMap, addLevelResult } = useLevelStore.getState();
     const { getLevelCoinStats } = useCoinStore.getState();
-    const { bombs } = useStateStore.getState();
+    const { foundings } = useStateStore.getState();
 
     // Get level coin stats (accumulated across respawns)
     const coinStats = getLevelCoinStats();
@@ -452,7 +449,7 @@ export class GameManager {
           level: currentLevel,
           mapName: currentMap.name,
           score: score,
-          bombs: bombs.filter((b) => b.isCollected).length,
+          foundings: foundings.filter((b) => b.isCollected).length,
           correctOrders: correctOrderCount,
           lives: lives - 1,
           multiplier: multiplier,
@@ -475,7 +472,7 @@ export class GameManager {
           founderCoinsCollected: coinStats.totalFounderCoinsCollected,
           timestamp: Date.now(),
           correctOrderCount: correctOrderCount,
-          totalBombs: bombs.filter((b) => b.isCollected).length,
+          totalFoundings: foundings.filter((b) => b.isCollected).length,
           lives: lives - 1,
           multiplier: multiplier,
           isPartial: true,

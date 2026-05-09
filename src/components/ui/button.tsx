@@ -10,17 +10,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground border-2 border-primary-dark tracking-wider rounded-sm shadow-[0_4px_0_0_var(--primary-ink),0_0_16px_rgba(171,221,100,0.3)] arcade-press cursor-pointer",
+          "bg-primary text-primary-foreground border-2 border-primary-dark tracking-wider rounded-sm shadow-[0_4px_0_0_var(--primary-dark),0_0_16px_rgba(171,221,100,0.3)] arcade-press cursor-pointer",
         secondary:
-          "bg-transparent text-foreground border-2 border-foreground tracking-wider rounded-sm shadow-[0_4px_0_0_var(--surface-line)] arcade-press cursor-pointer",
+          "bg-foreground text-background border-2 border-foreground-muted tracking-wider rounded-sm shadow-[0_4px_0_0_var(--foreground-muted)] arcade-press cursor-pointer",
         destructive:
           "bg-destructive text-destructive-foreground border-2 border-destructive tracking-wider rounded-sm shadow-[0_4px_0_0_rgba(0,0,0,0.4)] arcade-press cursor-pointer",
         outline:
           "border border-surface-line bg-surface text-foreground hover:bg-surface-raised rounded-sm cursor-pointer",
         ghost:
           "hover:bg-surface-raised hover:text-foreground rounded-sm cursor-pointer",
-        link:
-          "text-primary underline-offset-4 hover:underline cursor-pointer",
+        link: "text-primary underline-offset-4 hover:underline cursor-pointer",
       },
       size: {
         default: "h-11 px-6 py-2 text-base",
@@ -33,11 +32,12 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -52,7 +52,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

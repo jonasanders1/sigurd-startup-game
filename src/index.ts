@@ -14,7 +14,7 @@ export type { GameState, MenuType } from './types/enums';
 export type { 
   GameStateInterface, 
   CoinState, 
-  BombCollectionState,
+  FoundingCollectionState,
   CoinPhysicsConfig,
   CoinTypeConfig,
   MonsterSpawnConfig

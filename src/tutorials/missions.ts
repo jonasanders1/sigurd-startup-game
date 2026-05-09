@@ -14,14 +14,13 @@ import { GAME_CONFIG } from "../types/constants";
 import { MapDefinition } from "../types/interfaces";
 import { P_COIN_COLORS } from "../config/coinTypes";
 import {
-  createUfoMonster,
-  createBirdMonster,
-  createHornMonster,
-  createMummyMonster,
-  createVerticalPatrolMonster,
+  createTaxGhostMonster,
+  createWispMonster,
+  createFounderMonster,
+  createBureaucratMonster,
 } from "../managers/MonsterFactory";
 import {
-  createBomb,
+  createFounding,
   createPlatform,
   createVerticalPlatform,
 } from "../maps/mapFactories";
@@ -47,7 +46,7 @@ export const P_COIN_TUTORIAL_INFO = P_COIN_COLORS.map((c, i) => ({
 }));
 
 // ── Mission 1: Movements ──────────────────────────────────────────────────
-// A few platforms for jumping, no monsters, no bombs.
+// A few platforms for jumping, no monsters, no foundings.
 export const movementsMap: MapDefinition = {
   id: "tutorial-movements",
   name: "garasjen",
@@ -78,15 +77,15 @@ export const movementsMap: MapDefinition = {
     },
   ],
 
-  bombs: [],
+  foundings: [],
 
   monsters: [],
 };
 
-// ── Mission 2: Bomb logic ────────────────────────────────────────────────
-// Full bomb layout (small set), no monsters. Player learns blinking-bomb guide.
-export const bombsMap: MapDefinition = {
-  id: "tutorial-bombs",
+// ── Mission 2: Founding logic ────────────────────────────────────────────────
+// Full founding layout (small set), no monsters. Player learns blinking-founding guide.
+export const foundingsMap: MapDefinition = {
+  id: "tutorial-foundings",
   name: "garasjen",
   floor: "gray",
   width: GAME_CONFIG.CANVAS_WIDTH,
@@ -104,21 +103,21 @@ export const bombsMap: MapDefinition = {
     createPlatform(125, 175, { width: 150, height: 25 }, "#a2a2a2", "#000"),
   ],
 
-  bombs: [
-    createBomb(140, 147, 1, 1),
-    createBomb(190, 147, 2, 1),
-    createBomb(240, 147, 3, 1),
-    createBomb(540, 148, 4, 2),
-    createBomb(590, 148, 5, 2),
-    createBomb(640, 148, 6, 2),
-    createBomb(138, 423, 7, 3),
-    createBomb(188, 423, 8, 3),
-    createBomb(238, 423, 9, 3),
-    createBomb(288, 423, 10, 3),
-    createBomb(538, 348, 11, 4),
-    createBomb(588, 348, 12, 4),
-    createBomb(638, 348, 13, 4),
-    createBomb(688, 348, 14, 4),
+  foundings: [
+    createFounding(140, 147, 1, 1),
+    createFounding(190, 147, 2, 1),
+    createFounding(240, 147, 3, 1),
+    createFounding(540, 148, 4, 2),
+    createFounding(590, 148, 5, 2),
+    createFounding(640, 148, 6, 2),
+    createFounding(138, 423, 7, 3),
+    createFounding(188, 423, 8, 3),
+    createFounding(238, 423, 9, 3),
+    createFounding(288, 423, 10, 3),
+    createFounding(538, 348, 11, 4),
+    createFounding(588, 348, 12, 4),
+    createFounding(638, 348, 13, 4),
+    createFounding(688, 348, 14, 4),
   ],
 
   monsters: [],
@@ -151,11 +150,11 @@ export const surviveMap: MapDefinition = {
     createVerticalPlatform(675, 125, 150, "#a2a2a2", "#000"),
   ],
 
-  bombs: [],
+  foundings: [],
 
   monsters: [
-    createUfoMonster(600, 175, 0.8, 8000, 0),
-    createHornMonster(425, 275, -142, 1, 0),
+    createTaxGhostMonster(600, 175, 0.8, 8000, 0),
+    createFounderMonster(425, 275, -142, 1, 0),
   ],
 
   monsterSpawnPoints: [
@@ -164,7 +163,7 @@ export const surviveMap: MapDefinition = {
       respawnInterval: 6000,
       maxSpawns: 2,
       createMonster: () =>
-        createMummyMonster(
+        createBureaucratMonster(
           125,
           500,
           125,
@@ -173,8 +172,7 @@ export const surviveMap: MapDefinition = {
           1,
           undefined,
           0,
-          "green",
-          "ORB",
+          "ROBOT",
         ),
     },
     {
@@ -182,7 +180,7 @@ export const surviveMap: MapDefinition = {
       respawnInterval: 11500,
       maxSpawns: 2,
       createMonster: () =>
-        createMummyMonster(
+        createBureaucratMonster(
           400,
           425,
           150,
@@ -191,8 +189,7 @@ export const surviveMap: MapDefinition = {
           1,
           undefined,
           0,
-          "green",
-          "SPHERE",
+          "CONSULTANT",
         ),
     },
   ],
@@ -220,20 +217,20 @@ export const killMap: MapDefinition = {
     createPlatform(525, 400, { width: 150, height: 25 }, "#a2a2a2", "#000"),
   ],
 
-  bombs: [],
+  foundings: [],
 
   monsters: [
-    createMummyMonster(100, 175, 150, "left", 11, 1, 1, 0, "green", "SPHERE"),
-    createMummyMonster(525, 175, 150, "right", 10, 1, -1, 0, "black", "SPHERE"),
-    createMummyMonster(125, 400, 150, "right", 5, 1, -1, 0, "green", "SPHERE"),
-    createMummyMonster(525, 400, 150, "left", 8, 1, 1, 0, "black", "SPHERE"),
-    createHornMonster(575, 500, 47, 1, 0),
+    createBureaucratMonster(100, 175, 150, "left", 11, 1, 1, 0, "CONSULTANT"),
+    createBureaucratMonster(525, 175, 150, "right", 10, 1, -1, 0, "CONSULTANT"),
+    createBureaucratMonster(125, 400, 150, "right", 5, 1, -1, 0, "CONSULTANT"),
+    createBureaucratMonster(525, 400, 150, "left", 8, 1, 1, 0, "CONSULTANT"),
+    createFounderMonster(575, 500, 47, 1, 0),
   ],
 
   monsterSpawnPoints: [
     {
       spawnDelay: 5000,
-      createMonster: () => createBirdMonster(200, 50, 0.8, 0.2, 500, 5000),
+      createMonster: () => createWispMonster(200, 50, 0.8, 0.2, 500, 5000),
     },
   ],
 
@@ -261,7 +258,7 @@ export interface TutorialMission {
   map: MapDefinition;
   subTasks?: SubTask[];
   totalMonsters?: number;
-  totalBombs?: number;
+  totalFoundings?: number;
   surviveDurationMs?: number;
 }
 
@@ -282,14 +279,14 @@ export const TUTORIAL_MISSIONS: Record<TutorialMissionId, TutorialMission> = {
       { id: "fall", label: "Rask fall" },
     ],
   },
-  [TutorialMissionId.BOMBS]: {
-    id: TutorialMissionId.BOMBS,
+  [TutorialMissionId.FOUNDINGS]: {
+    id: TutorialMissionId.FOUNDINGS,
     title: "Finansieringer",
     description: "Plukk i riktig rekkefølge — som om Skatteetaten ser på.",
     goal: "Samle alle finansieringene",
     overlayTitle: "Samle finansiering",
-    map: bombsMap,
-    totalBombs: 14,
+    map: foundingsMap,
+    totalFoundings: 14,
   },
   [TutorialMissionId.SURVIVE]: {
     id: TutorialMissionId.SURVIVE,
@@ -313,7 +310,7 @@ export const TUTORIAL_MISSIONS: Record<TutorialMissionId, TutorialMission> = {
 
 export const TUTORIAL_MISSION_ORDER: TutorialMissionId[] = [
   TutorialMissionId.MOVEMENTS,
-  TutorialMissionId.BOMBS,
+  TutorialMissionId.FOUNDINGS,
   TutorialMissionId.SURVIVE,
   TutorialMissionId.KILL,
 ];

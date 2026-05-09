@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { MapDefinition, Bomb } from "../types/interfaces";
+import { MapDefinition, Founding } from "../types/interfaces";
 import { CoinManager } from "../managers/coinManager";
 import { mapDefinitions } from "../maps/mapDefinitions";
 import { BackgroundManager } from "../managers/BackgroundManager";
@@ -30,8 +30,8 @@ interface GameStore {
   // Orchestration methods
   resetGame: () => void;
   initializeLevel: (mapData: MapDefinition) => {
-    bombManager: any;
-    firstBomb: any;
+    foundingManager: any;
+    firstFounding: any;
   };
   getLevelHistory: () => any[];
   getGameStartTime: () => number;
@@ -53,7 +53,7 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
 
     // Reset all game state (but preserve audio settings as they are user preferences)
     stateStore.resetGameState();
-    stateStore.resetBombState();
+    stateStore.resetFoundingState();
     scoreStore.resetScore();
     scoreStore.resetMultiplier();
     playerStore.resetPlayer();
@@ -87,32 +87,32 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     const monsterStore = useMonsterStore.getState();
     const playerStore = usePlayerStore.getState();
 
-    // IMPORTANT: Reset bomb state first to clear collectedBombs from previous level
-    stateStore.resetBombState();
+    // IMPORTANT: Reset founding state first to clear collectedFoundings from previous level
+    stateStore.resetFoundingState();
 
-    // Use the map's bombs as authored. The win condition (LevelManager
-    // checkWinCondition) compares against currentMap.bombs.length so partial
-    // editor previews can still be won. Legacy padBombsTo to TOTAL_BOMBS at
-    // (0,0) was removed — it left visible placeholder bombs piled in the
+    // Use the map's foundings as authored. The win condition (LevelManager
+    // checkWinCondition) compares against currentMap.foundings.length so partial
+    // editor previews can still be won. Legacy padFoundingsTo to TOTAL_FOUNDINGS at
+    // (0,0) was removed — it left visible placeholder foundings piled in the
     // top-left corner of editor previews.
     const paddedMap: MapDefinition = mapData;
-    const paddedBombs = mapData.bombs;
+    const paddedFoundings = mapData.foundings;
 
-    // Initialize level using padded bombs so BombManager and the level store
+    // Initialize level using padded foundings so FoundingManager and the level store
     // both see all 24.
-    const { bombManager, firstBomb } = levelStore.initializeLevel(paddedMap);
+    const { foundingManager, firstFounding } = levelStore.initializeLevel(paddedMap);
 
-    // Set up bombs without initial blinking (blinking will start after first bomb is collected)
-    const bombsWithState = paddedBombs.map((bomb) => ({
-      ...bomb,
-      isBlinking: false, // No initial blinking - will be set after first bomb collection
+    // Set up foundings without initial blinking (blinking will start after first founding is collected)
+    const foundingsWithState = paddedFoundings.map((founding) => ({
+      ...founding,
+      isBlinking: false, // No initial blinking - will be set after first founding collection
       isCollected: false,
       isCorrect: false,
     }));
 
-    // Update bomb state
-    stateStore.setBombs(bombsWithState);
-    stateStore.setBombManager(bombManager);
+    // Update founding state
+    stateStore.setFoundings(foundingsWithState);
+    stateStore.setFoundingManager(foundingManager);
 
     // Initialize or update coin manager
     // Check if we already have a coin manager (preserve score tracking across levels)
@@ -131,14 +131,14 @@ export const useGameStore = create<GameStore>((set, get, api) => ({
     // Initialize monsters
     monsterStore.initializeMonsters(paddedMap.monsters);
 
-    // Reset bomb collection state
-    stateStore.setBombs(bombsWithState);
-    stateStore.setBombManager(bombManager);
+    // Reset founding collection state
+    stateStore.setFoundings(foundingsWithState);
+    stateStore.setFoundingManager(foundingManager);
     
     // Set player position
     playerStore.setPlayerPosition(paddedMap.playerStart.x, paddedMap.playerStart.y);
 
-    return { bombManager, firstBomb };
+    return { foundingManager, firstFounding };
   },
 
   // Convenience methods for accessing level history data
@@ -201,16 +201,16 @@ export const getGameState = () => {
     resetGameState: state.resetGameState,
     setGameStateManager: state.setGameStateManager,
 
-    // Bombs
-    bombs: state.bombs,
-    collectedBombs: state.collectedBombs,
+    // Foundings
+    foundings: state.foundings,
+    collectedFoundings: state.collectedFoundings,
     correctOrderCount: state.correctOrderCount,
-    nextBombOrder: state.nextBombOrder,
-    bombManager: state.bombManager,
-    collectBomb: state.collectBomb,
-    setBombs: state.setBombs,
-    setBombManager: state.setBombManager,
-    resetBombState: state.resetBombState,
+    nextFoundingOrder: state.nextFoundingOrder,
+    foundingManager: state.foundingManager,
+    collectFounding: state.collectFounding,
+    setFoundings: state.setFoundings,
+    setFoundingManager: state.setFoundingManager,
+    resetFoundingState: state.resetFoundingState,
 
     // Score & Multiplier
     score: score.score,
@@ -249,19 +249,19 @@ export const getGameState = () => {
     coins: coins.coins,
     coinManager: coins.coinManager,
     activeEffects: coins.activeEffects,
-    firebombCount: coins.firebombCount,
+    firefoundingCount: coins.firefoundingCount,
     totalCoinsCollected: coins.totalCoinsCollected,
     totalPowerCoinsCollected: coins.totalPowerCoinsCollected,
     totalBonusMultiplierCoinsCollected: coins.totalBonusMultiplierCoinsCollected,
     totalExtraLifeCoinsCollected: coins.totalExtraLifeCoinsCollected,
     setCoins: coins.setCoins,
     setCoinManager: coins.setCoinManager,
-    setFirebombCount: coins.setFirebombCount,
+    setFirefoundingCount: coins.setFirefoundingCount,
     clearActiveCoins: coins.clearActiveCoins,
     onPointsEarned: coins.onPointsEarned,
     calculateMonsterKillPoints: coins.calculateMonsterKillPoints,
     collectCoin: coins.collectCoin,
-    onFirebombCollected: coins.onFirebombCollected,
+    onFirefoundingCollected: coins.onFirefoundingCollected,
     resetCoinState: coins.resetCoinState,
     updateMonsterStates: coins.updateMonsterStates,
     resetEffects: coins.resetEffects,

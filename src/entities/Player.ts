@@ -22,6 +22,10 @@ interface AnimDef {
   end: number;
   frameDuration: number;
   loop: boolean;
+  /** Override the skin's default file prefix for this animation's frames. */
+  filePrefix?: string;
+  /** Override the subfolder when the asset lives under a different folder name. */
+  folder?: string;
 }
 
 const ANIM_DEFS: AnimDef[] = [
@@ -31,10 +35,15 @@ const ANIM_DEFS: AnimDef[] = [
   { name: "run-right", start: 18, end: 23, frameDuration: 55, loop: true },
   { name: "jump-left", start: 24, end: 26, frameDuration: 100, loop: false },
   { name: "jump-right", start: 27, end: 29, frameDuration: 100, loop: false },
-  // Float uses a single frame from the run animation (run-left frame 13 / run-right frame 19).
-  { name: "float-left", start: 13, end: 13, frameDuration: 120, loop: true },
-  { name: "float-right", start: 19, end: 19, frameDuration: 120, loop: true },
-  { name: "float-down", start: 36, end: 38, frameDuration: 120, loop: true },
+  // Float frames live in their own folders and are named `Sigurd_NN.png` for
+  // both skins (the SigurdPower float folder reuses the base prefix).
+  { name: "float-left", start: 0, end: 5, frameDuration: 120, loop: true, filePrefix: "Sigurd" },
+  { name: "float-right", start: 6, end: 11, frameDuration: 120, loop: true, filePrefix: "Sigurd" },
+  { name: "float-down", start: 12, end: 17, frameDuration: 120, loop: true, filePrefix: "Sigurd" },
+  // Airborne sideways pose — a single frozen run frame (run-left frame 13 /
+  // run-right frame 19) used while jumping/falling and pressing left/right.
+  { name: "air-move-left", start: 13, end: 13, frameDuration: 120, loop: true, folder: "run-left" },
+  { name: "air-move-right", start: 19, end: 19, frameDuration: 120, loop: true, folder: "run-right" },
   { name: "fall-left", start: 39, end: 41, frameDuration: 100, loop: false },
   { name: "fall-right", start: 42, end: 44, frameDuration: 100, loop: false },
   { name: "land-left", start: 45, end: 47, frameDuration: 80, loop: false },
@@ -43,11 +52,6 @@ const ANIM_DEFS: AnimDef[] = [
   { name: "victory-right", start: 55, end: 58, frameDuration: 140, loop: true },
 ];
 
-const FRAME_FOLDER_OVERRIDES: Record<string, string> = {
-  "float-left": "run-left",
-  "float-right": "run-right",
-};
-
 const buildFrameMap = (
   folder: string,
   prefix: string,
@@ -55,8 +59,9 @@ const buildFrameMap = (
   const base = `spritesV2/${folder}`;
   const out: Record<string, HTMLImageElement[]> = {};
   for (const def of ANIM_DEFS) {
-    const subfolder = FRAME_FOLDER_OVERRIDES[def.name] ?? def.name;
-    out[def.name] = loadFrameRange(`${base}/${subfolder}`, prefix, def.start, def.end);
+    const framePrefix = def.filePrefix ?? prefix;
+    const subfolder = def.folder ?? def.name;
+    out[def.name] = loadFrameRange(`${base}/${subfolder}`, framePrefix, def.start, def.end);
   }
   return out;
 };

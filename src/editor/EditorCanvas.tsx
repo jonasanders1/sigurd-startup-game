@@ -1,11 +1,13 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useEditorStore, commitHistory } from "./store";
 import { GAME_CONFIG } from "../types/constants";
+import { getDefaultBounds } from "../config/monsterBounds";
 import { MonsterType, CoinType } from "../types/enums";
 import { EditorEntity, MonsterEntity, PlatformEntity } from "./types";
 import {
   DEFAULT_PLATFORM_THEME,
   getPlatformTileUrls,
+  hasVerticalTiles,
   layoutPlatformTiles,
   type PlatformTheme,
 } from "../config/platformTiles";
@@ -24,7 +26,7 @@ import type { RoundedCorners } from "../types/interfaces";
 import {
   defaultPlatform,
   defaultVerticalWall,
-  defaultBomb,
+  defaultFounding,
   defaultPlayerStart,
   defaultMonster,
   defaultCoinSpawn,
@@ -34,13 +36,12 @@ const CANVAS_W = GAME_CONFIG.CANVAS_WIDTH;
 const CANVAS_H = GAME_CONFIG.CANVAS_HEIGHT;
 
 const MONSTER_COLORS: Record<MonsterType, string> = {
-  [MonsterType.MUMMY]: "#22c55e",
-  [MonsterType.VERTICAL_PATROL]: "#3b82f6",
-  [MonsterType.BIRD]: "#ef4444",
-  [MonsterType.UFO]: "#a855f7",
-  [MonsterType.HORN]: "#f59e0b",
-  [MonsterType.SPHERE]: "#fbbf24",
-  [MonsterType.ORB]: "#a78bfa",
+  [MonsterType.BUREAUCRAT]: "#22c55e",
+  [MonsterType.WISP]: "#ef4444",
+  [MonsterType.TAXGHOST]: "#a855f7",
+  [MonsterType.FOUNDER]: "#f59e0b",
+  [MonsterType.CONSULTANT]: "#fbbf24",
+  [MonsterType.ROBOT]: "#a78bfa",
 };
 
 const COIN_COLORS: Record<CoinType, string> = {
@@ -58,20 +59,33 @@ const getEntityRect = (e: EditorEntity) => {
   switch (e.kind) {
     case "platform":
       return { x: e.x, y: e.y, width: e.width, height: e.height };
-    case "bomb":
+    case "founding":
       return {
         x: e.x,
         y: e.y,
-        width: GAME_CONFIG.BOMB_SIZE,
-        height: GAME_CONFIG.BOMB_SIZE,
+        width: GAME_CONFIG.FOUNDING_SIZE,
+        height: GAME_CONFIG.FOUNDING_SIZE,
       };
-    case "monster":
+    case "monster": {
+      // Read dims from the per-monster hitbox config (src/entities/*.ts) so
+      // editor placeholders track entity-file edits automatically.
+      const hb = getDefaultBounds(e.monsterType);
+      if (e.monsterType === MonsterType.BUREAUCRAT) {
+        // Bottom-anchored: e.y is the feet line, sprite extends upward.
+        return {
+          x: e.x,
+          y: e.y - hb.height,
+          width: hb.width,
+          height: hb.height,
+        };
+      }
       return {
         x: e.x,
         y: e.y,
-        width: GAME_CONFIG.MONSTER_SIZE,
-        height: GAME_CONFIG.MONSTER_SIZE,
+        width: hb.width,
+        height: hb.height,
       };
+    }
     case "coinSpawn":
       return {
         x: e.x,
@@ -158,12 +172,10 @@ const ArrowOverlay: React.FC<ArrowProps> = ({
 
 const monsterArrowAngle = (m: MonsterEntity): number | null => {
   switch (m.monsterType) {
-    case MonsterType.HORN:
+    case MonsterType.FOUNDER:
       return m.startAngle ?? 45;
-    case MonsterType.MUMMY:
+    case MonsterType.BUREAUCRAT:
       return (m.spawnSide ?? "left") === "left" ? 0 : 180;
-    case MonsterType.VERTICAL_PATROL:
-      return (m.direction ?? 1) >= 0 ? 90 : -90;
     default:
       return null;
   }
@@ -180,28 +192,16 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
   onStartHandle,
   onEndHandle,
 }) => {
-  const isHoriz = monster.monsterType === MonsterType.MUMMY;
-  const color = isHoriz ? "#22c55e" : "#3b82f6";
+  const color = "#22c55e";
 
-  let x1: number, y1: number, x2: number, y2: number;
-  if (isHoriz) {
-    const startX = monster.platformX ?? monster.x;
-    const width = monster.platformWidth ?? 150;
-    const trackY =
-      (monster.platformY ?? monster.y + GAME_CONFIG.MONSTER_SIZE) - 1;
-    x1 = startX;
-    y1 = trackY;
-    x2 = startX + width;
-    y2 = trackY;
-  } else {
-    const startY = monster.y;
-    const height = monster.patrolHeight ?? 200;
-    const trackX = monster.x + GAME_CONFIG.MONSTER_SIZE / 2;
-    x1 = trackX;
-    y1 = startY;
-    x2 = trackX;
-    y2 = startY + height;
-  }
+  const startX = monster.platformX ?? monster.x;
+  const width = monster.platformWidth ?? 150;
+  // BUREAUCRAT is bottom-anchored: monster.y is already the feet line / platformY.
+  const trackY = (monster.platformY ?? monster.y) - 1;
+  const x1 = startX;
+  const y1 = trackY;
+  const x2 = startX + width;
+  const y2 = trackY;
 
   return (
     <svg
@@ -221,25 +221,25 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
         x2={x2}
         y2={y2}
         stroke={color}
-        strokeWidth={isHoriz ? 4 : 4}
+        strokeWidth={4}
         strokeOpacity={0.35}
         strokeLinecap="round"
         strokeDasharray="6 4"
       />
       {/* Endpoint ticks for clarity */}
       <line
-        x1={isHoriz ? x1 : x1 - 8}
-        y1={isHoriz ? y1 - 8 : y1}
-        x2={isHoriz ? x1 : x1 + 8}
-        y2={isHoriz ? y1 + 8 : y1}
+        x1={x1}
+        y1={y1 - 8}
+        x2={x1}
+        y2={y1 + 8}
         stroke={color}
         strokeWidth={2}
       />
       <line
-        x1={isHoriz ? x2 : x2 - 8}
-        y1={isHoriz ? y2 - 8 : y2}
-        x2={isHoriz ? x2 : x2 + 8}
-        y2={isHoriz ? y2 + 8 : y2}
+        x1={x2}
+        y1={y2 - 8}
+        x2={x2}
+        y2={y2 + 8}
         stroke={color}
         strokeWidth={2}
       />
@@ -251,10 +251,7 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
         fill="#0c4a6e"
         stroke={color}
         strokeWidth={2}
-        style={{
-          pointerEvents: "auto",
-          cursor: isHoriz ? "ew-resize" : "ns-resize",
-        }}
+        style={{ pointerEvents: "auto", cursor: "ew-resize" }}
         onMouseDown={onStartHandle}
       />
       <circle
@@ -264,10 +261,7 @@ const PatrolOverlay: React.FC<PatrolOverlayProps> = ({
         fill="#0c4a6e"
         stroke={color}
         strokeWidth={2}
-        style={{
-          pointerEvents: "auto",
-          cursor: isHoriz ? "ew-resize" : "ns-resize",
-        }}
+        style={{ pointerEvents: "auto", cursor: "ew-resize" }}
         onMouseDown={onEndHandle}
       />
     </svg>
@@ -296,17 +290,15 @@ const buildChamferClipPath = (c: number, rc: RoundedCorners): string => {
 
 const PlatformSprite: React.FC<{ entity: PlatformEntity }> = ({ entity }) => {
   const theme = entity.tileTheme || DEFAULT_PLATFORM_THEME;
-  const urls = getPlatformTileUrls(theme);
-  const slots = layoutPlatformTiles(
-    entity.width,
-    entity.height,
-    entity.isVertical ?? false,
-  );
+  const isVertical = entity.isVertical ?? false;
+  const nativeVertical = isVertical && hasVerticalTiles(theme);
+  const urls = getPlatformTileUrls(theme, nativeVertical);
+  const slots = layoutPlatformTiles(entity.width, entity.height, isVertical);
   return (
     <>
       {slots.map((slot) => {
         const src = urls[slot.piece];
-        if (entity.isVertical) {
+        if (isVertical && !nativeVertical) {
           // 90° CW rotation around the cell center.
           return (
             <img
@@ -481,15 +473,15 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
     );
   }
 
-  if (entity.kind === "bomb") {
+  if (entity.kind === "founding") {
     if (showSprites) {
       const fundingSrc = getSpriteImagePath("funding/funding_0.png");
-      // Overscale to 1.9 × BOMB_SIZE, centered on the hitbox so the visible
+      // Overscale to 1.9 × FOUNDING_SIZE, centered on the hitbox so the visible
       // coin lands in the 25×25 collision box. maxWidth/maxHeight 'none'
       // overrides Tailwind preflight's `img { max-width: 100% }`, which
       // would otherwise clamp the sprite back to the hitbox width.
-      const drawSize = GAME_CONFIG.BOMB_SIZE * 1.9;
-      const offset = (GAME_CONFIG.BOMB_SIZE - drawSize) / 2;
+      const drawSize = GAME_CONFIG.FOUNDING_SIZE * 1.9;
+      const offset = (GAME_CONFIG.FOUNDING_SIZE - drawSize) / 2;
       return (
         <div onMouseDown={onMouseDown} style={baseStyle}>
           <img
@@ -506,7 +498,7 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
               left: offset,
               top: offset,
             }}
-            title={`Bomb #${entity.order} (group ${entity.group})`}
+            title={`Founding #${entity.order} (group ${entity.group})`}
           />
           <div
             style={{
@@ -544,7 +536,7 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
             fontSize: 9,
             fontWeight: 700,
           }}
-          title={`Bomb #${entity.order} (group ${entity.group})`}
+          title={`Founding #${entity.order} (group ${entity.group})`}
         >
           {entity.order}
         </div>
@@ -583,8 +575,8 @@ const EntityVisual: React.FC<EntityVisualProps> = ({
         </div>
         {angle !== null && (
           <ArrowOverlay
-            fromX={entity.x + GAME_CONFIG.MONSTER_SIZE / 2}
-            fromY={entity.y + GAME_CONFIG.MONSTER_SIZE / 2}
+            fromX={rect.x + rect.width / 2}
+            fromY={rect.y + rect.height / 2}
             angleDeg={angle}
             length={28}
             color={MONSTER_COLORS[entity.monsterType]}
@@ -748,9 +740,9 @@ export const EditorCanvas: React.FC = () => {
         tool.subType === "vertical"
           ? defaultVerticalWall(sx, sy)
           : defaultPlatform(sx, sy);
-    } else if (tool.entity === "bomb") {
-      const existing = entities.filter((en) => en.kind === "bomb").length;
-      const next = defaultBomb(sx, sy);
+    } else if (tool.entity === "founding") {
+      const existing = entities.filter((en) => en.kind === "founding").length;
+      const next = defaultFounding(sx, sy);
       next.order = existing + 1;
       next.group = Math.min(
         meta.groupSequence.length,
@@ -863,40 +855,21 @@ export const EditorCanvas: React.FC = () => {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    const isHoriz = monster.monsterType === MonsterType.MUMMY;
-    if (isHoriz) {
-      const startX = monster.platformX ?? monster.x;
-      const width = monster.platformWidth ?? 150;
-      const endX = startX + width;
-      const fixed = edge === "start" ? endX : startX;
-      const moving = edge === "start" ? startX : endX;
-      setPatrolResize({
-        id: monster.id,
-        edge,
-        axis: "x",
-        startClient: e.clientX,
-        fixedAnchor: fixed,
-        origMovingEdge: moving,
-        origMonsterPos: monster.x,
-        moved: false,
-      });
-    } else {
-      const startY = monster.y;
-      const height = monster.patrolHeight ?? 200;
-      const endY = startY + height;
-      const fixed = edge === "start" ? endY : startY;
-      const moving = edge === "start" ? startY : endY;
-      setPatrolResize({
-        id: monster.id,
-        edge,
-        axis: "y",
-        startClient: e.clientY,
-        fixedAnchor: fixed,
-        origMovingEdge: moving,
-        origMonsterPos: monster.y,
-        moved: false,
-      });
-    }
+    const startX = monster.platformX ?? monster.x;
+    const width = monster.platformWidth ?? 150;
+    const endX = startX + width;
+    const fixed = edge === "start" ? endX : startX;
+    const moving = edge === "start" ? startX : endX;
+    setPatrolResize({
+      id: monster.id,
+      edge,
+      axis: "x",
+      startClient: e.clientX,
+      fixedAnchor: fixed,
+      origMovingEdge: moving,
+      origMonsterPos: monster.x,
+      moved: false,
+    });
   };
 
   // Drag-move effect
@@ -991,31 +964,22 @@ export const EditorCanvas: React.FC = () => {
         .entities.find((en) => en.id === patrolResize.id);
       if (!ent || ent.kind !== "monster") return;
 
-      if (patrolResize.axis === "x") {
-        // H. Patrol — fixedAnchor and newMoving define platform range.
-        const startX = Math.min(patrolResize.fixedAnchor, newMoving);
-        const endX = Math.max(patrolResize.fixedAnchor, newMoving);
-        const width = Math.max(GAME_CONFIG.MONSTER_SIZE, endX - startX);
-        const patch: Partial<MonsterEntity> = {
-          platformX: startX,
-          platformWidth: width,
-        };
-        if (patrolResize.edge === "start") {
-          // Monster sits at the start; its x follows the start anchor.
-          patch.x = startX;
-        }
-        updateEntity(patrolResize.id, patch as Partial<EditorEntity>);
-      } else {
-        // V. Patrol
-        const startY = Math.min(patrolResize.fixedAnchor, newMoving);
-        const endY = Math.max(patrolResize.fixedAnchor, newMoving);
-        const height = Math.max(GAME_CONFIG.MONSTER_SIZE, endY - startY);
-        const patch: Partial<MonsterEntity> = { patrolHeight: height };
-        if (patrolResize.edge === "start") {
-          patch.y = startY;
-        }
-        updateEntity(patrolResize.id, patch as Partial<EditorEntity>);
+      // Minimum patrol extent = the monster's own bounds along that axis
+      // (can't patrol shorter than the monster itself).
+      const minBound = getDefaultBounds(ent.monsterType);
+      // H. Patrol — fixedAnchor and newMoving define platform range.
+      const startX = Math.min(patrolResize.fixedAnchor, newMoving);
+      const endX = Math.max(patrolResize.fixedAnchor, newMoving);
+      const width = Math.max(minBound.width, endX - startX);
+      const patch: Partial<MonsterEntity> = {
+        platformX: startX,
+        platformWidth: width,
+      };
+      if (patrolResize.edge === "start") {
+        // Monster sits at the start; its x follows the start anchor.
+        patch.x = startX;
       }
+      updateEntity(patrolResize.id, patch as Partial<EditorEntity>);
 
       if (!patrolResize.moved)
         setPatrolResize({ ...patrolResize, moved: true });
@@ -1146,8 +1110,7 @@ export const EditorCanvas: React.FC = () => {
           (e): e is MonsterEntity =>
             e.kind === "monster" &&
             selectedIds.has(e.id) &&
-            (e.monsterType === MonsterType.MUMMY ||
-              e.monsterType === MonsterType.VERTICAL_PATROL),
+            e.monsterType === MonsterType.BUREAUCRAT,
         )
         .map((m) => (
           <PatrolOverlay

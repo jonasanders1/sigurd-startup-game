@@ -2,7 +2,7 @@
  * Gravity LUT tests.
  *
  * Locks in the curve shape required by game-specs §4.3 — the apex hang and
- * terminal-velocity cap are what make Bomb Jack feel like Bomb Jack.
+ * terminal-velocity cap are what make Founding Jack feel like Founding Jack.
  */
 
 import { describe, it, expect } from "vitest";

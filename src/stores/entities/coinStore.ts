@@ -25,11 +25,11 @@ interface CoinState {
     powerMode: boolean;
     powerModeEndTime: number;
   };
-  firebombCount: number;
-  /** Mirrors CoinManager.bombAndMonsterPoints so the HUD can render B-coin
+  firefoundingCount: number;
+  /** Mirrors CoinManager.foundingAndMonsterPoints so the HUD can render B-coin
    *  spawn progress reactively. Only thresholdable score sources increment
-   *  this — bombs, monster kills, trampoline (see bjRules.isThresholdablePointSource). */
-  bombAndMonsterPoints: number;
+   *  this — foundings, monster kills, trampoline (see bjRules.isThresholdablePointSource). */
+  foundingAndMonsterPoints: number;
   totalCoinsCollected: number;
   totalPowerCoinsCollected: number;
   totalBonusMultiplierCoinsCollected: number;
@@ -50,12 +50,12 @@ interface CoinState {
 interface CoinActions {
   setCoins: (coins: Coin[]) => void;
   setCoinManager: (manager: CoinManager) => void;
-  setFirebombCount: (count: number) => void;
+  setFirefoundingCount: (count: number) => void;
   clearActiveCoins: () => void;
   onPointsEarned: (points: number, isBonus: boolean) => void;
   calculateMonsterKillPoints: (multiplier: number) => number;
   collectCoin: (coin: Coin) => void;
-  onFirebombCollected: () => void;
+  onFirefoundingCollected: () => void;
   resetCoinState: () => void;
   softResetCoinState: () => void;
   resetLevelCoinCounters: () => void;
@@ -89,8 +89,8 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     powerMode: false,
     powerModeEndTime: 0,
   },
-  firebombCount: 0,
-  bombAndMonsterPoints: 0,
+  firefoundingCount: 0,
+  foundingAndMonsterPoints: 0,
   totalCoinsCollected: 0,
   totalPowerCoinsCollected: 0,
   totalBonusMultiplierCoinsCollected: 0,
@@ -114,8 +114,8 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     set({ coinManager: manager });
   },
 
-  setFirebombCount: (count: number) => {
-    set({ firebombCount: count });
+  setFirefoundingCount: (count: number) => {
+    set({ firefoundingCount: count });
   },
 
   clearActiveCoins: () => {
@@ -131,7 +131,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     if (coinManager) {
       coinManager.onPointsEarned(points, isBonus);
       if (!isBonus) {
-        set({ bombAndMonsterPoints: coinManager.getBombAndMonsterPoints() });
+        set({ foundingAndMonsterPoints: coinManager.getFoundingAndMonsterPoints() });
       }
     }
   },
@@ -355,13 +355,13 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     });
   },
 
-  onFirebombCollected: () => {
+  onFirefoundingCollected: () => {
     const { coinManager } = get();
     if (!coinManager) return;
 
-    coinManager.onFirebombCollected();
+    coinManager.onFirefoundingCollected();
     set({
-      firebombCount: coinManager.getFirebombCount(),
+      firefoundingCount: coinManager.getFirefoundingCount(),
       coins: coinManager.getCoins(),
     });
   },
@@ -379,8 +379,8 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         powerMode: false,
         powerModeEndTime: 0,
       },
-      firebombCount: 0,
-      bombAndMonsterPoints: 0,
+      firefoundingCount: 0,
+      foundingAndMonsterPoints: 0,
       totalCoinsCollected: 0,
       totalPowerCoinsCollected: 0,
       totalBonusMultiplierCoinsCollected: 0,
@@ -416,7 +416,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
           powerModeEndTime: 0,
         },
         // PRESERVE these counts across levels:
-        firebombCount: coinManager?.getFirebombCount() || currentState.firebombCount,
+        firefoundingCount: coinManager?.getFirefoundingCount() || currentState.firefoundingCount,
         // The spread above already preserves all the total* counters, but being explicit:
         totalCoinsCollected: currentState.totalCoinsCollected,
         totalPowerCoinsCollected: currentState.totalPowerCoinsCollected,
@@ -427,7 +427,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
     });
     
     log.data('CoinStore: Soft reset (level transition) - preserving spawn counters:', {
-      firebombCount: get().firebombCount,
+      firefoundingCount: get().firefoundingCount,
       totalBonusMultiplierCoinsCollected: get().totalBonusMultiplierCoinsCollected,
       totalCoinsCollected: get().totalCoinsCollected
     });
@@ -521,7 +521,7 @@ export const useCoinStore = create<CoinStore>((set, get) => ({
         powerMode: false,
         powerModeEndTime: 0,
       },
-      bombAndMonsterPoints: 0,
+      foundingAndMonsterPoints: 0,
     });
   },
 }));

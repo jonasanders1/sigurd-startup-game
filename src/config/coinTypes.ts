@@ -47,7 +47,7 @@ export const COIN_EFFECTS = {
       // Freeze monsters (safely handle undefined monsters). Stamp frozenAt
       // so we can shift wall-clock timestamps on unfreeze; otherwise
       // movement classes see a bogus 7s gap on the first post-freeze frame
-      // (e.g. Bird snaps onto player, Ambusher instantly redirects).
+      // (e.g. Wisp snaps onto player, Ambusher instantly redirects).
       const freezeStart = Date.now();
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
         gameState.monsters.forEach((monster) => {
@@ -105,7 +105,7 @@ export const COIN_EFFECTS = {
       // Unfreeze monsters (safely handle undefined monsters).
       // BJ mutation pass-through: tunable safe window when monster unfreezes.
       // Also shift wall-clock timestamps forward by the freeze duration so
-      // movement classes resume cleanly (no 7s gap that would cause Bird to
+      // movement classes resume cleanly (no 7s gap that would cause Wisp to
       // snap onto player, etc.).
       if (gameState.monsters && Array.isArray(gameState.monsters)) {
         const now = Date.now();
@@ -196,7 +196,7 @@ export const COIN_PHYSICS = {
     hasGravity: false,
     bounces: false,
     reflects: false,
-    // Bomb-Jack-style gravity-only coins (B / M / F):
+    // Founding-Jack-style gravity-only coins (B / M / F):
     //  1. Fall straight down at constant FALL_SPEED until they hit a platform
     //     or the canvas floor.
     //  2. On a platform: pick a random direction (left/right) and walk.
@@ -351,7 +351,7 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     points: 0, // Points will be calculated dynamically based on color
     physics: COIN_PHYSICS.POWER,
     effects: [COIN_EFFECTS.POWER_MODE],
-    // BJ P-coin spawning is driven by a token counter (firebomb=2, normal=1,
+    // BJ P-coin spawning is driven by a token counter (firefounding=2, normal=1,
     // threshold=9), gated on no live P-coin. Implemented in
     // CoinManager.checkPcoinSpawnConditions; this function is unused.
     spawnCondition: () => false,
@@ -365,13 +365,13 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.BONUS_MULTIPLIER],
     spawnCondition: (gameState: GameStateInterface) => {
-      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from firebomb collection ONLY
+      // Spawn every BONUS_COIN_SPAWN_INTERVAL points from firefounding collection ONLY
       // This prevents B-coin collection from triggering more B-coins
-      const firebombPoints = (gameState as any).firebombPoints || 0;
+      const firefoundingPoints = (gameState as any).firefoundingPoints || 0;
       
       // Check if we've reached a threshold (not using modulo since that fails for incremental points)
       // This is handled properly in checkBcoinSpawnConditions method
-      return firebombPoints >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
+      return firefoundingPoints >= GAME_CONFIG.BONUS_COIN_SPAWN_INTERVAL;
     },
     maxActive: 1,
   },
@@ -394,14 +394,19 @@ export const COIN_TYPES: Record<string, CoinTypeConfig> = {
     points: GAME_CONFIG.EXTRA_LIFE_COIN_POINTS,
     physics: COIN_PHYSICS.GRAVITY_ONLY,
     effects: [COIN_EFFECTS.EXTRA_LIFE],
-    // BJ E-coin: every 8 B-coins, with each life lost giving 2 credits toward
-    // the next milestone. Gate is "potential" only; downstream dedup handles
-    // milestone uniqueness via triggeredSpawnConditions.
+    // BJ E-coin: every 8 B-coins, with each life lost giving up to 2 credits
+    // of head-start toward the next milestone — but capped at bonusCount so
+    // deaths alone can't spawn one. Must match mCoinEffective in bjRules.ts.
+    // Gate is "potential" only; downstream dedup handles milestone uniqueness
+    // via triggeredSpawnConditions.
     spawnCondition: (gameState: GameStateInterface) => {
       const bonusCount = gameState.totalBonusMultiplierCoinsCollected || 0;
       const livesLost = gameState.livesLostThisGame ?? 0;
-      const effective =
-        bonusCount + COIN_SPAWNING.EXTRA_LIFE_DEATH_GENEROSITY * livesLost;
+      const headStart = Math.min(
+        COIN_SPAWNING.EXTRA_LIFE_DEATH_GENEROSITY * livesLost,
+        bonusCount
+      );
+      const effective = bonusCount + headStart;
       return effective >= COIN_SPAWNING.EXTRA_LIFE_COIN_RATIO;
     },
     maxActive: 1,

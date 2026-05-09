@@ -28,8 +28,8 @@ export class ScoreManager {
   }
 
   public calculateBonus(correctCount: number, livesLost: number): number {
-    // Calculate effective bomb count by subtracting lives lost
-    // Each life lost is equivalent to missing one bomb
+    // Calculate effective founding count by subtracting lives lost
+    // Each life lost is equivalent to missing one founding
     const effectiveCount = Math.max(0, correctCount - livesLost);
 
     return (
@@ -39,7 +39,7 @@ export class ScoreManager {
     );
   }
 
-  public calculateEffectiveBombCount(
+  public calculateEffectiveFoundingCount(
     correctCount: number,
     lives: number
   ): number {
@@ -75,14 +75,14 @@ export class ScoreManager {
     collectCoin(coin);
   }
 
-  public handleBombCollection(bomb: any): any {
-    const { collectBomb } = useStateStore.getState();
+  public handleFoundingCollection(founding: any): any {
+    const { collectFounding } = useStateStore.getState();
     const { coinManager } = useCoinStore.getState();
-    const result = collectBomb(bomb.order);
+    const result = collectFounding(founding.order);
 
-    // BJ P-coin tokens count BOTH firebombs (2) and normal bombs (1).
+    // BJ P-coin tokens count BOTH firefoundings (2) and normal foundings (1).
     if (result && result.isValid && coinManager) {
-      coinManager.onBombCollected(result.isCorrect);
+      coinManager.onFoundingCollected(result.isCorrect);
     }
 
     return result;
