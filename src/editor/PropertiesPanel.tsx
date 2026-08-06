@@ -247,6 +247,10 @@ const MonsterEditor: React.FC<{
             options={[
               { value: "CONSULTANT", label: "Consultant (default)" },
               { value: "ROBOT", label: "Robot" },
+              { value: "BUREAUCRAT", label: "Bureaucrat" },
+              { value: "WISP", label: "Wisp" },
+              { value: "TAXGHOST", label: "Tax Ghost" },
+              { value: "FOUNDER", label: "Founder" },
               { value: "NONE", label: "None (die on impact)" },
             ]}
             onChange={(v) =>

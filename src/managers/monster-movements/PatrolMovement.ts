@@ -202,8 +202,8 @@ export class PatrolMovement {
 
   /**
    * BJ §5.1.2 / Monster-Movments.md: ground-impact transform. Each bureaucrat
-   * carries a per-instance `transformTarget` set in the editor:
-   *   "CONSULTANT" (default — canonical BJ), "ROBOT", or "NONE" (die).
+   * carries a per-instance `transformTarget` set in the editor. Canonical
+   * BJ uses CONSULTANT/ROBOT; we allow any monster type plus "NONE" (die).
    * Re-uses the `mutationEndTime` channel for the pass-through safe window
    * so the player can cross the transformation point.
    */
@@ -226,9 +226,8 @@ export class PatrolMovement {
     monster.originalWidth = monster.width;
     monster.originalHeight = monster.height;
 
-    // Type and color move into the airborne family — the discriminated
-    // union doesn't permit cross-variant assignment, so cast through a
-    // narrow record for those two fields only.
+    // Type and color move to the target — the discriminated union doesn't
+    // permit cross-variant assignment, so cast through a narrow record.
     const cross = monster as unknown as { type: string; color: string };
     cross.type = target;
     cross.color = (COLORS.MONSTER_TYPES as Record<string, string>)[target];
@@ -252,6 +251,35 @@ export class PatrolMovement {
     monster.isGrounded = false;
     monster.isFalling = false;
     monster.mutationEndTime = Date.now() + getTuned("MUTATION_PASSTHROUGH_MS");
+
+    // BUREAUCRAT-as-target needs patrol bounds at the impact site so
+    // PatrolMovement has something to walk between. Use a small window
+    // around the impact point clamped to the canvas; walkLengths=1 so it
+    // immediately drops again on the next edge touch.
+    if (target === "BUREAUCRAT") {
+      const PATROL_HALF_WIDTH = 100;
+      const minX = 0;
+      const maxX = GAME_CONFIG.CANVAS_WIDTH;
+      const start = Math.max(minX, monster.x + monster.width / 2 - PATROL_HALF_WIDTH);
+      const end = Math.min(maxX, monster.x + monster.width / 2 + PATROL_HALF_WIDTH);
+      const patrol = monster as unknown as {
+        patrolStartX: number;
+        patrolEndX: number;
+        originalPatrolStartX?: number;
+        originalPatrolEndX?: number;
+        walkLengths?: number;
+        currentWalkCount?: number;
+        direction: number;
+      };
+      patrol.patrolStartX = start;
+      patrol.patrolEndX = end;
+      patrol.originalPatrolStartX = start;
+      patrol.originalPatrolEndX = end;
+      patrol.walkLengths = 1;
+      patrol.currentWalkCount = 0;
+      patrol.direction = patrol.direction >= 0 ? 1 : -1;
+    }
+
     logger.monster(
       `Bureaucrat transformed into ${target} at (${monster.x}, ${monster.y})`
     );

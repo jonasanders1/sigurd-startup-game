@@ -1,7 +1,10 @@
 import { MonsterType, CoinType } from "../types/enums";
 import type { PlatformTheme } from "../config/platformTiles";
 import type { FloorVariant } from "../config/floor";
-import type { RoundedCorners } from "../types/interfaces";
+import type {
+  RoundedCorners,
+  BureaucratTransformTarget,
+} from "../types/interfaces";
 
 export type EntityKind =
   | "platform"
@@ -57,8 +60,9 @@ export interface MonsterEntity {
   walkLengths?: number;
   direction?: number;
   /** What this bureaucrat turns into on hitting the ground (BJ §5.1.2). Default
-   *  "CONSULTANT" matches canonical BJ. "NONE" = die on impact. */
-  transformTarget?: "CONSULTANT" | "ROBOT" | "NONE";
+   *  "CONSULTANT" matches canonical BJ. "NONE" = die on impact. Any monster
+   *  type may be specified. */
+  transformTarget?: BureaucratTransformTarget;
   /** ms between repeat spawns (only for delayed/spawn-point monsters).
    *  0 / undefined = one-shot (legacy). >0 = continuous respawn after the
    *  initial delay. */

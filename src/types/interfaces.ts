@@ -128,14 +128,24 @@ interface BaseMonster {
   _boundsRotation?: number;
 }
 
+/** Per-bureaucrat ground-impact transform target (BJ §5.1.2). Any monster type
+ *  may be specified; "NONE" = die on impact. Defaults to "CONSULTANT" when
+ *  absent (canonical BJ behavior). */
+export type BureaucratTransformTarget =
+  | "BUREAUCRAT"
+  | "WISP"
+  | "TAXGHOST"
+  | "FOUNDER"
+  | "CONSULTANT"
+  | "ROBOT"
+  | "NONE";
+
 // Horizontal-patrol bureaucrat
 interface PatrolMonster extends BaseMonster {
   type: "BUREAUCRAT";
   patrolStartX: number;
   patrolEndX: number;
-  /** Per-bureaucrat ground-impact transform target (BJ §5.1.2). Defaults to
-   *  "CONSULTANT" if absent. "NONE" = die instead of mutating. */
-  transformTarget?: "CONSULTANT" | "ROBOT" | "NONE";
+  transformTarget?: BureaucratTransformTarget;
   // Snapshot of the spawn-time platform bounds. updateFallingBureaucrat rewrites
   // patrolStartX/EndX when a dropped bureaucrat lands on a different platform; on
   // respawn we restore from these so the bureaucrat patrols its original platform
@@ -337,8 +347,9 @@ export interface MapDefinition {
  */
 export interface KillerInfo {
   type: string;
-  /** Pre-transform type if the killer is a transformed Bureaucrat (CONSULTANT/ROBOT
-   *  killed the player after morphing). Undefined otherwise. */
+  /** Pre-transform type if the killer is a transformed Bureaucrat (any
+   *  configured transformTarget killed the player after morphing).
+   *  Undefined otherwise. */
   originalType?: string;
 }
 

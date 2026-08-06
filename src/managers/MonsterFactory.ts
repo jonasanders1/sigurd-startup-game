@@ -1,4 +1,4 @@
-import { Monster } from "../types/interfaces";
+import { Monster, BureaucratTransformTarget } from "../types/interfaces";
 import { GAME_CONFIG, COLORS } from "../types/constants";
 import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { MonsterType } from "../types/enums";
@@ -86,7 +86,7 @@ export const createBureaucratMonster = (
   speed: number = 1,
   direction?: number,
   spawnDelay: number = 0,
-  transformTarget: "CONSULTANT" | "ROBOT" | "NONE" = "CONSULTANT"
+  transformTarget: BureaucratTransformTarget = "CONSULTANT"
 ): Monster => {
   // Read dims from the BUREAUCRAT hitbox so entity-file edits propagate here
   // automatically (see src/entities/Bureaucrat.ts).
