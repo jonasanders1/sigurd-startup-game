@@ -1,0 +1,407 @@
+{
+  "id": "level2",
+  "name": "garasjen",
+  "width": 800,
+  "height": 600,
+  "background": "garasjen",
+  "floor": "brown",
+  "playerStart": {
+    "x": 388,
+    "y": 283
+  },
+  "spawnIndicatorColor": "#ff9ff3",
+  "groupSequence": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "platforms": [
+    {
+      "x": 75,
+      "y": 175,
+      "width": 150,
+      "height": 25,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "br": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 100,
+      "y": 475,
+      "width": 150,
+      "height": 25,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tr": true,
+        "br": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 75,
+      "y": 200,
+      "width": 25,
+      "height": 300,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "bl": true
+      },
+      "isVertical": true
+    },
+    {
+      "x": 550,
+      "y": 175,
+      "width": 175,
+      "height": 25,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "bl": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 550,
+      "y": 475,
+      "width": 150,
+      "height": 25,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "bl": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 700,
+      "y": 200,
+      "width": 25,
+      "height": 300,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "br": true
+      },
+      "isVertical": true
+    },
+    {
+      "x": 325,
+      "y": 175,
+      "width": 150,
+      "height": 25,
+      "color": "#bd9853",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "bl": true,
+        "br": true
+      },
+      "isVertical": false
+    }
+  ],
+  "foundings": [
+    {
+      "x": 563,
+      "y": 450,
+      "width": 25,
+      "height": 25,
+      "order": 1,
+      "group": 1
+    },
+    {
+      "x": 612,
+      "y": 450,
+      "width": 25,
+      "height": 25,
+      "order": 2,
+      "group": 1
+    },
+    {
+      "x": 663,
+      "y": 450,
+      "width": 25,
+      "height": 25,
+      "order": 3,
+      "group": 1
+    },
+    {
+      "x": 664,
+      "y": 204,
+      "width": 25,
+      "height": 25,
+      "order": 4,
+      "group": 2
+    },
+    {
+      "x": 613,
+      "y": 204,
+      "width": 25,
+      "height": 25,
+      "order": 5,
+      "group": 2
+    },
+    {
+      "x": 564,
+      "y": 204,
+      "width": 25,
+      "height": 25,
+      "order": 6,
+      "group": 2
+    },
+    {
+      "x": 438,
+      "y": 204,
+      "width": 25,
+      "height": 25,
+      "order": 7,
+      "group": 3
+    },
+    {
+      "x": 387,
+      "y": 204,
+      "width": 25,
+      "height": 25,
+      "order": 8,
+      "group": 3
+    },
+    {
+      "x": 338,
+      "y": 204,
+      "width": 25,
+      "height": 25,
+      "order": 9,
+      "group": 3
+    },
+    {
+      "x": 213,
+      "y": 450,
+      "width": 25,
+      "height": 25,
+      "order": 10,
+      "group": 4
+    },
+    {
+      "x": 161,
+      "y": 450,
+      "width": 25,
+      "height": 25,
+      "order": 11,
+      "group": 4
+    },
+    {
+      "x": 112,
+      "y": 450,
+      "width": 25,
+      "height": 25,
+      "order": 12,
+      "group": 4
+    },
+    {
+      "x": 189,
+      "y": 150,
+      "width": 25,
+      "height": 25,
+      "order": 13,
+      "group": 5
+    },
+    {
+      "x": 138,
+      "y": 150,
+      "width": 25,
+      "height": 25,
+      "order": 14,
+      "group": 5
+    },
+    {
+      "x": 88,
+      "y": 150,
+      "width": 25,
+      "height": 25,
+      "order": 15,
+      "group": 5
+    },
+    {
+      "x": 575,
+      "y": 150,
+      "width": 25,
+      "height": 25,
+      "order": 16,
+      "group": 6
+    },
+    {
+      "x": 625,
+      "y": 150,
+      "width": 25,
+      "height": 25,
+      "order": 17,
+      "group": 6
+    },
+    {
+      "x": 675,
+      "y": 150,
+      "width": 25,
+      "height": 25,
+      "order": 18,
+      "group": 6
+    },
+    {
+      "x": 413,
+      "y": 50,
+      "width": 25,
+      "height": 25,
+      "order": 19,
+      "group": 7
+    },
+    {
+      "x": 363,
+      "y": 50,
+      "width": 25,
+      "height": 25,
+      "order": 20,
+      "group": 7
+    },
+    {
+      "x": 438,
+      "y": 551,
+      "width": 25,
+      "height": 25,
+      "order": 21,
+      "group": 8
+    },
+    {
+      "x": 388,
+      "y": 551,
+      "width": 25,
+      "height": 25,
+      "order": 22,
+      "group": 8
+    },
+    {
+      "x": 338,
+      "y": 551,
+      "width": 25,
+      "height": 25,
+      "order": 23,
+      "group": 8
+    }
+  ],
+  "initialMonsters": [],
+  "monsterSpawnPoints": [
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 10000,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 75,
+        "y": 136,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": 1,
+        "spawnDelay": 0,
+        "patrolStartX": 75,
+        "patrolEndX": 225,
+        "originalPatrolStartX": 75,
+        "originalPatrolEndX": 225,
+        "walkLengths": 3,
+        "transformTarget": "ROBOT"
+      }
+    },
+    {
+      "spawnDelay": 1500,
+      "respawnInterval": 10000,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 700,
+        "y": 136,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": -1,
+        "spawnDelay": 1500,
+        "patrolStartX": 550,
+        "patrolEndX": 725,
+        "originalPatrolStartX": 550,
+        "originalPatrolEndX": 725,
+        "walkLengths": 3,
+        "transformTarget": "ROBOT"
+      }
+    },
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 7000,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 325,
+        "y": 136,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": 1,
+        "spawnDelay": 0,
+        "patrolStartX": 325,
+        "patrolEndX": 475,
+        "originalPatrolStartX": 325,
+        "originalPatrolEndX": 475,
+        "walkLengths": 3,
+        "transformTarget": "CONSULTANT"
+      }
+    }
+  ],
+  "coinSpawnPoints": [
+    {
+      "x": 387.5,
+      "y": 287.5,
+      "type": "POWER",
+      "spawnAngle": 65
+    },
+    {
+      "x": 387.5,
+      "y": 287.5,
+      "type": "POWER",
+      "spawnAngle": 219
+    },
+    {
+      "x": 100,
+      "y": 50,
+      "type": "BONUS_MULTIPLIER"
+    },
+    {
+      "x": 100,
+      "y": 75,
+      "type": "EXTRA_LIFE"
+    },
+    {
+      "x": 675,
+      "y": 50,
+      "type": "BONUS_MULTIPLIER"
+    },
+    {
+      "x": 675,
+      "y": 75,
+      "type": "EXTRA_LIFE"
+    }
+  ]
+}

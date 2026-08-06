@@ -1,0 +1,165 @@
+{
+  "id": "tutorial-kill",
+  "name": "garasjen",
+  "width": 800,
+  "height": 600,
+  "background": "garasjen",
+  "floor": "gray",
+  "playerStart": {
+    "x": 387.5,
+    "y": 282.5
+  },
+  "spawnIndicatorColor": "#ff9ff3",
+  "groupSequence": [
+    1
+  ],
+  "platforms": [
+    {
+      "x": 100,
+      "y": 175,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 525,
+      "y": 175,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 125,
+      "y": 400,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 525,
+      "y": 400,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    }
+  ],
+  "foundings": [],
+  "initialMonsters": [
+    {
+      "x": 100,
+      "y": 136,
+      "width": 25,
+      "height": 39,
+      "color": "#ee90cb",
+      "type": "BUREAUCRAT",
+      "speed": 1,
+      "direction": 1,
+      "spawnDelay": 0,
+      "patrolStartX": 100,
+      "patrolEndX": 250,
+      "originalPatrolStartX": 100,
+      "originalPatrolEndX": 250,
+      "walkLengths": 11,
+      "transformTarget": "CONSULTANT"
+    },
+    {
+      "x": 650,
+      "y": 136,
+      "width": 25,
+      "height": 39,
+      "color": "#ee90cb",
+      "type": "BUREAUCRAT",
+      "speed": 1,
+      "direction": -1,
+      "spawnDelay": 0,
+      "patrolStartX": 525,
+      "patrolEndX": 675,
+      "originalPatrolStartX": 525,
+      "originalPatrolEndX": 675,
+      "walkLengths": 10,
+      "transformTarget": "CONSULTANT"
+    },
+    {
+      "x": 250,
+      "y": 361,
+      "width": 25,
+      "height": 39,
+      "color": "#ee90cb",
+      "type": "BUREAUCRAT",
+      "speed": 1,
+      "direction": -1,
+      "spawnDelay": 0,
+      "patrolStartX": 125,
+      "patrolEndX": 275,
+      "originalPatrolStartX": 125,
+      "originalPatrolEndX": 275,
+      "walkLengths": 5,
+      "transformTarget": "CONSULTANT"
+    },
+    {
+      "x": 525,
+      "y": 361,
+      "width": 25,
+      "height": 39,
+      "color": "#ee90cb",
+      "type": "BUREAUCRAT",
+      "speed": 1,
+      "direction": 1,
+      "spawnDelay": 0,
+      "patrolStartX": 525,
+      "patrolEndX": 675,
+      "originalPatrolStartX": 525,
+      "originalPatrolEndX": 675,
+      "walkLengths": 8,
+      "transformTarget": "CONSULTANT"
+    },
+    {
+      "x": 575,
+      "y": 500,
+      "width": 30,
+      "height": 40,
+      "color": "#22d3ee",
+      "type": "FOUNDER",
+      "speed": 1,
+      "direction": 1,
+      "spawnDelay": 0,
+      "startAngle": 47
+    }
+  ],
+  "monsterSpawnPoints": [
+    {
+      "spawnDelay": 5000,
+      "respawnInterval": 0,
+      "maxSpawns": 0,
+      "monster": {
+        "x": 25,
+        "y": 25,
+        "width": 30,
+        "height": 52,
+        "color": "#f2ae99",
+        "type": "WISP",
+        "speed": 0.8,
+        "direction": 0,
+        "spawnDelay": 5000,
+        "directness": 0.2,
+        "chaseUpdateInterval": 500
+      }
+    }
+  ],
+  "coinSpawnPoints": [
+    {
+      "x": 50,
+      "y": 225,
+      "type": "POWER",
+      "spawnAngle": 53
+    }
+  ]
+}

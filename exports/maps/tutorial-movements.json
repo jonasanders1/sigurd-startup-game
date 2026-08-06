@@ -1,0 +1,49 @@
+{
+  "id": "tutorial-movements",
+  "name": "garasjen",
+  "width": 800,
+  "height": 600,
+  "background": "garasjen",
+  "floor": "gray",
+  "playerStart": {
+    "x": 378.5,
+    "y": 278.5
+  },
+  "spawnIndicatorColor": "#ff9ff3",
+  "groupSequence": [
+    1
+  ],
+  "platforms": [
+    {
+      "x": 500,
+      "y": 425,
+      "width": 175,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 75,
+      "y": 225,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 75,
+      "y": 475,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    }
+  ],
+  "foundings": [],
+  "initialMonsters": [],
+  "monsterSpawnPoints": [],
+  "coinSpawnPoints": []
+}

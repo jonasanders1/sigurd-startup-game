@@ -1,0 +1,443 @@
+{
+  "id": "level5",
+  "name": "skatteetaten",
+  "width": 800,
+  "height": 600,
+  "background": "skatteetaten",
+  "floor": "green-white",
+  "playerStart": {
+    "x": 387.5,
+    "y": 242.5
+  },
+  "spawnIndicatorColor": "#4ecdc4",
+  "groupSequence": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "platforms": [
+    {
+      "x": 0,
+      "y": 225,
+      "width": 175,
+      "height": 25,
+      "color": "#059f60",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tr": true,
+        "br": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 625,
+      "y": 225,
+      "width": 175,
+      "height": 25,
+      "color": "#059f60",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "bl": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 75,
+      "y": 350,
+      "width": 200,
+      "height": 25,
+      "color": "#059f60",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "bl": true,
+        "br": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 500,
+      "y": 350,
+      "width": 200,
+      "height": 25,
+      "color": "#059f60",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "bl": true,
+        "br": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 150,
+      "y": 500,
+      "width": 500,
+      "height": 25,
+      "color": "#059f60",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "bl": true,
+        "br": true
+      },
+      "isVertical": false
+    },
+    {
+      "x": 150,
+      "y": 125,
+      "width": 500,
+      "height": 25,
+      "color": "#059f60",
+      "tileTheme": "platform-beige",
+      "roundedCorners": {
+        "tl": true,
+        "tr": true,
+        "bl": true,
+        "br": true
+      },
+      "isVertical": false
+    }
+  ],
+  "foundings": [
+    {
+      "x": 673,
+      "y": 257,
+      "width": 25,
+      "height": 25,
+      "order": 1,
+      "group": 1
+    },
+    {
+      "x": 723,
+      "y": 257,
+      "width": 25,
+      "height": 25,
+      "order": 2,
+      "group": 1
+    },
+    {
+      "x": 767,
+      "y": 258,
+      "width": 25,
+      "height": 25,
+      "order": 3,
+      "group": 1
+    },
+    {
+      "x": 767,
+      "y": 308,
+      "width": 25,
+      "height": 25,
+      "order": 4,
+      "group": 1
+    },
+    {
+      "x": 767,
+      "y": 358,
+      "width": 25,
+      "height": 25,
+      "order": 5,
+      "group": 1
+    },
+    {
+      "x": 600,
+      "y": 475,
+      "width": 25,
+      "height": 25,
+      "order": 6,
+      "group": 2
+    },
+    {
+      "x": 550,
+      "y": 475,
+      "width": 25,
+      "height": 25,
+      "order": 7,
+      "group": 2
+    },
+    {
+      "x": 500,
+      "y": 475,
+      "width": 25,
+      "height": 25,
+      "order": 8,
+      "group": 2
+    },
+    {
+      "x": 105,
+      "y": 257,
+      "width": 25,
+      "height": 25,
+      "order": 9,
+      "group": 3
+    },
+    {
+      "x": 55,
+      "y": 257,
+      "width": 25,
+      "height": 25,
+      "order": 10,
+      "group": 3
+    },
+    {
+      "x": 7,
+      "y": 257,
+      "width": 25,
+      "height": 25,
+      "order": 11,
+      "group": 3
+    },
+    {
+      "x": 7,
+      "y": 307,
+      "width": 25,
+      "height": 25,
+      "order": 12,
+      "group": 3
+    },
+    {
+      "x": 7,
+      "y": 357,
+      "width": 25,
+      "height": 25,
+      "order": 13,
+      "group": 3
+    },
+    {
+      "x": 175,
+      "y": 473,
+      "width": 25,
+      "height": 25,
+      "order": 14,
+      "group": 4
+    },
+    {
+      "x": 225,
+      "y": 473,
+      "width": 25,
+      "height": 25,
+      "order": 15,
+      "group": 4
+    },
+    {
+      "x": 275,
+      "y": 475,
+      "width": 25,
+      "height": 25,
+      "order": 16,
+      "group": 4
+    },
+    {
+      "x": 337,
+      "y": 155,
+      "width": 25,
+      "height": 25,
+      "order": 17,
+      "group": 5
+    },
+    {
+      "x": 387,
+      "y": 155,
+      "width": 25,
+      "height": 25,
+      "order": 18,
+      "group": 5
+    },
+    {
+      "x": 437,
+      "y": 155,
+      "width": 25,
+      "height": 25,
+      "order": 19,
+      "group": 5
+    },
+    {
+      "x": 425,
+      "y": 548,
+      "width": 25,
+      "height": 25,
+      "order": 20,
+      "group": 6
+    },
+    {
+      "x": 375,
+      "y": 548,
+      "width": 25,
+      "height": 25,
+      "order": 21,
+      "group": 6
+    },
+    {
+      "x": 325,
+      "y": 548,
+      "width": 25,
+      "height": 25,
+      "order": 22,
+      "group": 6
+    },
+    {
+      "x": 385,
+      "y": 95,
+      "width": 25,
+      "height": 25,
+      "order": 23,
+      "group": 7
+    }
+  ],
+  "initialMonsters": [],
+  "monsterSpawnPoints": [
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 13000,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 150,
+        "y": 461,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": 1,
+        "spawnDelay": 0,
+        "patrolStartX": 150,
+        "patrolEndX": 650,
+        "originalPatrolStartX": 150,
+        "originalPatrolEndX": 650,
+        "walkLengths": 1,
+        "transformTarget": "ROBOT"
+      }
+    },
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 11000,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 150,
+        "y": 86,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": 1,
+        "spawnDelay": 0,
+        "patrolStartX": 150,
+        "patrolEndX": 650,
+        "originalPatrolStartX": 150,
+        "originalPatrolEndX": 650,
+        "walkLengths": 2,
+        "transformTarget": "ROBOT"
+      }
+    },
+    {
+      "spawnDelay": 3500,
+      "respawnInterval": 4500,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 775,
+        "y": 186,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": -1,
+        "spawnDelay": 3500,
+        "patrolStartX": 625,
+        "patrolEndX": 800,
+        "originalPatrolStartX": 625,
+        "originalPatrolEndX": 800,
+        "walkLengths": 1,
+        "transformTarget": "CONSULTANT"
+      }
+    },
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 12500,
+      "maxSpawns": 1,
+      "monster": {
+        "x": 250,
+        "y": 311,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": -1,
+        "spawnDelay": 0,
+        "patrolStartX": 75,
+        "patrolEndX": 275,
+        "originalPatrolStartX": 75,
+        "originalPatrolEndX": 275,
+        "walkLengths": 1,
+        "transformTarget": "CONSULTANT"
+      }
+    },
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 12500,
+      "maxSpawns": 1,
+      "monster": {
+        "x": 500,
+        "y": 311,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": 1,
+        "spawnDelay": 0,
+        "patrolStartX": 500,
+        "patrolEndX": 700,
+        "originalPatrolStartX": 500,
+        "originalPatrolEndX": 700,
+        "walkLengths": 1,
+        "transformTarget": "CONSULTANT"
+      }
+    }
+  ],
+  "coinSpawnPoints": [
+    {
+      "x": 375,
+      "y": 250,
+      "type": "POWER",
+      "spawnAngle": -30
+    },
+    {
+      "x": 400,
+      "y": 250,
+      "type": "POWER",
+      "spawnAngle": -120
+    },
+    {
+      "x": 175,
+      "y": 25,
+      "type": "BONUS_MULTIPLIER"
+    },
+    {
+      "x": 600,
+      "y": 25,
+      "type": "BONUS_MULTIPLIER"
+    },
+    {
+      "x": 175,
+      "y": 50,
+      "type": "EXTRA_LIFE"
+    },
+    {
+      "x": 600,
+      "y": 50,
+      "type": "EXTRA_LIFE"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "id": "tutorial-survive",
+  "name": "garasjen",
+  "width": 800,
+  "height": 600,
+  "background": "garasjen",
+  "floor": "gray",
+  "playerStart": {
+    "x": 387.5,
+    "y": 282.5
+  },
+  "spawnIndicatorColor": "#ff9ff3",
+  "groupSequence": [
+    1
+  ],
+  "platforms": [
+    {
+      "x": 550,
+      "y": 300,
+      "width": 25,
+      "height": 150,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": true
+    },
+    {
+      "x": 400,
+      "y": 425,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 250,
+      "y": 150,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 225,
+      "y": 150,
+      "width": 25,
+      "height": 150,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": true
+    },
+    {
+      "x": 100,
+      "y": 500,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 100,
+      "y": 350,
+      "width": 25,
+      "height": 150,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": true
+    },
+    {
+      "x": 550,
+      "y": 100,
+      "width": 150,
+      "height": 25,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": false
+    },
+    {
+      "x": 675,
+      "y": 125,
+      "width": 25,
+      "height": 150,
+      "color": "#a2a2a2",
+      "tileTheme": "platform-beige",
+      "isVertical": true
+    }
+  ],
+  "foundings": [],
+  "initialMonsters": [
+    {
+      "x": 600,
+      "y": 175,
+      "width": 38,
+      "height": 36,
+      "color": "#8465ec",
+      "type": "TAXGHOST",
+      "speed": 0.8,
+      "direction": 1,
+      "spawnDelay": 0
+    },
+    {
+      "x": 425,
+      "y": 275,
+      "width": 30,
+      "height": 40,
+      "color": "#22d3ee",
+      "type": "FOUNDER",
+      "speed": 1,
+      "direction": 1,
+      "spawnDelay": 0,
+      "startAngle": -142
+    }
+  ],
+  "monsterSpawnPoints": [
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 6000,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 125,
+        "y": 461,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": 1,
+        "spawnDelay": 0,
+        "patrolStartX": 125,
+        "patrolEndX": 250,
+        "originalPatrolStartX": 125,
+        "originalPatrolEndX": 250,
+        "walkLengths": 1,
+        "transformTarget": "ROBOT"
+      }
+    },
+    {
+      "spawnDelay": 0,
+      "respawnInterval": 11500,
+      "maxSpawns": 2,
+      "monster": {
+        "x": 525,
+        "y": 386,
+        "width": 25,
+        "height": 39,
+        "color": "#ee90cb",
+        "type": "BUREAUCRAT",
+        "speed": 1,
+        "direction": -1,
+        "spawnDelay": 0,
+        "patrolStartX": 400,
+        "patrolEndX": 550,
+        "originalPatrolStartX": 400,
+        "originalPatrolEndX": 550,
+        "walkLengths": 3,
+        "transformTarget": "CONSULTANT"
+      }
+    }
+  ],
+  "coinSpawnPoints": []
+}
