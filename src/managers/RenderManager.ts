@@ -119,6 +119,10 @@ export class RenderManager {
   private founderSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
   private robotSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
   private consultantSprites: WeakMap<Monster, FloaterSprite> = new WeakMap();
+  // Cache of preview monsters shown during the COUNTDOWN state, keyed by
+  // spawn point id. Persisted across frames so per-monster sprite WeakMaps
+  // (bureaucratSprites, etc.) keep their animation state.
+  private previewMonsters: Map<string, Monster> = new Map();
   private currentSpawnManager: OptimizedSpawnManager | null = null;
   private currentGameState: GameStateSnapshot | null = null;
   private frameTime: number = 0; // Cached Date.now() for current frame
@@ -542,7 +546,16 @@ export class RenderManager {
     const powerActive = useCoinStore.getState().activeEffects.powerMode;
     if (powerActive) tailwindSprite.update(deltaTime);
 
-    monsters.forEach((monster, index) => {
+    // Resume-from-pause countdown: monsters in the store are frozen mid-game
+    // from before the pause. Drawing them on the countdown overlay looks like
+    // stale state. Skip the live pass; the preview pass below renders the
+    // not-yet-fired spawn points as previews. Live monsters reappear at their
+    // stored positions when we transition back to PLAYING.
+    const isResumeCountdown =
+      this.currentGameState?.currentState === "COUNTDOWN" &&
+      this.currentSpawnManager?.hasFiredAnySpawn() === true;
+
+    if (!isResumeCountdown) monsters.forEach((monster, index) => {
       if (powerActive) {
         // During power mode: live monsters render as the tailwind chip-bag,
         // killed monsters render nothing (no death/transition fall-through —
@@ -755,11 +768,88 @@ export class RenderManager {
       this.ctx.stroke();
     });
 
+    // COUNTDOWN preview: most maps author monsters via monsterSpawnPoints
+    // with non-zero spawn delays, so during the pre-play countdown only the
+    // auto-injected wisp would otherwise render. Materialize one preview
+    // monster per pending spawn point and render it in place so the player
+    // sees the full roster before the round starts.
+    this.renderPreviewMonsters(deltaTime, player);
+
     this.ctx.imageSmoothingEnabled = prevSmoothing;
 
     if (SHOW_SPAWN_INDICATORS) {
       this.renderRespawnIndicators(monsters);
       this.renderSpawnIndicators(this.currentSpawnManager);
+    }
+  }
+
+  /**
+   * Build (or refresh from cache) the preview-monster list for the COUNTDOWN
+   * state and draw each one in place. Cleared automatically once the game
+   * leaves COUNTDOWN so the real monsters take over without overlap.
+   */
+  private renderPreviewMonsters(deltaTime: number, _player: Player): void {
+    const isCountdown =
+      this.currentGameState?.currentState === "COUNTDOWN";
+    if (!isCountdown || !this.currentSpawnManager) {
+      if (this.previewMonsters.size > 0) this.previewMonsters.clear();
+      return;
+    }
+
+    let pending: ReturnType<OptimizedSpawnManager["getPendingSpawns"]>;
+    try {
+      pending = this.currentSpawnManager.getPendingSpawns();
+    } catch {
+      return;
+    }
+
+    const seen = new Set<string>();
+    const list: Monster[] = [];
+    for (const spawn of pending) {
+      // Continuous spawns re-arm to executed=false after firing, so they stay
+      // in `pending`. On a resume-from-pause countdown, their live instance is
+      // already in the monster store — rendering a preview at the spawn point
+      // would double-render the same monster. Skip any spawn that has fired
+      // at least once; the live monster carries the visual.
+      if (spawn.spawnCount > 0) continue;
+      seen.add(spawn.id);
+      let m = this.previewMonsters.get(spawn.id);
+      if (!m) {
+        try {
+          m = spawn.spawnPoint.createMonster();
+        } catch {
+          continue;
+        }
+        this.previewMonsters.set(spawn.id, m);
+      }
+      list.push(m);
+    }
+    for (const id of [...this.previewMonsters.keys()]) {
+      if (!seen.has(id)) this.previewMonsters.delete(id);
+    }
+
+    for (const m of list) {
+      switch (m.type) {
+        case MonsterType.BUREAUCRAT:
+          this.updateBureaucratState(m, deltaTime, true);
+          this.renderBureaucrat(m);
+          break;
+        case MonsterType.TAXGHOST:
+          this.renderTaxGhost(m, deltaTime);
+          break;
+        case MonsterType.WISP:
+          this.renderWisp(m, deltaTime);
+          break;
+        case MonsterType.FOUNDER:
+          this.renderFounder(m, deltaTime);
+          break;
+        case MonsterType.ROBOT:
+          this.renderRobot(m, deltaTime);
+          break;
+        case MonsterType.CONSULTANT:
+          this.renderConsultant(m, deltaTime);
+          break;
+      }
     }
   }
 

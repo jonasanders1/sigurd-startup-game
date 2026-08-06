@@ -469,6 +469,16 @@ export class OptimizedSpawnManager {
     return this.scheduledSpawns.filter((s) => !s.executed);
   }
 
+  /**
+   * True once any scheduled spawn has fired at least once for this level.
+   * Used by the renderer to distinguish a fresh-start countdown (nothing
+   * has spawned yet) from a resume-from-pause countdown (live monsters
+   * already exist in the store and would otherwise render frozen-in-place).
+   */
+  public hasFiredAnySpawn(): boolean {
+    return this.scheduledSpawns.some((s) => s.spawnCount > 0);
+  }
+
   public setUpdateInterval(intervalMs: number): void {
     this.updateInterval = intervalMs;
     logger.debug(

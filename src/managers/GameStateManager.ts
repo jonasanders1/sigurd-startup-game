@@ -19,6 +19,10 @@ import type { OptimizedRespawnManager } from "./OptimizedRespawnManager";
 
 export class GameStateManager {
   private previousGameState: GameState = GameState.MENU;
+  // Tracks which state preceded the current COUNTDOWN so PLAYING can
+  // distinguish a resume-from-pause (no spawn-timing reset) from a
+  // fresh-start countdown (needs spawn-timing reset).
+  private stateBeforeCountdown: GameState | null = null;
   private isBackgroundMusicPlaying = false;
   private devModeInitialized = false;
   private bonusTransitionInProgress = false;
@@ -282,16 +286,23 @@ export class GameStateManager {
 
         // Check if we're coming from COUNTDOWN state (game just started/respawned)
         const wasCountdown = this.previousGameState === GameState.COUNTDOWN;
+        // Resume-from-pause also goes PAUSED -> COUNTDOWN -> PLAYING, but the
+        // pause clock already accounts for paused time, so resetSpawnTiming
+        // would wrongly re-fire already-executed spawns (duplicating monsters).
+        const isResumeFromPause =
+          wasCountdown && this.stateBeforeCountdown === GameState.PAUSED;
 
         // 1. Resume spawn/respawn managers first
         this.monsterSpawnManager.resume();
         this.monsterRespawnManager.resume();
 
-        // 1b. Reset spawn timing if coming from countdown to ensure consistent spawn times
-        if (wasCountdown) {
+        // 1b. Reset spawn timing only on a fresh-start countdown, not on resume from pause.
+        if (wasCountdown && !isResumeFromPause) {
           this.monsterSpawnManager.resetSpawnTiming();
           log.spawn("Reset spawn timing after countdown");
         }
+
+        this.stateBeforeCountdown = null;
 
         // 2. Resume scaling manager (respects power mode state)
         if (!this.scalingManager.isCurrentlyPausedByPowerMode()) {
@@ -342,6 +353,9 @@ export class GameStateManager {
         break;
 
       case GameState.COUNTDOWN:
+        // Remember what we came from so the PLAYING handler can distinguish
+        // a resume-from-pause from a fresh-start countdown.
+        this.stateBeforeCountdown = this.previousGameState;
         // Keep managers paused during countdown
         // They will resume when state changes to PLAYING
         // This prevents updates during countdown animation
