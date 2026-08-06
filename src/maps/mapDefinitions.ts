@@ -133,14 +133,34 @@ export const level1Map: MapDefinition = {
       respawnInterval: 10000,
       maxSpawns: 1,
       createMonster: () =>
-        createBureaucratMonster(100, 400, 200, "right", 5, 1, -1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          100,
+          400,
+          200,
+          "right",
+          5,
+          1,
+          -1,
+          0,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 0,
       respawnInterval: 14000,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(500, 400, 200, "left", 5, 1, 1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          500,
+          400,
+          200,
+          "left",
+          5,
+          1,
+          1,
+          0,
+          "CONSULTANT",
+        ),
     },
   ],
 
@@ -196,6 +216,7 @@ export const level2Map: MapDefinition = {
   platforms: [
     {
       ...createPlatform(75, 175, { width: 150, height: 25 }, "#bd9853", "#000"),
+      tileTheme: "platform-beige",
       roundedCorners: { tl: true, tr: true, br: true },
     },
     {
@@ -206,10 +227,12 @@ export const level2Map: MapDefinition = {
         "#bd9853",
         "#000",
       ),
+      tileTheme: "platform-beige",
       roundedCorners: { tr: true, br: true },
     },
     {
       ...createVerticalPlatform(75, 200, 300, "#bd9853", "#000"),
+      tileTheme: "platform-beige",
       roundedCorners: { bl: true },
     },
     {
@@ -220,6 +243,7 @@ export const level2Map: MapDefinition = {
         "#bd9853",
         "#000",
       ),
+      tileTheme: "platform-beige",
       roundedCorners: { tl: true, tr: true, bl: true },
     },
     {
@@ -230,10 +254,12 @@ export const level2Map: MapDefinition = {
         "#bd9853",
         "#000",
       ),
+      tileTheme: "platform-beige",
       roundedCorners: { tl: true, bl: true },
     },
     {
       ...createVerticalPlatform(700, 200, 300, "#bd9853", "#000"),
+      tileTheme: "platform-beige",
       roundedCorners: { br: true },
     },
     {
@@ -244,6 +270,7 @@ export const level2Map: MapDefinition = {
         "#bd9853",
         "#000",
       ),
+      tileTheme: "platform-beige",
       roundedCorners: { tl: true, tr: true, bl: true, br: true },
     },
   ],
@@ -289,14 +316,34 @@ export const level2Map: MapDefinition = {
       respawnInterval: 10000,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(550, 175, 175, "right", 3, 1, -1, 1500, "ROBOT"),
+        createBureaucratMonster(
+          550,
+          175,
+          175,
+          "right",
+          3,
+          1,
+          -1,
+          1500,
+          "ROBOT",
+        ),
     },
     {
       spawnDelay: 0,
       respawnInterval: 7000,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(325, 175, 150, "left", 3, 1, 1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          325,
+          175,
+          150,
+          "left",
+          3,
+          1,
+          1,
+          0,
+          "CONSULTANT",
+        ),
     },
   ],
 
@@ -305,13 +352,13 @@ export const level2Map: MapDefinition = {
       x: 387.5,
       y: 287.5,
       type: CoinType.POWER,
-      spawnAngle: 43,
+      spawnAngle: 65,
     },
     {
-      x: 388,
-      y: 289,
+      x: 387.5,
+      y: 287.5,
       type: CoinType.POWER,
-      spawnAngle: 205,
+      spawnAngle: 219,
     },
     {
       x: 100,
@@ -601,7 +648,17 @@ export const level4Map: MapDefinition = {
       spawnDelay: 0,
       respawnInterval: 8000,
       createMonster: () =>
-        createBureaucratMonster(150, 125, 150, "left", 3, 0.7, 1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          150,
+          125,
+          150,
+          "left",
+          3,
+          0.7,
+          1,
+          0,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 0,
@@ -615,7 +672,17 @@ export const level4Map: MapDefinition = {
       respawnInterval: 15000,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(300, 250, 200, "left", 4, 1, 1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          300,
+          250,
+          200,
+          "left",
+          4,
+          1,
+          1,
+          0,
+          "CONSULTANT",
+        ),
     },
   ],
 
@@ -771,21 +838,51 @@ export const level5Map: MapDefinition = {
       respawnInterval: 4500,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(625, 225, 175, "right", 1, 1, -1, 3500, "CONSULTANT"),
+        createBureaucratMonster(
+          625,
+          225,
+          175,
+          "right",
+          1,
+          1,
+          -1,
+          3500,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 0,
       respawnInterval: 12500,
       maxSpawns: 1,
       createMonster: () =>
-        createBureaucratMonster(75, 350, 200, "right", 1, 1, -1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          75,
+          350,
+          200,
+          "right",
+          1,
+          1,
+          -1,
+          0,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 0,
       respawnInterval: 12500,
       maxSpawns: 1,
       createMonster: () =>
-        createBureaucratMonster(500, 350, 200, "left", 1, 1, 1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          500,
+          350,
+          200,
+          "left",
+          1,
+          1,
+          1,
+          0,
+          "CONSULTANT",
+        ),
     },
   ],
 
@@ -1082,7 +1179,17 @@ export const level7Map: MapDefinition = {
       respawnInterval: 15500,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(175, 175, 25, "left", 1, 1, 1, 7000, "CONSULTANT"),
+        createBureaucratMonster(
+          175,
+          175,
+          25,
+          "left",
+          1,
+          1,
+          1,
+          7000,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 5500,
@@ -1230,7 +1337,9 @@ export const level8Map: MapDefinition = {
     createFounding(689, 448, 23, 7),
   ],
 
-  monsters: [createBureaucratMonster(75, 475, 150, "left", 1, 1, 1, 0, "CONSULTANT")],
+  monsters: [
+    createBureaucratMonster(75, 475, 150, "left", 1, 1, 1, 0, "CONSULTANT"),
+  ],
 
   monsterSpawnPoints: [
     {
@@ -1238,7 +1347,17 @@ export const level8Map: MapDefinition = {
       respawnInterval: 14000,
       maxSpawns: 3,
       createMonster: () =>
-        createBureaucratMonster(50, 150, 150, "right", 1, 1, -1, 0, "CONSULTANT"),
+        createBureaucratMonster(
+          50,
+          150,
+          150,
+          "right",
+          1,
+          1,
+          -1,
+          0,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 0,
@@ -1403,7 +1522,17 @@ export const level9Map: MapDefinition = {
       respawnInterval: 18000,
       maxSpawns: 2,
       createMonster: () =>
-        createBureaucratMonster(675, 100, 125, "right", 3, 1, -1, 16000, "CONSULTANT"),
+        createBureaucratMonster(
+          675,
+          100,
+          125,
+          "right",
+          3,
+          1,
+          -1,
+          16000,
+          "CONSULTANT",
+        ),
     },
     {
       spawnDelay: 0,

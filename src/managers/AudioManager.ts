@@ -35,6 +35,14 @@ export class AudioManager {
   // above other one-shots and the (now-ducked) BGM.
   private static readonly POWER_COIN_AMBIENT_VOLUME_MULT = 1.4;
 
+  // Bus-level mix biases applied on top of the user's volume sliders so the
+  // overall mix is unified regardless of how the player set things in the UI.
+  // The background music sits a notch above its raw setting; every SFX
+  // (sample buffer + synth one-shot + ambient loop) is trimmed a notch below.
+  // Keep these conservative — they multiply the user's slider, not replace it.
+  private static readonly MUSIC_BUS_BOOST = 2.5;
+  private static readonly SFX_BUS_TRIM = 0.45;
+
   // Power-up melody management
   private powerUpMelodyActive = false;
   private powerUpMelodyTimeout: NodeJS.Timeout | null = null;
@@ -70,7 +78,7 @@ export class AudioManager {
     if (!this.audioContext) return;
 
     try {
-      const audioPath = getAudioPath("background-music");
+      const audioPath = getAudioPath("sigurd-game-loop");
       const response = await fetch(audioPath);
       const arrayBuffer = await response.arrayBuffer();
       this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(
@@ -649,16 +657,20 @@ export class AudioManager {
         audioSettings.masterMuted || audioSettings.musicMuted
           ? 0
           : (audioSettings.masterVolume / 100) *
-            (audioSettings.musicVolume / 100);
+            (audioSettings.musicVolume / 100) *
+            AudioManager.MUSIC_BUS_BOOST;
       this.backgroundMusicGain.gain.value = musicVolume;
     }
   }
 
   private getSFXVolume(): number {
     const audioSettings = useAudioStore.getState().audioSettings;
-    return audioSettings.masterMuted || audioSettings.sfxMuted
-      ? 0
-      : (audioSettings.masterVolume / 100) * (audioSettings.sfxVolume / 100);
+    if (audioSettings.masterMuted || audioSettings.sfxMuted) return 0;
+    return (
+      (audioSettings.masterVolume / 100) *
+      (audioSettings.sfxVolume / 100) *
+      AudioManager.SFX_BUS_TRIM
+    );
   }
 
   // Public method to update audio volumes when settings change
