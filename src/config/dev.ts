@@ -6,6 +6,14 @@
 /** Draw collider outlines on every entity. Independent of DEV_CONFIG.ENABLED. */
 export const SHOW_HITBOXES = false;
 
+/**
+ * Dev/preview mock balance, used only when no host bridge is present.
+ * `null` (shipped default) = off → standalone/free-play mode. Set to a number
+ * locally to preview the credit UI without a host bridge. Independent of
+ * DEV_CONFIG.ENABLED.
+ */
+export const MOCK_BALANCE: number | null = null;
+
 interface LevelHistoryMock {
   level: number;
   mapName: string;

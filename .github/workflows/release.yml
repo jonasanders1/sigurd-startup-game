@@ -1,0 +1,38 @@
+name: release
+
+# Publishes the package to npm.
+#
+# Trigger by publishing a GitHub Release (recommended) or running the workflow
+# manually. Requires a repository secret named NPM_TOKEN — an npm "Automation"
+# access token (Account → Access Tokens → Generate → Automation), which bypasses
+# 2FA for CI. `npm publish` runs prepublishOnly (build:package + smoke test)
+# before uploading, so a broken build fails the job instead of publishing.
+#
+# Make sure package.json "version" is bumped before releasing — npm rejects a
+# republish of an existing version.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      # prepublishOnly (npm run build:package) runs automatically here and will
+      # fail the job if the build or smoke test fails.
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
