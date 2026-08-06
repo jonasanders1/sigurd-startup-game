@@ -78,7 +78,7 @@ export class AudioManager {
     if (!this.audioContext) return;
 
     try {
-      const audioPath = getAudioPath("sigurd-game-loop");
+      const audioPath = getAudioPath("background-music");
       const response = await fetch(audioPath);
       const arrayBuffer = await response.arrayBuffer();
       this.backgroundMusicBuffer = await this.audioContext.decodeAudioData(

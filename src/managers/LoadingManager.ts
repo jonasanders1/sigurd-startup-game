@@ -407,7 +407,7 @@ export class LoadingManager {
    * Load audio files
    */
   private async loadAudioFiles(step: LoadingStep): Promise<void> {
-    const audioFiles = ["sigurd-game-loop.wav", "sigurd-theme-song.mp3"];
+    const audioFiles = ["background-music.mp3", "sigurd-theme-song.mp3"];
 
     for (let i = 0; i < audioFiles.length; i++) {
       this.updateDynamicMessage(step.id, i);
