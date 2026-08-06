@@ -27,3 +27,9 @@ dist-ssr
 .env
 .security-reports/
 .claude/
+
+# Build / packaging artifacts
+*.tgz
+
+# Accidental `script(1)` capture (default output filename)
+typescript
