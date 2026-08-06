@@ -20,5 +20,12 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Lint is non-blocking for now: there is a backlog of pre-existing
+      # `@typescript-eslint/no-explicit-any` errors. Surfaces the count on
+      # every run without red-walling main. Flip to blocking once the backlog
+      # is cleared.
+      - run: npm run lint
+        continue-on-error: true
       - run: npx tsc --noEmit
+      - run: npm test
       - run: npm audit --omit=dev --audit-level=high
