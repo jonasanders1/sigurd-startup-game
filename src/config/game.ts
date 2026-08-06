@@ -8,6 +8,17 @@ export const CANVAS_CONFIG = {
   HEIGHT: 600,
 } as const;
 
+export const GAME_LOOP = {
+  // Hard cap on the per-frame delta fed to physics/AI (ms). rAF suspends in
+  // background tabs, so the first frame after returning can carry a multi-
+  // second delta — unclamped, that scales every per-frame value by delta/16.67
+  // in a single discrete AABB step (player tunnels through platforms, coins
+  // skip their landing window). 50ms ≈ 3 baseline frames: big enough to
+  // absorb normal jitter/GC pauses, small enough that no entity crosses a
+  // 25px platform in one step at game speeds.
+  MAX_FRAME_DELTA_MS: 50,
+} as const;
+
 export const PHYSICS_CONFIG = {
   // Gravity settings - Moon-like physics
   GRAVITY: 0.2,

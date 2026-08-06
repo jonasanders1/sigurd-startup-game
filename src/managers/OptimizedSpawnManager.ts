@@ -191,13 +191,20 @@ export class OptimizedSpawnManager {
       currentState: "PLAYING", // Add this for movement classes to check pause state
     };
 
+    // Movement/AI timers (wisp hop rests, founder surprise windows,
+    // bureaucrat transitions, airborne homing ramps) compare stamps against
+    // this clock. Raw Date.now() keeps ticking through pauses and power-mode
+    // freezes, so every timer would "catch up" instantly on resume — the
+    // pause-adjusted absolute clock stands still while we're paused.
+    const adjustedNow = this.getAdjustedAbsoluteTime();
+
     // Process spawns every frame (no throttling for spawn timing)
-    this.processSpawns(currentTime, gameState);
+    this.processSpawns(adjustedNow, gameState);
 
     // Update behaviors every frame for smooth movement (only if there are active monsters)
     if (monsters.some((m) => m.isActive)) {
       this.behaviorManager.updateMonsterBehaviors(
-        currentTime,
+        adjustedNow,
         gameState,
         deltaTime
       );

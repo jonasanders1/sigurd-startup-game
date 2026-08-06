@@ -1,6 +1,28 @@
-import { useInputStore } from "../stores/gameStore";
-import { InputKey } from "../types/enums";
+import { useInputStore, useStateStore } from "../stores/gameStore";
+import { GameState, InputKey } from "../types/enums";
 import { log } from "../lib/logger";
+
+// Keys the browser acts on by default (page scroll). The game is embedded in
+// a host landing page, so without preventDefault every jump/move scrolls the
+// page underneath the canvas.
+const SCROLLING_KEYS = new Set<string>([
+  InputKey.LEFT,
+  InputKey.RIGHT,
+  InputKey.UP,
+  InputKey.DOWN,
+  InputKey.SPACE,
+]);
+
+/** True when the event originates from a field the host page is typing in. */
+const isEditableTarget = (target: EventTarget | null): boolean => {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
+  return (
+    el.tagName === "INPUT" ||
+    el.tagName === "TEXTAREA" ||
+    el.isContentEditable === true
+  );
+};
 
 export class InputManager {
   private keysPressed: Set<string> = new Set();
@@ -31,6 +53,19 @@ export class InputManager {
   }
 
   private handleKeyDown(event: KeyboardEvent) {
+    // Leave host-page form fields alone entirely.
+    if (isEditableTarget(event.target)) return;
+
+    // Keep Space/arrows from scrolling the host page while a game session is
+    // active. On the start menu the game is idle, so the page keeps its
+    // normal scroll behavior.
+    if (
+      SCROLLING_KEYS.has(event.key) &&
+      useStateStore.getState().currentState !== GameState.MENU
+    ) {
+      event.preventDefault();
+    }
+
     // Track key state
     this.keysPressed.add(event.key);
 
@@ -39,6 +74,8 @@ export class InputManager {
   }
 
   private handleKeyUp(event: KeyboardEvent) {
+    if (isEditableTarget(event.target)) return;
+
     // Remove from pressed keys
     this.keysPressed.delete(event.key);
 
@@ -93,7 +130,7 @@ export class InputManager {
         setInput("superJump", pressed);
         break;
 
-      // Float - Space or Z
+      // Float - Space
       case InputKey.SPACE:
         setInput("float", pressed);
         break;

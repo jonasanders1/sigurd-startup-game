@@ -27,7 +27,9 @@ export class PatrolMovement {
     // Bureaucrat ground-impact transition: pause movement while the transition
     // animation plays. On completion, run the type-swap (or die for NONE).
     if (monster.isTransitioning) {
-      const elapsed = Date.now() - (monster.transitionStartTime ?? 0);
+      // currentTime is the pause-adjusted clock, so the transition animation
+      // doesn't complete "for free" while the game is paused or frozen.
+      const elapsed = currentTime - (monster.transitionStartTime ?? 0);
       if (elapsed >= BYRAKRAT_TRANSITION_DURATION_MS) {
         monster.isTransitioning = false;
         monster.transitionStartTime = undefined;
@@ -56,7 +58,7 @@ export class PatrolMovement {
     // platform below or the canvas bottom. On canvas-bottom hit it
     // transforms (Ground entity removed; bottom edge is the new floor).
     if (monster.isFalling) {
-      this.updateFallingBureaucrat(monster, platforms, frameMult);
+      this.updateFallingBureaucrat(monster, platforms, frameMult, currentTime);
       return;
     }
 
@@ -124,7 +126,8 @@ export class PatrolMovement {
   private updateFallingBureaucrat(
     monster: Monster,
     platforms: import("../../types/interfaces").Platform[],
-    frameMult: number
+    frameMult: number,
+    currentTime: number
   ): void {
     if (!isPatrolMonster(monster)) return;
 
@@ -194,7 +197,7 @@ export class PatrolMovement {
         // Enter transition phase — animation plays in place, then the next
         // updateHorizontalPatrol tick runs transformBureaucratOnGround.
         monster.isTransitioning = true;
-        monster.transitionStartTime = Date.now();
+        monster.transitionStartTime = currentTime;
       }
       return;
     }
