@@ -58,12 +58,16 @@ export class FloaterMovement {
     // window closes it reverts to inertia-based bouncing.
     this.tickSurprise(monster, currentTime, gameStateParam?.player, valuesToUse.floater.speed);
 
-    // Update velocity magnitude with current scaled speed (but preserve direction)
+    // Update velocity magnitude with current scaled speed (but preserve
+    // direction). Skipped while a surprise burst is active — the burst sets a
+    // boosted magnitude on purpose, and renormalizing here would cancel
+    // FOUNDER_SURPRISE_BOOST the same frame it was applied.
+    const surpriseActive = m.surpriseStartTime !== undefined;
     const currentSpeed = Math.sqrt(
       monster.velocityX * monster.velocityX +
         monster.velocityY * monster.velocityY
     );
-    if (currentSpeed > 0) {
+    if (!surpriseActive && currentSpeed > 0) {
       const speedRatio = valuesToUse.floater.speed / currentSpeed;
       monster.velocityX *= speedRatio;
       monster.velocityY *= speedRatio;
@@ -262,6 +266,13 @@ export class FloaterMovement {
     // Calculate the dot product of velocity and normal
     const dotProduct =
       monster.velocityX * normal.x + monster.velocityY * normal.y;
+
+    // Only reflect when actually moving INTO the surface. If the previous
+    // bounce's random rotation left the velocity already pointing outward
+    // while the body still overlaps, reflecting again would flip it back
+    // inward — an endless jitter-against-the-wall loop that also re-arms
+    // lethality every frame.
+    if (dotProduct >= 0) return;
 
     // Reflect the velocity vector
     monster.velocityX = monster.velocityX - 2 * dotProduct * normal.x;

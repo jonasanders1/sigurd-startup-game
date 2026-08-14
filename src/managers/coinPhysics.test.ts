@@ -128,3 +128,51 @@ describe("CoinPhysics - initial velocity", () => {
     expect(v.velocityY).toBeCloseTo(0, 10);
   });
 });
+
+describe("CoinPhysics - POWER coin corner hits (regression)", () => {
+  // Platform occupies x[400..500], y[300..400]. A coin overlapping the
+  // top-left corner gets a diagonal collision normal from
+  // calculateCollisionNormal (coin center up-left of the corner).
+  const cornerPlatform: Platform = {
+    x: 400,
+    y: 300,
+    width: 100,
+    height: 100,
+    color: "#000",
+  };
+
+  it("separates on BOTH axes for a diagonal (corner) normal", () => {
+    const coin = makeCoin({
+      type: "POWER",
+      x: 382.5,
+      y: 282.5,
+      velocityX: 3,
+      velocityY: 3,
+    });
+    CoinPhysics.updateCoin(coin, [cornerPlatform], COIN_PHYSICS.POWER, FRAME);
+    // Fully outside the platform on both axes — single-axis snapping would
+    // leave one axis overlapping and re-reflect forever.
+    expect(coin.x).toBe(cornerPlatform.x - coin.width - 1); // 374
+    expect(coin.y).toBe(cornerPlatform.y - coin.height - 1); // 274
+    // Velocity reflected outward (was heading down-right into the corner).
+    expect(coin.velocityX).toBeLessThan(0);
+    expect(coin.velocityY).toBeLessThan(0);
+  });
+
+  it("does not re-reflect a coin already moving away from the surface", () => {
+    const coin = makeCoin({
+      type: "POWER",
+      x: 382.5,
+      y: 282.5,
+      velocityX: -3,
+      velocityY: -3,
+    });
+    CoinPhysics.updateCoin(coin, [cornerPlatform], COIN_PHYSICS.POWER, FRAME);
+    // Still separated out of the overlap...
+    expect(coin.x).toBe(cornerPlatform.x - coin.width - 1);
+    expect(coin.y).toBe(cornerPlatform.y - coin.height - 1);
+    // ...but the outward velocity is left alone (no double flip back inward).
+    expect(coin.velocityX).toBe(-3);
+    expect(coin.velocityY).toBe(-3);
+  });
+});

@@ -19,7 +19,18 @@ export class CollisionManager {
 
     for (const platform of platforms) {
       const collision = this.checkFullCollision(player, platform);
-      if (collision.hasCollision && collision.penetration !== undefined && collision.penetration < smallestPenetration) {
+      // Skip non-positive penetrations: detection runs at the predicted
+      // position but overlap is measured at the current one, so a platform
+      // the player is merely *approaching* reports penetration <= 0. Letting
+      // such a phantom win the smallest-penetration contest would shadow a
+      // real overlap with another platform and make the resolver bail on it
+      // for a frame (seam jitter, deeper embedding).
+      if (
+        collision.hasCollision &&
+        collision.penetration !== undefined &&
+        collision.penetration > 0 &&
+        collision.penetration < smallestPenetration
+      ) {
         bestCollision = collision;
         smallestPenetration = collision.penetration;
       }

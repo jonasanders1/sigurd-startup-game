@@ -41,16 +41,25 @@ export class AmbusherMovement {
     const platforms = gameState.platforms || [];
 
     if (monster.behaviorState === "wandering") {
-      // Initialize current wandering direction if not set
-      if (!(monster as any).targetX || !(monster as any).targetY) {
+      // Initialize current wandering direction if not set. `=== undefined`,
+      // not falsiness: a clamped target of exactly 0 (left/top edge) is
+      // legitimate, and treating it as "unset" re-rolled a random direction
+      // every frame at the edges (FPS-dependent jitter).
+      if (
+        (monster as any).targetX === undefined ||
+        (monster as any).targetY === undefined
+      ) {
         this.chooseNewWanderingDirection(monster, currentTime);
       }
 
-      const timeSinceDirectionChange =
-        currentTime - (monster.lastDirectionChange || currentTime);
-
-      // Change direction every 2-4 seconds
-      if (timeSinceDirectionChange > 2000 + Math.random() * 2000) {
+      // Change direction every 2-4 seconds. The threshold is rolled ONCE per
+      // direction (in chooseNewWanderingDirection) — re-sampling
+      // Math.random() every frame would make the effective turn rate
+      // frame-rate dependent.
+      const nextChangeAt = (monster as any).nextDirectionChangeAt as
+        | number
+        | undefined;
+      if (nextChangeAt !== undefined && currentTime >= nextChangeAt) {
         this.chooseNewWanderingDirection(monster, currentTime);
       }
 
@@ -67,8 +76,8 @@ export class AmbusherMovement {
       const speedFactor = near + (far - near) * proximity;
       const moveSpeed = valuesToUse.ambusher.speed * 0.5 * speedFactor;
       const frameSpeed = deltaTime ? moveSpeed * (deltaTime / 16.67) : moveSpeed;
-      const targetX = (monster as any).targetX || monster.x;
-      const targetY = (monster as any).targetY || monster.y;
+      const targetX = (monster as any).targetX ?? monster.x;
+      const targetY = (monster as any).targetY ?? monster.y;
 
       // Calculate direction to target
       const dx = targetX - monster.x;
@@ -80,9 +89,12 @@ export class AmbusherMovement {
         const normX = dx / distance;
         const normY = dy / distance;
 
-        // Try to move toward target (frame-rate independent)
-        const newX = monster.x + frameSpeed * normX;
-        const newY = monster.y + frameSpeed * normY;
+        // Try to move toward target, never past it — an unclamped step can
+        // overshoot the 5px arrival radius every frame and oscillate across
+        // the target forever.
+        const step = Math.min(frameSpeed, distance);
+        const newX = monster.x + step * normX;
+        const newY = monster.y + step * normY;
 
         // Check if new position is safe (platforms, boundaries, and ground)
         if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
@@ -120,8 +132,8 @@ export class AmbusherMovement {
       // Simple ambush: move toward player position
       const ambushSpeed = valuesToUse.ambusher.speed * 3.0; // Use appropriate speed
       const frameSpeed = deltaTime ? ambushSpeed * (deltaTime / 16.67) : ambushSpeed; // 16.67ms = 60fps
-      const targetX = monster.ambushTargetX || monster.x;
-      const targetY = monster.ambushTargetY || monster.y;
+      const targetX = monster.ambushTargetX ?? monster.x;
+      const targetY = monster.ambushTargetY ?? monster.y;
       const distance = Math.sqrt(
         (targetX - monster.x) ** 2 + (targetY - monster.y) ** 2
       );
@@ -133,9 +145,13 @@ export class AmbusherMovement {
         const normX = dx / distance;
         const normY = dy / distance;
 
-        // Try to move toward target (frame-rate independent)
-        const newX = monster.x + frameSpeed * normX;
-        const newY = monster.y + frameSpeed * normY;
+        // Clamp the charge step to the remaining distance: at scaled speed
+        // x3 the unclamped step exceeds the 5px arrival radius, so the ghost
+        // would overshoot back and forth across the target indefinitely,
+        // stuck in "ambushing".
+        const step = Math.min(frameSpeed, distance);
+        const newX = monster.x + step * normX;
+        const newY = monster.y + step * normY;
 
         // Check if movement is safe (platforms, boundaries, and ground)
         if (MovementUtils.isMovementSafe(monster, newX, newY, platforms)) {
@@ -200,6 +216,10 @@ export class AmbusherMovement {
     (monster as any).targetX = newTargetX;
     (monster as any).targetY = newTargetY;
     monster.lastDirectionChange = currentTime;
+    // Roll the next direction-change time once per direction (2-4s out) so
+    // the turn rate is independent of frame rate.
+    (monster as any).nextDirectionChangeAt =
+      currentTime + 2000 + Math.random() * 2000;
     // BJ §5.4: first direction change arms the TAXGHOST as lethal.
     armMonsterAsLethal(monster);
   }

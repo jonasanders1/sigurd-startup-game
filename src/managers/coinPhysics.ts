@@ -228,14 +228,18 @@ export class CoinPhysics {
           );
         }
 
-        // Reflect the velocity vector using the normal (same as FloaterMovement)
+        // Reflect the velocity vector using the normal (same as
+        // FloaterMovement) — but only when moving INTO the surface. If the
+        // coin is still overlapping while already heading outward (corner
+        // hit last frame), reflecting again would flip it back inward and
+        // it would ping-pong inside the platform.
         const dotProduct =
           coin.velocityX * collisionNormal.x +
           coin.velocityY * collisionNormal.y;
-        const oldVX = coin.velocityX;
-        const oldVY = coin.velocityY;
-        coin.velocityX = coin.velocityX - 2 * dotProduct * collisionNormal.x;
-        coin.velocityY = coin.velocityY - 2 * dotProduct * collisionNormal.y;
+        if (dotProduct < 0) {
+          coin.velocityX = coin.velocityX - 2 * dotProduct * collisionNormal.x;
+          coin.velocityY = coin.velocityY - 2 * dotProduct * collisionNormal.y;
+        }
 
         // Debug: Log velocity after reflection
         if (Math.random() < 0.1) {
@@ -246,16 +250,18 @@ export class CoinPhysics {
           );
         }
 
-        // Simple repositioning - just move coin out of collision
+        // Reposition out of collision on EVERY axis the normal has a
+        // component on. A corner hit produces a diagonal normal; snapping a
+        // single axis left the coin still overlapping on the other and
+        // re-reflecting every frame.
         if (collisionNormal.x !== 0) {
-          // Horizontal collision
           if (collisionNormal.x > 0) {
             coin.x = platform.x + platform.width + 1;
           } else {
             coin.x = platform.x - coin.width - 1;
           }
-        } else {
-          // Vertical collision
+        }
+        if (collisionNormal.y !== 0) {
           if (collisionNormal.y > 0) {
             coin.y = platform.y + platform.height + 1;
           } else {
