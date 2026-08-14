@@ -8,6 +8,7 @@ import {
 } from "../stores/gameStore";
 import { Player } from "../types/interfaces";
 import { GAME_CONFIG } from "../types/constants";
+import { PHYSICS_CONFIG } from "../config/game";
 import { PLAYFIELD_BOTTOM } from "../config/floor";
 import { CollisionManager } from "./CollisionManager";
 import { AnimationController } from "../lib/AnimationController";
@@ -58,6 +59,12 @@ export class PlayerManager {
   // player perceives as rapid color cycling and overlapping audio. Latch
   // consumes the press until the key is released and re-pressed.
   private jumpInputLatched = false;
+  // Jump-feel timers (ms, ticked off loop delta — pause-safe). Coyote grants
+  // a short grace to jump after walking off a ledge; the buffer holds a
+  // slightly-early press until touchdown. See PHYSICS_CONFIG.
+  private coyoteMsRemaining = 0;
+  private jumpBufferMsRemaining = 0;
+  private prevJumpHeld = false;
 
   constructor(animationController: AnimationController) {
     this.collisionManager = new CollisionManager();
@@ -194,7 +201,7 @@ export class PlayerManager {
     );
 
     // Handle jumping mechanics
-    this.handleJumping(player, input);
+    this.handleJumping(player, input, deltaTime);
 
     // Handle fast fall and floating
     this.handleAirMovement(player, input);
@@ -254,8 +261,10 @@ export class PlayerManager {
   //   ↑ + SHIFT  → high   (LUT[0], slower ascent → higher peak)
   //   ↓ + ↑      → short  (LUT[16], skips strongest upward velocity)
   // Modifier priority is encoded in decideJumpType (down wins over shift).
-  private handleJumping(player: Player, input: any): void {
+  private handleJumping(player: Player, input: any, deltaTime: number): void {
     const isUpPressed = input.jump;
+    const pressedThisFrame = isUpPressed && !this.prevJumpHeld;
+    this.prevJumpHeld = isUpPressed;
 
     // Release the latch as soon as the jump key goes up so the next press
     // can fire. With the key released, holding it again is a fresh press.
@@ -263,12 +272,39 @@ export class PlayerManager {
       this.jumpInputLatched = false;
     }
 
-    if (
-      isUpPressed &&
-      player.isGrounded &&
+    // Coyote window: refilled while grounded, drains while airborne. After a
+    // real jump the ascent alone far outlasts the window, so this can never
+    // grant a double jump.
+    if (player.isGrounded) {
+      this.coyoteMsRemaining = PHYSICS_CONFIG.COYOTE_TIME_MS;
+    } else {
+      this.coyoteMsRemaining = Math.max(0, this.coyoteMsRemaining - deltaTime);
+    }
+
+    // Jump buffer: armed on the press EDGE only, then drains. A held key
+    // does not re-arm it — that's what bounds the old infinite
+    // press-in-midair-fires-on-any-later-landing behavior.
+    this.jumpBufferMsRemaining = Math.max(
+      0,
+      this.jumpBufferMsRemaining - deltaTime
+    );
+    if (pressedThisFrame) {
+      this.jumpBufferMsRemaining = PHYSICS_CONFIG.JUMP_BUFFER_MS;
+    }
+
+    const wantsJump =
+      isUpPressed && !this.jumpInputLatched && this.jumpBufferMsRemaining > 0;
+    const canGroundJump = player.isGrounded;
+    // Coyote jump: recently walked off a ledge (not from a jump — the
+    // descent guard also blocks post-apex re-jumps where isJumping already
+    // flipped false mid-air).
+    const canCoyoteJump =
+      !player.isGrounded &&
       !player.isJumping &&
-      !this.jumpInputLatched
-    ) {
+      player.velocityY >= 0 &&
+      this.coyoteMsRemaining > 0;
+
+    if (wantsJump && !player.isJumping && (canGroundJump || canCoyoteJump)) {
       const params = jumpInitParams(
         decideJumpType({
           fastFall: !!input.fastFall,
@@ -282,6 +318,8 @@ export class PlayerManager {
       player.jumpAdvanceRate = params.ascendAdvanceRate;
       player.velocityY = gravityVelocityAt(params.startIdx);
       this.jumpInputLatched = true;
+      this.coyoteMsRemaining = 0;
+      this.jumpBufferMsRemaining = 0;
 
       useAudioStore.getState().audioManager?.playSound(AudioEvent.PLAYER_JUMP);
 

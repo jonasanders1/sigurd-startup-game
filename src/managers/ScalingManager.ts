@@ -209,17 +209,33 @@ export class ScalingManager {
   private globalStartTime: number = 0;
 
   public startMap(): void {
-    this.globalStartTime = Date.now();
-    this.globalPauseState = this.createPauseState();
-    this.clearCache();
+    this.resetGlobalClock();
     logger.level("New map started - difficulty reset");
   }
 
   public resetOnDeath(): void {
+    this.resetGlobalClock();
+    logger.player("Player died - difficulty reset to base values");
+  }
+
+  /**
+   * Reset the difficulty clock WITHOUT dropping active pause reasons.
+   * Level loads and death resets happen while scaling is paused for a
+   * menu/map-cleared/countdown state; replacing the pause state with a
+   * fresh unpaused one silently resumed the clock, so difficulty accrued
+   * through bonus screens and countdowns before play actually began —
+   * "difficulty rises while paused".
+   */
+  private resetGlobalClock(): void {
+    const activeReasons = new Set(this.globalPauseState.pauseReasons);
     this.globalStartTime = Date.now();
     this.globalPauseState = this.createPauseState();
+    if (activeReasons.size > 0) {
+      this.globalPauseState.pauseReasons = activeReasons;
+      this.globalPauseState.isPaused = true;
+      this.globalPauseState.pauseStartTime = this.globalStartTime;
+    }
     this.clearCache();
-    logger.player("Player died - difficulty reset to base values");
   }
 
   public getGlobalScaledValues(): MonsterScalingValues {

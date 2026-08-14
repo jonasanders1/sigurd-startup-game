@@ -1368,7 +1368,18 @@ export class CoinManager {
     // Clear spawn-condition keys alongside firefoundingCount; otherwise level 2's
     // founding #9 hits the already-triggered "POWER_9" key from level 1 and the
     // P-coin never spawns again. Same for lastProcessedScore (B-coin keys).
+    //
+    // EXCEPT the M-coin milestone keys: those dedupe against the
+    // RUN-cumulative B-coin counter (softResetCoinState deliberately
+    // preserves totalBonusMultiplierCoinsCollected across maps). Wiping them
+    // here made mCoinSpawnDecision re-fire the already-reached milestone the
+    // moment each later level started — a free extra-life coin per level,
+    // and more after deaths once death-generosity inflated the count.
+    const mCoinKeys = [...this.triggeredSpawnConditions].filter((k) =>
+      k.startsWith(`${CoinType.EXTRA_LIFE}_`)
+    );
     this.triggeredSpawnConditions.clear();
+    for (const k of mCoinKeys) this.triggeredSpawnConditions.add(k);
     this.lastProcessedScore = 0;
     log.debug("Coin effects reset");
   }
