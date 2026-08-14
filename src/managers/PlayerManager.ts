@@ -440,7 +440,11 @@ export class PlayerManager {
     // phantom edge). Probe: if the bottom edge is within 1 px of any
     // surface top with horizontal overlap, latch grounded. The canvas bottom
     // counts as a virtual surface — standing on it = grounded.
-    if (!updatedPlayer.isGrounded) {
+    // Only while not moving upward: on the jump frame the player rises less
+    // than the probe's 1px tolerance at high refresh rates (e.g. ~0.7px at
+    // 240Hz), so without the velocity check the probe would re-ground the
+    // player and swallow the jump.
+    if (!updatedPlayer.isGrounded && updatedPlayer.velocityY >= 0) {
       if (this.isRestingOnSurfaces(updatedPlayer, platforms)) {
         updatedPlayer.isGrounded = true;
         updatedPlayer.velocityY = 0;

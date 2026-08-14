@@ -136,10 +136,16 @@ export class PatrolMovement {
     // source platform horizontally. Letting gravity engage here would clip
     // it down through the platform's edge. Walk past the footprint first.
     const dir = monster.direction;
+    // The canvas boundary counts as "cleared": clampToBoundaries pins x to
+    // the canvas edge every frame, so for a platform flush with the wall the
+    // patrol-bound condition alone is unreachable — the bureaucrat would walk
+    // into the wall forever, frozen in the scoot phase.
     const fullyCleared =
       dir > 0
-        ? monster.x >= monster.patrolEndX
-        : monster.x + monster.width <= monster.patrolStartX;
+        ? monster.x >= monster.patrolEndX ||
+          monster.x + monster.width >= GAME_CONFIG.CANVAS_WIDTH
+        : monster.x + monster.width <= monster.patrolStartX ||
+          monster.x <= 0;
 
     if (!fullyCleared) {
       const speed = ScalingManager.getInstance()
