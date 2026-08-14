@@ -26,7 +26,7 @@ import { MovementUtils } from "./MovementUtils";
 export class AirborneMovement {
   public update(
     monster: Monster,
-    _currentTime: number,
+    currentTime: number,
     gameState: { currentState?: string; player?: { x: number; y: number } } | undefined,
     deltaTime?: number
   ): void {
@@ -57,16 +57,18 @@ export class AirborneMovement {
       homingScale?: number;
       homingOffset?: number;
     };
-    if (m.airborneStartTime == null) m.airborneStartTime = Date.now();
+    // Pause-adjusted clock: the homing ramp must not complete while the game
+    // is paused or the monster is frozen (raw Date.now() would keep ticking).
+    if (m.airborneStartTime == null) m.airborneStartTime = currentTime;
     if (m.homingScale == null) m.homingScale = 0.7 + Math.random() * 0.6; // 0.7–1.3
     if (m.homingOffset == null) m.homingOffset = (Math.random() - 0.5) * 30; // ±15 px
 
     switch (monster.type) {
       case "ROBOT":
-        this.updateRobot(monster, player, frameMult);
+        this.updateRobot(monster, player, frameMult, currentTime);
         break;
       case "CONSULTANT":
-        this.updateConsultant(monster, player, frameMult);
+        this.updateConsultant(monster, player, frameMult, currentTime);
         break;
     }
   }
@@ -166,12 +168,14 @@ export class AirborneMovement {
   private updateRobot(
     monster: Monster,
     player: { x: number; y: number },
-    frameMult: number
+    frameMult: number,
+    currentTime: number
   ): void {
     this.updateAxisMirror(
       monster,
       player,
       frameMult,
+      currentTime,
       "x",
       "ROBOT_HOMING_RATIO",
       "ROBOT_HOMING_RAMP_MS",
@@ -188,12 +192,14 @@ export class AirborneMovement {
   private updateConsultant(
     monster: Monster,
     player: { x: number; y: number },
-    frameMult: number
+    frameMult: number,
+    currentTime: number
   ): void {
     this.updateAxisMirror(
       monster,
       player,
       frameMult,
+      currentTime,
       "y",
       "CONSULTANT_HOMING_RATIO",
       "CONSULTANT_HOMING_RAMP_MS",
@@ -216,6 +222,7 @@ export class AirborneMovement {
     monster: Monster,
     player: { x: number; y: number },
     frameMult: number,
+    currentTime: number,
     freeAxis: "x" | "y",
     homingRatioKey: "ROBOT_HOMING_RATIO" | "CONSULTANT_HOMING_RATIO",
     homingRampKey: "ROBOT_HOMING_RAMP_MS" | "CONSULTANT_HOMING_RAMP_MS",
@@ -263,10 +270,10 @@ export class AirborneMovement {
       homingScale?: number;
       homingOffset?: number;
     };
-    const airborneStart = jitter.airborneStartTime ?? Date.now();
+    const airborneStart = jitter.airborneStartTime ?? currentTime;
     const rampMs = getTuned(homingRampKey);
     const rampFactor =
-      rampMs <= 0 ? 1 : Math.min(1, (Date.now() - airborneStart) / rampMs);
+      rampMs <= 0 ? 1 : Math.min(1, (currentTime - airborneStart) / rampMs);
     const k =
       getTuned(homingRatioKey) *
       SPRING_K_SCALE *

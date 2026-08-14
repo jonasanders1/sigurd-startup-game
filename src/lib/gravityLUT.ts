@@ -186,6 +186,8 @@ export const advanceGravityIndex = (
   index: number,
   deltaTimeMs: number
 ): number => {
-  const frameRatio = deltaTimeMs / 16.67;
-  return Math.min(index + frameRatio, GRAVITY_TERMINAL_INDEX);
+  // Negative deltas (clock hiccups, misuse) must not rewind the arc, and the
+  // result is clamped to the table's domain on both ends.
+  const frameRatio = Math.max(0, deltaTimeMs) / 16.67;
+  return Math.min(Math.max(index + frameRatio, 0), GRAVITY_TERMINAL_INDEX);
 };

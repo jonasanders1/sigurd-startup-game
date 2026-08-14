@@ -70,6 +70,8 @@ export class GameManager {
   private audioSettingsListenerCleanup: (() => void) | null = null;
   private balanceUnsubscribe: (() => void) | null = null;
   private deathInProgress = false;
+  // Stable ref so add/removeEventListener pair correctly across start/cleanup.
+  private boundVisibilityHandler = this.handleVisibilityChange.bind(this);
 
   constructor(canvas: HTMLCanvasElement) {
     // Create managers
@@ -174,6 +176,13 @@ export class GameManager {
 
     // Initialize input
     this.inputManager.initialize();
+
+    // Auto-pause when the tab is hidden mid-play. rAF suspends in background
+    // tabs while wall-clock timers (spawn schedules, respawn delays,
+    // difficulty scaling) keep running — without this, returning to the tab
+    // fires all the "owed" events at once. Pausing routes through the normal
+    // pause path, so every reason-set manager stops its clock too.
+    document.addEventListener("visibilitychange", this.boundVisibilityHandler);
 
     // Initialize ongoing audio settings listener for future updates
     // Audio settings have already been loaded by LoadingManager
@@ -547,10 +556,24 @@ export class GameManager {
   /**
    * Clean up resources
    */
+  private handleVisibilityChange(): void {
+    if (
+      document.hidden &&
+      useStateStore.getState().currentState === GameState.PLAYING
+    ) {
+      log.info("Tab hidden while playing — auto-pausing");
+      this.gameStateManager.pauseGame();
+    }
+  }
+
   public cleanup(): void {
     this.stop();
     this.inputManager.destroy();
     this.audioManager.cleanup();
+    document.removeEventListener(
+      "visibilitychange",
+      this.boundVisibilityHandler
+    );
 
     if (this.audioSettingsListenerCleanup) {
       this.audioSettingsListenerCleanup();

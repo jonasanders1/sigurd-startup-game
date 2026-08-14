@@ -111,6 +111,16 @@ describe("advanceGravityIndex (frame-rate independence)", () => {
     expect(advanceGravityIndex(127, 16.67)).toBe(GRAVITY_TERMINAL_INDEX);
     expect(advanceGravityIndex(200, 16.67)).toBe(GRAVITY_TERMINAL_INDEX);
   });
+
+  it("never rewinds on a negative delta (clock hiccup)", () => {
+    expect(advanceGravityIndex(10, -16.67)).toBe(10);
+    expect(advanceGravityIndex(10, -5000)).toBe(10);
+  });
+
+  it("clamps a negative index up into the table's domain", () => {
+    expect(advanceGravityIndex(-50, 16.67)).toBe(0);
+    expect(advanceGravityIndex(-0.5, 16.67)).toBeCloseTo(0.5, 5);
+  });
 });
 
 describe("end-to-end: jump arc shape", () => {

@@ -7,6 +7,7 @@ import {
 } from "../stores/gameStore";
 import { GameState } from "../types/enums";
 import { DEV_CONFIG } from "../types/constants";
+import { GAME_LOOP } from "../config/game";
 import { log } from "../lib/logger";
 import type { RenderManager } from "./RenderManager";
 import type { PlayerManager } from "./PlayerManager";
@@ -75,18 +76,37 @@ export class GameLoopManager {
   }
 
   public start(): void {
-    this.gameLoop(0);
+    // Guard against double-starting: two concurrent rAF chains would both
+    // advance the game (double-speed updates) and only the newest frame id
+    // would be tracked, so stop() could never cancel the older chain.
+    if (this.animationFrameId !== null) {
+      return;
+    }
+    // Seed lastTime from a real rAF timestamp before the first update.
+    // Calling gameLoop(0) directly would compute a garbage first delta
+    // (negative after a stop()/start() cycle, since lastTime still holds
+    // the previous run's timestamp).
+    this.animationFrameId = requestAnimationFrame((t) => {
+      this.lastTime = t;
+      this.boundGameLoop(t);
+    });
   }
 
   public stop(): void {
-    if (this.animationFrameId) {
+    if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
   }
 
   private gameLoop(currentTime: number): void {
-    const deltaTime = currentTime - this.lastTime;
+    // Clamp: never negative, never more than MAX_FRAME_DELTA_MS — a tab
+    // switch or long GC stall otherwise applies the whole gap as one
+    // physics step (see config/game.ts).
+    const deltaTime = Math.min(
+      Math.max(currentTime - this.lastTime, 0),
+      GAME_LOOP.MAX_FRAME_DELTA_MS
+    );
     this.lastTime = currentTime;
 
     const gameState = useStateStore.getState();
