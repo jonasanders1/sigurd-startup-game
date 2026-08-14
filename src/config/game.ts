@@ -33,6 +33,15 @@ export const PHYSICS_CONFIG = {
   // Jump mechanics
   MIN_JUMP_DURATION: 50, // Minimum time for a jump (ms)
   MAX_JUMP_DURATION: 300, // Maximum time for variable jump height (ms)
+
+  // Jump feel (both delta-driven, pause-safe):
+  // Coyote time — grace window after walking off a ledge during which a jump
+  // press still fires, so edge jumps don't feel unfairly dropped.
+  COYOTE_TIME_MS: 90,
+  // Jump buffer — a press this close before landing fires on touchdown.
+  // Bounded on purpose: the old behavior buffered a held mid-air press
+  // forever and auto-fired it on landing no matter how much later.
+  JUMP_BUFFER_MS: 100,
 } as const;
 
 export const GAME_RULES = {
